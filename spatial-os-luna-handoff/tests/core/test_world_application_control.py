@@ -569,6 +569,98 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.assertEqual(self.native_device_count(),count)
         self.actor_pointer(False,peer)
 
+    def saved_aim_authority_denial(self,kind,scroll=False):
+        self.setup_world();app,surface=self.probe();observe,control=self.grant_control(app)
+        self.addCleanup(self.m09_release_probe,app)
+        self.actor_aim();self.actor_pointer(True);self.actor_pointer(False)
+        self.control_action(self.viewer,unfocus=core.ActorStopRequest())
+        self.actor_aim();self.probe_command(app,'sync');before=len(self.probe_events(app))
+        self.revoke_grant(self.peer,observe if kind=='observe' else control)
+        operation={'scroll':core.ActorScrollRequest(steps_y=1)} if scroll else {
+            'pointer':core.ActorPointerRequest(button=1,pressed=True)}
+        self.denied(self.viewer.act(**operation),core.FORBIDDEN)
+        self.probe_command(app,'sync')
+        self.assertFalse(any(r.get('event') in ('button','key') and r.get('pressed')
+            for r in self.probe_events(app)[before:]))
+        self.actor_aim(self.peer);self.actor_pointer(True,self.peer);self.actor_pointer(False,self.peer)
+
+    def test_saved_aim_observation_revocation_precedes_pointer_target_check(self):
+        self.saved_aim_authority_denial('observe')
+
+    def test_saved_aim_control_revocation_precedes_pointer_target_check(self):
+        self.saved_aim_authority_denial('control')
+
+    def test_saved_aim_observation_revocation_precedes_scroll_target_check(self):
+        self.saved_aim_authority_denial('observe',scroll=True)
+
+    def test_saved_aim_control_revocation_precedes_scroll_target_check(self):
+        self.saved_aim_authority_denial('control',scroll=True)
+
+    def test_authorized_saved_aim_remap_stays_stale_without_acquiring_control(self):
+        self.setup_world(control_acquire_barrier=True);app,surface=self.probe();self.grant_control(app)
+        self.addCleanup(self.m09_release_probe,app)
+        self.actor_aim();self.actor_pointer(True);self.actor_pointer(False)
+        self.control_action(self.viewer,unfocus=core.ActorStopRequest())
+        self.actor_aim();self.probe_command(app,'unmap');self.probe_command(app,'map')
+        self.relay.hold_next_control_acquire()
+        try:
+            self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.STALE_TARGET)
+            self.assertFalse(self.relay.control_acquire_reply_seen.is_set())
+        finally:self.relay.release_control_acquire()
+        self.actor_aim(self.peer);self.actor_pointer(True,self.peer);self.actor_pointer(False,self.peer)
+
+    def test_application_authority_revoked_during_saved_aim_preflight_blocks_input(self):
+        self.setup_world(control_acquire_barrier=True);app,surface=self.probe();observe,control=self.grant_control(app)
+        self.addCleanup(self.m09_release_probe,app)
+        self.actor_aim();self.probe_command(app,'sync');before=len(self.probe_events(app));receipts=[]
+        def revoke_after_access(count,reply):
+            if count==1:
+                self.assertTrue(reply.application_access.applications[0].control)
+                receipts.append(access.ApplicationAccessTests.revoke_record(self,control))
+        self.relay.calls=0;self.relay.hook=revoke_after_access
+        self.relay.hold_next_control_acquire()
+        try:
+            self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.FORBIDDEN)
+            self.assertEqual(len(receipts),1)
+            self.assertFalse(self.relay.control_acquire_reply_seen.is_set())
+        finally:self.relay.hook=None;self.relay.release_control_acquire()
+        self.probe_command(app,'sync')
+        self.assertFalse(any(r.get('event')=='button' and r.get('pressed')
+            for r in self.probe_events(app)[before:]))
+        self.actor_aim(self.peer);self.actor_pointer(True,self.peer);self.actor_pointer(False,self.peer)
+
+    def test_application_authority_revoked_during_saved_aim_scene_blocks_input(self):
+        self.setup_world(control_acquire_barrier=True);app,surface=self.probe();observe,control=self.grant_control(app)
+        self.addCleanup(self.m09_release_probe,app)
+        self.actor_aim();self.probe_command(app,'sync');before=len(self.probe_events(app));receipts=[]
+        def revoke_during_scene(count,reply):
+            if count==2:
+                self.assertTrue(reply.application_access.applications[0].observe)
+                receipts.append(access.ApplicationAccessTests.revoke_record(self,observe))
+        self.relay.calls=0;self.relay.hook=revoke_during_scene
+        self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.FORBIDDEN)
+        self.relay.hook=None
+        self.assertEqual(len(receipts),1)
+        self.probe_command(app,'sync')
+        self.assertFalse(any(r.get('event')=='button' and r.get('pressed')
+            for r in self.probe_events(app)[before:]))
+        self.actor_aim(self.peer);self.actor_pointer(True,self.peer);self.actor_pointer(False,self.peer)
+
+    def test_held_capture_authorizes_its_application_instead_of_new_aim(self):
+        app,surface,observe,control=self.begin_control()
+        self.addCleanup(self.m09_release_probe,app)
+        other,other_surface=self.probe((.8,0,-2));other_observe,other_control=self.grant_control(other)
+        self.addCleanup(self.m09_release_probe,other)
+        self.actor_aim(x=.8,z=-2)
+        self.revoke_grant(self.peer,other_control)
+        before=len(self.probe_events(app))
+        self.control_action(self.viewer,pointer=core.ActorPointerRequest(button=2,pressed=True))
+        self.control_action(self.viewer,pointer=core.ActorPointerRequest(button=2,pressed=False))
+        self.probe_command(app,'sync')
+        self.assertTrue(any(r.get('event')=='button' and r.get('button')==2 and r.get('pressed')
+            for r in self.probe_events(app)[before:]))
+        self.actor_pointer(False)
+
     def test_target_generation_replacement_during_broker_authorization(self):
         self.setup_world(control_acquire_barrier=True);app,surface=self.probe();self.grant_control(app)
         self.actor_aim();self.actor_pointer(True)

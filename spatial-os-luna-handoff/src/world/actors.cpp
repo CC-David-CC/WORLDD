@@ -181,7 +181,7 @@ void Actors::refresh_authority() {
         (void)id;
         if (!actor.authority) continue;
         if (!granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
-        if (!granted(actor, "observe")) actor.aim.Clear();
+        if (!granted(actor, "observe")) { actor.aim.Clear(); actor.aim_application.reset(); }
         // A retained native seat is identity, not active input authority.
         // Reentrant wait callbacks must not rearm cancellation for idle seats.
         const bool owns_input = actor.application_control || !actor.lease.empty() ||
@@ -245,7 +245,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.require_observation_grant = require_observation_grant;
     actor.local_application_output = local_application_output;
     actor.axes.fill(0); actor.expires = now_;
-    actor.aim.Clear();
+    actor.aim.Clear(); actor.aim_application.reset();
     sessions_.emplace(token, actor.entity.id());
     wire::ActorOpenReply result; result.set_id(actor.entity.id()); result.set_token(token); return result;
 }
@@ -279,7 +279,7 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
         actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
     } else release_input(actor, true);
     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
-    actor.aim.Clear();
+    actor.aim.Clear(); actor.aim_application.reset();
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
 }
@@ -344,7 +344,7 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         break;
     }
     case wire::ActorActionRequest::kStop:
-        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); cancel_object(actor); release_input(actor); break;
+        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); actor.aim_application.reset(); cancel_object(actor); release_input(actor); break;
     case wire::ActorActionRequest::kUnfocus:
         release_input(actor); break;
     case wire::ActorActionRequest::kPointer:
@@ -365,8 +365,15 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         require(request.aim().has_direction(), "Missing aim direction");
         refresh_native();
         const auto aim = pick_scene(scene(request.token()), request.aim().direction());
+        std::optional<workspace::v1::ApplicationRef> application;
+        if (surfaces_ && aim.has_hit() && aim.hit().has_pixel()) {
+            wire::SurfaceHandle target;
+            target.set_id(aim.hit().id()); target.set_generation(aim.hit().generation());
+            application = surfaces_->application(target);
+        }
         move_capture(actor, request.aim().direction());
-        actor.aim = aim; actor.direction = request.aim().direction();
+        actor.aim = aim; actor.aim_application = std::move(application);
+        actor.direction = request.aim().direction();
         wire::ActorActionReply result; result.set_accepted(true); *result.mutable_aim() = actor.aim;
         return result;
     }
@@ -553,12 +560,12 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
             const std::vector<std::string> view_scope{moved.room_id,moved.id};
             if (!granted(actor,"observe",view_scope) || !granted(actor,"representation.view",view_scope))
                 throw WorldError(wire::FORBIDDEN,"Presentation view authority changed");
-            actor.aim.Clear(); return reply;
+            actor.aim.Clear(); actor.aim_application.reset(); return reply;
         }
         const auto& input = request.presentation_remove();
         if (input.protocol_version() != 1) throw WorldError(wire::INVALID_ARGUMENT, "Invalid presentation remove request");
         store_.remove_presentation(id, expected_generation, operation, digest, principal);
-        actor.aim.Clear(); break;
+        actor.aim.Clear(); actor.aim_application.reset(); break;
     }
     case wire::ActorActionRequest::kWorkspaceCopy: {
         if (!actor.principal) throw WorldError(wire::FORBIDDEN, "Workspace copy requires an authenticated principal");
@@ -896,6 +903,27 @@ void Actors::drain_control_releases() {
         control_releases_.erase(control_releases_.begin());
     }
 }
+void Actors::preflight_input_authority(Actor& actor, const workspace::v1::ApplicationRef& application) {
+    if (!actor.principal) return;
+    if (!broker_ || actor.close_pending || actor.departure_pending || !granted(actor, "observe"))
+        throw WorldError(wire::FORBIDDEN, "Application control authority required");
+    const auto principal = *actor.principal;
+    const auto token = actor.token;
+    workspace::v1::ApplicationAccessRequest request;
+    *request.mutable_principal() = principal; *request.add_applications() = application;
+    const auto access = broker_->application_access(request);
+    if (actor.token.empty() || actor.token != token || actor.close_pending || actor.departure_pending || !actor.principal ||
+        actor.principal->SerializeAsString() != principal.SerializeAsString() ||
+        !granted(actor, "observe") || access.applications_size() != 1 ||
+        !access.applications(0).observe() || !access.applications(0).control())
+        throw WorldError(wire::FORBIDDEN, "Application control authority required");
+    workspace::v1::AuthorizationFence stamp;
+    stamp.set_incarnation(access.incarnation()); stamp.set_epoch(access.epoch());
+    validate_authority_fence(actor, {stamp});
+    if (actor.token.empty() || actor.token != token || actor.close_pending || actor.departure_pending || !actor.principal ||
+        actor.principal->SerializeAsString() != principal.SerializeAsString() || !granted(actor, "observe"))
+        throw WorldError(wire::FORBIDDEN, "Application control authority changed");
+}
 void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
     const auto app = surfaces_->application(target);
     if (!actor.principal || !app) {
@@ -1026,19 +1054,25 @@ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
     if (captured && actor.native.held_buttons_size()) return actor.capture;
     if (!actor.aim.has_hit() || !actor.aim.hit().has_pixel())
         throw WorldError(actor.principal ? wire::FORBIDDEN : wire::NO_TARGET, "No aimed application surface");
-    const auto& hit = actor.aim.hit();
+    const auto hit = actor.aim.hit();
+    const auto application = actor.aim_application;
+    auto stale = [&](const char* message) -> wire::AimHit {
+        // Scene filtering can wait for broker IPC after the initial preflight.
+        if (application) preflight_input_authority(actor, *application);
+        throw WorldError(wire::STALE_TARGET, message);
+    };
     try {
         const auto surface = surfaces_->get(hit.id());
         if (surface.generation() != hit.generation() || !surface.mapped() || surface.room() != actor.entity.room())
-            throw WorldError(wire::STALE_TARGET, "Aimed surface changed");
+            return stale("Aimed surface changed");
     } catch (const WorldError& error) {
-        if (error.code == wire::NOT_FOUND) throw WorldError(wire::STALE_TARGET, "Aimed surface was removed");
+        if (error.code == wire::NOT_FOUND) return stale("Aimed surface was removed");
         throw;
     }
     const auto current = pick_scene(scene(actor.token), actor.direction);
     if (!current.has_hit() || current.hit().id() != hit.id() || !current.hit().has_pixel() ||
         current.hit().generation() != hit.generation() || current.hit().pixel().x() != hit.pixel().x() ||
-        current.hit().pixel().y() != hit.pixel().y()) throw WorldError(wire::STALE_TARGET, "Aimed geometry or visibility changed");
+        current.hit().pixel().y() != hit.pixel().y()) return stale("Aimed geometry or visibility changed");
     return hit;
 }
 void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
@@ -1087,6 +1121,11 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
         const auto target = actor.native.focus(); authorize_input(actor, target);
         *command.mutable_key() = request.key(); send_input(actor, command); return;
     }
+    // Check the accepted application's authority before exposing saved-target state.
+    // This read-only check cannot reserve or transfer application control.
+    const auto application = !request.has_scroll() && actor.native.held_buttons_size() && actor.application_control ?
+        std::optional<workspace::v1::ApplicationRef>(actor.application_control->application()) : actor.aim_application;
+    if (application) preflight_input_authority(actor, *application);
     const auto hit = input_target(actor, !request.has_scroll());
     if (request.has_scroll() && actor.native.held_buttons_size() && hit.id() != actor.capture.id())
         throw WorldError(wire::BUSY, "Scroll cannot change the captured pointer target");
@@ -1454,7 +1493,7 @@ void Actors::step(double target) {
                         current = motion.pose; actor.entity.set_room(motion.room);
                         if (motion.crossed) {
                             cancel_object(actor);
-                            actor.aim.Clear(); actor.interaction_reset_pending = true;
+                            actor.aim.Clear(); actor.aim_application.reset(); actor.interaction_reset_pending = true;
                             actor.capture_motion_pending = false;
                         }
                         if (motion.stopped) {

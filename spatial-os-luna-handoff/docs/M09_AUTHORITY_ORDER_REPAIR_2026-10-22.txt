@@ -1,0 +1,64 @@
+M09 authority-before-target repair - 2026-10-22
+
+Status: RELATED FOCUSED MATRIX PASS. M09 remains UNQUALIFIED. M08 remains qualified and unchanged.
+Branch: m09/worldd-observer-bindings-20261022.
+Frozen test candidate parent: 3694137d608a9cb353fb609eb5bd9eefeeeb241b, plus frozen-build-inputs-11.json.
+Development checkout and artifacts reside on rog-ally-x.
+
+Production invariant
+
+Missing application authority returns FORBIDDEN before revealing saved target state.
+The accepted aim retains its application identity separately from the mutable surface handle.
+A read-only broker check precedes saved pointer/scroll geometry validation. It acquires no reservation.
+Held capture checks its controlling application, even when the new aim points at another application.
+The check revalidates actor session, principal, closure state, and authority fence after IPC.
+A stale geometry result rechecks retained application authority after scene-filtering IPC.
+Authorized remap/resize remains STALE_TARGET. Final acquisition and native submission checks remain intact.
+Effective access to exited applications may be denied; no unchanged error-code promise covers application exit.
+Existing acceptance assertions, schemas, native event routing, and XACE policy remain unchanged.
+
+Review and regressions
+
+The independent review reconciled CONTRACT, ACTOR_INPUT, and WORLD_APPLICATION_CONTROL.
+It confirmed that geometry-before-reservation does not forbid read-only authority preflight.
+The original FORBIDDEN assertion remains unchanged.
+Eight added real native cases cover saved pointer/scroll revocation, stale remap without acquisition,
+revocation during preflight and scene IPC, and capture on A while the aim points at unauthorized B.
+The existing target-generation acquisition barrier remains intact.
+The parent checkpoints separately preserve the idle-seat guard and broker-relay transport repair.
+
+Results
+
+Both sb16 and sb16-2 passed all six related registrations in Debug and ASan-UBSan.
+Each host/profile ran146 methods: application-control47, world bindings20, presentation bindings13,
+world authority27, application leases25, and legacy native input14.
+Total:584 method executions. All four final commands and wrappers exited zero.
+All four inventories and inner counts matched. Cleanup was confirmed. No sanitizer diagnostic was reported.
+This is a related regression matrix, not full M09 qualification.
+
+The earlier sb16-2 smoke failed before idle-seat input, during delegation setup.
+Its issuer log records a3827ms loop delay and a participant EOF after3842ms.
+Worldd shutdown also timed out. The failed attempt remains preserved.
+The subsequent complete Debug and sanitizer matrices passed without that failure.
+Do not erase the earlier failure or treat its underlying scheduling cause as resolved.
+
+Evidence and exact packages
+
+On each host: /home/dflanag3/spatial-artifacts/m09-worldd-observer-bindings-20261022-authority-repair-10.
+Final result: evidence-01/result.json. Receipts: native-run-10/command.exit and native-run-10/wrapper.exit.
+Full logs: evidence-01/{Debug,ASan-UBSan}/ctest/Testing/Temporary/LastTest.log.
+Original failed smoke: smoke-evidence-01/Debug and smoke-run-10 on sb16-2.
+ROG retains sb16-2-authority-smoke-failure-10.txt.
+The exact binary package is world-bindings-payload-04.tar.gz under the development artifact root.
+Its package-04.json pins archive bytes, SHA256, executable hashes, and the source manifest.
+Generated source coverage and bytes remain identical to complete-generated-source-proof-02.json.
+Revalidation is recorded in generated-source-revalidation-11.json:81Debug and80sanitizer generated files.
+
+Remaining work
+
+The native four-phase producer and independent receipt integration remain separate, unqualified work.
+Their first integrated candidate failed startup due a conditional noreturn declaration visible to os/utils.c.
+The corrected declaration is confined to the disabled function definitions. A replacement candidate awaits runtime testing.
+Actual native transitions, independent receipt validation, shared-query native coverage, scenario breadth,
+and frozen cumulative M09 qualification remain required.
+No new milestone integration or GitHub publication is established by this checkpoint.

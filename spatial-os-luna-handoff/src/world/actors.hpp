@@ -76,6 +76,7 @@ private:
         std::uint64_t sequence = 0, witness_instance_id = 0;
         double expires = 0;
         wire::AimReply aim;
+        std::optional<workspace::v1::ApplicationRef> aim_application;
         wire::Vec3 direction;
         wire::NativeActorInput native;
         wire::AimHit capture;
@@ -113,6 +114,7 @@ private:
     void release_input(Actor& actor, bool close = false, bool keep_reservation = false);
     void poll_control();
     void drain_control_releases();
+    void preflight_input_authority(Actor& actor, const workspace::v1::ApplicationRef& application);
     void authorize_input(Actor& actor, const wire::SurfaceHandle& target);
     void finish_input(Actor& actor);
     void send_input(Actor& actor, const wire::RendererInputCommand& command);
