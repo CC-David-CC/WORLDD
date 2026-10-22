@@ -44,6 +44,9 @@ int main(int argc, char** argv) {
                     *result->mutable_input()=renderer.input(request.unbound_input());break;
                 case spatial::testing::PresentationProbeRequest::kDraw:
                     *result->mutable_frame()=renderer.draw(request.draw());break;
+                case spatial::testing::PresentationProbeRequest::kSeatActor:
+                    *reply.mutable_seat()=request.has_binding()?renderer.native_actor_seat(request.binding(),request.seat_actor()):
+                        renderer.native_actor_seat(request.seat_actor());result->mutable_ready();break;
                 case spatial::testing::PresentationProbeRequest::kDescriptors: {
                     std::uint64_t count=0;
                     for (const auto& file:std::filesystem::directory_iterator("/proc/self/fd")){(void)file;++count;}

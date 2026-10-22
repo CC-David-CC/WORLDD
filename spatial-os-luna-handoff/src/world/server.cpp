@@ -1,5 +1,6 @@
 #include "world/server.hpp"
 #include "world/identity_sessions.hpp"
+#include "world/input_witness.hpp"
 #include "core/protocol.hpp"
 #include "platform/render_worker.hpp"
 #include "platform/broker.hpp"
@@ -26,7 +27,7 @@ std::uint32_t length(const std::string& buffer) {
     return (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
 }
 }
-void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker, IdentitySessions* sessions) {
+void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker, IdentitySessions* sessions, InputWitness* witness) {
     nonblocking(STDIN_FILENO); nonblocking(STDOUT_FILENO);
     signal(SIGPIPE, SIG_IGN);
     const auto origin = Clock::now();
@@ -82,6 +83,7 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
         // All actor and management handlers have returned. Settle deferred effects before acknowledgement.
         actors.flush_input();
         if (sessions) sessions->settle();
+        if (witness) witness->pump(world, actors, renderer);
         if (eof && output.empty()) {
             if (!input.empty()) throw std::runtime_error("Truncated protobuf frame");
             if (sessions) sessions->shutdown();

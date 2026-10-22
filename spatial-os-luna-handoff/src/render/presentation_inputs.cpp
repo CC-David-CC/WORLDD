@@ -103,6 +103,17 @@ wire::NativeActorInput PresentationInputs::input(const Binding& binding, const w
     if (!entry.router) throw WorldError(wire::UNAVAILABLE, "World presentation input is not initialized");
     return entry.router->execute(command);
 }
+render::v1::NativeActorSeatIdentity PresentationInputs::native_actor_seat(const Binding& binding, const std::string& actor) {
+    auto& entry=impl_->find(binding);
+    if (!entry.router) throw WorldError(wire::UNAVAILABLE, "World presentation input is not initialized");
+    render::v1::NativeActorSeatIdentity result;
+    const auto seat=entry.router->native_seat(actor);
+    result.set_actor_entity_id(actor); result.set_native_seat_id(seat.seat());
+    result.set_pointer_device(seat.pointer_device());result.set_keyboard_device(seat.keyboard_device());
+    result.set_server_id(entry.native->server_id());
+    result.set_presentation_generation(entry.binding.presentation_generation());
+    return result;
+}
 void PresentationInputs::snapshot(const Binding& binding, wire::NativeSnapshot& result) {
     auto& entry=impl_->find(binding);
     if (!entry.router) throw WorldError(wire::UNAVAILABLE, "World presentation input is not initialized");

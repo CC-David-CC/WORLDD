@@ -1,0 +1,88 @@
+M09 authenticated worldd input-witness bindings - 2026-10-22
+
+Status: COMPONENT CHECKS PASS. M09 remains UNQUALIFIED.
+Qualified M08 remains unchanged.
+Branch: m09/worldd-observer-bindings-20261022.
+Parent: f2a749e354b992bec738b0f00712e37ed1c5a6a1.
+Checkout: /home/dflanag3/src/m09-worldd-observer-bindings-20261022.
+External evidence root: /home/dflanag3/spatial-artifacts/m09-worldd-observer-bindings-20261022.
+
+Implemented behavior
+
+worldd now exports authenticated actor-to-native-seat evidence through one private inherited endpoint.
+It preserves the enrolled principal and text actor identity separately.
+A worldd-issued activation handle supplies the numeric witness correlation ID.
+The handle is scoped by worldd, world, session, and arm.
+It is never parsed or hashed from the actor name.
+
+The compositor query reads the existing actor seat and native server STATUS.
+It neither allocates input devices nor acquires application control.
+Owned compositor transport and shared-presentation transport preserve checked correlation.
+Shared queries remain scoped to the existing bound world presentation.
+The private render protocol uses version2. Locked core.proto remains unchanged.
+
+worldd checks live actor identities and broker observation/control authority.
+It rechecks both actors and their authorization fences after compositor IPC.
+Private actor session tokens never enter the serialized reply.
+The inherited endpoint requires its actual launching parent's Unix credentials.
+It accepts one canonical bounded Protobuf request with a bounded deadline.
+Malformed input, unexpected descriptors, EOF, and replay retire only the witness endpoint.
+CLOEXEC is set before compositor/helper forks.
+The schema is proto/spatial/testing/v2/world_input_witness_v2.proto.
+No public actor operation or ordinary X-client authority was added.
+
+Build and generation evidence
+
+Both fresh Debug and ASan-UBSan fixture closures compiled on ROG.
+See build-result-03.json and frozen-build-inputs-03.json.
+The storage-owner-service executable dependency was corrected before final packaging.
+The first missing-executable preflight remains preserved as setup failure evidence.
+All candidate generated sources matched two independent clean generations.
+complete-generated-source-proof-02.json covers81 Debug and80 sanitizer generated artifacts.
+The additional Debug artifact belongs to an unchanged v1 parser regression.
+The controlled environment, schemas, generator, dependencies, flags, and handwritten shim are pinned.
+All14 changed private generated artifacts also have a separate exact generation proof.
+The accepted pure harness/parser/collector checks total207 methods.
+
+Actual native component results
+
+On each of sb16 and sb16-2:
+- Debug: world-input-witness-bindings20 PASS; presentation-input-bindings13 PASS.
+- ASan-UBSan: world-input-witness-bindings20 PASS; presentation-input-bindings13 PASS.
+No sanitizer diagnostics or skips occurred in these component suites.
+The binding checks compare independently known enrolled principals and native XI device identities.
+They cover denial, lifetime, replay, malformed transport, descriptors, and no extra control acquisition.
+The presentation checks cover actual renderer seat maps, distinct scopes, and retired bindings.
+The shared presentation server/RenderWorker query transport still needs an end-to-end native check.
+These component runs reused and reverified the qualified M08 XACE graphics closure.
+They do not qualify the combined new XLibre observer server.
+
+The broader world-application-control registration also ran in all four host/profile combinations.
+Each original34-method run reproduced the same three witness-fixture failures.
+Their12 failures remain preserved. They are not reported as passed.
+External native-failure-review-input.json and fixture-correction-plan-04.json record diagnosis and corrective selection.
+
+Immutable artifacts
+
+Original package: world-bindings-payload-02.tar.gz.
+Bytes:235291259.
+SHA256:37d19cd0be3d8885e442e8821a3ad1f84a8f8f65583fcd1644c8f2db7a9998ec.
+Each test host retains m09-worldd-observer-bindings-20261022-native-02.
+Evidence lives under evidence-01/{Debug,ASan-UBSan}.
+Canonical runner receipts live under native-run-02.
+The failed broader registration makes that combined run exit1; component suite logs prove their own passes.
+Original sources, binaries, manifests, provenance, and failure logs remain immutable.
+No generated artifacts enter Git.
+
+Remaining M09 work
+
+Connect this real worldd proof to the existing private native setup and arm.
+Capture PRE_CANCEL, POST_RELEASES_BEFORE_CONTEXT_CLEAR, POST_CANCEL, and POST_PEER_BIND.
+Pin actual native focus, grab ownership, device bitmaps, pending events, and replay state.
+Capture the first peer output attempt and separate independent XI2 receipts.
+Assemble the unchanged four-record v2 evidence stream against independent expected bindings.
+Keep its distinct privileged-recipient contract explicit.
+Exercise all required two-actor/two-application main/dialog/popup and revocation scenarios.
+Patch reproduced failures at their owning layer.
+Freeze the combined candidate and run full M09 cumulative qualification on both required hosts.
+Neither these component checks nor the corrected legacy fixtures complete that gate.

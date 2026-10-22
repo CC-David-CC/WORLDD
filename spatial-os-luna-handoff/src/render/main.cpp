@@ -66,7 +66,25 @@ int main(int argc, char** argv) {
                 std::string bytes;
                 if (!spatial::read_frame(std::cin, bytes)) return 0;
                 spatial::wire::RenderCommand command;
-                if (!command.ParseFromString(bytes) || command.protocol_version() != 1) throw std::invalid_argument("Invalid render command");
+                if (!command.ParseFromString(bytes)) throw std::invalid_argument("Invalid render command");
+                if (command.protocol_version() == 2) {
+                    spatial::render::v1::NativeActorSeatQuery query;
+                    if (bytes.size() > 1024 || !query.ParseFromString(bytes)) throw std::invalid_argument("Invalid private seat query");
+                    spatial::validate_message(query);
+                    if (query.SerializeAsString() != bytes || query.protocol_version() != 2 ||
+                        query.request_id() <= sequence || query.actor_entity_id().empty() ||
+                        query.actor_entity_id().size() > 256 || query.actor_entity_id().find('\0') != std::string::npos)
+                        throw std::invalid_argument("Invalid private seat query identity");
+                    sequence=query.request_id();
+                    spatial::render::v1::NativeActorSeatReply reply;
+                    reply.set_protocol_version(2); reply.set_request_id(sequence);
+                    try { *reply.mutable_identity()=renderer.native_actor_seat(query.actor_entity_id()); }
+                    catch (const spatial::WorldError& error) { reply.set_error_code(error.code); }
+                    catch (const std::exception&) { reply.set_error_code(spatial::wire::UNAVAILABLE); }
+                    spatial::write_frame(std::cout,reply);
+                    continue;
+                }
+                if (command.protocol_version() != 1) throw std::invalid_argument("Invalid render command");
                 spatial::validate_message(command);
                 if (command.request_id() <= sequence || (int(command.has_scene()) + int(command.has_sync()) + int(command.has_input())) != 1)
                     throw std::invalid_argument("Invalid compositor command sequence or operation");

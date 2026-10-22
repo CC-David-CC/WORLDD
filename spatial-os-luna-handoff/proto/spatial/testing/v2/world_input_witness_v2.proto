@@ -1,0 +1,36 @@
+syntax = "proto3";
+package spatial.testing.v2;
+import "native_input_observer_v2.proto";
+
+// One trusted launch-owner request on an inherited Unix seqpacket channel.
+// Selectors are data. The channel never grants an actor authority or input.
+message WorldInputWitnessRequestV2 {
+  uint32 protocol_version = 1;
+  bytes session_id = 2;
+  bytes arm_id = 3;
+  string old_actor_entity_id = 4;
+  string peer_actor_entity_id = 5;
+  ApplicationIdentity expected_application = 6;
+  bytes expected_server_id = 7;
+  uint64 expected_presentation_generation = 8;
+  uint64 deadline_monotonic_ns = 9;
+}
+message WorldInputWitnessActorV2 {
+  ObserverActorSeatBindingV2 binding = 1;
+  // Text identity is preserved. Numeric world_actor_id is a worldd-issued
+  // activation handle, scoped by this process/world/session/arm, never a hash.
+  string actor_entity_id = 2;
+  uint32 pointer_device = 3;
+  uint32 keyboard_device = 4;
+}
+message WorldInputWitnessReplyV2 {
+  uint32 protocol_version = 1;
+  bytes session_id = 2;
+  bytes arm_id = 3;
+  string world_id = 4;
+  uint32 worldd_pid = 5;
+  uint32 compositor_pid = 6;
+  bytes native_server_id = 7;
+  repeated WorldInputWitnessActorV2 actors = 8; // Exactly old then peer on success.
+  uint32 error_code = 9; // spatial.core.v1.ErrorCode. No actor records on failure.
+}

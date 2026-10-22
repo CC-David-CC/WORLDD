@@ -10,6 +10,8 @@ public:
     XInputRouter(Display* display, NativeInput& input, XSurfaces& surfaces);
     wire::NativeActorInput execute(const wire::RendererInputCommand& command);
     void snapshot(wire::NativeSnapshot& snapshot);
+    // Read an existing seat. Never create devices or acquire application control.
+    native_input::Reply native_seat(const std::string& actor);
     // Erase each seat only after the server confirms its closure.
     void close_all();
 private:

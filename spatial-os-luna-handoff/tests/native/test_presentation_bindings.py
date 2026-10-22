@@ -123,6 +123,39 @@ class PresentationBindingTests(unittest.TestCase):
         self.assertTrue(self.pointer(self.bindings[1]).result.HasField('input'))
         self.assertGreater(self.draw().frame_id,before.frame_id)
 
+    def test_private_seat_query_reads_actual_same_named_actor_in_each_binding(self):
+        self.launch();self.bind(0);self.bind(1)
+        self.pointer(self.bindings[0]);self.pointer(self.bindings[1],target=self.other_target)
+        first=self.call(self.bindings[0],seat_actor='same-actor')
+        second=self.call(self.bindings[1],seat_actor='same-actor')
+        for reply,binding in [(first,self.bindings[0]),(second,self.bindings[1])]:
+            self.assertTrue(reply.HasField('seat'),reply)
+            self.assertEqual(reply.seat.actor_entity_id,'same-actor')
+            self.assertEqual(reply.seat.presentation_generation,binding.presentation_generation)
+            self.assertEqual(reply.seat.server_id,self.supervisor.inspect().server_id)
+            self.assertGreater(reply.seat.native_seat_id,0)
+            self.assertGreater(reply.seat.pointer_device,0)
+            self.assertNotEqual(reply.seat.pointer_device,reply.seat.keyboard_device)
+        self.assertNotEqual(first.seat.native_seat_id,second.seat.native_seat_id)
+        self.assertNotEqual(first.seat.pointer_device,second.seat.pointer_device)
+        self.assertEqual(list(self.call(self.bindings[0],snapshot=True).result.snapshot.actors[0].held_buttons),[1])
+        self.assertEqual(list(self.call(self.bindings[1],snapshot=True).result.snapshot.actors[0].held_buttons),[1])
+
+    def test_private_seat_query_does_not_create_an_unprimed_actor(self):
+        self.launch();self.bind(0)
+        before=self.call(self.bindings[0],snapshot=True).result.snapshot
+        reply=self.call(self.bindings[0],seat_actor='unprimed')
+        self.assertEqual(reply.result.error.code,core.NOT_FOUND,reply)
+        self.assertFalse(reply.HasField('seat'))
+        self.assertEqual(len(self.call(self.bindings[0],snapshot=True).result.snapshot.actors),len(before.actors))
+
+    def test_private_seat_query_refuses_retired_binding(self):
+        self.launch();self.bind(0);self.pointer(self.bindings[0])
+        self.call(self.bindings[0],retire=True)
+        reply=self.call(self.bindings[0],seat_actor='same-actor')
+        self.assertEqual(reply.result.error.code,core.STALE_TARGET,reply)
+        self.assertFalse(reply.HasField('seat'))
+
     def test_same_actor_name_has_independent_binding_seats(self):
         self.launch();self.bind(0);self.bind(1)
         self.assertEqual(list(self.pointer(self.bindings[0]).result.input.held_buttons),[1])

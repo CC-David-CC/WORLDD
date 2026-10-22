@@ -15,9 +15,11 @@ message PresentationProbeRequest {
     spatial.core.v1.RenderCommand draw = 14;
     spatial.core.v1.RendererInputCommand unbound_input = 15;
     bool descriptors = 16;
+    string seat_actor = 17;
   }
 }
 message PresentationProbeReply {
   spatial.core.v1.RenderResult result = 1;
   uint64 descriptors = 2;
+  spatial.render.v1.NativeActorSeatIdentity seat = 3;
 }

@@ -20,3 +20,28 @@ message WorldPresentationBinding {
   uint64 authority_generation = 4;
   uint64 presentation_generation = 5;
 }
+
+// Private read-only query. Version 2 discriminates this from core.RenderCommand
+// on the inherited owned-compositor transport. Actor clients cannot invoke it.
+message NativeActorSeatQuery {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  string actor_entity_id = 20;
+}
+message NativeActorSeatIdentity {
+  string actor_entity_id = 1;
+  uint64 native_seat_id = 2;
+  bytes server_id = 3;
+  // Owned compositor: 1 for its process lifetime. Shared: actual attached binding.
+  uint64 presentation_generation = 4;
+  uint32 pointer_device = 5;
+  uint32 keyboard_device = 6;
+}
+message NativeActorSeatReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    NativeActorSeatIdentity identity = 20;
+    uint32 error_code = 21; // spatial.core.v1.ErrorCode, validated by the caller.
+  }
+}

@@ -102,7 +102,7 @@ void RenderWorker::read_all(char* out, std::size_t size) {
         used += static_cast<std::size_t>(count);
     }
 }
-wire::RenderResult RenderWorker::receive() {
+std::string RenderWorker::receive_bytes() {
     if(shared_){
         try {
             while(true){
@@ -110,10 +110,8 @@ wire::RenderResult RenderWorker::receive() {
                 if(Clock::now()>=deadline_)throw std::runtime_error("Shared compositor I/O deadline exceeded");
                 shared_->stream->flush();
                 if(auto frame=shared_->stream->receive()){
-                    wire::RenderResult result;
-                    if(!frame->descriptors.empty() || !result.ParseFromString(frame->bytes) || result.protocol_version()!=1)
-                        throw std::runtime_error("Invalid shared compositor reply");
-                    validate_message(result);return result;
+                    if(!frame->descriptors.empty()) throw std::runtime_error("Unexpected shared compositor reply descriptor");
+                    return std::move(frame->bytes);
                 }
                 pollfd descriptors[2]{{shared_->stream->descriptor(),static_cast<short>(POLLIN|(shared_->stream->pending_output()?POLLOUT:0)),0},
                     {shared_->process.descriptor(),POLLIN,0}};
@@ -127,6 +125,10 @@ wire::RenderResult RenderWorker::receive() {
                                (std::uint32_t(header[2]) << 8) | header[3];
     if (size > max_frame_bytes) throw std::runtime_error("Excessive compositor frame");
     std::string bytes(size, '\0'); read_all(bytes.data(), size);
+    return bytes;
+}
+wire::RenderResult RenderWorker::receive() {
+    const auto bytes=receive_bytes();
     wire::RenderResult result;
     if (!result.ParseFromString(bytes) || result.protocol_version() != 1) throw std::runtime_error("Invalid compositor reply");
     validate_message(result); return result;
@@ -202,6 +204,49 @@ wire::RenderVisibility RenderWorker::observe(const wire::RenderScene& scene, std
     }
     frame_id_ = reply.visibility().frame_id();
     return reply.visibility();
+}
+render::v1::NativeActorSeatIdentity RenderWorker::native_actor_seat(const std::string& actor) {
+    if (actor.empty() || actor.size()>256 || actor.find('\0')!=std::string::npos)
+        throw std::invalid_argument("Invalid private actor seat selector");
+    if (busy_) throw std::runtime_error("Recursive compositor exchange");
+    if (sequence_==UINT64_MAX) throw std::runtime_error("Compositor request sequence exhausted");
+    busy_=true;struct Reset {bool& value;~Reset(){value=false;}} reset{busy_};
+    render::v1::NativeActorSeatQuery query;query.set_protocol_version(2);query.set_request_id(++sequence_);
+    query.set_actor_entity_id(actor);deadline_=Clock::now()+std::chrono::seconds(10);
+    render::v1::NativeActorSeatReply reply;
+    try {
+        check_alive();
+        if(shared_){
+            render::v1::PresentationWorldRequest request;request.set_protocol_version(1);request.set_request_id(sequence_);
+            *request.mutable_seat_query()=query;
+            shared_->stream->send(request.SerializeAsString());
+        }else{
+            const auto payload=query.SerializeAsString();const auto n=static_cast<std::uint32_t>(payload.size());
+            std::string bytes(4,'\0');for(unsigned i=0;i<4;++i)bytes[i]=static_cast<char>(n>>(24-8*i));bytes+=payload;
+            std::size_t sent=0;
+            while(sent<bytes.size()){
+                wait(POLLOUT);
+                const auto count=send(socket_,bytes.data()+sent,bytes.size()-sent,MSG_NOSIGNAL);
+                if(count<0 && (errno==EAGAIN || errno==EINTR))continue;
+                if(count<=0)throw std::runtime_error("Cannot submit private seat query");
+                sent+=static_cast<std::size_t>(count);
+            }
+        }
+        const auto bytes=receive_bytes();
+        if(bytes.size()>1024 || !reply.ParseFromString(bytes) || reply.protocol_version()!=2 || reply.request_id()!=sequence_)
+            throw std::runtime_error("Invalid private seat query reply");
+        validate_message(reply);
+        if(reply.has_identity()){
+            const auto& identity=reply.identity();
+            if(identity.actor_entity_id()!=actor || !identity.native_seat_id() || identity.server_id().size()!=32 ||
+                !identity.presentation_generation() || !identity.pointer_device() || !identity.keyboard_device() ||
+                identity.pointer_device()==identity.keyboard_device())throw std::runtime_error("Private seat identity mismatch");
+        }else if(!reply.has_error_code() || !reply.error_code() || reply.error_code()>INT32_MAX ||
+                 !wire::ErrorCode_IsValid(static_cast<int>(reply.error_code())))
+            throw std::runtime_error("Invalid private seat query outcome");
+    }catch(...){if(shared_)shared_->stream.reset();else process_->terminate();throw;}
+    if(reply.has_error_code())throw WorldError(static_cast<wire::ErrorCode>(reply.error_code()),"Private native seat query refused");
+    return reply.identity();
 }
 wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& input, const std::function<void()>& before_send) {
     wire::RenderCommand command; *command.mutable_input() = input;

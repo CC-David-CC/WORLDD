@@ -79,8 +79,9 @@ message PresentationControlReply {
 message PresentationWorldRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
-  oneof operation { PresentationEmpty hello = 3; spatial.core.v1.RenderCommand command = 4; }
+  oneof operation { PresentationEmpty hello = 3; spatial.core.v1.RenderCommand command = 4; NativeActorSeatQuery seat_query = 5; }
 }
 // A capture command carries one private empty writable regular file descriptor.
 // The world owns its path. The compositor writes PPM bytes and returns no path.
-// World replies use core.RenderResult with the same request identity.
+// Hello and command replies use core.RenderResult. A seat_query replies with
+// NativeActorSeatReply version 2. Both preserve the enclosing request identity.

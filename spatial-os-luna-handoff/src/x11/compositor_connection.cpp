@@ -59,11 +59,11 @@ xcb_connection_t* authenticated_connection(Pending& value, const char* display, 
     return xcb_connect_to_fd(fd, &auth);
 }
 
-spatial::security::v1::Identity inspect(Display* display) {
+spatial::security::v1::Identity inspect(Display* display, std::uint64_t sequence = 1) {
     int opcode = 0, event = 0, error = 0;
     require(XQueryExtension(display, "SPATIAL-SECURITY", &opcode, &event, &error), "native security extension absent");
     spatial::security::v1::Request request;
-    request.set_protocol_version(1); request.set_request_id(1); request.mutable_inspect();
+    request.set_protocol_version(1); request.set_request_id(sequence); request.mutable_inspect();
     const auto bytes = request.SerializeAsString();
     struct Header { CARD8 opcode, operation; CARD16 length; CARD32 bytes; };
     struct Reply { BYTE type, pad; CARD16 sequence; CARD32 length, bytes, unused[5]; } reply{};
@@ -89,7 +89,7 @@ spatial::security::v1::Identity inspect(Display* display) {
     require(valid, "invalid native identity framing");
     spatial::security::v1::Reply result;
     require(result.ParseFromArray(payload.data(), reply.bytes) && result.protocol_version() == 1 &&
-            result.request_id() == 1, "invalid native identity reply");
+            result.request_id() == sequence, "invalid native identity reply");
     try { spatial::validate_message(result); }
     catch (const std::exception&) { require(false, "unsupported native identity fields"); }
     require(result.code() == spatial::security::v1::OK && result.has_identity(), "native identity denied");
@@ -114,6 +114,14 @@ extern "C" xcb_connection_t* xcb_connect_to_display_with_auth_info(
 }
 
 namespace spatial {
+security::v1::Identity inspect_compositor_identity(Display* display, std::uint64_t sequence) {
+    require(sequence > 0, "invalid native identity sequence");
+    const auto identity = inspect(display, sequence);
+    require(identity.role() == security::v1::COMPOSITOR && identity.server_id().size() == 32 &&
+        identity.connection_id() > 0 && identity.workspace().empty() && identity.application().empty(),
+        "native witness requires compositor identity");
+    return identity;
+}
 Display* open_compositor_display(const std::string& display, const Config& config) {
     require(!pending, "nested display startup");
     Pending value{config, display, false, {}};

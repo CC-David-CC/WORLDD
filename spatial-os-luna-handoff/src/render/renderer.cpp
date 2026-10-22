@@ -73,7 +73,7 @@ struct Renderer::Impl {
             if (identifiers) glDeleteRenderbuffers(1, &identifiers);
         }
     } presented, observed;
-    std::uint64_t frame_id = 0;
+    std::uint64_t frame_id = 0, security_sequence = 0;
     std::filesystem::path captures;
     wire::RendererReady info;
     std::unique_ptr<NativeInput> native_input;
@@ -115,6 +115,7 @@ Renderer::Renderer(const std::string& name, const std::filesystem::path& state, 
         throw std::invalid_argument("Unsafe capture directory");
     std::filesystem::create_directory(r.captures);
     r.display = native ? open_compositor_display(name, *native) : XOpenDisplay(name.c_str());
+    r.security_sequence = native ? 1 : 0;
     if (!r.display) throw std::runtime_error("Cannot open explicit X display");
     XSetErrorHandler(record_x_error);
     const auto root = DefaultRootWindow(r.display);
@@ -240,6 +241,21 @@ wire::NativeSnapshot Renderer::synchronize() {
     auto result = r.surfaces->snapshot();
     if (r.input) r.input->snapshot(result);
     return result;
+}
+render::v1::NativeActorSeatIdentity Renderer::native_actor_seat(const std::string& actor) {
+    auto& r=*impl_;
+    if (!r.input) throw WorldError(wire::UNAVAILABLE, "Unbound compositor input is unavailable");
+    if (r.security_sequence == UINT64_MAX) throw std::runtime_error("Native identity sequence exhausted");
+    const auto owner=inspect_compositor_identity(r.display,++r.security_sequence);
+    render::v1::NativeActorSeatIdentity result;
+    const auto seat=r.input->native_seat(actor);
+    result.set_actor_entity_id(actor); result.set_native_seat_id(seat.seat());
+    result.set_pointer_device(seat.pointer_device());result.set_keyboard_device(seat.keyboard_device());
+    result.set_server_id(owner.server_id()); result.set_presentation_generation(1);
+    return result;
+}
+render::v1::NativeActorSeatIdentity Renderer::native_actor_seat(const render::v1::WorldPresentationBinding& binding, const std::string& actor) {
+    return impl_->bindings->native_actor_seat(binding,actor);
 }
 wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command) {
     if (!impl_->input) throw WorldError(wire::UNIMPLEMENTED, "Native actor input requires the project XLibre server");

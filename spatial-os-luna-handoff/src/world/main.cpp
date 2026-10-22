@@ -2,6 +2,7 @@
 #include "world/authority.hpp"
 #include "world/identity_sessions.hpp"
 #include "world/actor_tls.hpp"
+#include "world/input_witness.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
 #include "platform/compositor_config.hpp"
@@ -20,7 +21,7 @@ int main(int argc, char** argv) {
     std::vector<int> actor_channels;
     std::string display;
     bool fixture_clock = false, fixture_faults = false, migration_v1 = false, migration_v2 = false, migration_v3 = false;
-    int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1;
+    int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1, witness_fd = -1;
     int presentation_fd=-1,presentation_pidfd=-1,presentation_pid=-1,presentation_owner=-1;
     try {
         signal(SIGPIPE, SIG_IGN);
@@ -37,6 +38,12 @@ int main(int argc, char** argv) {
             else if (argument == "--init-authority" && authority_seed.empty() && i + 1 < argc) authority_seed = argv[++i];
             else if (argument == "--identity-config" && identity_config.empty() && i + 1 < argc) identity_config = argv[++i];
             else if (argument == "--actor-tls-config" && actor_tls_config.empty() && i + 1 < argc) actor_tls_config = argv[++i];
+            else if (argument == "--input-witness-fd" && witness_fd == -1 && i + 1 < argc) {
+                const std::string_view number(argv[++i]);
+                const auto parsed=std::from_chars(number.data(),number.data()+number.size(),witness_fd);
+                if(parsed.ec!=std::errc{} || parsed.ptr!=number.data()+number.size() || witness_fd<3)
+                    throw std::invalid_argument("Invalid input witness descriptor");
+            }
             else if (argument == "--native-security-fd" && native_fd == -1 && i + 1 < argc) {
                 const std::string_view number(argv[++i]);
                 const auto parsed = std::from_chars(number.data(), number.data()+number.size(), native_fd);
@@ -84,6 +91,15 @@ int main(int argc, char** argv) {
             if(private_fds.size()!=3 || private_fds.contains(broker_fd) || private_fds.contains(actor_listener))
                 throw std::invalid_argument("Presentation descriptors overlap another authority channel");
             for(int fd:actor_channels)if(private_fds.contains(fd))throw std::invalid_argument("Presentation descriptor overlaps actor channel");
+        }
+        std::unique_ptr<spatial::InputWitness> witness;
+        if(witness_fd>=0){
+            if(witness_fd==broker_fd || witness_fd==actor_listener || witness_fd==native_fd || witness_fd==presentation_fd || witness_fd==presentation_pidfd ||
+               std::find(actor_channels.begin(),actor_channels.end(),witness_fd)!=actor_channels.end() ||
+               migration_v1 || migration_v2 || migration_v3 || !authority_seed.empty())
+                throw std::invalid_argument("Input witness descriptor overlaps authority or maintenance configuration");
+            // Secure CLOEXEC before any compositor or helper fork.
+            witness=std::make_unique<spatial::InputWitness>(witness_fd);
         }
         if (!state.is_absolute()) throw std::invalid_argument("State directory must be absolute");
         if ((actor_listener == -1) != actor_tls_config.empty()) throw std::invalid_argument("Actor TLS listener and configuration are required together");
@@ -142,7 +158,7 @@ int main(int argc, char** argv) {
         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;
         if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get(), actor_listener, actor_tls_config);
-        spatial::serve(world, actors, renderer.get(), &surfaces, broker.get(), sessions.get());
+        spatial::serve(world, actors, renderer.get(), &surfaces, broker.get(), sessions.get(), witness.get());
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "worldd: " << error.what() << '\n'; return 2;

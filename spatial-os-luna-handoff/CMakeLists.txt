@@ -22,6 +22,9 @@ list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/rend
 protobuf_generate_cpp(presentation_probe_sources presentation_probe_headers tests/proto/presentation_probe.proto)
 protobuf_generate_cpp(presentation_proto_sources presentation_proto_headers proto/spatial/render/v1/presentation.proto)
 protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
+list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v2")
+protobuf_generate_cpp(input_witness_proto_sources input_witness_proto_headers
+    proto/spatial/testing/v2/native_input_observer_v2.proto proto/spatial/testing/v2/world_input_witness_v2.proto)
 protobuf_generate_cpp(file_actions_proto_sources file_actions_proto_headers proto/spatial/workspace/v1/file_actions.proto)
 protobuf_generate_cpp(copy_job_journal_proto_sources copy_job_journal_proto_headers
     proto/spatial/workspace/v1/file_copy_job_journal.proto)
@@ -546,8 +549,11 @@ add_library(spatial-actor-session-client STATIC src/world/actor_session_client.c
 target_link_libraries(spatial-actor-session-client PUBLIC spatial-scene spatial-identity-tls)
 add_library(spatial-actor-transition STATIC src/world/actor_transition_coordinator.cpp)
 target_link_libraries(spatial-actor-transition PUBLIC spatial-actor-session-client spatial-protobuf)
-add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
-target_link_libraries(worldd PRIVATE spatial-compositor-config spatial-core spatial-identity spatial-actor-session-client spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
+add_library(spatial-input-witness-protobuf STATIC ${input_witness_proto_sources} ${input_witness_proto_headers})
+target_link_libraries(spatial-input-witness-protobuf PUBLIC protobuf::libprotobuf)
+target_include_directories(spatial-input-witness-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/input_witness.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
+target_link_libraries(worldd PRIVATE spatial-input-witness-protobuf spatial-compositor-config spatial-core spatial-identity spatial-actor-session-client spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
 add_dependencies(worldd spatialwm)
 add_library(spatial-app-initializer STATIC src/workspace/app_initializer.cpp)
 target_link_libraries(spatial-app-initializer PUBLIC spatial-scene)
@@ -601,6 +607,15 @@ if(BUILD_TESTING)
     add_custom_target(native-input-observer-v2-python-protobuf ALL
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_v2_pb2.py"
             "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_control_v2_pb2.py")
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_input_witness_v2_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v2
+            ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v2/world_input_witness_v2.proto
+        DEPENDS proto/spatial/testing/v2/world_input_witness_v2.proto
+            proto/spatial/testing/v2/native_input_observer_v2.proto protobuf::protoc VERBATIM)
+    add_custom_target(world-input-witness-python-protobuf ALL
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/world_input_witness_v2_pb2.py")
+    add_dependencies(world-input-witness-python-protobuf native-input-observer-v2-python-protobuf)
     add_test(NAME native-input-observer-artifact COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_input_state_observer.py")
     set_tests_properties(native-input-observer-artifact PROPERTIES TIMEOUT 20
@@ -1710,6 +1725,17 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_application_observation.py" $<TARGET_FILE:identityd>
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(application-observation PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_custom_target(world-input-witness-fixture DEPENDS worldd identityd spatial-issuer-client workspaced
+            spatial-security-auth spatial-confined-xprobe spatial-xprobe spatial-process-scope-probe spatial-app-init spatial-presentation-probe spatial-storage-owner-service
+            world-input-witness-python-protobuf broker-python-protobuf world-session-python-protobuf issuer-python-protobuf
+            key-python-protobuf grants-python-protobuf security-python-protobuf input-python-protobuf python-protobuf)
+        add_test(NAME world-input-witness-bindings COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native --runtime-seconds 600 -- "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_input_witness.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(world-input-witness-bindings PROPERTIES TIMEOUT 660
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME world-application-control COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native --runtime-seconds 600 -- "${Python3_EXECUTABLE}"

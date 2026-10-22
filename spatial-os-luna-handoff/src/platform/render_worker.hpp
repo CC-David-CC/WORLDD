@@ -1,6 +1,7 @@
 #pragma once
 #include "core/protocol.hpp"
 #include "platform/render_process.hpp"
+#include "compositor_native.pb.h"
 #include <filesystem>
 #include <chrono>
 #include <functional>
@@ -21,6 +22,7 @@ public:
     wire::RenderVisibility observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool include_pixels = false);
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command, const std::function<void()>& before_send = {});
+    render::v1::NativeActorSeatIdentity native_actor_seat(const std::string& actor);
     void check_alive() const;
     bool busy() const { return busy_; }
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
@@ -29,6 +31,7 @@ public:
 private:
     void wait(short events);
     void read_all(char* out, std::size_t size);
+    std::string receive_bytes();
     wire::RenderResult receive();
     wire::RenderResult exchange(wire::RenderCommand command, const std::function<void()>& before_send = {}, int capture_fd = -1);
     struct Shared;

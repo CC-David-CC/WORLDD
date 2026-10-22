@@ -18,6 +18,8 @@ public:
     void events();
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command);
+    render::v1::NativeActorSeatIdentity native_actor_seat(const std::string& actor);
+    render::v1::NativeActorSeatIdentity native_actor_seat(const render::v1::WorldPresentationBinding&, const std::string& actor);
     void reserve_input(const render::v1::WorldPresentationBinding&,const supervisor::v1::NativeScopeIdentity* scope=nullptr);
     void initialize_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void clear_presentation();

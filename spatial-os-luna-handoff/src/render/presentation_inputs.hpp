@@ -20,6 +20,7 @@ public:
     void confirm_retired(const render::v1::WorldPresentationBinding&);
     wire::NativeActorInput input(const render::v1::WorldPresentationBinding&, const wire::RendererInputCommand&);
     void snapshot(const render::v1::WorldPresentationBinding&, wire::NativeSnapshot&);
+    render::v1::NativeActorSeatIdentity native_actor_seat(const render::v1::WorldPresentationBinding&, const std::string&);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

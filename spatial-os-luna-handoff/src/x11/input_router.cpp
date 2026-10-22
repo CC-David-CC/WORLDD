@@ -34,6 +34,16 @@ wire::NativeActorInput XInputRouter::state(const std::string& actor, Seat& seat,
     else seat.focus.Clear();
     return result;
 }
+native_input::Reply XInputRouter::native_seat(const std::string& actor) {
+    if (actor.empty() || actor.size() > 256 || actor.find('\0') != std::string::npos)
+        throw std::invalid_argument("Invalid actor input identity");
+    const auto found = seats_.find(actor);
+    if (found == seats_.end()) throw WorldError(wire::NOT_FOUND, "Actor has no existing native seat");
+    native_input::Request request; request.mutable_status()->set_id(found->second.id);
+    const auto reply = checked(request);
+    if (reply.seat() != found->second.id) throw std::runtime_error("Native seat identity changed");
+    return reply;
+}
 void XInputRouter::close_all() {
     while (!seats_.empty()) {
         auto found = seats_.begin();

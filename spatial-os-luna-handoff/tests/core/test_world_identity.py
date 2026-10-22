@@ -62,7 +62,7 @@ class SessionPeer:
 
 
 class WorldProcess:
-    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None, fixture_faults=False):
+    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None, fixture_faults=False, input_witness_fd=None):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
@@ -79,6 +79,9 @@ class WorldProcess:
                         str(getattr(broker, 'pid', broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         extra_fds = (tuple([workspace_channel.fileno()]) if workspace_channel else ())
+        if input_witness_fd is not None:
+            command += ['--input-witness-fd',str(input_witness_fd)]
+            extra_fds += (input_witness_fd,)
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=tuple(server.fileno() for _,server in pairs)+extra_fds)

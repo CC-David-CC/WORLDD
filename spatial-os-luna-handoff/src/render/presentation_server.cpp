@@ -199,6 +199,20 @@ struct Server {
         require(request.protocol_version()==1 && request.request_id()>world.sequence,"Invalid world presentation sequence or version");
         world.sequence=request.request_id();
         require(frame.descriptors.size()==((request.has_hello() || (request.has_command() && request.command().capture()))?1U:0U),"Incorrect world presentation descriptor count");
+        if (request.has_seat_query()) {
+            protocol::NativeActorSeatReply reply;reply.set_protocol_version(2);reply.set_request_id(world.sequence);
+            try {
+                const auto& query=request.seat_query();
+                require(request.SerializeAsString()==frame.bytes && query.ByteSizeLong()<=1024 &&
+                    world.stage==protocol::READY && query.protocol_version()==2 && query.request_id()==world.sequence &&
+                    !query.actor_entity_id().empty() && query.actor_entity_id().size()<=256 &&
+                    query.actor_entity_id().find('\0')==std::string::npos,"Invalid bound seat query");
+                *reply.mutable_identity()=renderer.native_actor_seat(world.binding,query.actor_entity_id());
+            }catch(const WorldError& error){reply.set_error_code(error.code);}
+            catch(const std::invalid_argument&){reply.set_error_code(wire::INVALID_ARGUMENT);}
+            catch(const std::exception&){reply.set_error_code(wire::UNAVAILABLE);}
+            world.channel->send(reply.SerializeAsString());return;
+        }
         wire::RenderResult reply;reply.set_protocol_version(1);reply.set_request_id(world.sequence);
         try {
             if(request.has_hello()){

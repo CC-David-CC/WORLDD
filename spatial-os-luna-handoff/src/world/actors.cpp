@@ -232,6 +232,8 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.authority = std::move(authority); actor.principal = std::move(principal);
     selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
+    if (next_witness_instance_id_ == UINT64_MAX) throw std::runtime_error("Actor instance identity exhausted");
+    actor.witness_instance_id = ++next_witness_instance_id_;
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
     actor.application_input = false;
     actor.require_observation_grant = require_observation_grant;
@@ -932,6 +934,46 @@ void Actors::finish_input(Actor& actor) {
         release_input(actor); drain_control_releases();
         throw WorldError(wire::FORBIDDEN, "Application control authority changed");
     }
+}
+Actors::InputWitnessBinding Actors::input_witness_binding(const std::string& id,
+        const workspace::v1::ApplicationRef& application) {
+    validate_message(application);
+    if(application.workspace().empty() || application.workspace().size()>256 || application.workspace().find('\0')!=std::string::npos ||
+       application.application().empty() || application.application().size()>256 || application.application().find('\0')!=std::string::npos ||
+       application.server_id().size()!=32)throw std::invalid_argument("Invalid input witness application");
+    const auto found=actors_.find(id);
+    if(found==actors_.end())throw WorldError(wire::NOT_FOUND,"Input witness actor is unavailable");
+    auto& actor=found->second;
+    auto active=[&]{return actor.principal && actor.principal->issuer_id().size()==32 && actor.principal->actor_id().size()==32 &&
+        !actor.token.empty() && !actor.close_pending && !actor.departure_pending && !actor.interaction_reset_pending &&
+        actor.local_application_output && granted(actor,"observe") && actor.witness_instance_id>0;};
+    if(!renderer_ || !broker_ || !active())throw WorldError(wire::FORBIDDEN,"Authenticated active actor required for input witness");
+    const auto token=actor.token;const auto principal=*actor.principal;const auto instance=actor.witness_instance_id;
+    workspace::v1::ApplicationAccessRequest request;*request.mutable_principal()=principal;
+    *request.add_applications()=application;
+    const auto access=broker_->application_access(request);
+    if(access.applications_size()!=1 || !access.applications(0).observe() || !access.applications(0).control() ||
+       access.applications(0).application().SerializeAsString()!=application.SerializeAsString())
+        throw WorldError(wire::FORBIDDEN,"Input witness application authority denied");
+    auto native=renderer_->native_actor_seat(id);
+    workspace::v1::AuthorizationFenceRequest fence_request;*fence_request.mutable_principal()=principal;
+    const auto fence=broker_->authorization_fence(fence_request);
+    if(!active() || actor.token!=token || actor.witness_instance_id!=instance ||
+       actor.principal->SerializeAsString()!=principal.SerializeAsString() ||
+       access.incarnation()!=fence.incarnation() || access.epoch()!=fence.epoch())
+        throw WorldError(wire::FORBIDDEN,"Input witness actor authority changed");
+    if(native.server_id()!=application.server_id())throw WorldError(wire::STALE_TARGET,"Input witness native server changed");
+    InputWitnessBinding result;result.principal=principal;result.actor_entity_id=id;
+    result.actor_instance_id=instance;result.native=std::move(native);result.fence=fence;result.private_session_token=token;return result;
+}
+bool Actors::input_witness_current(const InputWitnessBinding& binding) const {
+    const auto found=actors_.find(binding.actor_entity_id);
+    if(found==actors_.end())return false;
+    const auto& actor=found->second;
+    return actor.principal && actor.principal->SerializeAsString()==binding.principal.SerializeAsString() &&
+        !actor.token.empty() && actor.token==binding.private_session_token && actor.witness_instance_id==binding.actor_instance_id &&
+        !actor.close_pending && !actor.departure_pending && !actor.interaction_reset_pending &&
+        actor.local_application_output && granted(actor,"observe");
 }
 void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command) {
     try {

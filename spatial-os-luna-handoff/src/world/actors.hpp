@@ -4,6 +4,7 @@
 #include "grants.pb.h"
 #include "broker.pb.h"
 #include "geometry_view.pb.h"
+#include "compositor_native.pb.h"
 #include <array>
 #include <map>
 #include <set>
@@ -40,6 +41,17 @@ public:
     void tick(double monotonic_seconds);
     void flush_input();
     bool cancellation_settled() const;
+    struct InputWitnessBinding {
+        authority::v1::ActorRef principal;
+        std::string actor_entity_id;
+        std::uint64_t actor_instance_id = 0;
+        render::v1::NativeActorSeatIdentity native;
+        workspace::v1::AuthorizationFence fence;
+        std::string private_session_token; // Never serialized into evidence.
+    };
+    // Private launch-owner diagnostics. This API never authorizes actor input.
+    InputWitnessBinding input_witness_binding(const std::string& actor, const workspace::v1::ApplicationRef& application);
+    bool input_witness_current(const InputWitnessBinding&) const;
     const wire::Entity* find(const std::string& id) const;
     bool room_in_use(const std::string& id) const;
     bool manual_clock() const { return manual_clock_; }
@@ -61,7 +73,7 @@ private:
         bool require_observation_grant = false;
         bool local_application_output = true;
         std::array<double, 6> axes{};
-        std::uint64_t sequence = 0;
+        std::uint64_t sequence = 0, witness_instance_id = 0;
         double expires = 0;
         wire::AimReply aim;
         wire::Vec3 direction;
@@ -126,6 +138,7 @@ private:
     wire::RuntimeConfig config_;
     bool manual_clock_;
     double now_ = 0;
+    std::uint64_t next_witness_instance_id_ = 0;
     std::map<std::string, Actor> actors_;
     std::map<std::string, std::string> sessions_;
 };
