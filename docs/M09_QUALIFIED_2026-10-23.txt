@@ -1,0 +1,91 @@
+M09 QUALIFICATION ACCEPTED
+Date: 2026-10-23. Status: QUALIFIED_M09.
+M01-M09 are qualified. M10-M16 remain pending. Spatial-M1 and LOCAL_READY remain incomplete.
+
+Frozen runtime candidate: 11f3605c70c9b4aa29dd1ec84471592bf4162a3f.
+Frozen tree: 967f5e8519d0a3acd53ca6130f27c1b7dc892932.
+Qualification branch: m09/lifetime-primary-continuation-20261023.
+This closure adds documentation only. It changes no runtime source, test, schema, or oracle.
+The qualification applies to the frozen candidate, separately from this documentation checkpoint.
+
+Accepted application-control behavior:
+- One actor controls each complete application surface group, including dialogs, menus, and popups.
+- Authorized observers remain separate from controllers. Independent applications support simultaneous controllers.
+- Transfer releases held keys, buttons, modifiers, capture, and focus before peer input.
+- Stale generations are denied. Observation and control revocation cancel affected routing.
+- Applications survive controller revocation when their execution authority remains valid.
+- Destruction preserves a valid same-application survivor. Actor retirement removes the actual old input devices.
+- Queued and post-render observation replies enforce revocation fences.
+Already transmitted bytes cannot be retracted. Revocation prevents unauthorized reply completion and subsequent access.
+
+Coverage accepted on sb16 and sb16-2, in Debug and ASan-UBSan:
+- Each profile passed 247 local CTest registrations: 243 protected and four supervised recovery registrations.
+- Each profile passed 89 inherited harness checks, 151 locked P10 cases, and six bounded storage scenarios.
+- Each profile passed all 53 mandatory named methods and 26 additional goal witnesses.
+- Each successful host gate passed the eight exact dedicated M09 guard methods.
+- Both semantic cross-host profiles passed all six planned cases: twelve executions.
+- Four native geometry cells passed nine tests each: 36 executions.
+- Four workspace geometry cells and four cabinet cells passed across both profiles and directions.
+- Twenty selected v2 artifacts and sixteen v3 artifacts received native state, order, and continuity review.
+No accepted run contains skipped required checks or sanitizer diagnostics.
+
+Native evidence and integrity:
+Independent old-input releases precede the first peer event in the selected native artifacts.
+Fresh first-peer samples and actual device retirement supplement the event receipts.
+Application survival includes real post-transfer input and stable application, worldd, compositor, and X-server host identities.
+Namespace-local PID values alone do not establish host process identity.
+Artifact consistency relies on authenticated setup, expected bindings, pinned producers, and checked source.
+The final audit rejoins eleven recorded log prefixes to the selected completed full-gate logs.
+All final runtime jobs have successful terminal receipts and retired original processes.
+Both hosts pass final installed-runtime checks for both profiles.
+Root scans find no candidate/native references, mounts, loops, or unreadable entries within their checked roots.
+Normal Ubuntu login, SSH, and TTY recovery remain unchanged.
+
+Generated source:
+Two clean generations reproduce 111 outputs: 41 Python and 70 C++ files.
+The 30 production-off Python files match their required subset.
+The retained native C proof covers fourteen outputs and matches the selected native source and binaries.
+Schema inputs, recipes, generator tools, dependencies, flags, and controlled environment remain pinned.
+Mutable Python bytecode remains excluded from integrity hashes.
+
+Acceptance and failure disposition:
+All 151 acceptance IDs, assertions, oracle bytes, and 41 unrelated locked files match accepted M08 source.
+The explicitly reviewed native/xprobe.c migration adds survivor and optional XI2 receipt support.
+Its two migration notes and updated witness pin remain in Git. Audit243 verifies the exact bounded change.
+The original sb16 attempt01 remains failed and unchanged after its capacity preflight refusal.
+Fresh complete attempt02 passes both profiles, including actual worker-death interruption and recovery.
+Sb16-2 uses its complete successful original attempt01. Partial runs are not substituted for these gates.
+Earlier 1ae failures and corrective fixture evidence remain separate historical records.
+The final audit corrected an older receipt-schema assumption through exact report and named-receipt hash joins.
+Its original refusal remains preserved. No receipt or test was rewritten.
+
+Primary adoption decision SHA256:
+bb793198aac187f72225bc94fdfa783deb497229b5066dab6335e39aa252405f.
+Cumulative cross-host reconciliation SHA256:
+8c88c88cccfda98cec584ef6f0493281dc55f1dc02a6069155761216806d01da.
+
+Durable qualification records:
+r730:/mnt/data10tb/spatial-desktop/manifests/m09-qualified-11f3605c70c9-20261023-01.
+All 82 retained records matched their inventory. Total source bytes: 17,103,871.
+Inventory SHA256: f3915bb7e9421cd01672f371210265f2a7823c031c80d16c887e61d12057fd58.
+Verified ext4 filesystem UUID: 82287fcb-81a5-4f04-a0d8-886549cf7f90.
+
+Immutable package:
+r730:/mnt/data10tb/spatial-desktop/packages/current/m09-11f3605c70c9-candidate-20261023/payload/m06-artifacts.tar.gz.
+Package SHA256: 63f4cbea5fed84805630e4070d35cdfcdf0e104ee3116b10cda81bc9d5755563.
+All twelve retained package files were reverified against the original manifest.
+The container's PACKAGE.json retains its initial packaging status. The separate adoption decision establishes later qualification.
+Native XLibre and graphics dependencies remain separately pinned in runtime-manifest-01.json.
+The archive alone is not a complete host image. Preserve those active dependency closures.
+
+Raw evidence remains on both qualification hosts:
+/home/dflanag3/spatial-artifacts/m09-final-11f3605c70c9-20261023.
+Selected local attempts are m09-11f3605c70c9-sb16-02 and m09-11f3605c70c9-sb16-2-01.
+Read m09-primary-adoption-250.json in the fleet bundle or on middle-child for the requirement reconciliation.
+Cross-host evidence uses crosshost-evidence-31, crosshost-cells-31, and m08-crosshost-reconciliation-31.
+Primary records and retained reports also remain under the same artifact root on middle-child.
+
+Scope:
+Physical keyboard, mouse, SpaceMouse, GPU scanout, model tasks, restoration, and performance retain their later gates.
+This decision does not establish Spatial-M1, full LOCAL_READY, or remote application streaming.
+No normal login path changed. No GitHub publication occurs in this closure.

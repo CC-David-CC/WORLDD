@@ -1,3 +1,21 @@
+## 2026-10-23: M09 application-group control is qualified on both hosts
+
+Frozen runtime candidate 11f3605c70c9b4aa29dd1ec84471592bf4162a3f is accepted as QUALIFIED_M09.
+Both hosts pass complete Debug and ASan-UBSan gates, exact named-method evidence, and final integrity checks.
+Each profile passes 247 local registrations, 89 harness checks, 151 locked cases, and six storage scenarios.
+Each profile also passes all 53 mandatory methods and 26 additional goal witnesses.
+Both host gates pass the eight exact dedicated M09 guard methods.
+Twelve semantic cross-host cases, 36 native geometry executions, and both four-cell workspace/cabinet matrices pass.
+Native order and continuity reviews cover twenty v2 artifacts and sixteen v3 artifacts.
+Final installed-runtime checks and root process scans pass on both hosts after cross-host retirement.
+Two clean generations reproduce 111 Python/C++ outputs. The fourteen-output native C proof remains pinned.
+All 151 acceptance IDs/assertions and unrelated locked bytes remain unchanged.
+The documented optional native witness migration remains explicit. Original failures and audit refusals remain separate.
+Primary adoption250 and 82 checked fleet records establish this qualification. This checkpoint changes documentation only.
+M01-M09 are qualified. M10-M16, Spatial-M1, physical acceptance, and LOCAL_READY remain incomplete.
+Read ../docs/M09_QUALIFIED_2026-10-23.txt for exact source, evidence, scope, and recovery information.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M09 repository-import fixture uses one absolute setup deadline
 
 The original worker-death sanitizer failure occurred during Git import, before fault injection.

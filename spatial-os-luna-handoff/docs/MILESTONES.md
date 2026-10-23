@@ -1,3 +1,9 @@
+M09 qualification accepted on 2026-10-23 at frozen candidate 11f3605c70c9b4aa29dd1ec84471592bf4162a3f.
+M01-M09 are qualified. M10-M16 remain pending. Spatial-M1 and physical acceptance remain incomplete.
+Read ../../docs/M09_QUALIFIED_2026-10-23.txt for the complete qualification, source pins, evidence, and limits.
+This checkpoint adds qualification records only. It does not change the runtime candidate or milestone definitions.
+Older status entries below remain historical. CURRENT_STATE.md records the latest accepted phase.
+
 M09 drafts are integrated on qualified M08 in m09/integration-qualified-m08-20261022. M09 remains UNQUALIFIED.
 Read ../../docs/M09_INTEGRATION_ON_QUALIFIED_M08_2026-10-22.txt for focused evidence and remaining native bridge work.
 
