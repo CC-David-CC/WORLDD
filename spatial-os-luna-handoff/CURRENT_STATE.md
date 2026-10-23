@@ -1,3 +1,15 @@
+## 2026-10-22: M09 full Debug exposes broker relay socket ownership race
+
+M08 remains qualified. M09 remains UNQUALIFIED.
+The second host passed post-render fenced denial assertions, then the test relay stole a direct broker reply.
+The fixture now shares upstream ownership and one serialized notification sink with direct broker callers.
+Hooks and transfer barriers release upstream ownership. Abandoned exchanges explicitly prevent stale transport reuse.
+All17 focused socket methods pass on sb16. Two counterexamples fail against the original fixture.
+The second-host socket run and corrected native and broader runtime checks remain UNRUN.
+The0505 preparation completed before this fixture repair. It has not qualified this correction.
+Read docs/M09_BROKER_RELAY_OWNERSHIP_REPAIR_2026-10-22.txt before the next candidate freeze.
+Historical entries below retain their dated status.
+
 ## 2026-10-22: Later M09 Debug failures require authority and diagnostic repairs
 
 M08 remains qualified. M09 remains UNQUALIFIED.

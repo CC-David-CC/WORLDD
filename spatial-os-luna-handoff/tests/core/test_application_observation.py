@@ -36,7 +36,15 @@ class BrokerRelay:
         self._barrier_lock=threading.Lock();self._hold_control_acquire=False
         self.control_acquire_reply_seen=threading.Event();self.control_acquire_entered=threading.Event()
         self.control_acquire_release=threading.Event();self._control_acquire_record=None
-        self._closed=threading.Event();self._closing=False
+        self._closed=threading.Event();self._closing=False;self._send_lock=threading.Lock()
+        with self.broker.io_lock:
+            if self.broker.transport_error is not None:
+                self.stream.close();self.server.close()
+                raise AssertionError('Broker transport is unusable: '+self.broker.transport_error)
+            if self.broker.channels:
+                self.stream.close();self.server.close()
+                raise AssertionError('Broker relay requires one exclusive notification sink')
+            self.broker.channels.append(self)
         self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
 
     def read(self, stream, message, timeout=10.0):
@@ -69,7 +77,16 @@ class BrokerRelay:
     def release_control_acquire(self):
         self.control_acquire_release.set()
 
+    def send(self, reply):
+        with self._send_lock:self.server.sendall(frame(reply))
+
+    def acquire_upstream(self):
+        while not self._closed.is_set():
+            if self.broker.io_lock.acquire(timeout=.05):return True
+        return False
+
     def run(self):
+        owns_upstream=False;reading_upstream=False
         try:
             pending=None
             while not self._closed.is_set():
@@ -77,18 +94,34 @@ class BrokerRelay:
                 if self.server in ready:
                     request=self.read(self.server,pb.Request) # EOF also retires during an outstanding request.
                     if pending is not None:raise AssertionError('Concurrent relay request')
-                    pending=request
+                    if not self.acquire_upstream():return
+                    owns_upstream=True;pending=request
                     self.broker.stream.sendall(frame(pending))
                 if self.broker.stream not in ready:continue
+                if not owns_upstream:
+                    if not self.acquire_upstream():return
+                    owns_upstream=True
+                # A direct exchange may have consumed the previously readable frame.
+                if not select.select([self.broker.stream],[],[],0)[0]:
+                    if pending is None:
+                        self.broker.io_lock.release();owns_upstream=False
+                    continue
+                reading_upstream=True
                 reply=self.read(self.broker.stream,pb.Reply)
                 if reply.HasField('control_revoked'):
                     if reply.protocol_version!=1 or reply.request_id!=0:
                         raise AssertionError('Invalid relay revocation identity')
-                    self.server.sendall(frame(reply))
+                    reading_upstream=False
+                    self.send(reply)
+                    if pending is None:
+                        self.broker.io_lock.release();owns_upstream=False
                     continue
                 if pending is None or reply.protocol_version!=1 or reply.request_id!=pending.request_id:
                     raise AssertionError('Mismatched relay response identity')
+                reading_upstream=False
                 request=pending;pending=None
+                # Hooks issue direct broker requests. Barriers permit another caller.
+                self.broker.io_lock.release();owns_upstream=False
                 if request.HasField('control_acquire'):
                     lease=reply.control_lease if reply.HasField('control_lease') else None
                     correlated=bool(lease and reply.protocol_version==request.protocol_version==1 and
@@ -119,9 +152,14 @@ class BrokerRelay:
                 if request.HasField('application_access'):
                     self.calls+=1
                     if self.hook:self.hook(self.calls,reply)
-                self.server.sendall(frame(reply))
+                self.send(reply)
         except (EOFError,OSError):pass
         except BaseException as error:self.errors.append(error)
+        finally:
+            if owns_upstream:
+                if pending is not None or reading_upstream:
+                    self.broker.transport_error='Relay abandoned an incomplete upstream exchange'
+                self.broker.io_lock.release()
 
     def close(self):
         if self._closing:return
@@ -131,8 +169,8 @@ class BrokerRelay:
         self.thread.join(5)
         self.stream.close();self.server.close()
         if self.thread.is_alive():raise AssertionError('Broker relay did not stop')
+        if self in self.broker.channels:self.broker.channels.remove(self)
         if self.errors:raise self.errors[0]
-
 
 class ApplicationObservationTests(WorldIdentityFixture):
     close_brokers = access.ApplicationAccessTests.close_brokers

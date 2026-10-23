@@ -366,6 +366,7 @@ class BrokerProcess:
 
     def initialize_transport(self, *, world_channel_opt_in):
         self.io_lock = threading.RLock()
+        self.transport_error = None
         self.channels = []
         self.world_request_count = 0
         self.world_channel_opt_in = bool(world_channel_opt_in)
@@ -380,6 +381,8 @@ class BrokerProcess:
 
     def exchange(self, request):
         with self.io_lock:
+            if self.transport_error is not None:
+                raise AssertionError('Broker transport is unusable: '+self.transport_error)
             self.stream.sendall(frame(request))
             while True:
                 reply = receive(self.stream.recv, self.stream, broker.Reply)

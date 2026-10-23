@@ -1,0 +1,57 @@
+M09 broker relay ownership repair, 2026-10-22
+
+Status: UNQUALIFIED. M08 remains qualified and unchanged.
+
+Reproduced failure
+The original4040 sb16-2 application-observation registration failed after its fenced denial assertions passed.
+Its post-render test then issued a direct broker application_access request.
+The fixture relay consumed that direct reply and reported Mismatched relay response identity.
+The direct caller timed out. This is shared fixture transport ownership, not a cabinet visibility defect.
+The original FORBIDDEN, no-observation, direct access, and independent observation assertions remain unchanged.
+
+Corrected invariant
+BrokerRelay uses the actual BrokerProcess.io_lock for every upstream read and send.
+A world request retains ownership through its correlated reply, including intervening revocation notices.
+Idle polling rechecks socket readability after acquiring ownership.
+Hooks and control-acquire barriers run after upstream ownership is released.
+One registered notification sink serializes world-bound frames from relay and direct exchanges.
+Close cancels lock waits and partial reads without closing the borrowed broker descriptor.
+Abandoned transactions poison the transport before releasing ownership.
+Direct requests and replacement relays refuse poisoned reuse before sending.
+Clean idle closure leaves the borrowed transport reusable.
+DirectBroker subprocess endpoints remain outside this Python mutex repair.
+
+Review
+The primary reviewed all three changed fixture files against the actual broker transport and observation caller.
+The independent reviewer found two abandoned-transport bypasses. Both were corrected before execution.
+Final independent source review found no remaining blocker.
+No production authority, visibility, native input, wire contract, or locked oracle changed in this increment.
+
+Selected checks and current evidence
+Selection preceded execution. The socket suite extracts actual BrokerProcess methods and receive code.
+It preserves nine relay regressions and adds eight ownership and cleanup counterexamples.
+The sb16 socket suite passed all17 methods. Both command and wrapper receipts are0.
+Its tmux pane2088012 retired with status0. These are fixture-only checks using Debug Python bindings.
+Two selected counterexamples fail against the original0505 relay and actual broker transport.
+The old version reproduced Mismatched relay response identity and violated exclusive ownership.
+That reproducer ran2 methods with3 failure records, including cleanup. Its receipts are1/1.
+The original failure and failing reproducer remain preserved. Neither counts as passing evidence.
+The second-host socket suite, native application-observation rerun, and broader corrected runtime checks remain UNRUN.
+Full corrected Debug, sanitizer, cross-host, native, and milestone closure remain pending on both hosts.
+
+External evidence
+ROG root: /home/dflanag3/spatial-artifacts/m09-full-0505c8f42de5-20261022
+Original failure: sb16-2-post-render-observation-failure-01.txt
+Repair inputs, hashes, selection, reviews, and repro: relay-ownership-stage-01
+sb16 socket receipts and logs: same root/relay-ownership-stage-01/socket-run-01 on sb16
+sb16 failing repro: same root/relay-ownership-stage-01/reproducer-run-01 on sb16
+The original4040 full-gate evidence remains at its original deployment roots.
+The0505 package completed preparation before this correction was applied. It is not this corrected candidate.
+Milestone integration and GitHub publication remain pending full qualification.
+
+Next required checks
+Run the17 socket cases on sb16-2 after its original gate retires.
+Prepare the corrected committed candidate with all four builds and generation proof.
+Run application-observation, world-application-control, and the previously selected repair regressions.
+Use Debug and ASan-UBSan on sb16 and sb16-2. Preserve native wrappers and copy-helper ownership.
+Integrate only after affected focused runtime checks pass. Then run full qualification.
