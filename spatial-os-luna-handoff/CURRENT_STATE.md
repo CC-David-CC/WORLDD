@@ -1,3 +1,20 @@
+## 2026-10-23: M09 repository-import fixture uses one absolute setup deadline
+
+The original worker-death sanitizer failure occurred during Git import, before fault injection.
+Four deterministic transport regressions reproduce the fixture's five-second setup mismatch and deadline renewal defects.
+Typed repository import now receives one absolute 300-second fixture deadline. Ordinary requests retain five seconds.
+Production services, CTest bounds, request validation, locked tests, and schemas remain unchanged.
+Across both hosts, 16 transport/receive executions, 16 M09 guard executions, and 180 corrective runtime executions pass.
+Each profile passes all 44 workspace-authority methods and the actual worker-death recovery method on both hosts.
+Retained identities and journals prove real interruption, uncertainty preservation, and no duplicate publication after restart.
+Helper restoration and scope cleanup pass. Sanitizer diagnostics are absent.
+Sb16-2 uses a separately reviewed zlib update. Original provenance and the failed preflight remain preserved.
+The mandatory profile now requires 91 suites and 53 named methods. All previous requirements remain.
+Both hosts recovered space from reviewed passed fixture images. Every worker-death image remains preserved.
+Combined full and cross-host qualification remain pending. M09 remains UNQUALIFIED.
+Read ../docs/M09_GIT_IMPORT_SETUP_DEADLINE_2026-10-23.txt for source pins, evidence, cleanup, and remaining work.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M09 requires lifetime suites and exact named runtime evidence
 
 The mandatory profile adds four v3 suites and the issuer setup regression to its prior requirements.

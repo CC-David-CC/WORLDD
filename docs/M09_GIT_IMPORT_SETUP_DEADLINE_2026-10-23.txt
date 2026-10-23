@@ -1,0 +1,112 @@
+M09 repository-import fixture deadline correction
+2026-10-23. Corrective focused checks pass. M09 remains UNQUALIFIED.
+
+Reproduced defect
+
+The original sb16-2 sanitizer worker-death case failed during its initial git.repo.import setup.
+The failure happened before worker-death injection. Its original source, report, logs, and image remain preserved.
+The unchanged diagnostic replay passed. That replay did not repair the original timeout.
+
+The fixture imposed a five-second frame deadline on repository import.
+ExecutionStore::import_repository permits five minutes for its clone command.
+Its other Git commands have separate limits. Five minutes is not an end-to-end import guarantee.
+The fixture's five-second limit contradicted a legitimate longer setup operation.
+The original import's exact latency cause remains unproven.
+
+Four deterministic regressions reproduce the transport problem against the original fixture.
+They use real framed Protocol Buffers with a controlled readiness clock.
+They cover a valid reply after six seconds, notification deadline renewal, partial replies, and delayed request-identity rejection.
+The ordinary five-second negative control and existing callback compatibility check pass against that baseline.
+Both existing receive tests also pass against the baseline.
+
+Correction and authority boundary
+
+receive accepts an optional absolute deadline. Its default remains five seconds.
+BrokerProcess.exchange supplies one 300-second deadline only for the typed management.git_repo_import request.
+The deadline starts before sending. Notifications and reply fragments cannot renew it.
+The fixture sends once. Protocol validation and request-identity checks remain enabled.
+Ordinary requests, callback signatures, production services, CTest limits, and locked acceptance tests remain unchanged.
+The existing resource-service and CTest bounds still cap each actual test.
+No world, process, or filesystem behavior is simulated by the transport regression.
+
+Focused verification
+
+The corrected six transport methods and two receive methods pass on both hosts: 16 executions.
+The dedicated M09 guard harness passes eight methods on both hosts: 16 executions.
+Both hosts pass 44 workspace-authority methods and one actual worker-death method in each profile.
+Debug and ASan-UBSan complete 45 methods each. The total is 180 corrective runtime executions.
+Exact counts, actual worker-death injection, scope cleanup, and helper restoration pass.
+The retained worker identity proves copied bytes existed before SIGKILL targeted the exact production helper.
+Its journal retains UNCERTAIN state without publication. Restart does not relaunch or publish the uncertain operation.
+Transport regression success alone does not prove production copy recovery.
+
+The focused runtime uses original 1ae production binaries and exactly two changed Python fixture files.
+These two files are unchanged between the original 1ae candidate and the task's 1e553787 base.
+Source manifests identify the explicit overlay. The original deployment remains unchanged.
+
+Qualification contract
+
+workspace-authority becomes mandatory in the M09 profile.
+The five new timeout regressions become required named methods in that suite.
+The profile now requires 91 cumulative suites and 53 named methods. All previous requirements remain.
+The seven categories, eight dedicated harness IDs, and inherited 89-test harness remain unchanged.
+The CTest log parser also accepts padding after Start. Numeric suite and exact method checks remain enforced.
+The guard harness checks padded Start headers and retains all existing failure controls.
+
+Runtime dependency change
+
+The first sb16-2 native preflight refused a changed /lib/x86_64-linux-gnu/libz.so.1 hash.
+Unattended Ubuntu upgrades installed zlib1g 1:1.3.dfsg-3.1ubuntu2.3 at 06:20:39 local time.
+dpkg -V zlib1g reports no differences. The installed library matches its package.
+The separate reviewed runtime manifest changes only that library's four production/observer profile entries.
+The original provenance and failed preflight remain unchanged.
+Corrective sb16-2 evidence must identify this updated dependency and recheck it after execution.
+Final candidate qualification must capture the actual dependency closure on both hosts.
+
+Capacity and preservation
+
+Reviewed cleanup removed 16 passed fixture images on sb16 and 12 on sb16-2.
+Root checks verified each exact image inode, filesystem identity, provisioning record, lock, mount, and loop state.
+Root process scans covered executable paths, working directories, descriptors, maps, command lines, and mount tables.
+Deletion rechecked those facts under both project locks. The maintained cleanup helper unlinked only volume.img.
+Separate copied receipts contain the cleanup proofs. Original receipts, reports, and logs retain their original hashes.
+Every worker-death fixture remains preserved. Volume records and empty mount directories remain.
+Measured recovery was 8,575,840,256 bytes on sb16 and 6,428,250,112 bytes on sb16-2.
+Both cleanup jobs have terminal 0/0 receipts. Full-gate capacity still needs review.
+
+Evidence locations
+
+Both hosts:
+/home/dflanag3/spatial-artifacts/m09-lifecycle-focused-1da97083-20261023.
+Read git-budget-corrective-transport-run-25 and git-budget-corrective-receive-run-25.
+Read git-budget-gate-run-33 and its frozen git-budget-gate-33 source.
+Read passed-copy-image-retirement-29/selection.json, root-audit-30.json, and retirement-result-31.json.
+Read copy-image-retirement-run-31 for canonical cleanup receipts.
+Earlier cleanup selectors 24 and 26 produced no image selections. Selector 26 refused CTest header parsing.
+Selector 27 selected no images.
+Selector 28 refused a multi-method driver report. These attempts deleted nothing.
+Selector 29 binds single-method driver reports to actual passing CTest groups and named method results.
+
+sb16:
+Read git-budget-runtime-32 and git-budget-runtime-run-32.
+Read git-budget-runtime-32/primary-audit-35.json for the independent post-run audit.
+
+sb16-2:
+Read git-budget-baseline-transport-run-22 and git-budget-baseline-receive-run-22.
+Read git-budget-preflight-run-32 for the preserved dependency refusal.
+Read control/git-budget-runtime-environment-review-34.json for the separate dependency review.
+Read git-budget-runtime-34 and git-budget-runtime-run-34.
+Read git-budget-runtime-34/primary-audit-35.json for the independent post-run audit.
+
+Middle-child:
+/home/dflanag3/spatial-artifacts/m09-lifetime-primary-20261023.
+The corrective fixture archive SHA256 is 0ddc40d4ff005296dffad46f6b685c318bc76120674a796a715b3db7c1750f10.
+The guard source archive SHA256 is 3b3f2d4c9d266d797b21095dd18a5dadc51213962f3b75329aeb741cddbb93ac.
+
+Remaining qualification
+
+Freeze one combined candidate. Prove reproducible generated code and checked native binaries.
+Run the complete both-host gate, required cross-host checks, and final requirement reconciliation.
+Require candidate-bound m09-named-runtime.json reports from both successful local gates.
+Focused overlays and mixed component evidence do not qualify the combined candidate.
+M08 remains qualified. Spatial-M1 and LOCAL_READY remain incomplete.

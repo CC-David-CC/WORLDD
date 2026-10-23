@@ -3,19 +3,20 @@ M09 mandatory lifetime profile and named runtime evidence
 
 Additive requirements
 
-The M09 profile now requires 90 cumulative suites, including all prior M08 and M09 requirements.
-Five suites are newly mandatory:
+The M09 profile now requires 91 cumulative suites, including all prior M08 and M09 requirements.
+Six suites are newly mandatory:
 
 native-input-lifecycle-v3-artifact.
 native-input-lifecycle-v3-collector.
 native-lifecycle-endpoint-v3.
 world-native-lifecycle-v3.
 session-world-issuer-setup.
+workspace-authority.
 
 The seven case categories remain unchanged. All 35 original named selectors remain required.
-Thirteen new selectors cover actual destruction and actor retirement, independent releases,
-fresh first-peer state, immutable native setup, bounded collection, and the issuer fixture regression.
-The result is 48 required named methods across 13 M09 suites.
+Eighteen new selectors cover actual destruction and actor retirement, independent releases,
+fresh first-peer state, immutable native setup, bounded collection, issuer setup, and repository-import deadlines.
+The result is 53 required named methods across 14 M09 suites.
 The dedicated M09 harness retains its eight exact IDs. The inherited 89-test harness inventory is unchanged.
 Locked acceptance tests, schemas, v2 oracles, authority checks, and runtime assertions remain unchanged.
 
@@ -25,7 +26,7 @@ After the complete cumulative local gate returns success, the M09 driver checks 
 It requires one actual unittest PASS for every named selector in its associated CTest suite.
 Missing, duplicated, skipped, errored, or wrong-suite results fail qualification.
 The collector supports diagnostics between a unittest start and its terminal result.
-It binds numeric test IDs to the actual CTest Start headers.
+It binds numeric test IDs to the actual CTest Start headers, including their numeric padding.
 Filtered batches can renumber tests, so full-inventory ordinal positions cannot establish that binding.
 Missing or duplicate required-suite headers are rejected.
 
@@ -39,8 +40,8 @@ It does not replace any inherited qualification requirement or native artifact.
 
 Validation
 
-The old qualifier accepts omission of each newly required suite.
-The new harness reproduces that gap as five missing-suite assertion failures.
+The initial guard baseline accepts omission of the five lifetime and issuer suites.
+The harness reproduces that gap as five missing-suite assertion failures.
 The baseline also lacks named-result enforcement. Its eight methods finish with seven failures and one error.
 The baseline 1/1 receipts remain preserved.
 
@@ -48,8 +49,11 @@ The corrected dedicated harness passes all eight methods on sb16 and sb16-2.
 Controls include missing suites, skip policies, duplicate registrations, missing or duplicate method output,
 wrong numeric namespace, skipped or failed methods, missing or duplicate Start headers, and candidate mismatch.
 The positive case exercises the real post-gate receipt writer over explicit metadata fixtures.
-Actual candidate source resolves all 48 selectors exactly once.
+Actual candidate source resolves all 53 selectors exactly once.
 Both configured CMake inventories contain 250 registrations and every required suite.
+The repository-import increment adds no CMake registration. It requires the existing workspace-authority suite.
+All eight guard methods pass again on both hosts with the five additional named regressions.
+The guard also checks padded Start headers. Read git-budget-gate-run-33 for these separate results.
 
 The first saved-log format check exposes the filtered CTest numbering mismatch.
 The correction uses actual Start headers and passes both hosts and profiles.
@@ -74,7 +78,8 @@ f074fff540806b4f7896c65f1eb46a4ad13b098bae4b0b95687623b93be99aa8.
 
 Remaining work
 
-Resolve the repository-import setup timeout before final candidate qualification.
+The repository-import correction passes focused runtime checks on both hosts in both profiles.
+Read M09_GIT_IMPORT_SETUP_DEADLINE_2026-10-23.txt for its isolated evidence and dependency review.
 Keep the original failure and the separately passing unchanged worker-death replay.
 Freeze a reviewed combined candidate with reproducible generated code and checked native binaries.
 Run complete both-host qualification, including this mandatory profile and its new named-method evidence.

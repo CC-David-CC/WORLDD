@@ -26,8 +26,9 @@ from test_issuer_client import ClientFixture
 WORLD = Path(sys.argv.pop(1))
 
 
-def receive(read, ready, message):
-    deadline = time.monotonic()+5
+def receive(read, ready, message, *, deadline=None):
+    if deadline is None:
+        deadline = time.monotonic()+5
     def exact(size):
         data = b''
         while len(data) < size:

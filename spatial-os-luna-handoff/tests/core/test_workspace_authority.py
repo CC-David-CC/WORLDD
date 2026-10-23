@@ -21,6 +21,7 @@ import world_session_pb2 as session
 from harness.git_fixture import GitRepo
 from harness.wire import frame, make_request, result_value, read_message
 from harness.resource_broker import ResourceBroker
+from unittest.mock import patch
 from test_world_identity import WorldIdentityFixture, WorldProcess, WORLD, receive
 import test_world_authority as world_authority
 
@@ -31,6 +32,9 @@ PROJECT = [grant.FILE_BROWSE, grant.FILE_READ, *WRITE, grant.PROCESS_EXECUTE]
 RIGHTS = [grant.WORKSPACE_ACCESS, *PROJECT, grant.POLICY_ADMINISTER]
 POLICY = ['workspace.select', 'files.read', 'files.write', 'process.launch']
 FENCE_REVOCATION_MESSAGE = 'Workspace authority changed during the request'
+# Setup must accommodate import_repository's existing five-minute clone limit.
+# The native service and CTest bounds still cap the whole fixture.
+GIT_IMPORT_SETUP_RESPONSE_SECONDS = 5 * 60
 
 
 class BrokerChannel:
@@ -383,9 +387,15 @@ class BrokerProcess:
         with self.io_lock:
             if self.transport_error is not None:
                 raise AssertionError('Broker transport is unusable: '+self.transport_error)
+            deadline = (time.monotonic() + GIT_IMPORT_SETUP_RESPONSE_SECONDS
+                        if request.HasField('management') and
+                        request.management.HasField('git_repo_import') else None)
             self.stream.sendall(frame(request))
             while True:
-                reply = receive(self.stream.recv, self.stream, broker.Reply)
+                if deadline is None:
+                    reply = receive(self.stream.recv, self.stream, broker.Reply)
+                else:
+                    reply = receive(self.stream.recv, self.stream, broker.Reply, deadline=deadline)
                 if reply.protocol_version != 1: raise AssertionError('Invalid broker reply protocol')
                 if reply.HasField('control_revoked'):
                     self.dispatch_control(reply)
@@ -440,6 +450,105 @@ class BrokerProcess:
 
 
 class BrokerTransportCompatibilityTests(unittest.TestCase):
+    def timed_exchange(self, method, *, notifications=(), reply_at=6.0, request_id=1,
+                       split_reply=False):
+        """Exercise actual protobuf framing with a controlled readiness clock."""
+        clock = [0.0]
+        command = make_request(method, {'id': 'repo-one', 'path': '/source'}
+                               if method == 'git.repo.import' else {})
+        command.request_id = 1
+        request = broker.Request(protocol_version=1, request_id=1, management=command)
+        management = (core.Reply(protocol_version=1, request_id=request_id,
+            repository=core.RepositoryReply(id='repo-one', path='/execution/repositories/one.git', source='/source'))
+            if method == 'git.repo.import' else core.Reply(protocol_version=1,
+                request_id=request_id, hello=core.HelloReply(protocol='fixture', implementation='test')))
+        reply = broker.Reply(protocol_version=1, request_id=request_id, management=management)
+        packets = [(at, frame(broker.Reply(protocol_version=1,
+            control_revoked=broker.ApplicationControlLease(id=bytes([i + 1]) * 32,
+                principal=grant.ActorRef(issuer_id=b'i' * 32, actor_id=b'a' * 32),
+                application=broker.ApplicationRef(workspace=b'one', application=b'p' * 32,
+                                                  server_id=b's' * 16)))))
+                   for i, at in enumerate(notifications)]
+        raw = frame(reply)
+        packets += ([(reply_at, raw[:4]), (reply_at + 2, raw[4:])]
+                    if split_reply else [(reply_at, raw)])
+
+        class Stream:
+            def __init__(self):
+                self.sent = []
+
+            def sendall(self, data):
+                self.sent.append(data)
+
+            def recv(self, size):
+                at, data = packets[0]
+                self_case.assertLessEqual(at, clock[0])
+                result = data[:size]
+                if len(result) == len(data):
+                    packets.pop(0)
+                else:
+                    packets[0] = (at, data[len(result):])
+                return result
+
+            def select(self, readers, writers, errors, timeout):
+                self_case.assertEqual(readers, [self])
+                at = packets[0][0]
+                if at > clock[0] + timeout:
+                    clock[0] += timeout
+                    return [], [], []
+                clock[0] = max(clock[0], at)
+                return readers, [], []
+
+        self_case = self
+        stream = Stream()
+        fixture = BrokerProcess.__new__(BrokerProcess)
+        fixture.stream = stream
+        fixture.initialize_transport(world_channel_opt_in=False)
+        events = []
+
+        class Sink:
+            def send(self, value):
+                events.append(value)
+
+        fixture.channels.append(Sink())
+        self.clock = clock
+        self.transport_events = events
+        self.transport_stream = stream
+        with patch.object(time, 'monotonic', side_effect=lambda: clock[0]), \
+             patch.object(select, 'select', side_effect=stream.select):
+            result = fixture.exchange(request)
+        self.assertEqual(stream.sent, [frame(request)])
+        self.assertEqual(result, reply)
+        return result
+
+    def test_repository_import_reply_can_exceed_interactive_frame_budget(self):
+        result = self.timed_exchange('git.repo.import')
+        self.assertEqual(self.clock[0], 6.0)
+        self.assertEqual(result.management.repository.id, 'repo-one')
+
+    def test_repository_import_notifications_do_not_renew_setup_deadline(self):
+        with self.assertRaisesRegex(AssertionError, 'World response deadline expired'):
+            self.timed_exchange('git.repo.import', notifications=range(4, 305, 4), reply_at=308)
+        self.assertEqual(self.clock[0], 300.0)
+        self.assertEqual(len(self.transport_events), 74)
+        self.assertEqual(len(self.transport_stream.sent), 1)
+
+    def test_repository_import_partial_reply_keeps_absolute_setup_deadline(self):
+        with self.assertRaisesRegex(AssertionError, 'World response deadline expired'):
+            self.timed_exchange('git.repo.import', reply_at=299, split_reply=True)
+        self.assertEqual(self.clock[0], 300.0)
+        self.assertEqual(len(self.transport_stream.sent), 1)
+
+    def test_repository_import_delayed_wrong_request_identity_is_rejected(self):
+        with self.assertRaisesRegex(AssertionError, 'Broker reply 99 did not match request 1'):
+            self.timed_exchange('git.repo.import', request_id=99)
+        self.assertEqual(self.clock[0], 6.0)
+
+    def test_ordinary_broker_reply_retains_five_second_frame_budget(self):
+        with self.assertRaisesRegex(AssertionError, 'World response deadline expired'):
+            self.timed_exchange('system.hello')
+        self.assertEqual(self.clock[0], 5.0)
+
     def test_authorization_fence_custom_broker_transport_opt_out_preserves_callbacks(self):
         class CustomBroker(BrokerProcess):
             def exchange(self, request):

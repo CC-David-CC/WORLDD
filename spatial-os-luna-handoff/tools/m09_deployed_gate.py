@@ -38,6 +38,7 @@ M09_REQUIRED = frozenset({
     "native-lifecycle-endpoint-v3",
     "world-native-lifecycle-v3",
     "session-world-issuer-setup",
+    "workspace-authority",
 })
 REQUIRED = frozenset(m08.REQUIRED) | M09_REQUIRED
 M09_SUITE_BY_MODULE = {
@@ -54,6 +55,7 @@ M09_SUITE_BY_MODULE = {
     "tests.native.test_native_lifecycle_endpoint_v3": "native-lifecycle-endpoint-v3",
     "tests.core.test_world_native_lifecycle_v3": "world-native-lifecycle-v3",
     "tests.native.test_session_world_issuer_setup": "session-world-issuer-setup",
+    "tests.core.test_workspace_authority": "workspace-authority",
 }
 M09_CASES = {
     "application-group-identity": {
@@ -76,7 +78,8 @@ M09_CASES = {
         "suites": ("world-application-control", "application-control-lease", "native-observer-endpoint",
                    "world-input-witness-bindings", "world-native-input-witness-v2",
                    "native-input-lifecycle-v3-artifact", "native-input-lifecycle-v3-collector",
-                   "native-lifecycle-endpoint-v3", "world-native-lifecycle-v3", "session-world-issuer-setup"),
+                   "native-lifecycle-endpoint-v3", "world-native-lifecycle-v3", "session-world-issuer-setup",
+                   "workspace-authority"),
         "tests": (
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_actual_server_receives_parent_owned_cloexec_endpoint",
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_setup_resolves_real_native_seats_and_distinct_owners",
@@ -109,6 +112,11 @@ M09_CASES = {
             "tests.native.test_input_state_observer_v3_collect.LifecycleCollectorTests.test_complete_records_without_eof_still_expire",
             "tests.native.test_session_world_issuer_setup.SessionWorldIssuerSetupTests.test_healthy_peer_world_registration_after_idle_expiry",
             "tests.native.test_session_world_issuer_setup.SessionWorldIssuerSetupTests.test_plain_peer_world_registration_after_idle_expiry",
+            "tests.core.test_workspace_authority.BrokerTransportCompatibilityTests.test_repository_import_reply_can_exceed_interactive_frame_budget",
+            "tests.core.test_workspace_authority.BrokerTransportCompatibilityTests.test_repository_import_notifications_do_not_renew_setup_deadline",
+            "tests.core.test_workspace_authority.BrokerTransportCompatibilityTests.test_repository_import_partial_reply_keeps_absolute_setup_deadline",
+            "tests.core.test_workspace_authority.BrokerTransportCompatibilityTests.test_repository_import_delayed_wrong_request_identity_is_rejected",
+            "tests.core.test_workspace_authority.BrokerTransportCompatibilityTests.test_ordinary_broker_reply_retains_five_second_frame_budget",
         ),
         "status": "FOCUSED_COMPONENT_PASS_COMBINED_QUALIFICATION_PENDING",
     },
@@ -328,7 +336,7 @@ def validate_m09_method_log(output, inventory):
             status=status, terminal_line=line))
 
     for line_number, line in enumerate(output.splitlines(), 1):
-        start = re.fullmatch(r"\s*Start (\d+): (\S+)", line)
+        start = re.fullmatch(r"\s*Start\s+(\d+): (\S+)", line)
         if start is not None and start.group(2) in M09_REQUIRED:
             number, suite = int(start.group(1)), start.group(2)
             if number in numbers or suite in started:

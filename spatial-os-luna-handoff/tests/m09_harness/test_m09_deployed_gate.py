@@ -54,7 +54,7 @@ class M09DeployedGateTests(unittest.TestCase):
         for missing in ("application-observation", "world-native-input-witness-v2",
                         "native-input-lifecycle-v3-artifact", "native-input-lifecycle-v3-collector",
                         "native-lifecycle-endpoint-v3", "world-native-lifecycle-v3",
-                        "session-world-issuer-setup"):
+                        "session-world-issuer-setup", "workspace-authority"):
             with self.subTest(missing=missing):
                 inventory = [row for row in self.inventory() if row["name"] != missing]
                 with self.assertRaisesRegex(RuntimeError, missing):
@@ -70,6 +70,8 @@ class M09DeployedGateTests(unittest.TestCase):
         lines = self.runtime_method_lines()
         valid = gate.validate_m09_method_log("\n".join(lines), self.inventory())
         self.assertEqual(set(valid), set(gate._case_selectors()))
+        padded = [re.sub(r"Start (\d+):", r"Start   \1:", line) for line in lines]
+        self.assertEqual(gate.validate_m09_method_log("\n".join(padded), self.inventory()), valid)
         first = next(i for i, line in enumerate(lines) if re.match(r"\d+: test_", line))
         original = lines[first]
         changes = ["99999: " + original.split(": ", 1)[1],
@@ -97,6 +99,7 @@ class M09DeployedGateTests(unittest.TestCase):
             "test_native_lifecycle_endpoint_v3": "native-lifecycle-endpoint-v3",
             "test_world_native_lifecycle_v3": "world-native-lifecycle-v3",
             "test_session_world_issuer_setup": "session-world-issuer-setup",
+            "test_workspace_authority": "workspace-authority",
         }
         # Actual filtered batches need not use the full inventory's ordinal IDs.
         numbers = {row["name"]: n + 1000 for n, row in enumerate(self.inventory(), 1)}
@@ -236,7 +239,7 @@ class M09DeployedGateTests(unittest.TestCase):
             "native-world_surface_groups", "native-observer-endpoint", "world-input-witness-bindings",
             "world-native-input-witness-v2", "native-input-lifecycle-v3-artifact",
             "native-input-lifecycle-v3-collector", "native-lifecycle-endpoint-v3",
-            "world-native-lifecycle-v3", "session-world-issuer-setup"})
+            "world-native-lifecycle-v3", "session-world-issuer-setup", "workspace-authority"})
         self.assertEqual(gate.REQUIRED, gate.m08.REQUIRED | gate.M09_REQUIRED)
 
 
