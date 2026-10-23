@@ -1,0 +1,137 @@
+M09 additive native lifetime witness, version 3
+2026-10-23
+
+Status: DRAFT IMPLEMENTATION. UNQUALIFIED. Runtime checks remain UNRUN.
+Base product: 1ae9b3aef66c554ae20c564cad16d28b5128768d.
+M08 remains qualified and unchanged.
+
+Reason and independent review
+
+The existing v2 witness pins one live window throughout the transfer.
+Destruction removes that window. Actor closure removes the old native devices.
+Missing objects must not become successful zero-filled native snapshots.
+The existing five complete v2 scenarios do not establish these lifetime invariants.
+The legacy destruction helper waits for releases before submitting peer input.
+The survivor case establishes reacquisition and process continuity only.
+Independent source review confirmed this gap. It established no new routing defect.
+The review used the frozen 1ae source and pinned XLibre 25.1.9 sources.
+Its external record is m09-full-1ae9b3aef66c-20261022/lifetime-coverage-review-01.json.
+
+This is an additive test-contract version. Existing v2 schemas and checks remain unchanged.
+Locked acceptance tests and the strict legacy destruction requirement remain unchanged.
+All scenarios retain actual old release delivery before the first peer press.
+Native disappearance never substitutes for delivered release evidence.
+
+Trusted setup and transport
+
+Use a separate spatial.testing.v3 schema and unique generated basename.
+Reuse authenticated inherited setup, worldd actor-seat bindings, and finite deadlines.
+Reuse the independent receipt process and parent-owned output collector.
+Fields 1 and 2 of the new control envelope preserve legacy v2 wire encodings.
+Legacy requests still receive identical v2 reply encodings and validation.
+V3 setup independently resolves both windows before the trigger.
+The common arm's expected_window always identifies the original target.
+The peer_window identifies the actual surviving destination.
+Both windows belong to the same application and workspace.
+Destruction requires different XIDs and different window epochs.
+Actor disconnect and actor revocation may use the original surviving window.
+No rearming occurs after cancellation or destruction.
+A pre-trigger peer attempt must still return BUSY.
+
+Bounds are four records, 8192 bytes per record, and 32776 bytes per artifact.
+Control packets remain bounded at 4096 bytes.
+The inherited FIFO carries only three native records.
+The independent process contributes the fourth receipt record.
+Keep the existing 32-event receipt bound and 10-second arm interval.
+Reject unknown fields, noncanonical encodings, incomplete records, overflow, and disconnect.
+Structural controls do not establish native provenance.
+
+Native destruction identity
+
+FreeResource unlinks the resource before ResourceStateFreeing invokes its callbacks.
+The existing lifetime callback then invalidates its window epoch.
+UnmapWindow clears mapped state before the spatial UnrealizeWindow cancellation hook.
+Therefore ordinary live-window lookup cannot capture this lifecycle.
+Use the resource callback's borrowed WindowPtr before clearing its existing epoch.
+Compare its XID, existing epoch, owner, and application with the accepted old pin.
+Copy native held state, grab identity, and focus identity synchronously.
+Retain no WindowPtr or other borrowed pointer after the callback.
+A callback-local verifier must not relax existing PinWindow or v2 context checks.
+
+Record resource unlink observation separately from cancellation and spatial generation invalidation.
+Cancellation currently precedes spatial generation increment, not X resource unlink.
+This witness does not claim cancellation precedes X resource unlink.
+Record the actual spatial-generation increment and its new generation after cancellation.
+Record the original destruction hook's return time and actual Boolean result.
+Require an observed successful result and current resource absence.
+Repeated UnrealizeWindow and DestroyWindow callbacks must not replace the first capture.
+At first peer output, recheck the old resource is absent and the survivor pin is current.
+Reject XID reuse, including a new epoch under the original numerical XID.
+
+Clearance and actor retirement
+
+Capture before cancellation, after releases, and after context clearing.
+Preserve the original native releases, grab deactivation, and focus operations.
+The release snapshot must prove keys, buttons, modifiers, grabs, capture, and focus clear.
+The final cancellation snapshot must also prove application and target associations clear.
+Pending queues, replay, frozen devices, and synchronization state must be clear.
+
+Actor disconnect and actor revocation close the native seat.
+Copy all four exact device identities before removal.
+Capture actual clear native state before disabling or removing them.
+Record each actual RemoveDevice return code and its time.
+Verify all four numerical IDs are absent from enabled and disabled device lists.
+Verify the old seat is absent from the seat registry.
+Never dereference a device after removal.
+Native seat closure does not distinguish policy revocation from voluntary disconnect.
+Separate runtime scenarios must verify the respective production trigger and token rejection.
+
+First peer event and independent delivery
+
+Prepare and aim at the surviving target before the trigger.
+Submit peer input before waiting for old release evidence.
+The pre-bind hook records the peer controller before generating peer input.
+The first actual native peer EventCallback must capture fresh old-state evidence.
+For destruction, all old devices remain live, epoch-matched, and fully clear.
+For actor retirement, require explicit successful removals and a fresh exact retirement check.
+Retired devices must not appear as fake all-clear DeviceSnapshot records.
+Missing retirement, failed removal, reused IDs, and incomplete absence checks fail.
+
+Join the actual first peer event with its independently received XI2 tuple.
+Check recipient, window, master, source, detail, event time, ordinal, and synthetic flag.
+Decode each event's actual window XID.
+Join old release events to old_window and peer input to peer_window.
+Never relabel survivor events as old-window events.
+Require all old button and key releases in the existing strict order before peer input.
+Check native focus clearance independently; a held-button motion alone does not prove capture.
+
+Counterexamples and selected checks
+
+Run destruction, actor disconnect, and actor revocation separately in both profiles on both hosts.
+Reject retained keys, buttons, modifiers, grabs, focus, frozen state, replay, and pending input.
+Reject missing retirement, failed removal, wrong device epochs, and reused numerical identities.
+Reject wrong survivor application, wrong owner, stale generation, and reused window epochs.
+Reject peer output before clearance, destruction completion, or seat retirement.
+Reject late releases, receipt gaps, synthetic events, wrong sources, and callback/receipt disagreement.
+Reject expired deadlines, stream overflow, observer disconnect, and malformed protobufs.
+Keep successful structural controls alongside each otherwise valid negative control.
+Rerun existing v2 native checks and related lifetime/input regression suites.
+Compile default-off and observer-enabled native Debug and sanitizer variants on a development host.
+Verify production-off closure, generated-source reproducibility, and exact runtime source hashes.
+Record actual evidence and reassess affected full qualification before integrating this supplement.
+Current full 1ae gates continue unchanged. Their results cannot prove this new witness complete.
+
+Implementation checkpoint
+
+The draft contains the v3 schema, Python structural oracle, adversarial fixtures, and separate CMake registration.
+CMake configure and Python binding generation passed on ROG with terminal 0/0 receipts.
+Two independent clean Python generations match each other and the draft generated artifacts.
+This limited proof covers three Python files. It does not qualify the native C bindings or the milestone.
+The structural controls remain UNRUN while both hosts execute their existing full gates.
+The native producer, endpoint dispatch, collector, and three runtime scenarios remain unimplemented.
+No production input-routing code changed in this increment.
+Independent review found owner alias and generation-boundary gaps in the draft.
+The corrected oracle rejects inconsistent owner epochs and nonincreasing spatial generations.
+Additional controls require observed successful destruction and actual successful device removals.
+All these statements describe source review and generation evidence, not native execution.
+External evidence root: /home/dflanag3/spatial-artifacts/m09-native-lifecycle-witness-20261023.

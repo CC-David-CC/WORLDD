@@ -607,6 +607,21 @@ if(BUILD_TESTING)
     add_custom_target(native-input-observer-v2-python-protobuf ALL
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_v2_pb2.py"
             "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_control_v2_pb2.py")
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_lifecycle_v3_pb2.py"
+        COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v3
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v2
+            ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v3/native_input_lifecycle_v3.proto
+        DEPENDS proto/spatial/testing/v3/native_input_lifecycle_v3.proto
+            proto/spatial/testing/v2/native_input_observer_v2.proto
+            proto/spatial/testing/v2/native_input_observer_control_v2.proto protobuf::protoc VERBATIM)
+    add_custom_target(native-input-lifecycle-v3-python-protobuf ALL
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_lifecycle_v3_pb2.py")
+    add_dependencies(native-input-lifecycle-v3-python-protobuf native-input-observer-v2-python-protobuf)
+    add_test(NAME native-input-lifecycle-v3-artifact COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_input_state_observer_v3.py")
+    set_tests_properties(native-input-lifecycle-v3-artifact PROPERTIES TIMEOUT 20
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_input_witness_v2_pb2.py"
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v2

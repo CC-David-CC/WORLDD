@@ -1,3 +1,17 @@
+## 2026-10-23: M09 native lifetime coverage supplement is a draft
+
+M08 remains qualified. M09 remains UNQUALIFIED.
+Independent review identified missing native destruction and actor-retirement coverage.
+The existing v2 witness requires the original window and devices to remain live.
+The new v3 draft separates the old target, survivor, clearance, and exact device retirement.
+It requires fresh old-state evidence at the first native peer event and strict independent release delivery.
+The additive schema, structural oracle, adversarial controls, and CMake registration exist.
+CMake configuration and binding generation passed on ROG. Two clean Python generations match the draft bindings.
+Structural tests remain UNRUN. The native v3 producer, endpoint dispatch, and runtime scenarios remain pending.
+The frozen 1ae full gates continue unchanged on both hosts. Their results cannot establish v3 completion.
+Read ../docs/M09_NATIVE_LIFETIME_WITNESS_2026-10-23.txt before the next lifetime-witness increment.
+Historical entries below retain their dated status.
+
 ## 2026-10-22: M09 focused Debug passes; sanitizer cabinet launcher budget needs correction
 
 M08 remains qualified. M09 remains UNQUALIFIED.

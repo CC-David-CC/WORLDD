@@ -1,0 +1,121 @@
+syntax = "proto3";
+package spatial.testing.v3;
+
+import "native_input_observer_v2.proto";
+import "native_input_observer_control_v2.proto";
+
+// Additive qualification contract. No ordinary X-client API or authority grant.
+enum LifecycleCauseV3 {
+  LIFECYCLE_CAUSE_UNSPECIFIED = 0;
+  TARGET_DESTRUCTION = 1;
+  ACTOR_DISCONNECT = 2;
+  ACTOR_REVOCATION = 3;
+}
+message LifecycleArmV3 {
+  // expected_window is the old target. Its identity remains immutable.
+  spatial.testing.v2.ObserverArmV2 common = 1;
+  spatial.testing.v2.WindowIdentity peer_window = 2;
+  LifecycleCauseV3 cause = 3;
+}
+message LifecycleSetupRequestV3 {
+  spatial.testing.v2.ObserverSetupRequestV2 common = 1;
+  uint32 peer_target_xid = 2;
+  uint64 peer_target_spatial_generation = 3;
+  LifecycleCauseV3 cause = 4;
+}
+message LifecycleSetupReplyV3 {
+  spatial.testing.v2.ObserverSetupReplyV2 old_pins = 1;
+  spatial.testing.v2.WindowIdentity peer_window = 2;
+  LifecycleSetupRequestV3 accepted_request = 3;
+}
+// Fields 1 and 2 preserve the existing v2 envelope's exact wire encoding.
+// V2 schemas and v2 validation stay unchanged.
+message LifecycleControlEnvelopeV3 {
+  oneof message {
+    spatial.testing.v2.ObserverSetupRequestV2 legacy_setup_request = 1;
+    spatial.testing.v2.ObserverArmV2 legacy_arm = 2;
+    LifecycleSetupRequestV3 lifecycle_setup_request = 3;
+    LifecycleArmV3 lifecycle_arm = 4;
+  }
+}
+message LifecycleArmAcceptedV3 { LifecycleArmV3 accepted_command = 1; }
+message LifecycleEndpointReplyV3 {
+  oneof message {
+    spatial.testing.v2.ObserverEndpointHelloV2 hello = 1;
+    spatial.testing.v2.ObserverSetupReplyV2 legacy_setup_reply = 2;
+    spatial.testing.v2.Arm legacy_arm_accepted = 3;
+    LifecycleSetupReplyV3 lifecycle_setup_reply = 4;
+    LifecycleArmAcceptedV3 lifecycle_arm_accepted = 5;
+  }
+}
+message DeviceRemovalV3 {
+  spatial.testing.v2.DeviceIdentity identity = 1;
+  int32 remove_result = 2; // Actual RemoveDevice result. X Success is zero.
+  uint64 monotonic_ns = 3;
+  bool removal_observed = 4;
+}
+message LifecycleRetirementV3 {
+  uint64 monotonic_ns = 1;
+  LifecycleCauseV3 cause = 2;
+  spatial.testing.v2.WindowIdentity old_window = 3;
+  uint64 old_native_seat_id = 4;
+  // Destruction: observed resource-free callback precedes epoch invalidation.
+  // The resource is already unlinked when that callback runs.
+  uint64 resource_free_monotonic_ns = 5;
+  uint64 destroy_hook_return_monotonic_ns = 6;
+  bool old_window_resource_absent = 7;
+  // Seat retirement: each exact epoch was sampled clear before removal.
+  repeated DeviceRemovalV3 removals = 8;
+  bool old_native_seat_absent = 9;
+  bool all_old_device_ids_absent = 10;
+  bool complete = 11;
+  uint64 spatial_generation_invalidated_monotonic_ns = 12;
+  uint64 invalidated_spatial_generation = 13;
+  bool destroy_hook_observed = 14;
+  bool destroy_hook_result = 15;
+}
+message DeviceRetirementCheckV3 {
+  uint64 monotonic_ns = 1;
+  repeated spatial.testing.v2.DeviceIdentity retired_devices = 2;
+  uint64 old_native_seat_id = 3;
+  bool old_native_seat_absent = 4;
+  bool all_old_device_ids_absent = 5;
+  bool complete = 6;
+}
+message LifecycleTransitionV3 {
+  // Exactly PRE_CANCEL, POST_RELEASES_BEFORE_CONTEXT_CLEAR, POST_CANCEL.
+  // Destruction PRE_CANCEL is sampled in ResourceStateFreeing before epoch reset.
+  repeated spatial.testing.v2.TransitionSnapshot cancellation = 1;
+  LifecycleRetirementV3 retirement = 2;
+  // Existing POST_PEER_BIND hook, before peer input is generated.
+  // Retired old seats/devices are absent, never zero-filled substitutes.
+  spatial.testing.v2.TransitionSnapshot peer_bind = 3;
+}
+message LifecyclePeerStateV3 {
+  uint64 monotonic_ns = 1;
+  // Fresh evidence at the first actual peer EventCallback, not a cached snapshot.
+  oneof old_state {
+    spatial.testing.v2.TransitionSnapshot live_old = 2;
+    DeviceRetirementCheckV3 retired_old = 3;
+  }
+  bool old_window_resource_absent = 4;
+  bool complete = 5;
+}
+message LifecyclePeerPressV3 {
+  spatial.testing.v2.ObserverPress press = 1;
+  LifecyclePeerStateV3 state = 2;
+}
+message NativeInputLifecycleRecordV3 {
+  uint32 protocol_version = 1;
+  bytes session_id = 2;
+  bytes arm_id = 3;
+  uint64 stream_sequence = 4;
+  uint64 native_session_epoch = 5;
+  oneof payload {
+    LifecycleArmAcceptedV3 arm = 10;
+    LifecycleTransitionV3 native_transition = 11;
+    LifecyclePeerPressV3 observer_press = 12;
+    // Every actual event XID joins its separately pinned old or peer identity.
+    spatial.testing.v2.ProbeReceiptBatch probe_receipts = 13;
+  }
+}
