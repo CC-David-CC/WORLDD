@@ -5,9 +5,11 @@
 #include <stdint.h>
 #include "misc.h"
 #include "native_input_observer_control_v2.pb-c.h"
+#include "native_input_lifecycle_v3.pb-c.h"
 void SpatialObserverEndpointConfigure(const char *descriptor);
 void SpatialObserverEndpointOutputConfigureV2(const char *descriptor);
 const Spatial__Testing__V2__ObserverArmV2 *SpatialObserverEndpointArmV2(void);
+const Spatial__Testing__V3__LifecycleArmV3 *SpatialObserverEndpointArmV3(void);
 Bool SpatialObserverEndpointOutputV2(const uint8_t *bytes, size_t length);
 void SpatialObserverEndpointFailV2(const char *reason);
 Bool SpatialObserverEndpointPinsCurrentV2(void);
@@ -18,4 +20,6 @@ void SpatialObserverEndpointReset(void);
 Bool SpatialInputObserverArm(const Spatial__Testing__V2__ObserverArmV2 *arm);
 Bool SpatialInputObserverSetup(const Spatial__Testing__V2__ObserverSetupRequestV2 *request,
                               uint8_t *output, size_t capacity, size_t *length);
+Bool SpatialInputObserverLifecycleSetup(const Spatial__Testing__V3__LifecycleSetupRequestV3 *request,
+                                       uint8_t *output, size_t capacity, size_t *length);
 #endif

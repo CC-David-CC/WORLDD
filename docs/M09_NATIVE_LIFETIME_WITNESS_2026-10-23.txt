@@ -128,7 +128,7 @@ CMake configure and Python binding generation passed on ROG with terminal 0/0 re
 Two independent clean Python generations match each other and the draft generated artifacts.
 This limited proof covers three Python files. It does not qualify the native C bindings or the milestone.
 The structural controls remain UNRUN while both hosts execute their existing full gates.
-The native producer, endpoint dispatch, and three runtime scenarios remain unimplemented.
+At this checkpoint, the native producer, endpoint dispatch, and three runtime scenarios remained unimplemented.
 No production input-routing code changed in this increment.
 Independent review found owner alias and generation-boundary gaps in the draft.
 The corrected oracle rejects inconsistent owner epochs and nonincreasing spatial generations.
@@ -145,3 +145,43 @@ CMake lists both separate v3 test groups without executing them.
 The three generated protobuf-c source files compile with Wall, Wextra, and Werror.
 These are generation and compile checks. They provide no native runtime evidence.
 The v2 collector and validation remain unchanged.
+
+Authenticated endpoint continuation
+
+The primary continuation branch adds v3 setup and arm dispatch to the existing private endpoint.
+The common v2 setup and arm validation still resolves original seats, native devices, and held state.
+V3 also pins the actual surviving window to the same workspace and application.
+The arm must preserve its cause and exact survivor pin. Both windows are resolved again before acceptance.
+Destruction requires a distinct survivor. Actor retirement may retain the original live window.
+Mixed-version setup/arm exchanges fail. Replay, canonical encoding, authentication, and deadlines remain enforced.
+Legacy requests retain their original wire replies. The startup hello remains wire-compatible v2.
+The v3 arm accessor is separate. Existing v2 capture does not consume lifecycle arms.
+This endpoint does not change input routing, cancellation, process authority, or application lifetime.
+
+The separate native-lifecycle-endpoint-v3 registration contains 24 implemented methods.
+Its native runtime methods remain UNRUN on both hosts while the original full gates hold their slots.
+The unchanged native-observer-endpoint registration remains a required regression.
+The 37 structural and ten collector methods also remain UNRUN.
+
+All six selected native C compilations passed with Werror on ROG.
+These include default-off and observer-enabled Debug and ASan-UBSan configurations.
+All three generated protobuf-c sources compiled with Wall, Wextra, and Werror.
+Fresh Xvfb and Xorg builds passed in all four configurations: eight linked binaries.
+Symbol inspection found v3 dispatch in observer builds and no observer symbols in default-off builds.
+These are compile and linkage checks. They do not establish native runtime success.
+
+The first inventory invocation omitted SPATIAL_INPUT_TESTS=ON and failed its four-registration assertion.
+Its original command and wrapper receipts remain 1/1. All compilation phases in that invocation passed.
+A separate corrective configure and inventory invocation passed with receipts 0/0.
+It lists all four selected endpoint, structural, and collector registrations without executing them.
+
+External evidence on ROG: /home/dflanag3/spatial-artifacts/m09-lifetime-primary-20261023.
+Read native-endpoint-01/native-build-01.json for native source pins and binary checksums.
+Read endpoint-compile-01.json and corrective-inventory-02.json for strict compilation and inventory outcomes.
+The complete source snapshot is endpoint-source-01.tar.gz, SHA256:
+9ff06fcb621f5354a0c42ce9e53f5540488ec4c627652ed4bb6a36add4cc3ce3.
+
+The next increment must implement callback-local destruction capture and actual device-retirement observations.
+It must add fresh old-state checks at the first peer event and actual two-window XI2 receipt joins.
+Three production-trigger scenarios and both-host runtime qualification remain mandatory.
+The current full 1ae candidate does not include this continuation. M09 remains UNQUALIFIED.

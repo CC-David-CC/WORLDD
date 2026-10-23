@@ -837,6 +837,49 @@ Bool SpatialInputObserverSetup(const Spatial__Testing__V2__ObserverSetupRequestV
     *length = bytes;
     return TRUE;
 }
+Bool SpatialInputObserverLifecycleSetup(const Spatial__Testing__V3__LifecycleSetupRequestV3 *request,
+                                       uint8_t *output, size_t capacity, size_t *length)
+{
+    if (length) *length = 0;
+    if (!request || !request->common || !output || !length ||
+        request->cause < SPATIAL__TESTING__V3__LIFECYCLE_CAUSE_V3__TARGET_DESTRUCTION ||
+        request->cause > SPATIAL__TESTING__V3__LIFECYCLE_CAUSE_V3__ACTOR_REVOCATION ||
+        (request->cause == SPATIAL__TESTING__V3__LIFECYCLE_CAUSE_V3__TARGET_DESTRUCTION &&
+         request->peer_target_xid == request->common->target_xid)) return FALSE;
+    uint8_t common_bytes[MAX_PAYLOAD]; size_t common_length = 0;
+    if (!SpatialInputObserverSetup(request->common, common_bytes, sizeof(common_bytes), &common_length))
+        return FALSE;
+    Spatial__Testing__V2__ObserverEndpointReplyV2 *common =
+        spatial__testing__v2__observer_endpoint_reply_v2__unpack(NULL, common_length, common_bytes);
+    if (!common) return FALSE;
+    Bool valid = FALSE;
+    WindowPtr window = live_window(request->peer_target_xid, request->peer_target_spatial_generation);
+    SpatialObserverWindowPin pin;
+    SpatialObserverNativeClientPin owner;
+    ObserverClient client; ObserverApplication label;
+    if (!common->setup_reply || !window ||
+        !SpatialObserverPinWindow(request->peer_target_xid, &pin) ||
+        !SpatialObserverPinNativeClient(pin.owner.index, &owner) ||
+        !SpatialSecuritySameApplication(clients[common->setup_reply->app_target_owner->client_id],
+                                        clients[pin.owner.index]) ||
+        !observer_client(&client, &label, &owner)) goto done;
+    Spatial__Testing__V2__WindowIdentity peer = SPATIAL__TESTING__V2__WINDOW_IDENTITY__INIT;
+    peer.xid = pin.xid; peer.native_object_epoch = pin.epoch;
+    peer.spatial_generation = generation(window); peer.owner = &client; peer.application = &label;
+    Spatial__Testing__V3__LifecycleSetupReplyV3 setup = SPATIAL__TESTING__V3__LIFECYCLE_SETUP_REPLY_V3__INIT;
+    setup.old_pins = common->setup_reply; setup.peer_window = &peer;
+    setup.accepted_request = (Spatial__Testing__V3__LifecycleSetupRequestV3 *)request;
+    Spatial__Testing__V3__LifecycleEndpointReplyV3 reply = SPATIAL__TESTING__V3__LIFECYCLE_ENDPOINT_REPLY_V3__INIT;
+    reply.message_case = SPATIAL__TESTING__V3__LIFECYCLE_ENDPOINT_REPLY_V3__MESSAGE_LIFECYCLE_SETUP_REPLY;
+    reply.lifecycle_setup_reply = &setup;
+    size_t bytes = spatial__testing__v3__lifecycle_endpoint_reply_v3__get_packed_size(&reply);
+    valid = bytes && bytes <= capacity &&
+        spatial__testing__v3__lifecycle_endpoint_reply_v3__pack(&reply, output) == bytes;
+    if (valid) *length = bytes;
+done:
+    spatial__testing__v2__observer_endpoint_reply_v2__free_unpacked(common, NULL);
+    return valid;
+}
 #endif
 
 #ifndef SPATIAL_NATIVE_INPUT_OBSERVER

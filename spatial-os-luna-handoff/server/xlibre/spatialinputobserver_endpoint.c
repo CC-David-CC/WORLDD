@@ -28,7 +28,10 @@ static uint8_t output_bytes[MAX_NATIVE_OUTPUT];
 static size_t output_length, output_offset;
 static int endpoint = -1;
 static Bool configured, registered, setup_seen, arm_seen, timer_running;
-static Spatial__Testing__V2__ObserverControlEnvelopeV2 *setup_control, *accepted_control;
+static Spatial__Testing__V3__LifecycleControlEnvelopeV3 *setup_control, *accepted_control;
+static Spatial__Testing__V3__LifecycleEndpointReplyV3 *lifecycle_pins;
+static uint8_t lifecycle_bytes[MAX_PACKET];
+static size_t lifecycle_length;
 static Spatial__Testing__V2__ObserverEndpointReplyV2 *setup_pins;
 static uint64_t setup_monotonic_ns;
 static uint8_t setup_bytes[MAX_PACKET];
@@ -63,9 +66,12 @@ static void close_endpoint(const char *reason)
         if (reason) ErrorF("Spatial observer endpoint rejected: %s\n", reason);
     }
     if (deadline_timer && !timer_running) TimerCancel(deadline_timer);
-    if (setup_control) spatial__testing__v2__observer_control_envelope_v2__free_unpacked(setup_control, NULL);
-    if (accepted_control) spatial__testing__v2__observer_control_envelope_v2__free_unpacked(accepted_control, NULL);
+    if (setup_control) spatial__testing__v3__lifecycle_control_envelope_v3__free_unpacked(setup_control, NULL);
+    if (accepted_control) spatial__testing__v3__lifecycle_control_envelope_v3__free_unpacked(accepted_control, NULL);
     if (setup_pins) spatial__testing__v2__observer_endpoint_reply_v2__free_unpacked(setup_pins, NULL);
+    if (lifecycle_pins) spatial__testing__v3__lifecycle_endpoint_reply_v3__free_unpacked(lifecycle_pins, NULL);
+    lifecycle_pins = NULL; lifecycle_length = 0;
+    memset(lifecycle_bytes, 0, sizeof(lifecycle_bytes));
     setup_control = accepted_control = NULL;
     setup_pins = NULL;
     setup_length = 0;
@@ -92,18 +98,39 @@ void SpatialObserverEndpointOutputConfigureV2(const char *descriptor)
         FatalError("Cannot secure spatial observer output descriptor\n");
 }
 
+static Bool arm_available(void)
+{
+    uint64_t now = monotonic_ns();
+    return endpoint >= 0 && output_fd >= 0 && !output_started && accepted_control &&
+        now && now < startup_deadline;
+}
+
+static const Spatial__Testing__V2__ObserverSetupRequestV2 *common_setup(void)
+{
+    if (!setup_control) return NULL;
+    if (setup_control->message_case == SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LEGACY_SETUP_REQUEST)
+        return setup_control->legacy_setup_request;
+    return setup_control->message_case == SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LIFECYCLE_SETUP_REQUEST &&
+        setup_control->lifecycle_setup_request ? setup_control->lifecycle_setup_request->common : NULL;
+}
+
+const Spatial__Testing__V3__LifecycleArmV3 *SpatialObserverEndpointArmV3(void)
+{
+    return arm_available() && accepted_control->message_case ==
+        SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LIFECYCLE_ARM ? accepted_control->lifecycle_arm : NULL;
+}
+
 const Spatial__Testing__V2__ObserverArmV2 *SpatialObserverEndpointArmV2(void)
 {
-    if (endpoint < 0 || output_fd < 0 || output_started || !accepted_control ||
-        !accepted_control->arm || monotonic_ns() >= startup_deadline) return NULL;
-    return accepted_control->arm;
+    return arm_available() && accepted_control->message_case ==
+        SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LEGACY_ARM ? accepted_control->legacy_arm : NULL;
 }
 
 Bool SpatialObserverEndpointPinsCurrentV2(void)
 {
     uint8_t fresh[MAX_PACKET]; size_t length = 0;
-    return SpatialObserverEndpointArmV2() && setup_control && setup_control->setup_request &&
-        SpatialInputObserverSetup(setup_control->setup_request, fresh, sizeof(fresh), &length) &&
+    return SpatialObserverEndpointArmV2() && common_setup() &&
+        SpatialInputObserverSetup(common_setup(), fresh, sizeof(fresh), &length) &&
         length == setup_length && !memcmp(fresh, setup_bytes, length);
 }
 
@@ -282,7 +309,8 @@ static Bool valid_arm(const Spatial__Testing__V2__ObserverArmV2 *arm, uint64_t n
 {
     if (!arm || !setup_control || !setup_pins || !setup_pins->setup_reply) return FALSE;
     const Spatial__Testing__V2__ObserverSetupReplyV2 *pins = setup_pins->setup_reply;
-    const Spatial__Testing__V2__ObserverSetupRequestV2 *request = setup_control->setup_request;
+    const Spatial__Testing__V2__ObserverSetupRequestV2 *request = common_setup();
+    if (!request) return FALSE;
     if (!same_bytes(arm->session_id, request->session_id) || !same_bytes(arm->arm_id, request->arm_id) ||
         arm->arm_monotonic_ns < setup_monotonic_ns || arm->arm_monotonic_ns > now ||
         arm->deadline_monotonic_ns != request->deadline_monotonic_ns ||
@@ -349,22 +377,26 @@ static void receive_packet(int fd, int ready, void *data)
     const Bool initial = !setup_seen;
     if (initial) setup_seen = TRUE;
     else arm_seen = TRUE; /* Consume before parsing or checking live pins. */
-    Spatial__Testing__V2__ObserverControlEnvelopeV2 *envelope =
-        spatial__testing__v2__observer_control_envelope_v2__unpack(NULL, (size_t)size, bytes);
+    Spatial__Testing__V3__LifecycleControlEnvelopeV3 *envelope =
+        spatial__testing__v3__lifecycle_control_envelope_v3__unpack(NULL, (size_t)size, bytes);
     unsigned nodes = 0;
     Bool valid = envelope && checked(&envelope->base, 0, &nodes) &&
-        spatial__testing__v2__observer_control_envelope_v2__get_packed_size(envelope) == (size_t)size;
-    if (valid) valid = spatial__testing__v2__observer_control_envelope_v2__pack(envelope, canonical) == (size_t)size &&
+        spatial__testing__v3__lifecycle_control_envelope_v3__get_packed_size(envelope) == (size_t)size;
+    if (valid) valid = spatial__testing__v3__lifecycle_control_envelope_v3__pack(envelope, canonical) == (size_t)size &&
                       !memcmp(bytes, canonical, (size_t)size);
     const char *reason = initial ? "invalid setup or native pin" : "invalid arm or native pin";
-    if (valid && !initial && envelope->message_case ==
-        SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_SETUP_REQUEST) {
+    if (valid && !initial && (envelope->message_case ==
+        SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LEGACY_SETUP_REQUEST ||
+        envelope->message_case == SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LIFECYCLE_SETUP_REQUEST)) {
         valid = FALSE;
         reason = "one-shot setup replay";
     }
     if (valid && initial) {
-        valid = envelope->message_case == SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_SETUP_REQUEST;
-        const Spatial__Testing__V2__ObserverSetupRequestV2 *request = valid ? envelope->setup_request : NULL;
+        const Spatial__Testing__V3__LifecycleSetupRequestV3 *lifecycle = envelope->message_case ==
+            SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LIFECYCLE_SETUP_REQUEST ? envelope->lifecycle_setup_request : NULL;
+        const Spatial__Testing__V2__ObserverSetupRequestV2 *request = lifecycle ? lifecycle->common :
+            (envelope->message_case == SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LEGACY_SETUP_REQUEST ?
+             envelope->legacy_setup_request : NULL);
         valid = request && request->session_id.len == sizeof(session_id) &&
             !memcmp(request->session_id.data, session_id, sizeof(session_id)) &&
             request->arm_id.len == 16 && request->deadline_monotonic_ns > now &&
@@ -379,28 +411,57 @@ static void receive_packet(int fd, int ready, void *data)
             setup_monotonic_ns = now;
             setup_control = envelope; envelope = NULL;
             memcpy(setup_bytes, output, length); setup_length = length;
+            if (lifecycle) {
+                valid = SpatialInputObserverLifecycleSetup(lifecycle, output, sizeof(output), &length);
+                if (valid) {
+                    lifecycle_pins = spatial__testing__v3__lifecycle_endpoint_reply_v3__unpack(NULL, length, output);
+                    valid = lifecycle_pins && lifecycle_pins->lifecycle_setup_reply;
+                }
+                if (valid) { memcpy(lifecycle_bytes, output, length); lifecycle_length = length; }
+            }
             if (request->deadline_monotonic_ns < startup_deadline) startup_deadline = request->deadline_monotonic_ns;
             uint64_t remaining_ms = (startup_deadline - now + UINT64_C(999999)) / UINT64_C(1000000);
-            valid = TimerSet(deadline_timer, 0, (CARD32)remaining_ms, expired, NULL) != NULL &&
+            valid = valid && TimerSet(deadline_timer, 0, (CARD32)remaining_ms, expired, NULL) != NULL &&
                 send_packet(output, length);
         }
     } else if (valid) {
-        valid = envelope->message_case == SPATIAL__TESTING__V2__OBSERVER_CONTROL_ENVELOPE_V2__MESSAGE_ARM &&
-            valid_arm(envelope->arm, now);
+        const Spatial__Testing__V3__LifecycleArmV3 *lifecycle = envelope->message_case ==
+            SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LIFECYCLE_ARM ? envelope->lifecycle_arm : NULL;
+        const Spatial__Testing__V2__ObserverArmV2 *common = lifecycle ? lifecycle->common :
+            (envelope->message_case == SPATIAL__TESTING__V3__LIFECYCLE_CONTROL_ENVELOPE_V3__MESSAGE_LEGACY_ARM ? envelope->legacy_arm : NULL);
+        valid = (lifecycle_pins != NULL) == (lifecycle != NULL) && valid_arm(common, now);
+        if (valid && lifecycle) {
+            const Spatial__Testing__V3__LifecycleSetupReplyV3 *pins = lifecycle_pins->lifecycle_setup_reply;
+            size_t fresh_length = 0;
+            valid = lifecycle->peer_window && lifecycle->cause == pins->accepted_request->cause &&
+                same_message(&lifecycle->peer_window->base, &pins->peer_window->base) &&
+                SpatialInputObserverLifecycleSetup(setup_control->lifecycle_setup_request,
+                    output, sizeof(output), &fresh_length) &&
+                fresh_length == lifecycle_length && !memcmp(output, lifecycle_bytes, fresh_length);
+        }
         if (valid) {
             Spatial__Testing__V2__Arm arm = SPATIAL__TESTING__V2__ARM__INIT;
             Spatial__Testing__V2__ObserverEndpointReplyV2 reply = SPATIAL__TESTING__V2__OBSERVER_ENDPOINT_REPLY_V2__INIT;
-            arm.accepted_command = envelope->arm;
+            arm.accepted_command = (Spatial__Testing__V2__ObserverArmV2 *)common;
             reply.message_case = SPATIAL__TESTING__V2__OBSERVER_ENDPOINT_REPLY_V2__MESSAGE_ARM_ACCEPTED;
             reply.arm_accepted = &arm;
             size_t length = spatial__testing__v2__observer_endpoint_reply_v2__get_packed_size(&reply);
-            valid = length <= sizeof(output) &&
-                spatial__testing__v2__observer_endpoint_reply_v2__pack(&reply, output) == length &&
-                send_packet(output, length);
+            if (lifecycle) {
+                Spatial__Testing__V3__LifecycleArmAcceptedV3 accepted = SPATIAL__TESTING__V3__LIFECYCLE_ARM_ACCEPTED_V3__INIT;
+                Spatial__Testing__V3__LifecycleEndpointReplyV3 lifecycle_reply = SPATIAL__TESTING__V3__LIFECYCLE_ENDPOINT_REPLY_V3__INIT;
+                accepted.accepted_command = envelope->lifecycle_arm;
+                lifecycle_reply.message_case = SPATIAL__TESTING__V3__LIFECYCLE_ENDPOINT_REPLY_V3__MESSAGE_LIFECYCLE_ARM_ACCEPTED;
+                lifecycle_reply.lifecycle_arm_accepted = &accepted;
+                length = spatial__testing__v3__lifecycle_endpoint_reply_v3__get_packed_size(&lifecycle_reply);
+                valid = length <= sizeof(output) &&
+                    spatial__testing__v3__lifecycle_endpoint_reply_v3__pack(&lifecycle_reply, output) == length;
+            } else valid = length <= sizeof(output) &&
+                spatial__testing__v2__observer_endpoint_reply_v2__pack(&reply, output) == length;
+            valid = valid && send_packet(output, length);
             if (valid) { accepted_control = envelope; envelope = NULL; }
         }
     }
-    if (envelope) spatial__testing__v2__observer_control_envelope_v2__free_unpacked(envelope, NULL);
+    if (envelope) spatial__testing__v3__lifecycle_control_envelope_v3__free_unpacked(envelope, NULL);
     if (!valid) close_endpoint(reason);
 }
 

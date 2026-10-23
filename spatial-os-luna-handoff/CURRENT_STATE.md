@@ -1,3 +1,17 @@
+## 2026-10-23: M09 additive lifetime endpoint compiles; native delivery remains pending
+
+The separate continuation implements authenticated v3 setup and arm dispatch with an independently pinned survivor.
+Common v2 validation, wire replies, authentication, one-shot consumption, and absolute deadlines remain enforced.
+Mixed-version setup and arm exchanges fail. Existing v2 capture does not consume lifecycle arms.
+All four native build configurations link Xvfb and Xorg. Six strict native C compilations also pass.
+Observer binaries contain v3 dispatch. Default-off binaries contain no observer symbols.
+The new endpoint registration contains 24 native methods, all UNRUN on both qualification hosts.
+The first inventory configuration omitted the native-test option. Its failed receipts remain preserved.
+A separate corrective invocation lists all four selected registrations with zero receipts and no test execution.
+The native lifetime producer, fresh first-peer checks, and three runtime scenarios remain pending.
+M08 remains qualified. M09 remains UNQUALIFIED. The original full 1ae jobs remain separate.
+Read ../docs/M09_NATIVE_LIFETIME_WITNESS_2026-10-23.txt for exact evidence and next tasks.
+
 ## 2026-10-23: M09 native lifetime coverage supplement is a draft
 
 M08 remains qualified. M09 remains UNQUALIFIED.

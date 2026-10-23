@@ -1804,6 +1804,12 @@ if(BUILD_TESTING)
         add_custom_target(native-observer-endpoint-fixture
             DEPENDS spatial-xprobe security-python-protobuf input-python-protobuf
                 native-input-observer-v2-python-protobuf)
+        add_test(NAME native-lifecycle-endpoint-v3 COMMAND "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_lifecycle_endpoint_v3.py" $<TARGET_FILE:spatial-xprobe>)
+        set_tests_properties(native-lifecycle-endpoint-v3 PROPERTIES TIMEOUT 90
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
+        add_custom_target(native-lifecycle-endpoint-v3-fixture
+            DEPENDS native-observer-endpoint-fixture native-input-lifecycle-v3-python-protobuf)
         add_test(NAME native-actor-binding COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_actor_binding.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-actor-binding PROPERTIES TIMEOUT 180

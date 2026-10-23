@@ -38,6 +38,13 @@ if get_option('spatial_native_input_observer')
         command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
                   '--proto_path=' + meson.current_source_dir(),
                   meson.current_source_dir() / 'native_input_observer_control_v2.proto'])
+    observer_lifecycle_proto = custom_target('native-input-lifecycle-v3-protobuf-c',
+        input: ['native_input_lifecycle_v3.proto', 'native_input_observer_v2.proto',
+                'native_input_observer_control_v2.proto'],
+        output: ['native_input_lifecycle_v3.pb-c.c', 'native_input_lifecycle_v3.pb-c.h'],
+        command: [find_program('protoc-c'), '--c_out=@OUTDIR@',
+                  '--proto_path=' + meson.current_source_dir(),
+                  meson.current_source_dir() / 'native_input_lifecycle_v3.proto'])
     observer_library = static_library('xserver_native_input_observer',
         files('spatialinputobserver_lifetime.c',
               'spatialinputobserver_capture.c',
@@ -45,9 +52,9 @@ if get_option('spatial_native_input_observer')
               'spatialinputobserver_serialize_v2.c',
               'spatialinputobserver_endpoint.c',
               'spatialinputobserver_transition_v2.c'),
-        observer_proto, observer_v2_proto, observer_control_proto,
+        observer_proto, observer_v2_proto, observer_control_proto, observer_lifecycle_proto,
         include_directories: [inc, include_directories('.')],
         dependencies: [common_dep, spatial_input_dep])
     xext_dependencies += [declare_dependency(link_whole: observer_library,
-        sources: [observer_v2_proto[1], observer_control_proto[1]])]
+        sources: [observer_v2_proto[1], observer_control_proto[1], observer_lifecycle_proto[1]])]
 endif
