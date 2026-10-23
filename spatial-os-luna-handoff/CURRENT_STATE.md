@@ -1,3 +1,15 @@
+## 2026-10-22: M09 focused Debug passes; sanitizer cabinet launcher budget needs correction
+
+M08 remains qualified. M09 remains UNQUALIFIED.
+Both hosts passed all18 focused Debug groups and all17 actual relay socket methods.
+sb16 passed the cabinet sanitizer group. sb16-2 reached the inner240-second service limit after26 completed methods.
+CTest already allows300 seconds. This task selects a285-second service budget within that unchanged ceiling.
+No assertion, native routing rule, confinement resource limit, or acceptance oracle changes.
+The original focused jobs continue collecting. Their final receipts and cleanup remain pending.
+Corrected cabinet checks and full qualification remain UNRUN.
+Read docs/M09_CABINET_SERVICE_BUDGET_2026-10-22.txt before the next candidate freeze.
+Historical entries below retain their dated status.
+
 ## 2026-10-22: M09 full Debug exposes broker relay socket ownership race
 
 M08 remains qualified. M09 remains UNQUALIFIED.

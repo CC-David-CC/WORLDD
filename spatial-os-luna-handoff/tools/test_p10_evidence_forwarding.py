@@ -1,6 +1,7 @@
 """Offline regression for P10 evidence path creation and systemd forwarding."""
 import importlib.util
 import os
+import re
 from pathlib import Path
 import stat
 import tempfile
@@ -124,6 +125,29 @@ class P10EvidenceForwardingTests(unittest.TestCase):
             self.assertEqual(command.count('--setenv='+name+'='+value),1,name)
         self.assertFalse(any('UNRELATED_SECRET' in arg for arg in command))
         self.assertEqual(command[-3:],['--','python3','native-witness.py'])
+
+    def test_cabinet_service_budget_fits_the_unchanged_ctest_deadline(self):
+        source = (TOOLS.parent / 'CMakeLists.txt').read_text()
+        registration = re.search(
+            r'add_test\(NAME workspace-actor-cabinet-gateway COMMAND(.*?)'
+            r'set_tests_properties\(workspace-actor-cabinet-gateway PROPERTIES TIMEOUT (\d+)',
+            source, re.DOTALL)
+        self.assertIsNotNone(registration)
+        outer_seconds = int(registration.group(2))
+        self.assertEqual(outer_seconds, 300)
+        selected = re.search(r'with_resource_delegate\.py" --native --runtime-seconds (\d+) --',
+                             registration.group(1))
+        self.assertIsNotNone(selected, 'Cabinet must not inherit the shorter native default')
+        runtime_seconds = int(selected.group(1))
+        command = delegate.build_service_command(
+            unit='spatial-test.service', username='dflanag3', native=True,
+            copy_engine_v2=False, working_directory=self.source,
+            environment={}, argv=['python3', 'cabinet.py'], runtime_seconds=runtime_seconds)
+        self.assertIn('RuntimeMaxSec=' + str(runtime_seconds), command)
+        cleanup = next(arg for arg in command if arg.startswith('TimeoutStopSec='))
+        cleanup_seconds = int(cleanup.removeprefix('TimeoutStopSec=').removesuffix('s'))
+        self.assertGreaterEqual(runtime_seconds, outer_seconds - 15)
+        self.assertLessEqual(runtime_seconds + cleanup_seconds, outer_seconds - 10)
 
     def test_delegate_preserves_existing_service_limits(self):
         base = dict(unit='spatial-test.service', username='dflanag3',

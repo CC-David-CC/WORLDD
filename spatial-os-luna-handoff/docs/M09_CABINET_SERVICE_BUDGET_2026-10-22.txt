@@ -1,0 +1,45 @@
+M09 cabinet service budget correction, 2026-10-22
+
+M08 remains qualified. M09 remains UNQUALIFIED.
+Frozen product candidate: bcc28860abbfa6a6227d98b1b485078e45159589.
+Its source, package, and running focused jobs remain unchanged.
+
+Reproduced failure
+Both hosts passed all18 focused Debug registrations and all17 relay socket methods.
+sb16 passed the cabinet registration under ASan-UBSan in187.13 seconds.
+sb16-2 completed26 cabinet methods before the service terminated at240 seconds.
+The log reports systemd result timeout and code=killed/status=TERM.
+No assertion failure or sanitizer diagnostic appears before this termination.
+The canonical focused attempt must remain failed. Remaining cases continue collecting.
+
+Owning layer and bounded repair
+CTest gives the28-method cabinet registration300 seconds.
+Its native resource delegate silently inherited a shorter240-second service limit.
+Select the existing --runtime-seconds option explicitly for this registration.
+Set its service limit to285 seconds within the unchanged300-second CTest ceiling.
+Reserve5 seconds for service cleanup and10 seconds for launcher completion.
+Keep memory, CPU, process, I/O, confinement, and every acceptance assertion unchanged.
+Keep the native240-second default for other registrations.
+This repairs nested launcher budgets. It does not qualify a product performance requirement.
+A budget check parses the actual CMake registration and builds the actual delegate command.
+It detects the missing override and preserves the outer ceiling and cleanup margins.
+
+Selected checks before corrected execution
+Run the existing resource delegate/evidence forwarding suite and its new budget regression.
+Run all28 cabinet methods in Debug and ASan-UBSan on sb16 and sb16-2.
+Keep all remaining bcc focused evidence, including failures and helper cleanup receipts.
+Inspect actual method results and sanitizer diagnostics, not only launcher exit status.
+Do not integrate until the cabinet repair and other required focused checks pass.
+Then freeze a coherent candidate and run complete qualification on both hosts.
+Nine pure delegate/evidence checks passed on each host:18 successful executions.
+The new budget check fails against the original registration on each host, as expected.
+Both pure fixture jobs have0/0 receipts and retired panes with status0.
+Corrected native cabinet replay remains UNRUN at this source preparation step.
+Pure checks do not prove the cabinet suite completes within the corrected budget.
+
+Preserved evidence
+/home/dflanag3/spatial-artifacts/m09-full-bcc28860abbf-20261022
+sb16-2-focused-sanitizer-cabinet-failure-01.txt
+sb16-2-focused-sanitizer-cabinet-failure-02.txt
+Original host log: focus-evidence-01/ASan-UBSan/console.log.
+The original failed attempt remains separate from any corrected replay.
