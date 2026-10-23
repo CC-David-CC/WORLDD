@@ -1,3 +1,16 @@
+## 2026-10-22: Later M09 Debug failures require authority and diagnostic repairs
+
+M08 remains qualified. M09 remains UNQUALIFIED.
+The original4040 full Debug batches exposed keyboard rejection ordering and shared-client diagnostic regressions.
+The original FORBIDDEN witness and invalid-reply expectations remain unchanged.
+Session-local keyboard application context now permits read-only authority checks after cancellation.
+Explicit reset, session changes, and native group disappearance retire that context.
+Shared malformed replies and descriptors again report their original diagnostic prefix.
+New native lifetime and hostile-client counterexamples are implemented. Their runtime checks remain UNRUN.
+Checkpoint22560 compiled and packaged the earlier fixture corrections. It has not been deployed.
+Read docs/M09_LATE_DEBUG_AUTHORITY_REPAIR_2026-10-22.txt before the next source freeze.
+Historical entries below retain their dated status.
+
 ## 2026-10-22: M09 full Debug gate finds fixture and capacity failures
 
 M08 remains qualified. M09 remains UNQUALIFIED.

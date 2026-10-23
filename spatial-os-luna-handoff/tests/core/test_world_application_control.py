@@ -522,6 +522,7 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
             not value.held_keys and not value.held_buttons and not value.HasField('focus'))
         result=self.world_process.management('surface.find',probe_id='controlled-1')
         self.assertIsNone(result['surface'])
+        self.denied(self.viewer.act(key=core.ActorKeyRequest(keysym='x',pressed=True)),core.NO_FOCUS)
 
     def test_two_idle_native_seats_reacquire_fresh_application_control(self):
         self.setup_world(control_acquire_barrier=True);app,surface=self.probe();self.grant_control(app)
@@ -771,12 +772,14 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.revoke_grant(self.peer,control);self.assert_released(app)
         self.assertTrue(self.world_process.management('surface.get',id=surface['id'])['mapped'])
         self.assertIn(surface['id'],self.visible())
+        self.assert_key_rejected_without_native_event(app, core.FORBIDDEN)
         self.actor_aim();self.denied(self.viewer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)),core.FORBIDDEN)
 
     def test_observation_revocation_cancels_control(self):
         app,surface,observe,control=self.begin_control();self.send_key_event('a',True)
         self.revoke_grant(self.peer,observe);self.assert_released(app)
         self.assertNotIn(surface['id'],self.visible());self.assertIn(surface['id'],self.visible(self.peer))
+        self.assert_key_rejected_without_native_event(app, core.FORBIDDEN)
 
     def test_independent_control_grant_survives_other_revocation(self):
         app,surface,observe,control=self.begin_control();self.grant_viewer([grant.APPLICATION_CONTROL],app)
@@ -820,6 +823,80 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         self.viewer.close();self.assert_released(app,inspect=False)
         self.actor_aim(self.peer);self.actor_pointer(True,self.peer)
         self.assertTrue(self.actor_state(self.peer).held_buttons)
+
+    def assert_key_rejected_without_native_event(self, app, code):
+        boundary = len(self.probe_events(app))
+        result = self.viewer.act(key=core.ActorKeyRequest(keysym='x', pressed=True))
+        self.denied(result, code)
+        self.assertFalse(result.HasField('action'))
+        self.probe_command(app, 'sync')
+        self.assertFalse(any(row.get('event') == 'key' and row.get('pressed') and
+                             row.get('keysym') == ord('x')
+                             for row in self.probe_events(app)[boundary:]))
+
+    def test_key_revocation_checks_former_focus_instead_of_new_aim(self):
+        self.setup_world()
+        app, left = self.probe((-.6, 0, -2))
+        other, right = self.probe((.6, 0, -2))
+        observe, control = self.grant_control(app)
+        self.grant_viewer([grant.APPLICATION_OBSERVE], other)
+        self.actor_aim(x=-.6, z=-2)
+        self.actor_pointer(True); self.actor_pointer(False)
+        self.actor_aim(x=.6, z=-2)
+        self.assertEqual(self.actor_state().focus, left['id'])
+        self.send_key_event('a', True); self.send_key_event('a', False)
+        self.until(lambda: self.probe_events(app), lambda rows: any(row.get('text_hex') == '61' for row in rows))
+        self.assertFalse(any(row.get('text_hex') == '61' for row in self.probe_events(other)))
+        self.grant_viewer([grant.APPLICATION_CONTROL], other)
+        self.revoke_grant(self.peer, control)
+        self.until(lambda: self.actor_state(), lambda state: not state.HasField('focus'))
+        self.assert_key_rejected_without_native_event(app, core.FORBIDDEN)
+        self.assertFalse(any(row.get('text_hex') == '78' for row in self.probe_events(other)))
+        # Fresh acquisition of B must not inherit A's revoked authority or held state.
+        self.actor_pointer(True); self.actor_pointer(False)
+        self.send_key_event('c', True); self.send_key_event('c', False)
+        self.until(lambda: self.probe_events(other), lambda rows: any(row.get('text_hex') == '63' for row in rows))
+        self.assertEqual(self.actor_state().focus, right['id'])
+
+    def assert_explicit_reset_discards_keyboard_context(self, operation):
+        app, surface, observe, control = self.begin_control()
+        self.send_key_event('a', True)
+        self.revoke_grant(self.peer, control); self.assert_released(app)
+        self.assert_key_rejected_without_native_event(app, core.FORBIDDEN)
+        self.control_action(self.viewer, **{operation: core.ActorStopRequest()})
+        self.assert_key_rejected_without_native_event(app, core.NO_FOCUS)
+
+    def test_explicit_unfocus_discards_cancelled_keyboard_context(self):
+        self.assert_explicit_reset_discards_keyboard_context('unfocus')
+
+    def test_explicit_stop_discards_cancelled_keyboard_context(self):
+        self.assert_explicit_reset_discards_keyboard_context('stop')
+
+    def test_closed_and_reopened_actor_discards_cancelled_keyboard_context(self):
+        app, surface, observe, control = self.begin_control()
+        self.send_key_event('a', True)
+        self.revoke_grant(self.peer, control); self.assert_released(app)
+        self.assert_key_rejected_without_native_event(app, core.FORBIDDEN)
+        self.assertTrue(self.viewer.call(close=session.WorldSessionClose()).HasField('closed'))
+        self.assertTrue(self.authenticate_second(self.viewer).HasField('opened'))
+        self.assert_key_rejected_without_native_event(app, core.NO_FOCUS)
+
+    def test_surviving_application_window_preserves_cancelled_keyboard_context(self):
+        app, main, observe, control = self.begin_control()
+        self.addCleanup(self.m09_release_probe, app)
+        survivor, position = self.m09_create_survivor(app)
+        self.send_key_event('a', True)
+        self.revoke_grant(self.peer, control); self.assert_released(app)
+        self.probe_command(app, 'destroy')
+        self.until(lambda: self.world_process.management('surface.find', probe_id='controlled-1'),
+                   lambda result: result['surface'] is None)
+        self.assertTrue(self.world_process.management('surface.get', id=survivor['id'])['mapped'])
+        self.assert_key_rejected_without_native_event(app, core.FORBIDDEN)
+        self.actor_aim(self.peer, x=position[0], y=position[1], z=position[2])
+        self.actor_pointer(True, self.peer); self.actor_pointer(False, self.peer)
+        self.send_key_event('c', True, self.peer); self.send_key_event('c', False, self.peer)
+        self.until(lambda: self.probe_events(app), lambda rows: any(
+            row.get('text_hex') == '63' and row.get('xid') == survivor['xid'] for row in rows))
 
     def test_restored_grant_does_not_restore_held_input(self):
         app,surface,observe,control=self.begin_control();self.send_key_event('a',True)

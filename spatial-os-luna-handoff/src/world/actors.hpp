@@ -77,6 +77,8 @@ private:
         double expires = 0;
         wire::AimReply aim;
         std::optional<workspace::v1::ApplicationRef> aim_application;
+        // Error precedence only. This never restores native focus or control authority.
+        std::optional<workspace::v1::ApplicationRef> keyboard_application;
         wire::Vec3 direction;
         wire::NativeActorInput native;
         wire::AimHit capture;

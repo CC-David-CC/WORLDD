@@ -16,6 +16,8 @@
 #include <fstream>
 #include <iterator>
 #include <iostream>
+#include <set>
+#include <tuple>
 
 namespace spatial {
 namespace {
@@ -241,7 +243,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     if (next_witness_instance_id_ == UINT64_MAX) throw std::runtime_error("Actor instance identity exhausted");
     actor.witness_instance_id = ++next_witness_instance_id_;
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
-    actor.application_input = false;
+    actor.application_input = false; actor.keyboard_application.reset();
     actor.require_observation_grant = require_observation_grant;
     actor.local_application_output = local_application_output;
     actor.axes.fill(0); actor.expires = now_;
@@ -279,7 +281,7 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
         actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
     } else release_input(actor, true);
     actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
-    actor.aim.Clear(); actor.aim_application.reset();
+    actor.aim.Clear(); actor.aim_application.reset(); actor.keyboard_application.reset();
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
 }
@@ -344,9 +346,9 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         break;
     }
     case wire::ActorActionRequest::kStop:
-        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); actor.aim_application.reset(); cancel_object(actor); release_input(actor); break;
+        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); actor.aim_application.reset(); cancel_object(actor); release_input(actor); actor.keyboard_application.reset(); break;
     case wire::ActorActionRequest::kUnfocus:
-        release_input(actor); break;
+        release_input(actor); actor.keyboard_application.reset(); break;
     case wire::ActorActionRequest::kPointer:
     case wire::ActorActionRequest::kKey:
     case wire::ActorActionRequest::kScroll:
@@ -1022,6 +1024,10 @@ void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command)
         throw;
     }
     finish_input(actor);
+    if (actor.native.has_focus()) {
+        if (actor.application_control) actor.keyboard_application = actor.application_control->application();
+        else actor.keyboard_application.reset();
+    }
 }
 std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
     return surfaces_->control_group(surface);
@@ -1030,6 +1036,21 @@ void Actors::refresh_native() {
     if (!renderer_ || !surfaces_) return;
     const auto snapshot = renderer_->synchronize();
     surfaces_->refresh(snapshot);
+    // Visibility filtering cannot distinguish revocation from application exit.
+    // Index complete native groups once for all remembered keyboard contexts.
+    std::set<std::tuple<std::string, std::string, std::string>> input_applications;
+    for (const auto& surface : snapshot.surfaces()) {
+        if (!surface.mapped() || !surface.has_application_identity()) continue;
+        const auto& identity = surface.application_identity();
+        input_applications.emplace(identity.server_id(), identity.workspace(), identity.application());
+    }
+    for (auto& [id, actor] : actors_) {
+        (void)id;
+        if (!actor.keyboard_application) continue;
+        const auto& application = *actor.keyboard_application;
+        if (!input_applications.contains({application.server_id(), application.workspace(), application.application()}))
+            actor.keyboard_application.reset();
+    }
     for (const auto& state : snapshot.actors()) {
         const auto found = actors_.find(state.actor_id());
         if (found == actors_.end()) throw std::runtime_error("Compositor returned an unknown actor");
@@ -1117,7 +1138,13 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     refresh_native();
     wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
     if (request.has_key()) {
-        if (!actor.native.has_focus()) throw WorldError(wire::NO_FOCUS, "Actor has no focus");
+        if (!actor.native.has_focus()) {
+            // Cancellation removes focus, but cannot hide a missing application grant.
+            // Copy the identity before broker waits can reenter session cleanup.
+            const auto application = actor.keyboard_application;
+            if (application) preflight_input_authority(actor, *application);
+            throw WorldError(wire::NO_FOCUS, "Actor has no focus");
+        }
         const auto target = actor.native.focus(); authorize_input(actor, target);
         *command.mutable_key() = request.key(); send_input(actor, command); return;
     }

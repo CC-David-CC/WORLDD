@@ -1,0 +1,77 @@
+M09 late full Debug repairs, 2026-10-22
+
+M08 remains QUALIFIED. M09 remains UNQUALIFIED.
+Original failed product candidate: 4040d822291e8c2ab1fd5f14115506e906c4bc5b.
+Fixture-only checkpoint22560d288a61021973d85cd3b486251afc05db11 compiled and packaged.
+It was not deployed or tested. Later failures require this additional production repair.
+Original full Debug batches remain unchanged and continue collecting evidence.
+
+Authority before keyboard focus
+The sb16 actor-pixels witness delivered real B input, cancellation, and fresh C input successfully.
+It then rejected B's untargeted key with NO_FOCUS instead of the required FORBIDDEN.
+CONTRACT.md90 orders grant rejection before focus. Line98 defines NO_FOCUS for otherwise authorized input.
+WORLD_APPLICATION_CONTROL.md applies application authority instead of legacy interaction grants for labeled applications.
+M09_OBSERVATION_REVOCATION_SURVIVAL_WITNESS_2026-10-20.txt explicitly requires FORBIDDEN here.
+Independent source review confirmed a production ordering defect. Keep the existing witness expectation.
+
+Remember the application's complete identity after successful focused input and final authorization.
+This session-local reference supplies read-only permission-error precedence after automatic cancellation.
+It confers no reservation, control, native focus, held input, or persistent state.
+Do not include it in the idle-seat live-input guard.
+A copied reference survives broker callbacks safely while existing access and fence checks run.
+Live-focus keys continue authorizing the actual focused surface, independently of aim.
+Clear the reference on explicit stop/unfocus, close/reopen, and departure through close.
+Successful generic diagnostic focus clears it defensively.
+Clear it when the unfiltered native snapshot has no mapped surface in that complete application group.
+Use server, workspace, and application identity. Do not use the former surface generation.
+A mapped surviving window or popup preserves the group context.
+A native group index avoids scanning every surface separately for each actor.
+
+Selected keyboard regressions, before corrected runtime
+Keep the original16-method actor-pixels witness, with exact FORBIDDEN and process-identity assertions.
+Run all world-application-control methods, including five new real native methods.
+Focus A while aimed B lacks control: keys still reach A.
+Then authorize B and revoke A: a key remains FORBIDDEN for A. Fresh B acquisition must succeed.
+Explicit stop/unfocus discard cancelled context and produce NO_FOCUS afterward.
+Close/reopen discards cancelled context without restoring authority or held input.
+Destroy the focused main window while a same-application survivor remains: preserve FORBIDDEN.
+Keep restored-authority NO_FOCUS, explicit reacquisition, and two-idle-seat checks unchanged.
+Add NO_FOCUS after confirmed focused-application exit.
+Control and observation revocation each reject keys without native key delivery.
+Use the real application's sync fence before inspecting its native events.
+
+Diagnostic transition coverage limit
+ENFORCED XSurfaces removes infrastructure windows without application identity.
+Every admitted application surface has a complete immutable application identity.
+DEVELOPMENT surfaces have no application identity at all. These server modes do not mix in one session.
+A live managed-application to unlabeled-diagnostic transition is therefore unavailable in this production profile.
+Review its defensive clearing branch and run existing legacy diagnostic input checks.
+Do not claim a mixed-mode runtime transition or weaken server isolation to manufacture one.
+
+Shared compositor invalid-reply diagnostics
+The shared-render-client suite correctly rejected malformed replies and unsolicited descriptors.
+Both worldd processes exited2. The refactor changed the required diagnostic prefix.
+Original f019cf7 used Invalid shared compositor reply. Refactor4087fbb split the wording.
+Restore the original prefix for shared malformed/version and descriptor paths.
+Preserve the separate nonshared message and every deadline and descriptor cleanup rule.
+Independent review found no reproduced channel-lifetime defect.
+Run all seven hostile-client methods, including a new wrong-version startup counterexample.
+Two new cases pass readiness, then inject malformed/version replies during a real worldd synchronize exchange.
+They require exact exit2, shared-channel EOF, and clean sanitizer output.
+Normalize this68-line fixture from CRLF to LF so edited Linux source passes strict Git whitespace checks.
+The semantic diff was reviewed with --ignore-space-at-eol.
+
+Combined selected runtime matrix
+Run actor-pixels, world-application-control, shared-render-client, and native-application-input and native-actor-input.
+Run world-input-witness-bindings and world-native-input-witness-v2.
+Retain the earlier cabinet, world-remote-native, world-authority, and copy-engine/fault selections.
+Execute affected groups in Debug and ASan-UBSan on sb16 and sb16-2.
+Then freeze and execute the complete required M09 qualification, including cross-host reconciliation.
+Corrected compilation and runtime checks are UNRUN at this source-preparation step.
+No locked acceptance expectation, schema, or XLibre baseline changed for these repairs.
+
+Evidence
+/home/dflanag3/spatial-artifacts/m09-full-4040d822291e-20261022
+Original per-host core.log remains under deployed-01/evidence/m09-4040d822291e-HOST-01/Debug.
+The prepared22560 root holds late-debug-repair-selection-01.json and copied diagnostic excerpts.
+Independent helper review was source-only. Primary owns all edits and qualification decisions.

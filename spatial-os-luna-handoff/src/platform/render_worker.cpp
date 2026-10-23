@@ -110,7 +110,7 @@ std::string RenderWorker::receive_bytes() {
                 if(Clock::now()>=deadline_)throw std::runtime_error("Shared compositor I/O deadline exceeded");
                 shared_->stream->flush();
                 if(auto frame=shared_->stream->receive()){
-                    if(!frame->descriptors.empty()) throw std::runtime_error("Unexpected shared compositor reply descriptor");
+                    if(!frame->descriptors.empty()) throw std::runtime_error("Invalid shared compositor reply: unexpected descriptor");
                     return std::move(frame->bytes);
                 }
                 pollfd descriptors[2]{{shared_->stream->descriptor(),static_cast<short>(POLLIN|(shared_->stream->pending_output()?POLLOUT:0)),0},
@@ -130,7 +130,9 @@ std::string RenderWorker::receive_bytes() {
 wire::RenderResult RenderWorker::receive() {
     const auto bytes=receive_bytes();
     wire::RenderResult result;
-    if (!result.ParseFromString(bytes) || result.protocol_version() != 1) throw std::runtime_error("Invalid compositor reply");
+    if (!result.ParseFromString(bytes) || result.protocol_version() != 1)
+        throw std::runtime_error(shared_ ? "Invalid shared compositor reply: malformed protobuf or protocol version" :
+                                          "Invalid compositor reply");
     validate_message(result); return result;
 }
 wire::FrameReply RenderWorker::render(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool capture) {
