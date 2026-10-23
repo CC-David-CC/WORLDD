@@ -8,6 +8,7 @@ import subprocess
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from google.protobuf import text_format
 import core_pb2 as core
 import grants_pb2 as grant
@@ -138,12 +139,33 @@ class WorldAuthorityTests(WorldIdentityFixture):
         runtime.input_timeout = 10
         runtime_path = self.root/f'runtime-{number}.textproto'; runtime_path.write_text(text_format.MessageToString(runtime))
         presentation = presentation_factory(state,self.world_info) if presentation_factory else None
+        private_channels = {}
+        if input_witness_fd is not None:
+            private_channels['input_witness_fd'] = input_witness_fd
+        if presentation is not None:
+            private_channels['presentation'] = presentation
         world = WorldProcess(self, config_path, state, native=native, count=peer_count,
-            runtime_config=runtime_path, broker=broker, input_witness_fd=input_witness_fd, presentation=presentation)
+            runtime_config=runtime_path, broker=broker, **private_channels)
         self.worlds.append(world); world.management('system.hello')
         world.state_path = state; world.config_path = config_path; world.runtime_path = runtime_path
         if authenticate: self.assertTrue(self.authenticate(world.peers[0]).HasField('opened'))
         return world
+
+    def test_default_scoped_world_preserves_ordinary_constructor_contract(self):
+        constructor = WorldProcess
+        calls = []
+
+        def ordinary_world(fixture, config, state, native=False, count=2,
+                           runtime_config=None, broker=None):
+            calls.append(state)
+            return constructor(fixture, config, state, native=native, count=count,
+                               runtime_config=runtime_config, broker=broker)
+
+        with patch.dict(WorldAuthorityTests.scoped_world.__globals__, WorldProcess=ordinary_world):
+            world = WorldAuthorityTests.scoped_world(self)
+        self.assertEqual(calls, [world.state_path])
+        self.assertEqual(world.management('system.hello')['implementation'], 'production')
+        self.assertTrue(world.peers[0].call(inspect=session.WorldSessionInspect()).HasField('state'))
 
     def own(self, peer, **options):
         reply = peer.call(grants=session.WorldGrantList(**options)); self.assertTrue(reply.HasField('grants'), reply)

@@ -1,0 +1,49 @@
+M09 full-gate fixture corrections, 2026-10-22
+
+M08 remains QUALIFIED. M09 remains UNQUALIFIED.
+Original frozen candidate: 4040d822291e8c2ab1fd5f14115506e906c4bc5b.
+Original deployments and failed logs remain unchanged.
+
+Cabinet contradiction and reviewed correction
+Both hosts failed workspace-actor-cabinet-gateway at the visible-cabinet lookup.
+The target at (3.2, 0, -2) is outside the 90-degree view and 3-meter reach.
+The production filter is correct. The file authorization assertion was never reached.
+Restore the accepted M08 fixture position (1.2, 0, -2), 2.33 meters away.
+Require exactly one visible target before checking the locked cabinet and UNAUTHORIZED result.
+Retain the project-one no-write check. Also check the actual target project-two directory.
+No rights, reach limits, visibility rules, or expected denials change.
+The independent review_native_failures helper confirmed this smallest correction.
+Accepted M08 overlay SHA256: d65627406622874459fa8e4532ef927b128558c264c7e3cc6066408f96bd1d6c.
+The original supplement and reviewed diff are retained in the full-attempt artifact root below.
+
+Shared fixture constructor compatibility
+Both hosts failed three world-remote-native methods before starting the hybrid world.
+scoped_world passed new private-channel keywords even when neither channel was configured.
+HybridWorldProcess retains the ordinary constructor and rejected input_witness_fd=None.
+Only pass optional private channels when explicitly configured.
+Keep explicit descriptors and presentation attachment on the existing production witness path.
+A new real-world regression uses the ordinary constructor signature through scoped_world.
+It checks authenticated state and production worldd after startup.
+Existing native witness suites verify the explicitly configured channel path.
+
+Selected tests, recorded before corrected execution
+Run workspace-actor-cabinet-gateway: all28 methods, visibility and wrong-worktree authority.
+Run world-remote-native: all4 methods, local pixels versus remote omission and process lifecycle.
+Run world-authority: all methods including the new ordinary-constructor regression.
+Run world-input-witness: all20 methods, authenticated private-channel preservation.
+Run native M09 input methods: all8 methods, presentation channel and release witness preservation.
+Run each affected runtime group in Debug and ASan-UBSan on sb16 and sb16-2.
+Then freeze a clean candidate and run the complete required M09 qualification.
+Corrected runtime checks are UNRUN at this source preparation step.
+
+Additional setup refusal
+sb16 copy suites refused their 8 GiB free-space prerequisite during the original Debug batch.
+Do not weaken their capacity assertion. Inspect retained artifacts and runtime images first.
+Repair admission or verified redundant storage before the next full gate.
+No production kernel, XLibre, or authorization change is justified by these failures.
+
+Evidence root
+/home/dflanag3/spatial-artifacts/m09-full-4040d822291e-20261022
+Raw per-host logs remain in deployed-01/evidence/m09-4040d822291e-HOST-01/Debug/core.log.
+The original full attempt is failed, even while its remaining Debug tests continue collecting.
+Full sanitizer, P10, storage, cross-host, and primary closure remain unrun or pending.

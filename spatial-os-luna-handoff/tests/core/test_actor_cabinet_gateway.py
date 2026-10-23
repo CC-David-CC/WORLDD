@@ -880,13 +880,17 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertEqual(sum(view.kind == core.PRESENTATION_KIND_CABINET
                              for view in after.presentation_views), cabinet_count)
 
-        wrong_target = self.make_cabinet(world, owner, x=3.2, workspace_id='two')
+        wrong_target = self.make_cabinet(world, owner, x=1.2, workspace_id='two')
         self.world_grant_second(world, [grant.REPRESENTATION_USE],
                                 components=[room, wrong_target.representation_id])
         observation = peer.act(observe=core.ActorObserveRequest())
         self.assertTrue(observation.HasField('action'), observation)
-        wrong_view = next(view for view in observation.action.observation.presentation_views
-                          if view.representation_id == wrong_target.representation_id)
+        wrong_views = [view for view in observation.action.observation.presentation_views
+                       if view.representation_id == wrong_target.representation_id]
+        self.assertEqual([view.representation_id for view in wrong_views],
+                         [wrong_target.representation_id],
+                         'wrong-worktree cabinet must be visible before testing its file-use denial')
+        wrong_view = wrong_views[0]
         self.assertTrue(wrong_view.cabinet_locked)
         denied_use = peer.act(cabinet=self.cabinet_request(wrong_target,
             create=cabinet.FileCreate(directory_handle=b'', basename=b'wrong-worktree.txt', content=b'wrong')))
@@ -894,6 +898,7 @@ class ActorCabinetGatewayTests(presentation.WorkspacePresentationActorTests):
         self.assertTrue(denied_use.action.cabinet.HasField('error'), denied_use)
         self.assertEqual(denied_use.action.cabinet.error.code, cabinet.FileActionError.UNAUTHORIZED)
         self.assertFalse((self.project / 'wrong-worktree.txt').exists())
+        self.assertFalse((self.project_two / 'wrong-worktree.txt').exists())
 
     def test_actor_cabinet_gateway_revocation_during_observation_is_clean_rejection(self):
         self.enroll_second()

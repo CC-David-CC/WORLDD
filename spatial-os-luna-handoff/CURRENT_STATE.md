@@ -1,3 +1,16 @@
+## 2026-10-22: M09 full Debug gate finds fixture and capacity failures
+
+M08 remains qualified. M09 remains UNQUALIFIED.
+Both hosts failed the wrong-worktree cabinet fixture and three remote-native setup methods.
+The cabinet was correctly hidden outside view and reach. Restore the accepted M08 fixture position.
+The shared world fixture passed unused private-channel keywords to an ordinary constructor.
+Only explicitly configured private channels now extend that constructor call.
+The new real-world regression checks the ordinary launch path. Corrected runtime checks remain UNRUN.
+sb16 copy suites also refused their unchanged 8 GiB free-space prerequisite.
+The original Debug batches continue collecting. Their full attempts cannot qualify M09.
+Read docs/M09_FULL_GATE_FIXTURE_CORRECTIONS_2026-10-22.txt for selection and preserved evidence.
+Historical entries below retain their dated status.
+
 ## 2026-10-22: M09 full preparation toolchain correction passes focused checks
 
 M08 remains qualified. M09 remains UNQUALIFIED. Full M09 runtime qualification has not started.
