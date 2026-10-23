@@ -2343,6 +2343,14 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-coordinator-retirement PROPERTIES TIMEOUT 240
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-world-issuer-setup COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} --
+        "${Python3_EXECUTABLE}" -B "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_world_issuer_setup.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-world-issuer-setup PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME session-broker-cleanup COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} --

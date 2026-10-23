@@ -1,0 +1,77 @@
+M09 session fixture issuer connection repair
+2026-10-23. FOCUSED PASS. M09 remains UNQUALIFIED.
+
+Problem
+
+The session fixture retained its issuer management peer while preparing broker state and world keys.
+Two original sanitizer failure records show 3.3698 and 3.2678 seconds since the last successful reply.
+The issuer's configured idle limit is 3000 milliseconds.
+The next participant_register challenge failed with Issuer TLS stream closed.
+The deferred-fence failure reached the same registration path using the plain TLS peer.
+
+The fixture now closes the previous management peer after key preparation.
+It opens a new authenticated connection before starting the registration challenge.
+The challenge and signed execution remain on that same new connection.
+No request is retried. No production policy, idle timeout, authority, or acceptance assertion changes.
+
+Regression and corrective evidence
+
+Two new real native/TLS cases delay world-key setup beyond the unchanged issuer idle limit.
+They cover HealthySupervisorIssuer and the plain SupervisorRegistryTests peer.
+Both fail against the original fixture with the expected TLS EOF during world_config registration.
+The baseline CTest returns 8. The reproduction driver returns zero only after confirming both intended failures and cleanup.
+The failed baseline remains separate from corrective passing evidence.
+
+Both hosts then pass these selected groups in Debug and ASan-UBSan:
+
+session-world-issuer-setup: 2 methods.
+host-actor-controller-native: 1 method.
+session-coordinator-retirement: 8 methods.
+session-deferred-fence: 5 methods.
+
+Each host/profile completed 16 methods. The total is 64 passing method executions.
+All four corrective runtime jobs have terminal 0/0 receipts and retired tmux panes.
+All sixteen native resource scopes report removal without unexpected population.
+Profile-matched copy-helper cleanup is confirmed. Sanitizer diagnostics are absent.
+The same original session assertions remain enabled.
+
+The focused deployment uses an explicit two-file Python overlay on original 1ae source.
+The unchanged fixture files were byte-compared with the task's 1da97083 base before the overlay.
+Original 1ae Debug and sanitizer production binaries remain unchanged and pass integrity rechecks.
+The original native15 server and pinned graphics closure remain unchanged.
+The overlay contains the repaired test_session_world.py and new test_session_world_issuer_setup.py only.
+The focused source manifest records all original source bytes and these two explicit changes.
+This evidence qualifies the fixture correction only. It does not qualify the combined product candidate.
+
+The full task source snapshot has SHA256:
+97ea87e2200e102b1b6de1af52eacc8141feb790deddcefac243aa3c257b17f1.
+Both Debug and sanitizer CMake configurations pass on ROG.
+Their new registration exactly matches the metadata used for focused execution.
+No runtime tests execute on ROG.
+The first configuration launcher refused an incorrect hostname assumption before extraction.
+The correction pins ROG-Ally-X-RC72LA and its observed machine identity. The first refusal remains preserved.
+
+Locations
+
+Both test hosts:
+/home/dflanag3/spatial-artifacts/m09-lifecycle-focused-1da97083-20261023.
+Read issuer-corrective-13/result.json, issuer-corrective-13/primary-audit-16.json,
+issuer-corrective-runtime-run-13 receipts, and per-profile console, JUnit, helper, and native evidence.
+The baseline is sb16-2:issuer-baseline-12/result.json with issuer-baseline-runtime-run-12 receipts.
+
+Middle-child and ROG records:
+/home/dflanag3/spatial-artifacts/m09-lifetime-primary-20261023.
+Read issuer-source-record-14.json, issuer-configure-14.json, issuer-registration-equivalence-15.json,
+and the two HOST-issuer-corrective-audit-16.json primary audits on middle-child.
+ROG configuration receipts are issuer-configure-run-15. Source snapshot files retain the 14 suffix.
+
+Remaining qualification
+
+The original four failed records remain preserved.
+Three session failures now have focused corrective evidence. Their combined full-gate checks remain pending.
+The original workspace-copy-worker-death-recovery setup failure remains unresolved.
+That failure expired during repository import, before worker-death injection.
+Do not count an unchanged passing rerun as repairing that failure.
+Review the integrated source, require the new regression and v3 supplement, and freeze one final candidate.
+Then run the complete both-host qualification and required cross-host acceptance.
+M08 remains qualified. Spatial-M1 and LOCAL_READY remain incomplete.

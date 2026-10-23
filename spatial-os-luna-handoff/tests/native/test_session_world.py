@@ -30,6 +30,10 @@ class SessionWorldTests(base.BrokerHandoffRegressionTests):
     def world_config(self):
         suffix=getattr(self,'world_instance_suffix','')
         signer, public = self.issuer.key('world-authority'+suffix)
+        # Slow key and broker setup can exceed the issuer's idle limit.
+        # Open a new connection before this new challenge. Never retry an effect.
+        self.issuer.peer.close()
+        self.issuer.peer = self.issuer.connect()
         registration = self.issuer.register(identity=getattr(self, 'world_participant_identity', (b'w' if not suffix else b'v') * 32), public=public, domain=getattr(self, 'world_exact_domain', getattr(self, 'world_domain', 'world-one')+suffix), revision=self.last_world_registry_revision if suffix else 1)
         self.last_world_registry_revision=registration.registered_revision
         approved = self.issuer.bind(participant=registration.participant.id, registration=registration.registered_revision)

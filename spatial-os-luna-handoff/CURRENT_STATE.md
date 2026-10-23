@@ -1,3 +1,15 @@
+## 2026-10-23: M09 session fixture refreshes its issuer peer before registration
+
+Slow broker and key setup let the retained management TLS connection exceed the issuer's unchanged idle limit.
+Two new real native/TLS regressions reproduce the expected EOF against the original fixture on sb16-2.
+World setup now opens a new authenticated connection before the registration challenge. It retries no operation.
+Both regressions and the three original failing session groups pass on both hosts in Debug and ASan-UBSan.
+All 64 corrective method executions pass. Native scope and helper cleanup are confirmed. Sanitizer diagnostics are absent.
+The new CMake registration exactly matches the metadata used for focused execution in both profiles.
+The original repository-import setup timeout remains unresolved. Combined full and cross-host qualification remain pending.
+M09 remains UNQUALIFIED. Read ../docs/M09_ISSUER_FIXTURE_CONNECTION_2026-10-23.txt for scope and evidence.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M09 native lifetime supplement passes focused runtime on both hosts
 
 Component checkpoint 1da97083 passes six focused groups in Debug and ASan-UBSan on sb16 and sb16-2.
