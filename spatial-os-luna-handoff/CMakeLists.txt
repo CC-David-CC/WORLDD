@@ -622,6 +622,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_input_state_observer_v3.py")
     set_tests_properties(native-input-lifecycle-v3-artifact PROPERTIES TIMEOUT 20
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME native-input-lifecycle-v3-collector COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_input_state_observer_v3_collect.py")
+    set_tests_properties(native-input-lifecycle-v3-collector PROPERTIES TIMEOUT 20
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/world_input_witness_v2_pb2.py"
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v2

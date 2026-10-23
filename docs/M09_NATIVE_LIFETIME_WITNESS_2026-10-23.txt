@@ -128,10 +128,20 @@ CMake configure and Python binding generation passed on ROG with terminal 0/0 re
 Two independent clean Python generations match each other and the draft generated artifacts.
 This limited proof covers three Python files. It does not qualify the native C bindings or the milestone.
 The structural controls remain UNRUN while both hosts execute their existing full gates.
-The native producer, endpoint dispatch, collector, and three runtime scenarios remain unimplemented.
+The native producer, endpoint dispatch, and three runtime scenarios remain unimplemented.
 No production input-routing code changed in this increment.
 Independent review found owner alias and generation-boundary gaps in the draft.
 The corrected oracle rejects inconsistent owner epochs and nonincreasing spatial generations.
 Additional controls require observed successful destruction and actual successful device removals.
 All these statements describe source review and generation evidence, not native execution.
 External evidence root: /home/dflanag3/spatial-artifacts/m09-native-lifecycle-witness-20261023.
+
+Collector checkpoint
+
+The separate v3 collector preserves v2 descriptor ownership and total-deadline behavior.
+Ten new methods exercise EOF, fragmentation, deadlines, input snapshots, descriptor cleanup, and bounded reads.
+All ten remain UNRUN. The 37 structural methods also remain UNRUN.
+CMake lists both separate v3 test groups without executing them.
+The three generated protobuf-c source files compile with Wall, Wextra, and Werror.
+These are generation and compile checks. They provide no native runtime evidence.
+The v2 collector and validation remain unchanged.
