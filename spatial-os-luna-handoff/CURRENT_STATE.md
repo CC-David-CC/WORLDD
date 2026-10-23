@@ -1,3 +1,16 @@
+## 2026-10-23: M09 native lifetime supplement passes focused runtime on both hosts
+
+Component checkpoint 1da97083 passes six focused groups in Debug and ASan-UBSan on sb16 and sb16-2.
+Each host/profile passed 155 methods, including all four actual world/native lifecycle scenarios.
+Independent receipts prove three old-input releases before peer input in all sixteen retained v3 artifacts.
+Destruction uses different old and survivor XIDs. Applications retain their process and native connection.
+All world scopes and profile-matched copy helpers report cleanup. Sanitizer diagnostics were absent.
+The first launcher failures were setup failures. Their receipts remain separate from corrective passing evidence.
+Original 1ae full-gate failures remain unresolved. Combined full and cross-host qualification remain pending.
+M08 remains qualified. M09 remains UNQUALIFIED. Spatial-M1 and LOCAL_READY remain incomplete.
+Read ../docs/M09_NATIVE_LIFETIME_WITNESS_2026-10-23.txt for source pins, artifacts, and exact result paths.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M09 native lifetime producer and four runtime scenarios are drafts
 
 The additive v3 native producer captures callback-local destruction state and actual seat/device retirement.

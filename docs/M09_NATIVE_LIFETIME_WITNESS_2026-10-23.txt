@@ -1,9 +1,54 @@
 M09 additive native lifetime witness, version 3
 2026-10-23
 
-Status: DRAFT IMPLEMENTATION. UNQUALIFIED. Runtime checks remain UNRUN.
+Status: FOCUSED RUNTIME PASS. M09 remains UNQUALIFIED.
 Base product: 1ae9b3aef66c554ae20c564cad16d28b5128768d.
 M08 remains qualified and unchanged.
+
+Focused runtime result, 2026-10-23
+
+Tested component checkpoint: 1da9708361bb10e48456494df988f2f43a89b5d7.
+Both hosts passed all six selected groups in Debug and ASan-UBSan.
+Each host/profile passed 155 methods: structural 37, collector 10, existing endpoint 72,
+v3 endpoint 24, unchanged world/native v2 witness 8, and world/native v3 lifecycle 4.
+The total is 620 completed method executions across both hosts and profiles.
+The four v3 scenarios cover target destruction, explicit actor close, transport loss, and identity revocation.
+All sixteen retained v3 artifacts contain four records and three independent old-input releases before peer input.
+Destruction artifacts distinguish the actual old and surviving XIDs.
+The same application process and native connection survive each authorized transfer.
+Scope removal and profile-matched copy-helper cleanup passed. Sanitizer diagnostics were absent.
+Primary audits checked terminal 0/0 receipts, retired panes, exact counts, and retained artifacts.
+Post-run structural revalidation uses the recorded native epoch; live tests enforced the independent expectation.
+
+Evidence root on sb16 and sb16-2:
+/home/dflanag3/spatial-artifacts/m09-lifecycle-focused-1da97083-20261023.
+Read primary-focused-audit-11.json, worlds-09/result.json, and worlds-runtime-run-09 receipts.
+The sb16 standalone result is standalone-08/result.json with standalone-runtime-run-08 receipts.
+The sb16-2 endpoint result is endpoints-08/result.json with endpoints-runtime-run-08 receipts.
+Its structural-reconciliation-08.json reads complete original console logs without rerunning passing tests.
+The original JUnit output truncated successful inner summaries at 1024 bytes.
+
+The first deployment refused insufficient sb16 capacity and preserved that refusal.
+A redundant 1992683502-byte transfer archive was removed after verifying its retained r730 copy.
+The measured sb16 free-space recovery was 1992683520 bytes.
+Original deployments, manifests, failed reports, and required runtime dependencies remain.
+Preflight first refused missing required graphics inventory names.
+The corrected runtime then caught an invalid wrapper basename before server startup.
+The corrective launcher preserves the qualified graphics template and names each executable wrapper Xvfb.
+Original failures remain separate. No production source or acceptance assertion changed for these setup corrections.
+
+Frozen focused package SHA256:
+c7f777efc81a1a3b5c149a17dabcb7757034640db571e68ac43954fc65d18942.
+Manifest SHA256:
+618d684da410a9166351d60473c56529a417e2d7a5a7641b6343c84fd7686ed4.
+The package remains on ROG under m09-lifetime-primary-20261023/focused-payload-06.tar.gz.
+World-driven checks use fresh distinct Btrfs lanes named m09-1da97083-worlds09-PROFILE-HOST.
+Read storage-setup-worlds-09/setup.json for exact filesystem identities and recovery commands.
+
+These focused passes do not repair the four original sb16-2 full-gate failures.
+Corrective setup evidence, combined candidate review, final generation proof, full gates, and cross-host acceptance remain pending.
+Require the v3 supplement explicitly at the final gate. Keep existing v2 requirements unchanged.
+Historical implementation-stage results below retain their original scope.
 
 Reason and independent review
 
