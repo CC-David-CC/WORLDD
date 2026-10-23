@@ -185,3 +185,58 @@ The next increment must implement callback-local destruction capture and actual 
 It must add fresh old-state checks at the first peer event and actual two-window XI2 receipt joins.
 Three production-trigger scenarios and both-host runtime qualification remain mandatory.
 The current full 1ae candidate does not include this continuation. M09 remains UNQUALIFIED.
+
+Native producer continuation, not yet runtime-qualified
+
+The draft now captures destruction state inside ResourceStateFreeing before the existing epoch reset.
+It copies native grab, focus, device, and actor context synchronously. No borrowed window pointer survives that call.
+The existing v2 live-window lookup and context snapshot functions remain unchanged.
+A separate v3 context reader rejects real grabs or focus when no target pointer is available.
+It never turns missing devices into successful snapshots.
+
+The cancellation hooks capture actual native state after releases and after context clearing.
+The destruction witness records the first spatial generation invalidation and the actual DestroyWindow hook result.
+Actor retirement records each actual RemoveDevice result and time.
+It checks the old seat registry and both enabled and disabled native device lists.
+The first actual peer EventCallback takes fresh clearance or exact-retirement evidence.
+The separate v3 stream contains three bounded native records. The independent process supplies record four.
+
+Ten selected native C compilations passed with Werror in Debug and ASan-UBSan configurations.
+All three generated protobuf-c sources compiled. Native linking and runtime checks for this increment remain UNRUN.
+Read lifecycle-compile-02.json under the primary continuation artifact root for these compile results.
+The pinned compile snapshot is lifecycle-source-02.tar.gz, SHA256:
+8a5f71d4ae6ee77ba536237021c5b68bdaf8c1358c468d1dd9097743ae88cfc4.
+
+The separate world-native-lifecycle-v3 registration implements four production-trigger methods.
+They cover main-window destruction with a survivor, explicit actor close, transport disconnect, and actor revocation.
+They use authenticated worldd actor-seat bindings and the production actor-control path.
+The independent decoder selects actual key/button events from both pinned windows.
+It copies each event's actual XID, source, device, time, and synthetic flag into its receipt.
+The peer action is submitted before release receipts are read. Only BUSY may retry within the original deadline.
+Explicit close and revocation also require production rejection of the old session.
+Each scenario requires the surviving application connection and process to remain responsive.
+Complete and partial raw artifacts are retained with trusted arms and both actor bindings.
+All four methods remain UNRUN on both hosts. Existing v2 and locked tests remain unchanged.
+
+The producer subsequently linked Xvfb and Xorg in all four native configurations.
+Native build receipts are 0/0. native-lifecycle-03/native-build-03.json pins the eight binaries and their sources.
+Default-off symbol checks still exclude observer code.
+The first runtime-fixture build launcher refused its missing lock-parent directory before CMake ran.
+Its receipts remain 66/66. The corrective launcher creates the owned parent before acquiring its lock.
+The independent receipt reader also bounds event collection immediately at the 32-receipt limit.
+These changes do not qualify the runtime scenarios.
+
+Primary source review made clear-context rejection unconditional for any active native grab.
+It also corrected fixture import order before executable arguments are consumed.
+The new native-lifecycle-05 builds and lifecycle-compile-05 strict compilations pass on ROG.
+Both fresh runtime fixture builds pass in runtime-build-04.json.
+Only native helper and Python test changes separate their respective pinned source snapshots.
+Production C++ sources, schemas, configuration, and CMake build identity inputs match between those snapshots.
+The focused generated-source proof passed for 111 C++/Python files and 14 native C files.
+It compares two clean source/output layouts, both runtime profiles, and all native build variants.
+Read focused-generation-proof-05/result.json. It does not replace the final milestone proof.
+Final whitespace review removed two extra EOF blank lines before checkpointing.
+Native-lifecycle-06 and lifecycle-compile-06 revalidate the normalized native source bytes.
+Their source inputs match the checkpoint. Runtime build identity inputs remain identical to snapshot 04.
+The four runtime methods and all selected v3 runtime regressions remain UNRUN.
+Read M09_1AE_FULL_LOCAL_RESULTS_2026-10-23.txt for the completed original jobs and four retained failures.

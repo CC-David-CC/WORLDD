@@ -12,6 +12,7 @@
 #include "privates.h"
 #include "windowstr.h"
 #include "spatialinputobserver_lifetime.h"
+#include "spatialinputobserver_lifecycle_v3.h"
 
 _Static_assert(DOWN_LENGTH == 32, "Review native bitmap width if XLibre changes");
 _Static_assert(sizeof(((KeyClassPtr)0)->down) == DOWN_LENGTH, "Key bitmap width");
@@ -61,6 +62,11 @@ static void resource_changed(CallbackListPtr *list, void *closure, void *data)
     if (!ready || !info || info->state != ResourceStateFreeing ||
         info->type != X11_RESTYPE_WINDOW || !info->value) return;
     WindowPtr window = info->value;
+    SpatialObserverWindowPin pin = { .session = session_serial,
+        .epoch = *epoch_at(&window->devPrivates, &window_epoch_key), .xid = window->drawable.id };
+    ClientPtr owner = dixLookupXIDOwner(pin.xid);
+    if (pin.epoch && owner && SpatialObserverPinClient(owner->index, &pin.owner))
+        SpatialInputObserverResourceFreeV3(window, &pin);
     *epoch_at(&window->devPrivates, &window_epoch_key) = 0;
 }
 
@@ -466,4 +472,128 @@ Bool SpatialObserverSnapshotDevices(const SpatialObserverDeviceSetPin *pin,
     value.session = pin->session; value.valid = TRUE;
     *state = value;
     return TRUE;
+}
+
+/* Separate v3 capture keeps the v2 mapped-resource contract unchanged. */
+static Bool snapshot_context_v3(const SpatialObserverDeviceSetPin *device_pin,
+                                const SpatialObserverWindowPin *target_pin,
+                                WindowPtr target, SpatialObserverContextV2 *context)
+{
+    DeviceIntPtr devices[SPATIAL_OBSERVER_DEVICE_COUNT];
+    SpatialObserverContextV2 value = {0};
+    int ids[SPATIAL_OBSERVER_DEVICE_COUNT];
+
+    if (!context) return FALSE;
+    memset(context, 0xff, sizeof(*context));
+    context->valid = FALSE;
+    context->session = 0;
+    if (in_input_thread() || !device_pin || !same_session(device_pin->session)) return FALSE;
+    if (target_pin) {
+        if (!target || target_pin->session != device_pin->session ||
+            target_pin->owner.session != target_pin->session || !target_pin->epoch ||
+            target->drawable.id != target_pin->xid || !target->parent || !target->mapped || !target->realized ||
+            target_pin->owner.index <= 0 || target_pin->owner.index >= currentMaxClients ||
+            !SpatialObserverClientMatches(&target_pin->owner, clients[target_pin->owner.index]) ||
+            dixLookupXIDOwner(target_pin->xid) != clients[target_pin->owner.index] ||
+            *epoch_at(&target->devPrivates, &window_epoch_key) != target_pin->epoch) return FALSE;
+    } else if (target) return FALSE;
+    for (unsigned i = 0; i < SPATIAL_OBSERVER_DEVICE_COUNT; ++i) {
+        if (device_pin->devices[i].role != (enum SpatialObserverDeviceRole)i ||
+            !device_pin->devices[i].epoch)
+            return FALSE;
+        ids[i] = device_pin->devices[i].id;
+    }
+    if (!lookup_devices(ids, devices)) return FALSE;
+
+    for (unsigned i = 0; i < SPATIAL_OBSERVER_DEVICE_COUNT; ++i) {
+        DeviceIntPtr device = devices[i];
+        SpatialObserverDeviceContextV2 *out = &value.devices[i];
+        if (*epoch_at(&device->devPrivates, &device_epoch_key) !=
+            device_pin->devices[i].epoch)
+            return FALSE;
+        out->device = device_pin->devices[i];
+        out->active_grab = device->deviceGrab.grab != NullGrab;
+        out->has_focus_class = device->focus != NULL;
+        out->focus_kind = SPATIAL_OBSERVER_FOCUS_NOT_CAPTURED;
+        if (device->focus) {
+            WindowPtr focus = device->focus->win;
+            out->focus_revert = device->focus->revert;
+            if (focus == NoneWin)
+                out->focus_kind = SPATIAL_OBSERVER_FOCUS_NONE;
+            else if (focus == PointerRootWin)
+                out->focus_kind = SPATIAL_OBSERVER_FOCUS_POINTER_ROOT;
+            else if (focus == FollowKeyboardWin)
+                out->focus_kind = SPATIAL_OBSERVER_FOCUS_FOLLOW_KEYBOARD;
+            else {
+                if (focus != target) return FALSE;
+                out->focus_kind = SPATIAL_OBSERVER_FOCUS_OTHER;
+                out->focus_is_target = TRUE;
+                out->focus_window = *target_pin;
+            }
+        }
+        if (out->active_grab) {
+            if (!target_pin || !target) return FALSE;
+            GrabPtr grab = device->deviceGrab.grab;
+            ClientPtr owner;
+            SpatialObserverNativeClientPin owner_pin;
+            if (!grab || !grab->resource || grab->device != device ||
+                grab->window != target)
+                return FALSE;
+            owner = dixClientForXID(grab->resource);
+            if (!owner || owner == serverClient ||
+                !SpatialObserverPinNativeClient(owner->index, &owner_pin))
+                return FALSE;
+            out->grab_resource = grab->resource;
+            out->grab_owner = owner_pin;
+            out->grab_window = *target_pin;
+            if (grab->confineTo) {
+                if (grab->confineTo != target) return FALSE;
+                out->has_confine_window = TRUE;
+                out->confine_window = *target_pin;
+            }
+        }
+        out->complete = TRUE;
+    }
+    value.session = device_pin->session;
+    value.valid = TRUE;
+    *context = value;
+    return TRUE;
+}
+
+Bool SpatialObserverSnapshotBorrowedContextV3(const SpatialObserverDeviceSetPin *devices,
+    const SpatialObserverWindowPin *target, WindowPtr borrowed_window, SpatialObserverContextV2 *context)
+{
+    if (!target || !borrowed_window) {
+        if (context) { memset(context, 0xff, sizeof(*context)); context->valid = FALSE; context->session = 0; }
+        return FALSE;
+    }
+    return snapshot_context_v3(devices, target, borrowed_window, context);
+}
+
+Bool SpatialObserverSnapshotClearContextV3(const SpatialObserverDeviceSetPin *devices,
+    SpatialObserverContextV2 *context)
+{
+    /* NULL is not a substitute target. Any real grab or non-special focus fails. */
+    return snapshot_context_v3(devices, NULL, NULL, context);
+}
+
+Bool SpatialObserverDeviceIdsAbsentV3(const SpatialObserverDeviceSetPin *devices)
+{
+    if (in_input_thread() || !devices || !same_session(devices->session)) return FALSE;
+    for (unsigned i = 0; i < SPATIAL_OBSERVER_DEVICE_COUNT; ++i) {
+        const SpatialObserverDevicePin *pin = &devices->devices[i];
+        if (pin->id <= 0 || !pin->epoch || pin->role != (enum SpatialObserverDeviceRole)i) return FALSE;
+        for (DeviceIntPtr device = inputInfo.devices; device; device = device->next)
+            if (device->id == pin->id) return FALSE;
+        for (DeviceIntPtr device = inputInfo.off_devices; device; device = device->next)
+            if (device->id == pin->id) return FALSE;
+    }
+    return TRUE;
+}
+
+Bool SpatialObserverWindowAbsentV3(XID xid)
+{
+    WindowPtr window = NULL;
+    return ready && !in_input_thread() && xid &&
+        dixLookupWindow(&window, xid, serverClient, DixReadAccess) == BadWindow;
 }

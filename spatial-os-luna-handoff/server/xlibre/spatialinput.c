@@ -32,6 +32,7 @@
 #include "spatialinputobserver_endpoint.h"
 #include "spatialinputobserver_serialize_v2.h"
 #include "spatialinputobserver_transition_v2.h"
+#include "spatialinputobserver_lifecycle_v3.h"
 #endif
 
 typedef Spatial__Input__V1__Request Request;
@@ -357,6 +358,9 @@ static void invalidate(WindowPtr win)
             cancel(seat);
     uint64_t *value = dixLookupPrivate(&win->devPrivates, &window_key);
     *value = ++next_generation;
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverLifecycleGenerationV3(win->drawable.id, *value);
+#endif
 }
 
 #define WINDOW_HOOK(name, field, saved) \
@@ -372,7 +376,23 @@ static Bool name(WindowPtr win) { \
 }
 WINDOW_HOOK(realize_window, RealizeWindow, realize)
 WINDOW_HOOK(unrealize_window, UnrealizeWindow, unrealize)
-WINDOW_HOOK(destroy_window, DestroyWindow, destroy)
+static Bool destroy_window(WindowPtr win)
+{
+    ScreenPtr screen = win->drawable.pScreen;
+    ScreenState *state = dixLookupPrivate(&screen->devPrivates, &screen_key);
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    XID xid = win->drawable.id;
+#endif
+    invalidate(win);
+    screen->DestroyWindow = state->destroy;
+    Bool result = screen->DestroyWindow(win);
+    state->destroy = screen->DestroyWindow;
+    screen->DestroyWindow = destroy_window;
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverLifecycleDestroyReturnedV3(xid, result);
+#endif
+    return result;
+}
 
 static void resize_window(WindowPtr win, int x, int y, unsigned width, unsigned height, WindowPtr sibling)
 {
@@ -400,11 +420,22 @@ static void close_seat(SeatRec *seat)
         flags[devices[i]->id] = XIDeviceDisabled | (i < 2 ? XISlaveRemoved | XISlaveDetached : XIMasterRemoved);
         DisableDevice(devices[i], FALSE);
     }
-    for (unsigned i = 0; i < 4; ++i) RemoveDevice(devices[i], FALSE);
+    for (unsigned i = 0; i < 4; ++i) {
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+        int device_id = devices[i]->id;
+        int result = RemoveDevice(devices[i], FALSE);
+        SpatialObserverLifecycleDeviceRemovedV3(seat->id, device_id, result);
+#else
+        RemoveDevice(devices[i], FALSE);
+#endif
+    }
     XISendDeviceHierarchyEvent(flags);
     SeatRec **link = &seats;
     while (*link && *link != seat) link = &(*link)->next;
     if (*link) *link = seat->next;
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    SpatialObserverLifecycleSeatRemovedV3(seat->id);
+#endif
     FreeEventList(seat->events, GetMaximumEventsNum());
     free(seat);
 }
@@ -695,8 +726,61 @@ static Bool observer_seat(SeatRec *seat, ApplicationInput *application, SpatialO
     return TRUE;
 }
 
+Bool SpatialInputObserverSeatAbsentV3(uint64_t id)
+{
+    if (!id) return FALSE;
+    for (SeatRec *item = seats; item; item = item->next)
+        if (item->id == id) return FALSE;
+    return TRUE;
+}
+
+Bool SpatialInputObserverLifecycleRoutingV3(SpatialObserverLifecycleRoutingV3 *routing)
+{
+    const Spatial__Testing__V3__LifecycleArmV3 *arm = SpatialObserverEndpointArmV3();
+    if (!arm || !routing) return FALSE;
+    memset(routing, 0, sizeof(*routing));
+    SeatRec *old = NULL, *peer = NULL;
+    for (SeatRec *item = seats; item; item = item->next) {
+        if (item->id == arm->common->old_native_seat_id) old = item;
+        if (item->id == arm->common->peer_native_seat_id) peer = item;
+    }
+    WindowPtr window = live_window(arm->peer_window->xid, arm->peer_window->spatial_generation);
+    ClientPtr owner = window ? dixLookupXIDOwner(window->drawable.id) : NULL;
+    ApplicationInput *application = owner ? dixLookupPrivate(&owner->devPrivates, &application_key) : NULL;
+    if (!application || !observer_seat(peer, application, &routing->peer) ||
+        !SpatialObserverPinWindow(window->drawable.id, &routing->peer_window) ||
+        (old && !observer_seat(old, application, &routing->old))) return FALSE;
+    routing->old_present = old != NULL;
+    routing->peer_generation = generation(window);
+    routing->controller = application->controller ? application->controller->id : 0;
+    return TRUE;
+}
+
+void SpatialInputObserverResourceFreeV3(WindowPtr window, const SpatialObserverWindowPin *pin)
+{
+    const Spatial__Testing__V3__LifecycleArmV3 *arm = SpatialObserverEndpointArmV3();
+    if (!arm || arm->cause != SPATIAL__TESTING__V3__LIFECYCLE_CAUSE_V3__TARGET_DESTRUCTION ||
+        !pin || pin->xid != arm->common->expected_window->xid) return;
+    SpatialObserverLifecycleRoutingV3 routing;
+    if (!SpatialInputObserverLifecycleRoutingV3(&routing)) {
+        SpatialObserverEndpointFailV2("lifecycle resource-free routing identity"); return;
+    }
+    SpatialObserverLifecycleCaptureV3(1, &routing, pin, window);
+}
+
 static void observer_transition(SeatRec *seat, unsigned phase)
 {
+    const Spatial__Testing__V3__LifecycleArmV3 *lifecycle = SpatialObserverEndpointArmV3();
+    if (lifecycle) {
+        if (!seat || (phase < 4 ? seat->id != lifecycle->common->old_native_seat_id :
+            seat->id != lifecycle->common->peer_native_seat_id)) return;
+        SpatialObserverLifecycleRoutingV3 routing;
+        if (!SpatialInputObserverLifecycleRoutingV3(&routing)) {
+            SpatialObserverEndpointFailV2("lifecycle transition routing identity"); return;
+        }
+        SpatialObserverLifecycleCaptureV3(phase, &routing, NULL, NULL);
+        return;
+    }
     const Spatial__Testing__V2__ObserverArmV2 *arm = SpatialObserverEndpointArmV2();
     if (!arm || !seat || (phase < 4 ? seat->id != arm->old_native_seat_id : seat->id != arm->peer_native_seat_id)) return;
     SeatRec *old = NULL, *peer = NULL;
@@ -913,6 +997,7 @@ static void reset(ExtensionEntry *extension)
     (void)extension;
 #ifdef SPATIAL_NATIVE_INPUT_OBSERVER
     SpatialObserverEndpointReset();
+    SpatialObserverLifecycleShutdownV3();
     SpatialObserverTransitionShutdownV2();
     SpatialObserverCaptureShutdown();
     SpatialObserverLifetimeReset();
@@ -959,6 +1044,13 @@ void SpatialInputExtensionInit(void)
         SpatialObserverCaptureShutdown();
         SpatialObserverLifetimeReset();
         FatalError("Cannot initialize native observer transitions\n");
+    }
+    if (!SpatialObserverLifecycleInitV3()) {
+        SpatialObserverLifecycleShutdownV3();
+        SpatialObserverTransitionShutdownV2();
+        SpatialObserverCaptureShutdown();
+        SpatialObserverLifetimeReset();
+        FatalError("Cannot initialize native observer lifecycle\n");
     }
     if (!SpatialObserverEndpointInit()) {
         SpatialObserverEndpointReset();

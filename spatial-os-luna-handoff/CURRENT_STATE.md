@@ -1,3 +1,21 @@
+## 2026-10-23: M09 native lifetime producer and four runtime scenarios are drafts
+
+The additive v3 native producer captures callback-local destruction state and actual seat/device retirement.
+It records cancellation, generation invalidation, destruction return, and fresh first-peer native state.
+No borrowed native pointer is retained. Existing v2 live-window and context checks remain unchanged.
+Ten selected native C compilations and three generated C compilations pass on ROG.
+The separate world-native-lifecycle-v3 registration implements four real production-trigger scenarios.
+They cover target destruction, actor close, transport disconnect, and actor revocation.
+Independent XI2 receipts decode both actual window XIDs and synthetic flags.
+All four scenarios remain UNRUN on both hosts. Xvfb and Xorg link in all four native configurations.
+The first runtime-fixture launcher refused a missing lock-parent directory before compilation. Its correction creates that parent explicitly.
+The corrected runtime fixture builds pass in Debug and ASan-UBSan. The final native source review also passes fresh builds.
+The focused reproducibility proof matches 111 C++/Python files and 14 native C files across two clean generations.
+The original 1ae local gate completed: sb16 returned zero; sb16-2 retained four sanitizer failures.
+See ../docs/M09_1AE_FULL_LOCAL_RESULTS_2026-10-23.txt before scheduling replacement runtime work.
+M09 remains UNQUALIFIED. The original full 1ae jobs remain separate and unchanged.
+Read ../docs/M09_NATIVE_LIFETIME_WITNESS_2026-10-23.txt for pins, results, and remaining checks.
+
 ## 2026-10-23: M09 additive lifetime endpoint compiles; native delivery remains pending
 
 The separate continuation implements authenticated v3 setup and arm dispatch with an independently pinned survivor.

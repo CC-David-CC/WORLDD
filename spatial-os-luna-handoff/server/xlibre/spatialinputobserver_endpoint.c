@@ -21,7 +21,8 @@
 
 #define MAX_PACKET 4096u
 #define STARTUP_BUDGET_NS UINT64_C(10000000000)
-#define MAX_NATIVE_OUTPUT (3u * (4096u + 2u))
+#define MAX_NATIVE_OUTPUT_V2 (3u * (4096u + 2u))
+#define MAX_NATIVE_OUTPUT (3u * (8192u + 2u))
 static int output_fd = -1;
 static Bool output_configured, output_registered, output_started, output_complete;
 static uint8_t output_bytes[MAX_NATIVE_OUTPUT];
@@ -151,15 +152,25 @@ static void output_ready(int fd, int ready, void *data)
     if (output_offset == output_length) { output_complete = TRUE; close_endpoint(NULL); }
 }
 
-Bool SpatialObserverEndpointOutputV2(const uint8_t *bytes, size_t length)
+static Bool endpoint_output(const uint8_t *bytes, size_t length)
 {
-    if (!SpatialObserverEndpointArmV2() || !bytes || !length || length > sizeof(output_bytes)) return FALSE;
+    if (!bytes || !length || length > sizeof(output_bytes)) return FALSE;
     output_started = TRUE; output_length = length; output_offset = 0;
     memcpy(output_bytes, bytes, length);
     output_registered = SetNotifyFd(output_fd, output_ready, X_NOTIFY_WRITE, NULL);
     if (!output_registered) { close_endpoint("native output notify registration"); return FALSE; }
     output_ready(output_fd, X_NOTIFY_WRITE, NULL);
     return output_complete || output_fd >= 0;
+}
+
+Bool SpatialObserverEndpointOutputV2(const uint8_t *bytes, size_t length)
+{
+    return SpatialObserverEndpointArmV2() && length <= MAX_NATIVE_OUTPUT_V2 && endpoint_output(bytes, length);
+}
+
+Bool SpatialObserverEndpointOutputV3(const uint8_t *bytes, size_t length)
+{
+    return SpatialObserverEndpointArmV3() && endpoint_output(bytes, length);
 }
 
 static CARD32 expired(OsTimerPtr timer, CARD32 now, void *data)

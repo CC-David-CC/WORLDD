@@ -1,0 +1,35 @@
+M09 original 1ae full local jobs completed
+Date: 2026-10-23. M09 remains UNQUALIFIED.
+
+Candidate: 1ae9b3aef66c554ae20c564cad16d28b5128768d.
+Both original m09-full-local-1ae9b3ae-01 panes retired.
+sb16 command and wrapper receipts are 0/0. Its report says local_passed_crosshost_pending.
+sb16-2 command and wrapper receipts are 1/1. Its report says failed.
+Neither local result establishes M09 qualification or includes the new v3 lifetime supplement.
+
+Both hosts passed the original 238 main Debug registrations and four separate Debug recovery registrations.
+The sb16 sanitizer main batch passed 238 registrations.
+The sb16-2 sanitizer main batch completed 238 registrations with four failures:
+
+- workspace-copy-worker-death-recovery.
+- host-actor-controller-native.
+- session-coordinator-retirement.
+- session-deferred-fence.
+
+The copy-recovery failure occurred during setup repository import, before worker-death injection.
+The fixture's five-second broker response deadline expired. Actual copy recovery was not reached.
+The other three traces show Issuer TLS stream closed during session/world fixture setup.
+Their exact cause and corrective runtime evidence remain pending. Do not count later passing tests as repairing them.
+The failed scopes report removal. Current process scans found no process referencing the original full artifact root.
+Recheck exact runtime locks and remaining helper state before launching replacement tests.
+
+Original evidence root on both hosts:
+/home/dflanag3/spatial-artifacts/m09-full-1ae9b3aef66c-20261022.
+Canonical receipts: local-run-01/command.exit and local-run-01/wrapper.exit.
+Reports: deployed-01/evidence/m09-1ae9b3aef66c-HOST-01/run.json.
+The reports' empty blocker arrays do not override the failed raw cases or exit receipts.
+
+The primary continuation retains exact failure slices with source pins and SHA256 values under:
+middle-child:/home/dflanag3/spatial-artifacts/m09-lifetime-primary-20261023.
+Read sb16-2-original-san-*-failure-01.json and their matching raw .log files.
+Preserve the original reports and failed receipts through diagnosis and corrective validation.

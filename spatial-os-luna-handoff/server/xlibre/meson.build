@@ -51,7 +51,8 @@ if get_option('spatial_native_input_observer')
               'spatialinputobserver_serialize.c',
               'spatialinputobserver_serialize_v2.c',
               'spatialinputobserver_endpoint.c',
-              'spatialinputobserver_transition_v2.c'),
+              'spatialinputobserver_transition_v2.c',
+              'spatialinputobserver_lifecycle_v3.c'),
         observer_proto, observer_v2_proto, observer_control_proto, observer_lifecycle_proto,
         include_directories: [inc, include_directories('.')],
         dependencies: [common_dep, spatial_input_dep])
