@@ -1,3 +1,16 @@
+## 2026-10-23: M09 requires lifetime suites and exact named runtime evidence
+
+The mandatory profile adds four v3 suites and the issuer setup regression to its prior requirements.
+It requires 90 cumulative suites and 48 named methods. All 35 original selectors remain.
+The seven case categories, eight dedicated harness IDs, and inherited 89-test harness remain unchanged.
+After local gate success, the driver requires each named PASS in its actual CTest namespace.
+It writes candidate-bound m09-named-runtime.json evidence. Cross-host qualification and primary review remain required.
+Guard regressions pass on both hosts. Saved-log format checks pass after correcting filtered CTest numbering.
+Format checks combine retained component logs for parsing only. They do not qualify a combined candidate.
+The import setup timeout and complete final qualification remain pending. M09 remains UNQUALIFIED.
+Read ../docs/M09_MANDATORY_LIFETIME_PROFILE_2026-10-23.txt for the additive contract and evidence.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M09 session fixture refreshes its issuer peer before registration
 
 Slow broker and key setup let the retained management TLS connection exceed the issuer's unchanged idle limit.

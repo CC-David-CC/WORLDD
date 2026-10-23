@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draft M09 profile over M08. Native bridge qualification remains incomplete."""
+"""Mandatory M09 profile over M08. Local passes still require cross-host qualification."""
 from __future__ import annotations
 
 import argparse
@@ -24,7 +24,6 @@ m07 = m08.m07
 m06 = m08.m06
 
 # Keep M08's cumulative profile and add the suites that execute M09 witnesses.
-# Native group source is present. The complete native bridge gate remains pending.
 M09_REQUIRED = frozenset({
     "application-control-lease",
     "application-observation",
@@ -34,8 +33,28 @@ M09_REQUIRED = frozenset({
     "native-observer-endpoint",
     "world-input-witness-bindings",
     "world-native-input-witness-v2",
+    "native-input-lifecycle-v3-artifact",
+    "native-input-lifecycle-v3-collector",
+    "native-lifecycle-endpoint-v3",
+    "world-native-lifecycle-v3",
+    "session-world-issuer-setup",
 })
 REQUIRED = frozenset(m08.REQUIRED) | M09_REQUIRED
+M09_SUITE_BY_MODULE = {
+    "tests.core.test_application_control_lease": "application-control-lease",
+    "tests.core.test_application_observation": "application-observation",
+    "tests.core.test_world_application_control": "world-application-control",
+    "tests.native.test_surface_identity": "native-surface_identity",
+    "tests.native.test_world_surface_groups": "native-world_surface_groups",
+    "tests.native.test_native_observer_endpoint": "native-observer-endpoint",
+    "tests.core.test_world_input_witness": "world-input-witness-bindings",
+    "tests.core.test_world_native_input_witness": "world-native-input-witness-v2",
+    "tests.native.test_input_state_observer_v3": "native-input-lifecycle-v3-artifact",
+    "tests.native.test_input_state_observer_v3_collect": "native-input-lifecycle-v3-collector",
+    "tests.native.test_native_lifecycle_endpoint_v3": "native-lifecycle-endpoint-v3",
+    "tests.core.test_world_native_lifecycle_v3": "world-native-lifecycle-v3",
+    "tests.native.test_session_world_issuer_setup": "session-world-issuer-setup",
+}
 M09_CASES = {
     "application-group-identity": {
         "suites": ("native-world_surface_groups", "world-application-control"),
@@ -54,7 +73,10 @@ M09_CASES = {
         "status": "EXISTING_CASE",
     },
     "balanced-transfer": {
-        "suites": ("world-application-control", "application-control-lease", "native-observer-endpoint", "world-input-witness-bindings", "world-native-input-witness-v2"),
+        "suites": ("world-application-control", "application-control-lease", "native-observer-endpoint",
+                   "world-input-witness-bindings", "world-native-input-witness-v2",
+                   "native-input-lifecycle-v3-artifact", "native-input-lifecycle-v3-collector",
+                   "native-lifecycle-endpoint-v3", "world-native-lifecycle-v3", "session-world-issuer-setup"),
         "tests": (
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_actual_server_receives_parent_owned_cloexec_endpoint",
             "tests.native.test_native_observer_endpoint.NativeObserverEndpointTests.test_setup_resolves_real_native_seats_and_distinct_owners",
@@ -74,8 +96,21 @@ M09_CASES = {
             "tests.core.test_world_application_control.WorldApplicationControlTests.test_unmapped_capture_releases_reservation",
             "tests.core.test_application_control_lease.ApplicationControlLeaseTests.test_revoked_reservation_blocks_handoff_until_release_acknowledges_cancellation",
             "tests.native.test_world_surface_groups.WorldSurfaceGroupTests.test_destroyed_parent_releases_descendant_input",
+            "tests.core.test_world_native_lifecycle_v3.WorldNativeLifecycleV3Tests.test_target_destruction_preserves_survivor_and_orders_native_release",
+            "tests.core.test_world_native_lifecycle_v3.WorldNativeLifecycleV3Tests.test_actor_close_retires_devices_and_rejects_old_session",
+            "tests.core.test_world_native_lifecycle_v3.WorldNativeLifecycleV3Tests.test_transport_disconnect_retires_devices_and_preserves_application",
+            "tests.core.test_world_native_lifecycle_v3.WorldNativeLifecycleV3Tests.test_actor_revocation_retires_devices_and_rejects_old_session",
+            "tests.native.test_native_lifecycle_endpoint_v3.NativeLifecycleEndpointV3Tests.test_setup_pins_distinct_same_application_survivor_and_exact_request",
+            "tests.native.test_native_lifecycle_endpoint_v3.NativeLifecycleEndpointV3Tests.test_legacy_arm_cannot_replace_lifecycle_arm",
+            "tests.native.test_input_state_observer_v3.LifecycleContractTests.test_fake_all_clear_snapshot_cannot_replace_retirement",
+            "tests.native.test_input_state_observer_v3.LifecycleContractTests.test_cached_clearance_cannot_replace_fresh_first_peer_sample",
+            "tests.native.test_input_state_observer_v3.LifecycleContractTests.test_independent_receipts_keep_each_actual_window",
+            "tests.native.test_input_state_observer_v3_collect.LifecycleCollectorTests.test_fragment_arrivals_do_not_reset_the_total_deadline",
+            "tests.native.test_input_state_observer_v3_collect.LifecycleCollectorTests.test_complete_records_without_eof_still_expire",
+            "tests.native.test_session_world_issuer_setup.SessionWorldIssuerSetupTests.test_healthy_peer_world_registration_after_idle_expiry",
+            "tests.native.test_session_world_issuer_setup.SessionWorldIssuerSetupTests.test_plain_peer_world_registration_after_idle_expiry",
         ),
-        "status": "PARTIAL_EXISTING_CASES",
+        "status": "FOCUSED_COMPONENT_PASS_COMBINED_QUALIFICATION_PENDING",
     },
     "generation-fence": {
         "suites": ("world-application-control", "native-surface_identity"),
@@ -221,6 +256,9 @@ def _case_selectors():
         raise RuntimeError("M09 focused case manifest must contain seven unique cases covering its exact suites")
     if any(not row.get("status") for row in M09_CASES.values()):
         raise RuntimeError("M09 focused case manifest must label each case's evidence status")
+    modules = {selector.rsplit(".", 2)[0] for selector in selectors}
+    if modules != set(M09_SUITE_BY_MODULE) or set(M09_SUITE_BY_MODULE.values()) != set(M09_REQUIRED):
+        raise RuntimeError("M09 named cases must map to the exact required runtime suites")
     return selectors
 
 
@@ -270,6 +308,111 @@ def require_m09_inventory(inventory):
     return names
 
 
+def validate_m09_method_log(output, inventory):
+    """Join named unittest PASS records to their actual CTest registration numbers."""
+    require_m09_inventory(inventory)
+    # Filtered CTest batches renumber tests. Use their own start headers,
+    # while requiring each suite to belong to the checked candidate inventory.
+    numbers = {}
+    started = set()
+    expected = {}
+    for selector in _case_selectors():
+        module, cls, method = selector.rsplit(".", 2)
+        suite = M09_SUITE_BY_MODULE[module]
+        expected[suite, cls + "." + method] = selector
+    observed = {selector: [] for selector in expected.values()}
+    pending = {}
+
+    def record(suite, identity, status, line):
+        observed[expected[suite, identity]].append(dict(suite=suite, runtime_id=identity,
+            status=status, terminal_line=line))
+
+    for line_number, line in enumerate(output.splitlines(), 1):
+        start = re.fullmatch(r"\s*Start (\d+): (\S+)", line)
+        if start is not None and start.group(2) in M09_REQUIRED:
+            number, suite = int(start.group(1)), start.group(2)
+            if number in numbers or suite in started:
+                raise RuntimeError("M09 named runtime suite has duplicate CTest start headers")
+            numbers[number] = suite
+            started.add(suite)
+            continue
+        prefix = re.fullmatch(r"(\d+): (.*)", line)
+        if prefix is None:
+            continue
+        suite = numbers.get(int(prefix.group(1)))
+        if suite not in M09_REQUIRED:
+            continue
+        body = prefix.group(2)
+        case = re.fullmatch(r"(test_\w+) \(([^)]+)\) \.\.\. (.*)", body)
+        if case is not None:
+            if suite in pending:
+                raise RuntimeError("M09 named runtime case has no terminal result: " + str(pending[suite]))
+            method, identity, status = case.groups()
+            parts = identity.split(".")
+            cls = parts[-2] if len(parts) > 1 and parts[-1] == method else parts[-1]
+            key = cls + "." + method
+            if (suite, key) not in expected:
+                continue
+            if status == "ok" or status in ("FAIL", "ERROR") or status.startswith("skipped"):
+                record(suite, key, status, line_number)
+            else:
+                # Healthy fixture diagnostics can split unittest's start and result.
+                pending[suite] = key
+        elif suite in pending and (body in ("ok", "FAIL", "ERROR") or body.startswith("skipped")):
+            record(suite, pending.pop(suite), body, line_number)
+    invalid = {name: hits for name, hits in observed.items()
+               if len(hits) != 1 or hits[0]["status"] != "ok"}
+    if pending or invalid:
+        raise RuntimeError("M09 named runtime coverage is incomplete or invalid: " +
+                           json.dumps(dict(pending=pending, invalid=invalid), sort_keys=True))
+    return {name: hits[0] for name, hits in observed.items()}
+
+
+def require_m09_runtime_evidence(deployment, attempt, candidate):
+    """Write separate M09 method evidence after the cumulative local gate succeeds."""
+    deployment = Path(deployment).resolve(strict=True)
+    out = deployment / "evidence" / attempt
+    receipt_path = out / "m09-named-runtime.json"
+    if receipt_path.exists():
+        raise RuntimeError("M09 named runtime receipt already exists: " + str(receipt_path))
+    receipt = dict(candidate=candidate, qualification="UNQUALIFIED", phase_complete=False,
+                   requirement="Exact named M09 methods pass in their required CTest suites", profiles={})
+    try:
+        provenance = json.loads((deployment / "provenance.json").read_text())
+        report = json.loads((out / "run.json").read_text())
+        if provenance.get("candidate") != candidate or report.get("candidate") != candidate:
+            raise RuntimeError("candidate does not match M09 runtime evidence")
+        if report.get("host") != socket.gethostname().split(".")[0]:
+            raise RuntimeError("host does not match M09 runtime evidence")
+        if (report.get("status") != "local_passed_crosshost_pending"
+                or report.get("source_sha256_rechecked") is not True):
+            raise RuntimeError("cumulative local gate has not passed its final source checks")
+        profiles = report.get("selected_profiles")
+        if (not isinstance(profiles, list) or not profiles or len(profiles) != len(set(profiles))
+                or not set(profiles).issubset(m06.PROFILES)):
+            raise RuntimeError("invalid M09 runtime profile selection")
+        case_sources = validate_case_source(deployment / "source")
+        for profile in profiles:
+            if report["profiles"][profile].get("status") != "passed_needs_crosshost_and_review":
+                raise RuntimeError("cumulative runtime profile did not pass: " + profile)
+            log = out / profile / "core.log"
+            raw = log.read_bytes()
+            methods = validate_m09_method_log(raw.decode("utf-8", errors="replace"),
+                                              provenance["profiles"][profile]["inventory"])
+            receipt["profiles"][profile] = dict(status="passed_needs_crosshost_and_review",
+                log=str(log), log_sha256=hashlib.sha256(raw).hexdigest(), methods=methods,
+                named_method_count=len(methods))
+        receipt.update(status="local_named_methods_passed_crosshost_pending", host=report["host"],
+                       source_method_count=len(case_sources))
+    except (OSError, KeyError, ValueError, RuntimeError) as error:
+        receipt.update(status="failed_or_incomplete", error=repr(error))
+        if out.is_dir():
+            m06.write_json(receipt_path, receipt)
+        raise RuntimeError("M09 named runtime evidence failed: " + str(error)) from error
+    m06.write_json(receipt_path, receipt)
+    return receipt
+
+
 def require_deployment_inventory(deployment, candidate):
     deployment = Path(deployment).resolve(strict=True)
     if not re.fullmatch(r"[0-9a-f]{40}", str(candidate)):
@@ -302,7 +445,7 @@ def run_local(a):
     storage_lane_by_profile = m08.require_storage_lane_configuration(
         profiles=m06.PROFILES if selected_profiles is None else tuple(selected_profiles))
     forwarded = argparse.Namespace(
-        deployment=a.deployment, attempt=a.attempt,
+        deployment=a.deployment, attempt=a.attempt or ("m09-" + a.candidate[:12] + "-" + uuid.uuid4().hex[:12]),
         native_controller=a.native_controller, real_world=a.real_world,
         recovery=a.recovery, host_session=a.host_session, held_input=a.held_input,
         selected_profiles=selected_profiles,
@@ -315,7 +458,10 @@ def run_local(a):
         expected_harness_tests=m08.load_harness_test_inventory(),
         storage_expected_results=sorted(m08.M08_STORAGE_EXPECTED_RESULTS),
     )
-    return m06.gate(forwarded)
+    result = m06.gate(forwarded)
+    if result == 0:
+        require_m09_runtime_evidence(a.deployment, forwarded.attempt, a.candidate)
+    return result
 
 
 def main():
