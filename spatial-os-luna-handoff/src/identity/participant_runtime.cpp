@@ -113,12 +113,18 @@ struct ParticipantRuntime::Impl {
         std::lock_guard lock(mutex); fail_locked(reply.error().code(), reply.error().message(), request, stage); return true;
     }
     void run(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config, const Domains& expected) {
+        using Clock = std::chrono::steady_clock;
         std::uint64_t current_request = 0;
         const char* stage = "key_load";
         try {
             auto key = KeyPair::load(config.private_key_path());
             stage = "issuer_connect";
-            IssuerClient client(config.issuer_client_config(), [this, stop] { check_stop(stop); });
+            std::optional<Clock::time_point> progress_deadline;
+            IssuerClient client(config.issuer_client_config(), [this, stop, &progress_deadline] {
+                check_stop(stop);
+                if(progress_deadline && Clock::now()>=*progress_deadline)
+                    throw std::runtime_error("Authority progress deadline exceeded");
+            });
             v1::IssuerRequest begin; begin.set_protocol_version(1);
             auto* auth = begin.mutable_authority_authentication_begin();
             auth->set_participant_id(config.participant_id()); auth->set_registered_revision(config.registered_revision());
@@ -131,7 +137,7 @@ struct ParticipantRuntime::Impl {
             stage = "authentication_complete";
             reply = client.call(std::move(complete)); if (reply_error(reply, stage)) return;
             stage = "identity_check";
-            const auto& identity = reply.authority_authentication();
+            const auto identity = reply.authority_authentication();
             const auto& registration = identity.registration();
             require(registration.participant().id() == config.participant_id() &&
                     registration.registered_revision() == config.registered_revision() &&
@@ -142,7 +148,12 @@ struct ParticipantRuntime::Impl {
 
             std::optional<std::uint64_t> cursor;
             std::optional<v1::AuthorityActivationState> active;
+            std::optional<v1::RevocationBatch> checked_feed;
+            std::uint64_t feed_sequence = 0;
+            std::optional<v1::ParticipantCommand> progress_request;
             const auto wait = static_cast<std::uint32_t>(std::min<std::int64_t>(100, client.timeout().count()/2));
+            const auto control_wait = static_cast<std::uint32_t>(std::min<std::int64_t>(20, client.timeout().count()/2));
+            bool progress_enabled = false;
             bool backlog = false;
             while (!stop.stop_requested()) {
                 check_stop(stop);
@@ -153,7 +164,7 @@ struct ParticipantRuntime::Impl {
                 {
                     std::lock_guard lock(mutex); delivered = delivered_revision;
                     // Publish the initial feed before accepting mutations.
-                    if (cursor && !quiescing && !commands.empty()) {
+                    if (cursor && !quiescing && !progress_request && !commands.empty()) {
                         command = std::move(commands.front()); commands.pop_front();
                         forwarded = forwarded_requests.erase(command->request_id()) != 0;
                         mutation_in_flight = command->has_activate() || command->has_applied() || command->has_release();
@@ -163,6 +174,14 @@ struct ParticipantRuntime::Impl {
                         }
                     }
                     queued = !commands.empty();
+                }
+                if (command && command->has_progress()) {
+                    progress_enabled=true;
+                    current_request = command->request_id(); stage = "progress";
+                    require(active && active->active() && cursor && delivered && *delivered <= *cursor,
+                            "Progress requires a live activated connection and checked feed");
+                    progress_request=std::move(command);command.reset();
+                    progress_deadline=Clock::now()+client.timeout();
                 }
                 if (command) {
                     current_request = command->request_id();
@@ -228,11 +247,14 @@ struct ParticipantRuntime::Impl {
                 v1::IssuerRequest request; request.set_protocol_version(1);
                 auto* read = request.mutable_revocations();
                 if (cursor) read->set_after_revision(*cursor);
-                read->set_wait_ms(!cursor || backlog || queued ? 0 : wait);
-                stage = "revocations";
-                reply = client.call(std::move(request)); if (reply_error(reply, stage)) return;
+                read->set_wait_ms(progress_request || !cursor || backlog || queued ? 0 :
+                    progress_enabled ? control_wait : wait);
+                stage = progress_request ? "progress_revocations" : "revocations";
+                reply = client.call(std::move(request)); if (reply_error(reply, stage, current_request)) return;
                 auto batch = std::move(*reply.mutable_revocations());
                 const bool initial = !cursor; cursor = batch.through_revision(); backlog = *cursor < batch.head_revision();
+                require(feed_sequence < UINT64_MAX, "Authority feed progress sequence exhausted");
+                ++feed_sequence; checked_feed = batch;
                 if (batch.events_size()) {
                     participant_diagnostic("participant", "revocation_batch_received", service_incarnation,
                         batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
@@ -241,6 +263,21 @@ struct ParticipantRuntime::Impl {
                 if (initial || batch.events_size()) {
                     update.Clear(); *update.mutable_revocations() = std::move(batch);
                     if (!publish(std::move(update))) return;
+                }
+                if(progress_request && !backlog) {
+                    if(!progress_deadline || Clock::now()>=*progress_deadline)
+                        throw std::runtime_error("Authority progress deadline exceeded");
+                    require(active && active->active() && checked_feed &&
+                            checked_feed->through_revision()==checked_feed->head_revision() &&
+                            checked_feed->head_revision()>=active->head_revision(),
+                            "Progress requires a complete fresh feed after its request");
+                    update.Clear();update.set_request_id(progress_request->request_id());
+                    auto* progress=update.mutable_progress();*progress->mutable_activation()=*active;
+                    progress->set_feed_sequence(feed_sequence);
+                    progress->set_through_revision(checked_feed->through_revision());
+                    progress->set_head_revision(checked_feed->head_revision());
+                    if(!publish(std::move(update)))return;
+                    progress_request.reset();progress_deadline.reset();current_request=0;
                 }
             }
         } catch (const std::invalid_argument& error) {
@@ -256,7 +293,7 @@ struct ParticipantRuntime::Impl {
     void run_private(std::stop_token stop, const v1::AuthorityParticipantRuntimeConfig& config,
                      const Domains& expected, ParticipantStream& stream) {
         using Clock = std::chrono::steady_clock;
-        std::uint64_t current_request = 0, head = 0;
+        std::uint64_t current_request = 0, head = 0, progress_sequence = 0;
         std::optional<v1::AuthorityAuthenticationResult> identity;
         std::optional<v1::AuthorityActivationState> active;
         std::optional<std::uint64_t> cursor;
@@ -287,6 +324,9 @@ struct ParticipantRuntime::Impl {
                                 applied.from_revision() == active->applied_revision() && applied.from_revision() < INT64_MAX &&
                                 applied.through_revision() == applied.from_revision()+1 && applied.through_revision() <= *delivered,
                                 "Acknowledgement requires one contiguous consumed revision and the active generation");
+                        } else if (waiting->has_progress()) {
+                            require(active && active->active() && cursor && delivered,
+                                    "Progress requires the retained active participant");
                         } else {
                             const auto& release = waiting->release();
                             require(active && active->active() && release.generation() == active->generation() &&
@@ -358,6 +398,18 @@ struct ParticipantRuntime::Impl {
                             batch.events(batch.events_size() - 1).revision(), batch.through_revision(),
                             active ? active->applied_revision() : 0, false);
                     }
+                } else if (update.has_progress()) {
+                    require(cursor && active && waiting && waiting->has_progress() &&
+                            update.request_id() == waiting->request_id(), "Uncorrelated private authority progress");
+                    const auto& progress = update.progress();
+                    require(progress.has_activation() && active->active() &&
+                            progress.activation().SerializeAsString() == active->SerializeAsString() &&
+                            progress.feed_sequence() > progress_sequence && progress.has_through_revision() &&
+                            progress.has_head_revision() && progress.through_revision() == *cursor &&
+                            progress.through_revision() == progress.head_revision() && progress.head_revision() <= INT64_MAX &&
+                            progress.head_revision() >= head, "Invalid private authority progress identity or cursor");
+                    progress_sequence = progress.feed_sequence(); head = progress.head_revision();
+                    waiting.reset(); current_request = 0;
                 } else {
                     require(cursor && waiting && update.request_id() == waiting->request_id(), "Unsolicited private participant result");
                     require((waiting->has_activate() && update.has_activated()) || (waiting->has_applied() && update.has_applied()) ||

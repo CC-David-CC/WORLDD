@@ -20,6 +20,22 @@ channel token, view identity, snapshot revision floors, and grant-chain subject 
 Drain revocation updates before allowing effects.
 Require contiguous consumed progress covering snapshot floors and the known security head.
 Define an explicit feed-health watermark. The current ready boolean alone is insufficient.
+Add an explicit ParticipantProgressRead on the private trusted authority-component transport.
+Its correlated AuthorityProgress receipt identifies the retained activation and checked feed sequence, cursor, and head.
+It exposes idle progress without adding unsolicited messages to existing component streams.
+It grants no rights and never advances activation, applied revisions, or revocation acknowledgements.
+The direct participant issues a fresh checked feed read after receiving the correlated progress request.
+It drains all indicated backlog before publishing that receipt.
+The world captures the next progress request identity when it observes incoming movement.
+Only a receipt covering that ingress may release retained movement. Already pending progress cannot cover later ingress.
+Actors observed in one scheduler pass share a fresh fence. The authority connection remains independent of slow actor queries.
+New movement after committed revocation must be denied, including while notification delivery is withheld.
+Previously accepted motion may continue only within its existing expiry and revocation-completion contract.
+The inherited participant validates exact activation context, monotonically increasing feed progress, and contiguous delivery.
+Existing bounded component I/O deadlines and terminal channel failure still apply.
+If the required fresh authority fence itself is unavailable, withhold new effects and fail closed.
+Local presentation keeps its existing checked issuer read until its continuation can carry an ingress fence.
+Authorization checks consume events through all known snapshot floors and heads before using retained state.
 Unknown subjects and newly discovered grant parents require checked initialization before use.
 Actor revocation invalidates dependent grants. Credential revocation removes only affected sessions.
 Service loss, feed gaps, stale incarnations, and replaced sessions invalidate retained authorization.
@@ -70,3 +86,109 @@ This skips redundant binding only. Selection and authorized presentation still r
 Observation watches and authority participants provide existing invalidation mechanisms.
 Retained authorization snapshots, feed-health watermarks, cooperative input dispatch, and dirty rendering remain pending.
 Read M10_SCRIPTED_ACTOR_2026-10-24.txt for reproduced failures and current focused evidence.
+
+Deterministic authority-wait reproduction
+The new native world-issuer-progress method holds one real authenticated issuer INFO reply for 4.1 seconds.
+The already authenticated actor proposes ordinary movement while that reply remains withheld.
+The independent authority participant continues. An independent X client proves the live native input target.
+The unchanged runtime configuration specifies a 250 ms input expiry.
+Sb16 movement roundtrip: 4.125315749 seconds. Sb16-2 movement roundtrip: 4.131958087 seconds.
+Both movement receipts arrive only after the unrelated issuer reply is released.
+Both actual unittest executions fail the intended no-starvation assertion.
+The reproduction driver reports DEFECT_REPRODUCED and preserves raw test exit 1.
+That administrative classification is not a passing movement acceptance result.
+Evidence: input-scheduling-collected-195 under the external M10 evidence root.
+Fixture and independent probe pins: input-scheduling-source-193.json and input-scheduling-source193-194/manifest.json.
+The predecessor world, issuer, and compositor use the retained source116 Debug runtime.
+This reproduces one blocking cause. Delayed actor authentication and presentation still need deterministic regressions.
+
+Draft failure isolation, source210
+The trusted WorldIdentityConfig.enable_retained_movement flag defaults to false.
+Existing configurations preserve ordinary checked dispatch and do not request retained progress.
+The draft cooperative pump remains disabled without that explicit opt-in.
+Enabled movement requires the strict retained gate in both ordinary and cooperative scheduling.
+Loss of eligibility cannot fall back to unchecked or recursively checked action dispatch.
+Deferred dispatch restores the original frame and input deadline without consuming actor sequence.
+Invalid authority context disables the identity service and rejects proposed effects.
+Required cancellation, concealment, and issuer reconciliation still run after failure.
+A failed draft is not evidence that no earlier authorized action ever occurred.
+New tests hold initial progress and corrupt generation, cursor, or feed sequence.
+They use the real issuer and production world through an inherited private participant channel.
+They inspect actual actor pose before and after rejected movement.
+An explicit default-off native INFO case distinguishes stable dispatch from the opt-in draft.
+Source210 runtime checks remain UNRUN at this freeze. M10 remains unqualified.
+
+Test-host cleanup199
+Verified retained builder copies preceded removal of three superseded test-host packages.
+The removed names were scripted-actor-probe180-181, scripted-actor-host173-174, and scripted-actor-source163-164.
+Each path was directly below the external M10 evidence root.
+Sb16 recovered 800059392 bytes. Sb16-2 recovered 800047104 bytes.
+Exact paths, hashes, process scans, mount checks, and receipts remain in superseded-scripted-cleanup-*-199 artifacts.
+Accepted M09 packages and unresolved failure evidence remain preserved.
+
+Focused source210 results
+Qualification status: SELECTED_COMPONENT_PASS_UNQUALIFIED_M10.
+Each host passes 121 methods in Debug and ASan/UBSan. Total: 484 pass, zero fail, zero skip.
+The selected groups cover retained failure isolation, default-off configuration, and committed-revoke ingress ordering.
+They also cover delayed INFO movement, direct/private participant transport, owned relay, and native cancellation.
+World identity, delegation, original participation, and native participation checks pass.
+The checks preserve the 250 ms input expiry, 4.1-second INFO hold, and original I/O deadlines.
+Movement receipt times during the held INFO are:
+  sb16 Debug: 40.062 ms. sb16 ASan/UBSan: 41.086 ms.
+  sb16-2 Debug: 56.412 ms. sb16-2 ASan/UBSan: 38.527 ms.
+Each case confirms pending INFO, checked Stop, and clean world shutdown.
+New post-commit movement remains unaccepted while the revocation feed is held, then receives checked denial.
+The original already-accepted-motion pending-barrier test also passes unchanged.
+Malformed generation, cursor, and replay proofs produce UNAVAILABLE with no new pose change.
+The private failure cases preserve the issuer obligation until the world stops and its parent explicitly reconciles.
+The initial-proof hold exercises strict outer deferral and accepts the original request after validation.
+No sanitizer diagnostic appears in 1718 inspected evidence files.
+Post-run checks verify both 18-file candidate packages and the 498-file retained source116 base on each host.
+They also verify native and library closures after all jobs have returned.
+
+Exact provenance
+Base checkpoint: ee94c490e53d8bfb9f7741983a31d9f36e072476.
+Compiled source manifest: retained-authority-source-210.json.
+Manifest SHA256: 84276e26ed519e9be3251105d3b66290114dbccb5e233bf54c484ef255278e4f.
+Exact source archive: m10-retained-authority-source210-exact-212.tar.gz, 1674 tracked files.
+Archive SHA256: ea7f7d5628f5f653a9537600199080368893afc6d9d355eb5bd8e070d9141f78.
+Debug package manifest SHA256: b20893d19756258f63b3e1bf8c44030ae0a039cbf82d67505ed43ef41ea78c98.
+ASan/UBSan package manifest SHA256: 23ff19ba24f8388b428d6202d8cb74f9ca5579961e2f7eaf80b205108fe20813.
+Raw evidence: retained-authority-collected-214. Summary: retained-authority-focused-summary-214.json.
+Final verification: retained-authority-terminal-audit-214.json.
+All paths use /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+The post-test checkpoint changes only maintained documentation after the source210 freeze.
+
+Scope and preserved failures
+The new world, participant probe, supervisor probe, and compositor use each selected build profile.
+Issuer, client, and native security fixture dependencies remain source116 Debug.
+The independent native X witness remains the unchanged Debug source193 artifact.
+Both source210 builds return command and wrapper exit zero.
+The target-only build omitted Python world-session generation. Packaging refused before any transfer.
+A supplemental descriptor inspection initially rejected escaped generated Python text.
+The corrected AST literal inspection and explicit world-session-python-protobuf builds pass in both profiles.
+Those setup refusals and corrective receipts remain build-retained-bindings-run-211 and run-212 artifacts.
+They are not runtime test failures or successful reproducibility qualification.
+The source198 draft accepted post-commit revoked movement on both hosts. Its original failing evidence remains retained-revoke-collected-207.
+Earlier source198 INFO timing success did not prove authorization safety.
+
+Explicit private schema additions
+issuer.proto adds ParticipantProgressRead and AuthorityProgress.
+ParticipantCommand.progress uses tag 13. ParticipantUpdate.progress uses tag 16.
+Progress proves one exact active connection, complete feed cursor, and correlated fresh read.
+It grants no rights and does not acknowledge revocations or change activation state.
+world_session.proto adds trusted WorldIdentityConfig.enable_retained_movement at tag 8.
+False remains the default. Existing configuration files need no change.
+Both changed schemas are outside the existing acceptance lock inventory.
+Every locked file hash and all 151 acceptance assertions remain unchanged.
+
+Remaining qualification work
+An absent or invalid proof grants no movement effects. A required fresh proof can still wait on its own authority connection.
+The delayed INFO result proves independence from an unrelated query, not a universal network-latency guarantee.
+The host still needs bounded presentation continuations so rendering cannot occupy the human control worker.
+Continuation completion must revalidate actor, capture, view, owner, presentation, and operation identities.
+Same-client observation serialization and retained rendering also remain unfinished.
+Multi-event revocation during yielding cleanup and lost admission with independent navigation need dedicated regressions.
+Human and two scripted actors still need real-file and confined-application workflows.
+A combined frozen candidate still needs independent Protobuf generation and the complete two-host phase gate.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.

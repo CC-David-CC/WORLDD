@@ -19,6 +19,8 @@ public:
     void set_tick(std::function<void()> callback);
     void tick();
     void pump();
+    // Bounded already-authenticated movement only. Never enters native or issuer exchanges.
+    void pump_motion();
     // Call only from the outer scheduler, after handlers and native cancellation finish.
     void settle();
     void shutdown();

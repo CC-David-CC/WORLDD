@@ -18,6 +18,8 @@ message WorldIdentityConfig {
   string authority_directory = 6;
   // Required for actor-serving worlds. Private service key configuration.
   string participant_runtime_config = 7;
+  // Explicit draft opt-in. It grants no actor rights. Default preserves checked dispatch.
+  bool enable_retained_movement = 8;
 }
 // TLS connection permission is separate from signed actor identity and world admission.
 message WorldActorTlsConfig {

@@ -1,3 +1,22 @@
+## 2026-10-24: Default-off retained movement passes focused failure and authority checks
+
+The retained movement draft requires explicit WorldIdentityConfig.enable_retained_movement opt-in.
+Omitted configuration preserves ordinary checked dispatch and disables the cooperative movement pump.
+Enabled movement needs a fresh authority-feed read issued after its complete request arrives.
+Invalid proofs disable proposed effects. Required cancellation and issuer reconciliation remain active.
+Strict dispatch cannot fall back to ordinary execution. Deferred frames retain their bytes and deadline.
+Both hosts pass 121 selected methods in Debug and ASan/UBSan: 484 accepted completions.
+No selected method fails or skips. Collected evidence contains no sanitizer diagnostic.
+Both hosts reject fresh movement after committed revocation while feed delivery is withheld.
+Valid movement receipts take 38.5–56.4 ms during an unrelated 4.1-second issuer INFO delay.
+Invalid generation, cursor, and replay receipts leave the idle actor pose unchanged.
+The pending-proof regression also preserves the original request and sequence until checked acceptance.
+Candidate packages, retained base files, and native dependencies pass final integrity checks.
+Evidence: retained-authority-collected-214 and retained-authority-terminal-audit-214.json under the external M10 evidence root.
+Read docs/M10_RETAINED_PRESENTATION_DIRECTION_2026-10-24.txt for source pins, schema changes, dependencies, and limitations.
+Host presentation continuation, further revocation scenarios, three-actor file/application workflows, and the full gate remain pending.
+Accepted M09 sessions remain unchanged. M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
 ## 2026-10-24: M10 scripted actors and interruption fixes remain unqualified
 
 A production Protobuf adapter authenticates distinct scripted actors through the shared ActorControl implementation.
@@ -7,6 +26,9 @@ Sb16-2 ASan/UBSan still loses held human motion during three-actor navigation.
 Retained binding and heartbeat urgency changes do not establish independent movement scheduling.
 Rendering, another actor's authentication, and slow authority exchanges must not starve valid movement refreshes.
 Both host presentation and world component waits still need scheduling corrections.
+A deterministic native regression now reproduces authority-wait starvation on both hosts.
+Holding one issuer reply for 4.1 seconds delays an authenticated movement request for about 4.13 seconds.
+Both predecessor tests fail the required assertion. Their evidence remains input-scheduling-collected-195.
 
 Separate exact-flight interruption fixes pass 140 C++ groups across both hosts and profiles.
 Those checks cover healthy heartbeat waits, actual failure cancellation, shutdown, and checked transitions.

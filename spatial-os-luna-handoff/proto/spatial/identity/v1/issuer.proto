@@ -489,12 +489,22 @@ message AuthorityParticipantRuntimeConfig {
   optional uint32 supervisor_channel_fd = 7;
   bytes supervisor_issuer_id = 8;
 }
+// Read-only progress on one retained authority connection. It grants no rights.
+// Its checked feed read starts after this request. Drain backlog before replying.
+message ParticipantProgressRead {}
+message AuthorityProgress {
+  AuthorityActivationState activation = 1;
+  uint64 feed_sequence = 2;
+  optional uint64 through_revision = 3;
+  optional uint64 head_revision = 4;
+}
 message ParticipantCommand {
   uint64 request_id = 1;
   oneof operation {
     AuthorityActivate activate = 10;
     AuthorityApplied applied = 11;
     AuthorityRelease release = 12;
+    ParticipantProgressRead progress = 13;
   }
 }
 message ParticipantUpdate {
@@ -507,5 +517,6 @@ message ParticipantUpdate {
     AuthorityActivationState applied = 13;
     AuthorityActivationState released = 14;
     spatial.core.v1.Error error = 15;
+    AuthorityProgress progress = 16;
   }
 }

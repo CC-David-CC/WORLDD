@@ -5,7 +5,9 @@ from pathlib import Path
 import socket
 import time
 import unittest
+from google.protobuf import text_format
 import core_pb2 as core
+import world_session_pb2 as session
 from harness.issuer_progress import DelayedInfoIssuer, IssuerLifetimeWitness
 from test_world_identity import WorldIdentityFixture
 
@@ -58,6 +60,54 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
         self._progress_observations.update(value)
         path.write_text(json.dumps(self._progress_observations, sort_keys=True, indent=2)+"\n")
         path.chmod(0o600)
+
+    def test_authenticated_motion_refresh_completes_while_info_reply_is_pending(self):
+        self.retained_movement_override=True
+        world, peer, probe, _ = self.pending_info_with_native_input()
+        identity=text_format.Parse(world.config_path.read_text(),session.WorldIdentityConfig())
+        self.assertTrue(identity.enable_retained_movement)
+        config_path = Path(world.proc.args[0]).with_name('runtime.textproto')
+        config = text_format.Parse(config_path.read_text(), core.RuntimeConfig())
+        self.assertEqual(config.input_timeout, .25)
+        started = time.monotonic()
+        reply = peer.act(input=core.ActorInputRequest(axes=[1, 0, 0, 0, 0, 0]))
+        elapsed = time.monotonic() - started
+        pending = not self._info_relay.delay_finished.is_set()
+        self.write_observations(dict(motion_started_monotonic=started,
+            motion_roundtrip_seconds=elapsed, info_still_pending_at_motion_receipt=pending,
+            motion_reply=reply.WhichOneof('outcome')))
+        self.assertTrue(reply.HasField('action'), reply)
+        self.assertTrue(reply.action.accepted, reply)
+        self.assertTrue(pending, 'Movement refresh waited for the unrelated issuer INFO reply')
+        self.assertLess(elapsed, .25, 'Movement refresh exceeded the unchanged input expiry')
+        self.assertIsNone(world.proc.poll())
+        self.assertIsNone(probe.proc.poll())
+        # Measure movement before allowing the delayed exchange to settle.
+        # Then prove the same world remains usable and releases its participation.
+        self.assertTrue(self._info_relay.delay_finished.wait(5))
+        stopped = peer.act(stop=core.ActorStopRequest())
+        self.assertTrue(stopped.HasField('action') and stopped.action.accepted, stopped)
+        world.close()
+        self.assertEqual(world.proc.returncode, 0)
+
+    def test_default_configuration_keeps_retained_movement_disabled(self):
+        self.retained_movement_override=False
+        world, peer, probe, _ = self.pending_info_with_native_input()
+        identity=text_format.Parse(world.config_path.read_text(),session.WorldIdentityConfig())
+        self.assertFalse(identity.enable_retained_movement)
+        self.assertNotIn('enable_retained_movement',world.config_path.read_text())
+        started=time.monotonic()
+        reply=peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0]))
+        elapsed=time.monotonic()-started
+        self.write_observations(dict(retained_movement_enabled=False,motion_roundtrip_seconds=elapsed,
+            info_still_pending_at_motion_receipt=not self._info_relay.delay_finished.is_set(),
+            motion_reply=reply.WhichOneof('outcome')))
+        self.assertTrue(reply.HasField('action') and reply.action.accepted,reply)
+        self.assertTrue(self._info_relay.delay_finished.is_set())
+        self.assertGreaterEqual(elapsed,4.0)
+        self.assertIsNone(probe.proc.poll())
+        self.assertTrue(peer.act(stop=core.ActorStopRequest()).action.accepted)
+        world.close();self.assertEqual(world.proc.returncode,0)
 
     def test_controller_loss_releases_native_input_while_info_reply_is_pending(self):
         world, peer, probe, offset = self.pending_info_with_native_input()

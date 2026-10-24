@@ -160,6 +160,40 @@ class ParticipantRuntimeTests(ClientFixture):
         runtime,auth,baseline=self.ready_runtime();self.assertEqual(baseline.through_revision,0)
         self.assertEqual(len(auth.service_incarnation),32);self.assertEqual(len(auth.connection_binding),32)
         self.assertEqual(self.rows(),[]);runtime.close();self.assertEqual(self.rows(),[])
+
+    def test_progress_requires_activation_and_never_creates_it(self):
+        runtime,_,_=self.ready_runtime()
+        runtime.send(7,progress=pb.ParticipantProgressRead())
+        update=self.error(runtime,core.INVALID_ARGUMENT)
+        self.assertEqual(update.request_id,7);self.assertEqual(self.rows(),[])
+
+    def test_idle_progress_is_correlated_and_does_not_change_activation(self):
+        runtime,_,_=self.ready_runtime();state=self.activate(runtime)
+        sequences=[]
+        for request in (2,3):
+            runtime.send(request,progress=pb.ParticipantProgressRead());update=runtime.receive()
+            self.assertEqual(update.request_id,request);self.assertTrue(update.HasField('progress'),update)
+            progress=update.progress;self.assertEqual(progress.activation,state)
+            self.assertTrue(progress.HasField('through_revision'));self.assertTrue(progress.HasField('head_revision'))
+            self.assertEqual((progress.through_revision,progress.head_revision),(0,0))
+            self.assertGreater(progress.feed_sequence,sequences[-1] if sequences else 0)
+            sequences.append(progress.feed_sequence)
+            self.assertEqual(self.rows(),[(1,state.service_incarnation,0,1)])
+        runtime.send(4,release=pb.AuthorityRelease(generation=state.generation,applied_revision=0))
+        self.assertTrue(runtime.receive().HasField('released'))
+
+    def test_progress_reports_consumed_revocations_without_acknowledging_them(self):
+        runtime,_,_=self.ready_runtime();state=self.activate(runtime)
+        self.revoke();self.event(runtime,1)
+        runtime.send(2,progress=pb.ParticipantProgressRead());update=runtime.receive()
+        self.assertEqual(update.request_id,2);self.assertTrue(update.HasField('progress'),update)
+        progress=update.progress;self.assertEqual(progress.activation,state)
+        self.assertGreater(progress.feed_sequence,0)
+        self.assertEqual((progress.through_revision,progress.head_revision),(1,1))
+        self.assertEqual(self.rows(),[(1,state.service_incarnation,0,1)])
+        self.assertFalse(self.barrier().complete)
+        runtime.send(3,applied=pb.AuthorityApplied(generation=state.generation,from_revision=0,through_revision=1))
+        self.assertTrue(runtime.receive().HasField('applied'));self.assertTrue(self.barrier().complete)
     def test_real_barrier_waits_for_explicit_application_acknowledgement(self):
         runtime,auth,baseline=self.ready_runtime();state=self.activate(runtime);self.assertEqual(state.service_incarnation,auth.service_incarnation)
         self.revoke();self.event(runtime,1);status=self.barrier()

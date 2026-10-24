@@ -23,6 +23,46 @@ class PrivateRuntime(existing.RuntimeProcess):
         fixture.connections.append(self)
 
 class ParticipantChannelTests(existing.ParticipantRuntimeTests):
+    def test_private_progress_preserves_exact_context_and_monotonic_feed(self):
+        runtime,parent,_,_,state,_=self.activate_private()
+        for request,sequence in ((2,4),(3,5)):
+            runtime.send(request,progress=pb.ParticipantProgressRead())
+            command=self.receive_command(parent)
+            self.assertEqual(command.request_id,request);self.assertTrue(command.HasField('progress'),command)
+            progress=pb.AuthorityProgress(activation=state,feed_sequence=sequence,through_revision=0,head_revision=0)
+            self.send_update(parent,request,progress=progress)
+            update=runtime.receive();self.assertEqual(update.request_id,request);self.assertEqual(update.progress,progress)
+            self.assertEqual(self.rows(),[(1,state.service_incarnation,0,1)])
+
+    def test_private_progress_rejects_wrong_context_cursor_and_replay(self):
+        modes=['request','generation','issuer','connection','service','sequence','cursor','missing-cursor','head','incomplete']
+        for mode in modes:
+            with self.subTest(mode=mode):
+                before=self.rows()
+                runtime,parent,peer,_,state,_=self.activate_private()
+                activated=before+[(state.generation,state.service_incarnation,0,1)]
+                runtime.send(2,progress=pb.ParticipantProgressRead());self.assertTrue(self.receive_command(parent).HasField('progress'))
+                good=pb.AuthorityProgress(activation=state,feed_sequence=4,through_revision=0,head_revision=0)
+                self.send_update(parent,2,progress=good);self.assertEqual(runtime.receive().progress,good)
+                runtime.send(3,progress=pb.ParticipantProgressRead());self.assertTrue(self.receive_command(parent).HasField('progress'))
+                bad=pb.AuthorityProgress(activation=state,feed_sequence=5,through_revision=0,head_revision=0);request=3
+                if mode=='request':request=4
+                elif mode=='generation':bad.activation.generation+=1
+                elif mode=='issuer':bad.activation.issuer_id=b'x'*32
+                elif mode=='connection':bad.activation.connection_binding=b'x'*32
+                elif mode=='service':bad.activation.service_incarnation=b'x'*32
+                elif mode=='sequence':bad.feed_sequence=4
+                elif mode=='cursor':bad.through_revision=1;bad.head_revision=1
+                elif mode=='missing-cursor':bad.ClearField('through_revision')
+                elif mode=='incomplete':bad.head_revision=1
+                else:bad.head_revision=2**63
+                self.send_update(parent,request,progress=bad);self.error(runtime,core.INVALID_ARGUMENT)
+                self.assertEqual(self.rows(),activated)
+                # Every case creates a distinct incarnation. Retire only its own live generation.
+                reply=peer.call(authority_release=pb.AuthorityRelease(generation=state.generation,applied_revision=0))
+                self.assertTrue(reply.HasField('authority_activation'),reply)
+                peer.close();parent.close();runtime.close()
+
     def private(self,check_exec=False,**changes):
         parent,child=socket.socketpair();parent.settimeout(3);self.addCleanup(parent.close)
         if check_exec:

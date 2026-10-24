@@ -1,9 +1,11 @@
 """Real world participation and independently witnessed revocation completion."""
 import io
+import json
 import os
 from pathlib import Path
 import sqlite3
 import socket
+import select
 import struct
 import subprocess
 import threading
@@ -15,7 +17,7 @@ import grants_pb2 as grants
 import issuer_pb2 as issuer
 import world_session_pb2 as session
 from harness.wire import frame,make_request,read_message,result_value
-from test_world_identity import WorldIdentityFixture,WorldProcess,WORLD
+from test_world_identity import WorldIdentityFixture,WorldProcess,WORLD,receive
 from test_world_authority import RelayingIssuer
 
 class HeldRevocationRelay(RelayingIssuer):
@@ -55,6 +57,85 @@ class HeldRevocationRelay(RelayingIssuer):
         self.release.set();super().close()
 
 
+class CheckedParticipantParent:
+    """Forward real issuer authority; hold or corrupt only one private progress receipt."""
+    def __init__(self,fixture):
+        self.fixture=fixture;self.parent,self.child=socket.socketpair();self.parent.settimeout(3)
+        self.stop=threading.Event();self.armed=threading.Event();self.held=threading.Event()
+        self.release=threading.Event();self.warmed=threading.Event();self.errors=[];self.mode=None
+        self.sequence=0;self.active=None;self.closed=False
+        incarnation=os.urandom(32);self.peer=fixture.connect()
+        reply=self.peer.call(authority_authentication_begin=issuer.AuthorityAuthenticationBegin(
+            participant_id=fixture.definition.id,registered_revision=1,service_incarnation=incarnation))
+        fixture.assertTrue(reply.HasField('challenge'),reply)
+        challenge=reply.challenge
+        reply=self.peer.call(authority_authentication_complete=issuer.AuthorityAuthenticationComplete(
+            nonce=challenge.nonce,proof=fixture.proof(challenge,fixture.signer,fixture.public)))
+        fixture.assertTrue(reply.HasField('authority_authentication'),reply)
+        self.auth=issuer.AuthorityAuthenticationResult();self.auth.CopyFrom(reply.authority_authentication)
+        self.config=issuer.AuthorityParticipantRuntimeConfig(protocol_version=1,
+            participant_id=fixture.definition.id,registered_revision=1,service_incarnation=incarnation,
+            supervisor_channel_fd=self.child.fileno(),supervisor_issuer_id=fixture.info.issuer_id)
+        fixture.addCleanup(self.close)
+        self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
+    def send(self,request_id=0,**outcome):
+        self.parent.sendall(frame(issuer.ParticipantUpdate(protocol_version=1,request_id=request_id,**outcome)))
+    def read_feed(self,initial=False):
+        query=issuer.RevocationRead() if initial else issuer.RevocationRead(after_revision=self.cursor)
+        reply=self.peer.call(revocations=query);self.fixture.assertTrue(reply.HasField('revocations'),reply)
+        self.cursor=reply.revocations.through_revision
+        self.send(revocations=reply.revocations)
+        return reply.revocations
+    def run(self):
+        try:
+            self.send(authenticated=self.auth);self.read_feed(initial=True)
+            while not self.stop.is_set():
+                if not select.select([self.parent],[],[],.05)[0]:
+                    self.read_feed();continue
+                command=receive(self.parent.recv,self.parent,issuer.ParticipantCommand)
+                operation=command.WhichOneof('operation')
+                if operation=='progress':
+                    batch=self.read_feed();self.sequence+=1
+                    progress=issuer.AuthorityProgress(activation=self.active,feed_sequence=self.sequence,
+                        through_revision=batch.through_revision,head_revision=batch.head_revision)
+                    if self.armed.is_set():
+                        self.held.set()
+                        while not self.release.wait(.005):
+                            if self.stop.is_set():return
+                        if self.mode=='generation':progress.activation.generation+=1
+                        elif self.mode=='cursor':progress.through_revision+=1;progress.head_revision+=1
+                        elif self.mode=='replay':progress.feed_sequence-=1
+                    self.send(command.request_id,progress=progress);self.warmed.set()
+                else:
+                    names={'activate':('authority_activate','activated'),
+                        'applied':('authority_applied','applied'),'release':('authority_release','released')}
+                    request,outcome=names[operation]
+                    reply=self.peer.call(**{request:getattr(command,operation)})
+                    if reply.HasField('error'):self.send(command.request_id,error=reply.error)
+                    else:
+                        self.fixture.assertTrue(reply.HasField('authority_activation'),reply)
+                        self.active=issuer.AuthorityActivationState();self.active.CopyFrom(reply.authority_activation)
+                        self.send(command.request_id,**{outcome:self.active})
+                        if operation=='release':return
+        except EOFError:pass
+        except OSError as error:
+            if not self.stop.is_set():self.errors.append(error)
+        except BaseException as error:self.errors.append(error)
+    def close(self):
+        if self.closed:return
+        self.closed=True;self.stop.set();self.release.set()
+        self.thread.join(3);self.fixture.assertFalse(self.thread.is_alive(),'Private parent did not stop')
+        self.parent.close();self.child.close()
+        # Reconcile only after every child using this exact incarnation has stopped.
+        if self.active is not None and self.active.active:
+            self.fixture.assertTrue(all(world.proc.poll() is not None for world in self.fixture.worlds))
+            reply=self.peer.call(authority_release=issuer.AuthorityRelease(
+                generation=self.active.generation,applied_revision=self.active.applied_revision))
+            self.fixture.assertTrue(reply.HasField('authority_activation'),reply)
+        self.peer.close()
+        if self.errors:raise self.errors[0]
+
+
 class WorldParticipantFixture(WorldIdentityFixture):
     def setUp(self):
         super().setUp()
@@ -70,18 +151,22 @@ class WorldParticipantFixture(WorldIdentityFixture):
         self.definition=issuer.AuthorityParticipant(id=b'w'*32,public_key=self.public,domains=[grants.Domain(kind=grants.WORLD,id=self.world_id)])
         peer=self.connect();op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
         result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result);peer.close()
-    def start_world(self,relay=None,participate=True,state=None,native=False):
+    def start_world(self,relay=None,participate=True,state=None,native=False,private_parent=None):
         # Actor queries and participant traffic use separate, independently authenticated TLS connections.
         client=self.config_file();query_path=self.root/'query-client.textproto';query_path.write_bytes(client.read_bytes());query_path.chmod(0o600)
         service=self.config_file(endpoint_port=relay.port if relay else None,io_timeout_ms=3000)
         service_path=self.root/'service-client.textproto';service_path.write_bytes(service.read_bytes());service_path.chmod(0o600)
         participant=issuer.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(service_path),private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1)
+        if private_parent is not None:participant=private_parent.config
         participant_path=self.root/'participant.textproto';participant_path.write_text(text_format.MessageToString(participant));participant_path.chmod(0o600)
         config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(query_path),admission=session.REGISTERED_ACTORS,
             actor_grants=[session.WorldActorGrants(actor_id=self.identity.actor_id,grants=['navigate','observe','interact'])])
+        if self.retained_movement_enabled():config.enable_retained_movement=True
         if participate:config.participant_runtime_config=str(participant_path)
         path=self.root/('world-config-'+str(len(self.worlds))+'.textproto');path.write_text(text_format.MessageToString(config));path.chmod(0o600)
-        world=WorldProcess(self,path,state or self.world_state,native=native,runtime_config=self.runtime_path);self.worlds.append(world);self.addCleanup(world.close)
+        world=WorldProcess(self,path,state or self.world_state,native=native,runtime_config=self.runtime_path,
+            participant_fd=private_parent.child.fileno() if private_parent else None);self.worlds.append(world);self.addCleanup(world.close)
+        if private_parent:private_parent.child.close()
         return world
     def activations(self):
         with sqlite3.connect(self.state/'identity.db') as db:return db.execute('SELECT generation,applied_revision,active FROM authority_activation ORDER BY generation').fetchall()
@@ -96,6 +181,87 @@ class WorldParticipantFixture(WorldIdentityFixture):
 
 
 class WorldParticipantTests(WorldParticipantFixture):
+    def test_pending_retained_check_preserves_frame_without_motion(self):
+        self.retained_movement_override=True
+        parent=CheckedParticipantParent(self);parent.armed.set()
+        world=self.start_world(private_parent=parent)
+        world.management('system.hello');peer=world.peers[0]
+        opened=self.authenticate(peer);self.assertTrue(opened.HasField('opened'),opened)
+        actor=opened.opened.actor_id;self.assertTrue(parent.held.wait(2))
+        before=world.management('world.get',id=actor)['pose']
+        peer.sequence+=1;peer.action_sequence+=1
+        request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
+            action=core.ActorActionRequest(seq=peer.action_sequence,input=core.ActorInputRequest(axes=[1,0,0,0,0,0])))
+        peer.stream.sendall(frame(request));self.assertTrue(parent.held.wait(2))
+        self.assertFalse(select.select([peer.stream],[],[],.15)[0],'Unchecked movement produced a receipt')
+        self.assertEqual(world.management('world.get',id=actor)['pose'],before)
+        parent.release.set()
+        reply=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
+        self.assertEqual(reply.request_id,peer.sequence)
+        self.assertTrue(reply.HasField('action') and reply.action.accepted,reply)
+        self.assertGreater(world.management('world.get',id=actor)['pose']['p'][0],before['p'][0])
+        self.assertTrue(peer.act(stop=core.ActorStopRequest()).action.accepted)
+        world.close();self.assertEqual(world.proc.returncode,0);parent.close()
+
+    def test_failed_retained_checks_never_apply_or_fall_back(self):
+        self.retained_movement_override=True
+        for mode in ('generation','cursor','replay'):
+            with self.subTest(mode=mode):
+                parent=CheckedParticipantParent(self);parent.mode=mode
+                world=self.start_world(private_parent=parent);world.management('system.hello')
+                peer=world.peers[0];opened=self.authenticate(peer)
+                self.assertTrue(opened.HasField('opened'),opened);actor=opened.opened.actor_id
+                self.assertTrue(parent.warmed.wait(2));before=world.management('world.get',id=actor)['pose']
+                parent.armed.set();peer.sequence+=1;peer.action_sequence+=1
+                request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
+                    action=core.ActorActionRequest(seq=peer.action_sequence,input=core.ActorInputRequest(axes=[1,0,0,0,0,0])))
+                peer.stream.sendall(frame(request));self.assertTrue(parent.held.wait(2))
+                self.assertFalse(select.select([peer.stream],[],[],.1)[0])
+                self.assertEqual(world.management('world.get',id=actor)['pose'],before)
+                parent.release.set()
+                reply=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
+                self.denied(reply,core.UNAVAILABLE)
+                self.assertEqual(world.management('world.get',id=actor)['pose'],before)
+                self.denied(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])),core.UNAVAILABLE)
+                self.assertEqual(world.management('world.get',id=actor)['pose'],before)
+                world.log.flush()
+                self.assertIn('Invalid private authority progress identity or cursor',Path(world.log.name).read_text())
+                world.close();self.assertEqual(world.proc.returncode,2)
+                self.assertEqual(self.activations()[-1][2],1,'Failure must preserve the unresolved issuer obligation')
+                parent.close();self.assertEqual(self.activations()[-1][2],0)
+
+    def test_committed_revoke_blocks_fresh_movement_while_feed_is_held(self):
+        settings=text_format.Parse(self.runtime_path.read_text(),core.RuntimeConfig())
+        settings.input_timeout=.25;self.runtime_path.write_text(text_format.MessageToString(settings))
+        relay=HeldRevocationRelay(self);world=self.start_world(relay);world.management('system.hello')
+        peer=world.peers[0];self.assertTrue(self.authenticate(peer).HasField('opened'))
+        self.assertTrue(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])).HasField('action'))
+        # Give the retained connection time to publish its initial checked progress.
+        time.sleep(.3)
+        self.revoke_now();self.assertTrue(relay.held.wait(.3));self.assertFalse(relay.delivered.is_set())
+        self.assertEqual(self.barrier().pending_count,1)
+        peer.sequence+=1;peer.action_sequence+=1
+        request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
+            action=core.ActorActionRequest(seq=peer.action_sequence,input=core.ActorInputRequest(axes=[1,0,0,0,0,0])))
+        started=time.monotonic();peer.stream.sendall(frame(request));early=None
+        try:
+            if select.select([peer.stream],[],[],.15)[0]:
+                early=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
+            accepted=early is not None and early.HasField('action') and early.action.accepted
+            evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+            if evidence:
+                target=Path(evidence);target.mkdir(parents=True,exist_ok=True)
+                (target/(self._testMethodName+'-ordering.json')).write_text(json.dumps({
+                    'new_motion_after_committed_revoke':True,'feed_still_held':not relay.delivered.is_set(),
+                    'early_reply':None if early is None else early.WhichOneof('outcome'),
+                    'early_accepted':accepted,'elapsed_seconds':time.monotonic()-started},indent=2)+'\n')
+            self.assertFalse(accepted,'Fresh movement accepted after committed revocation while feed was held')
+        finally:relay.release.set()
+        reply=early if early is not None else receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
+        self.denied(reply,core.UNAUTHORIZED)
+        self.until(self.barrier,lambda value:value.complete)
+        world.close();self.assertEqual(world.proc.returncode,0)
+
     def test_actor_serving_world_requires_participant_configuration(self):
         world=self.start_world(participate=False);self.assertEqual(world.proc.wait(timeout=4),2)
         self.assertIn('participant configuration is required',Path(world.log.name).read_text());self.assertEqual(self.activations(),[])

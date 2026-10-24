@@ -63,7 +63,7 @@ class SessionPeer:
 
 
 class WorldProcess:
-    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None, fixture_faults=False, input_witness_fd=None, presentation=None):
+    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None, fixture_faults=False, input_witness_fd=None, presentation=None, participant_fd=None):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
@@ -80,6 +80,7 @@ class WorldProcess:
                         str(getattr(broker, 'pid', broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         extra_fds = (tuple([workspace_channel.fileno()]) if workspace_channel else ())
+        if participant_fd is not None:extra_fds += (participant_fd,)
         if input_witness_fd is not None:
             command += ['--input-witness-fd',str(input_witness_fd)]
             extra_fds += (input_witness_fd,)
@@ -323,7 +324,14 @@ class WorldIdentityFixture(ClientFixture):
         path=self.root/('registered-participant-'+str(number)+'.textproto')
         path.write_text(text_format.MessageToString(participant));path.chmod(0o600)
         config.participant_runtime_config=str(path)
+    def retained_movement_enabled(self):
+        override=getattr(self,'retained_movement_override',None)
+        if override is not None:return override
+        value=os.environ.get('SPATIAL_TEST_RETAINED_MOVEMENT','0')
+        self.assertIn(value,('0','1'))
+        return value=='1'
     def configure_world_participant(self, config, state):
+        if self.retained_movement_enabled():config.enable_retained_movement=True
         # Initialize or read the real stopped world before registering its persisted identity.
         result=subprocess.run([str(WORLD),'--state-dir',str(state)],input=frame(make_request('world.info',{})),
             capture_output=True,timeout=6)

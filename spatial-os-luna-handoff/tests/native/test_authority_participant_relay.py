@@ -18,6 +18,18 @@ import test_authority_owned_participant as owned
 import launch_pb2 as pb
 
 class ParticipantRelayTests(owned.OwnedParticipantTests):
+    def test_read_only_progress_crosses_owned_relay_without_changing_activation(self):
+        proc,_,auth=self.start_channel();state=self.activate_child(proc)
+        self.command(2,progress=identity.ParticipantProgressRead())
+        update=self.child_update(proc,'progress');self.assertEqual(update.request_id,2)
+        self.assertEqual(update.progress.activation,state)
+        self.assertGreater(update.progress.feed_sequence,0)
+        self.assertEqual((update.progress.through_revision,update.progress.head_revision),(0,0))
+        self.assertEqual(update.progress.activation.service_incarnation,auth.service_incarnation)
+        self.assertEqual(len(self.activation_rows()),1)
+        self.command(3,release=identity.AuthorityRelease(generation=state.generation,applied_revision=0))
+        self.assertTrue(self.child_update(proc,'released').HasField('released'));self.tick(proc);self.stopped(proc)
+
     def test_channel_configuration_requires_owned_approval_and_contains_no_signing_material(self):
         proc,_,auth,_=self.connected()
         self.assertTrue(self.authorize(proc).HasField('view'))

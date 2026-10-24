@@ -39,6 +39,7 @@ namespace {
 namespace pb = identity::v1;
 using Clock = std::chrono::steady_clock;
 struct CancellationFailure : std::runtime_error { using std::runtime_error::runtime_error; };
+struct MotionDeferred {};
 struct SupersededAuthorityRead : WorldError {
     SupersededAuthorityRead() : WorldError(wire::UNAVAILABLE, "Authority read was superseded by a newer security revision") {}
 };
@@ -77,6 +78,9 @@ struct Channel {
     CancellationCause cancellation_cause = CancellationCause::other;
     std::uint64_t active_request_id = 0, output_request_id = 0;
     bool in_dispatch = false, output_copy_status_request = false;
+    bool motion_reply = false;
+    std::optional<std::uint64_t> credential_revision;
+    std::optional<std::uint64_t> motion_progress_floor;
     bool output_revocation_denial = false;
     bool output_transport_write_attempted = false;
     Clock::time_point input_started = Clock::now(), output_started = Clock::now();
@@ -94,6 +98,11 @@ struct Channel {
         return result;
     }
 };
+bool pure_movement(const pb::WorldSessionRequest& request) {
+    if(!request.has_action() && !request.has_control_action())return false;
+    const auto& action=request.has_control_action()?request.control_action():request.action();
+    return action.has_input() || action.has_relative_look();
+}
 unsigned lifecycle_diagnostic_count = 0, reply_queued_diagnostic_count = 0;
 unsigned close_diagnostic_count = 0;
 void lifecycle_diagnostic(const Channel& channel, const char* reason) {
@@ -148,6 +157,12 @@ struct IdentitySessions::Impl {
     std::unique_ptr<identity::ParticipantRuntime> participant;
     std::optional<std::uint64_t> consumed_revision;
     std::uint64_t generation = 0, acknowledged_revision = 0, command_sequence = 0;
+    std::optional<pb::AuthorityAuthenticationResult> participant_identity;
+    std::optional<pb::AuthorityProgress> authority_progress;
+    std::uint64_t authority_progress_request = 0;
+    std::map<std::string,std::uint64_t> checked_subjects;
+    bool pumping_motion = false;
+    std::size_t motion_cursor = 0;
     pb::ParticipantCommand::OperationCase pending_operation = pb::ParticipantCommand::OPERATION_NOT_SET;
     bool closing = false, released = false;
     pb::IssuerInfo issuer;
@@ -217,6 +232,8 @@ struct IdentitySessions::Impl {
         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset();
         channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
         channel.local_view_attested = false;
+        channel.credential_revision.reset(); channel.motion_reply = false;
+        channel.motion_progress_floor.reset();
         // Swap queued bytes out before cancellation callbacks can re-enter.
         // The pump sees empty output until Actors::close returns; deferred cancellation settles later.
         std::string pending_output;
@@ -337,8 +354,9 @@ struct IdentitySessions::Impl {
         }
         while (auto update = participant->poll()) {
             if (update->has_authenticated()) {
-                if (update->authenticated().issuer_id() != issuer.issuer_id() ||
+                if (participant_identity || update->authenticated().issuer_id() != issuer.issuer_id() ||
                         update->authenticated().service_incarnation() != participant->service_incarnation()) { fail(); return; }
+                participant_identity = update->authenticated();
                 continue;
             }
             if (!update->has_revocations()) {
@@ -351,11 +369,32 @@ struct IdentitySessions::Impl {
                 if (expected == pb::ParticipantCommand::kActivate && update->has_activated()) {
                     if (update->activated().service_incarnation() != participant->service_incarnation()) { fail(); return; }
                     generation = update->activated().generation(); acknowledged_revision = update->activated().applied_revision(); ready = true;
+                    observed_revision=std::max(observed_revision,update->activated().head_revision());
                 } else if (expected == pb::ParticipantCommand::kApplied && update->has_applied()) {
                     acknowledged_revision = update->applied().applied_revision();
+                    observed_revision=std::max(observed_revision,update->applied().head_revision());
                     identity::participant_diagnostic("world", "ack_result_consumed", participant->service_incarnation(),
                         acknowledged_revision, consumed_revision.value_or(0), acknowledged_revision, false);
                 } else if (expected == pb::ParticipantCommand::kRelease && update->has_released()) released = true;
+                else if (expected == pb::ParticipantCommand::kProgress && update->has_progress()) {
+                    const auto& progress = update->progress();
+                    const auto& activation = progress.activation();
+                    if (!participant_identity || !progress.has_activation() || !activation.active() ||
+                            activation.generation()!=generation || activation.applied_revision()!=acknowledged_revision ||
+                            activation.issuer_id()!=participant_identity->issuer_id() ||
+                            activation.issuer_incarnation()!=participant_identity->issuer_incarnation() ||
+                            activation.connection_binding()!=participant_identity->connection_binding() ||
+                            activation.service_incarnation()!=participant_identity->service_incarnation() ||
+                            activation.registration().SerializeAsString()!=participant_identity->registration().SerializeAsString() ||
+                            !progress.feed_sequence() || (authority_progress &&
+                                progress.feed_sequence()<=authority_progress->feed_sequence()) ||
+                            !progress.has_through_revision() || !progress.has_head_revision() ||
+                            progress.through_revision()!=progress.head_revision() || progress.head_revision()>INT64_MAX ||
+                            !consumed_revision || progress.through_revision()>*consumed_revision) { fail(); return; }
+                    observed_revision=std::max(observed_revision,progress.head_revision());
+                    authority_progress=progress;
+                    authority_progress_request=update->request_id();
+                }
                 else { fail(); return; }
                 continue;
             }
@@ -385,9 +424,24 @@ struct IdentitySessions::Impl {
             sync_authority();
         }
     }
+    void queue_progress() {
+        if(!config.enable_retained_movement())return;
+        const bool ingress_waiting=std::any_of(channels.begin(),channels.end(),[&](const auto& channel) {
+            return channel->motion_progress_floor && authority_progress_request<*channel->motion_progress_floor;
+        });
+        if (!broken && ready && !closing && participant && consumed_revision &&
+                acknowledged_revision>=*consumed_revision && *consumed_revision>=observed_revision &&
+                pending_operation==pb::ParticipantCommand::OPERATION_NOT_SET &&
+                (ingress_waiting || !authority_progress)) {
+            require(command_sequence<UINT64_MAX,"World participant sequence exhausted");
+            pb::ParticipantCommand command;command.set_request_id(++command_sequence);command.mutable_progress();
+            pending_operation=command.operation_case();participant->submit(std::move(command));
+        }
+    }
     void tick() {
         if (ticking) return;
         poll_authority();
+        queue_progress();
         // Keep the action issuer connection alive during component waits too.
         // The polling guard has ended, so this call's progress callbacks still
         // detect controller loss and consume revocations while INFO is pending.
@@ -507,6 +561,37 @@ struct IdentitySessions::Impl {
             throw WorldError(wire::UNAUTHORIZED, "Actor credential is revoked");
         return status;
     }
+    void current(Channel& channel) {
+        const auto status=current(channel.credential,channel.claims);
+        if(!channel.token.empty())channel.credential_revision=status.security_revision();
+    }
+    bool retained_authority(const Channel& channel) {
+        if(!config.enable_retained_movement() || broken || !ready || closing || !participant || participant->failed() || !authority_progress ||
+                !participant_identity || !consumed_revision || *consumed_revision<observed_revision ||
+                channel.fd.value<0 || channel.token.empty() || channel.view_id.empty() ||
+                !channel.credential_revision || *channel.credential_revision>*consumed_revision ||
+                authority_progress->activation().generation()!=generation ||
+                authority_progress->activation().service_incarnation()!=participant->service_incarnation())return false;
+        return retained_snapshot_known(channel) && admission_allowed(channel);
+    }
+    bool retained_snapshot_known(const Channel& channel) {
+        if(!channel.credential_revision)return false;
+        if(authority)for(const auto& subject:authority->subjects(principal(channel.claims))) {
+            const auto checked=checked_subjects.find(subject.actor_id());
+            if(subject.issuer_id()!=issuer.issuer_id() || checked==checked_subjects.end() ||
+                    !consumed_revision || checked->second>*consumed_revision)return false;
+        }
+        return true;
+    }
+    bool admission_allowed(const Channel& channel) {
+        return config.admission()!=pb::EXPLICIT_ACTORS || (authority?
+            authority->allowed(principal(channel.claims),"enter"):admitted.contains(channel.claims.actor_id()));
+    }
+    bool navigation_allowed(const Channel& channel) {
+        if(authority)return authority->allowed(principal(channel.claims),"navigate");
+        const auto selected=grants.find(channel.claims.actor_id());
+        return selected!=grants.end() && selected->second.contains("navigate");
+    }
     pb::ActorCredential credential_claims(const pb::SignedCredential& credential) {
         pb::VerifyRequest verification; verification.set_expected_public_key(issuer.public_key());
         *verification.mutable_content() = credential.content(); *verification.mutable_proof() = credential.proof();
@@ -567,6 +652,7 @@ struct IdentitySessions::Impl {
         authority->update(states); sync_authority();
         const auto current_actor = std::find_if(states.begin(), states.end(), [&](const auto& value) { return value.actor_id() == actor.actor_id(); });
         if (current_actor == states.end() || !current_actor->active()) throw WorldError(wire::UNAUTHORIZED, "Actor identity is inactive");
+        for(const auto& state:states)checked_subjects[state.actor_id()]=revision.value_or(0);
     }
     pb::BootstrapProfileState bootstrap_profile(const pb::ActorCredential& claims) {
         pb::BootstrapProfileRead query; query.set_id(claims.bootstrap_profile());
@@ -656,6 +742,7 @@ struct IdentitySessions::Impl {
         if(authority)check=[this,actor](const auto& right,const auto& scope){return authority->allowed(actor,right,scope);};
         const auto opened=actors.open(open,true,std::move(check),actor,!channel.tls);
         channel.token=opened.token();channel.credential=pending.begin.credential();channel.claims=pending.claims;
+        channel.credential_revision=status.security_revision();
         channel.view_id=random_binding(); channel.view_sequence=0;
         pb::WorldSessionOpened result;result.set_actor_id(opened.id());result.set_world_id(world.info().world_id());
         *result.mutable_identity()=status;
@@ -709,7 +796,9 @@ struct IdentitySessions::Impl {
                 channel.view_id == identity.view_id() && channel.cancellation_generation == cancellation &&
                 identity.authority_generation() == generation;
         };
-        (void)current(channel.credential, claims);
+        // Presentation keeps its checked issuer read until its asynchronous
+        // continuation can carry an ingress fence too.
+        current(channel);
         if (!active()) throw WorldError(wire::UNAUTHORIZED, "Actor session changed during local attestation");
         const auto actor = principal(claims);
         if ((config.admission() == pb::EXPLICIT_ACTORS &&
@@ -737,7 +826,8 @@ struct IdentitySessions::Impl {
         return result;
     }
     pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes,
-            bool& self_revocation_receipt, bool& copy_status_request) {
+            bool& self_revocation_receipt, bool& copy_status_request, bool retained_movement_only=false,
+            bool cooperative=false) {
         copy_status_request = false;
         pb::WorldSessionReply reply; reply.set_protocol_version(1);
         try {
@@ -760,6 +850,31 @@ struct IdentitySessions::Impl {
             validate_message(request);
             if (request.protocol_version() != 1) throw WorldError(wire::UNSUPPORTED_VERSION, "Unsupported world session protocol");
             trace_reset.valid_protocol_request = true;
+            if(retained_movement_only && (broken || !ready || closing || !participant || participant->failed()))
+                throw WorldError(wire::UNAVAILABLE,"Retained movement authority is unavailable");
+            if(retained_movement_only && channel.token.empty())
+                throw WorldError(wire::UNAUTHORIZED,"World session was revoked");
+            if(retained_movement_only && !cooperative) {
+                if(!admission_allowed(channel)) {
+                    disconnect(channel,"retained_admission_denied");
+                    throw WorldError(wire::UNAUTHORIZED,"Actor is no longer admitted");
+                }
+                if(!retained_snapshot_known(channel)) {
+                    // Refresh missing snapshots. Required security cleanup may
+                    // run, but the proposed movement cannot use ordinary dispatch.
+                    const auto actor=principal(channel.claims);
+                    try {
+                        current(channel);
+                        if(channel.token.empty())throw WorldError(wire::UNAUTHORIZED,"World session was revoked");
+                        prepare(actor);
+                    } catch (const SupersededAuthorityRead&) { throw;
+                    } catch (const WorldError&) { disconnect(channel,"issuer_or_authority_denied");throw; }
+                    if(channel.token.empty())throw WorldError(wire::UNAUTHORIZED,"World session was revoked");
+                }
+            }
+            if(retained_movement_only && (!pure_movement(request) || !retained_authority(channel) ||
+                    (cooperative && !navigation_allowed(channel)) || !channel.motion_progress_floor ||
+                    authority_progress_request<*channel.motion_progress_floor))throw MotionDeferred{};
             if (request.has_close()) { disconnect(channel, "client_close"); reply.mutable_closed()->set_closed(true); return reply; }
             if (broken || !ready || closing) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
             if(request.has_depart()) {
@@ -887,8 +1002,10 @@ struct IdentitySessions::Impl {
                        request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "Channel has no authenticated actor");
                 const auto actor = principal(channel.claims);
+                // Only the strict gate above can authorize retained movement.
+                const bool retained_movement=retained_movement_only;
                 try {
-                    current(channel.credential, channel.claims);
+                    if(!retained_movement)current(channel);
                 } catch (const SupersededAuthorityRead&) { throw;
                 } catch (const WorldError&) { disconnect(channel, "issuer_or_authority_denied"); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
@@ -909,7 +1026,7 @@ struct IdentitySessions::Impl {
                     actors.consume_sequence(channel.token, request.revoke().seq());
                 }
                 try {
-                    prepare(actor, request.has_delegate() && !request.delegate().has_workspace() ? &request.delegate().terms().subject() : nullptr);
+                    if(!retained_movement)prepare(actor, request.has_delegate() && !request.delegate().has_workspace() ? &request.delegate().terms().subject() : nullptr);
                 } catch (const SupersededAuthorityRead&) { throw;
                 } catch (const WorldError&) { disconnect(channel, "issuer_or_authority_denied"); throw; }
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "World session was revoked");
@@ -1030,6 +1147,7 @@ struct IdentitySessions::Impl {
                     channel.needs_observation = accepted && (action.has_observe() || action.has_aim());
                 }
             } else throw WorldError(wire::UNKNOWN_METHOD, "No recognized world session operation");
+        } catch (const MotionDeferred&) { throw;
         } catch (const CancellationFailure&) { throw;
         } catch (const WorldError& error) {
             reply.mutable_error()->set_code(error.code); reply.mutable_error()->set_message(error.what());
@@ -1040,11 +1158,26 @@ struct IdentitySessions::Impl {
         }
         return reply;
     }
-    void pump() {
+    void pump(bool motion_only=false) {
         // Preserve maintenance cadence even when pump is used without serve's tick.
-        tick();
-        for (auto& owned : channels) {
+        // Applying a batch can yield during native cancellation. Its cursor is
+        // not usable until every event and dependent grant has been processed.
+        if(motion_only && (!config.enable_retained_movement() || pumping_motion || ticking))return;
+        struct Reset {bool& active;bool previous;~Reset(){active=previous;}} reset{pumping_motion,pumping_motion};
+        if(motion_only)pumping_motion=true;else tick();
+        const auto motion_deadline=Clock::now()+std::chrono::milliseconds(2);
+        const auto start=channels.empty()?0:motion_cursor%channels.size();unsigned dispatched=0;
+        for (std::size_t visit=0;visit<channels.size();++visit) {
+            if(motion_only && (dispatched>=4 || Clock::now()>=motion_deadline))break;
+            const auto index=motion_only?(start+visit)%channels.size():visit;
+            auto& owned=channels[index];
             auto& channel = *owned; if (channel.fd.value < 0) continue;
+            if(motion_only) {
+                motion_cursor=(index+1)%channels.size();
+                if(channel.in_dispatch || channel.departure || channel.pending || channel.prepared ||
+                        channel.needs_observation || channel.needs_geometry_observation ||
+                        (!channel.output.empty() && !channel.motion_reply) || !retained_authority(channel))continue;
+            }
             auto drop = [&](const char* reason) {
                 disconnect(channel, reason); channel.close_transport(); channel.input.clear(); channel.output.clear();
             };
@@ -1089,6 +1222,7 @@ struct IdentitySessions::Impl {
                     channel.output_copy_status_request = false;
                     channel.output_revocation_denial = false;
                     channel.output_transport_write_attempted = false;
+                    channel.motion_reply = false;
                 }
             }
             if (channel.tls && channel.output.empty()) {
@@ -1110,13 +1244,39 @@ struct IdentitySessions::Impl {
             const auto length = (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
             if (length > max_frame_bytes) { drop("oversize_frame"); continue; }
             if (channel.input.size() < length+4) continue;
-            const auto bytes = channel.input.substr(4, length); channel.input.erase(0, length+4); channel.input_started = now;
+            const auto bytes = channel.input.substr(4, length);
+            pb::WorldSessionRequest candidate;
+            const bool parsed=candidate.ParseFromString(bytes);
+            const bool draft_motion=config.enable_retained_movement() && parsed &&
+                pure_movement(candidate) && !channel.token.empty();
+            if(motion_only) {
+                if(!parsed || !pure_movement(candidate))continue;
+                // A denial may require native cancellation. Defer it to the outer scheduler.
+                if(!navigation_allowed(channel))continue;
+            }
+            if(draft_motion && retained_authority(channel)) {
+                if(!channel.motion_progress_floor) {
+                    require(command_sequence<UINT64_MAX,"World participant sequence exhausted");
+                    // Only a progress request issued after this ingress can
+                    // cover it. All actors observed in this pass share a fence.
+                    channel.motion_progress_floor=command_sequence+1;
+                }
+                if(authority_progress_request<*channel.motion_progress_floor)continue;
+            } else if(motion_only)continue;
+            if(motion_only)++dispatched;
+            const auto deferred_frame=(motion_only || draft_motion)?channel.input.substr(0,length+4):std::string{};
+            const auto original_input_started=channel.input_started;
+            channel.input.erase(0, length+4); channel.input_started = now;
             const auto cancellation = channel.cancellation_generation;
             channel.cancellation_cause = CancellationCause::other;
             bool self_revocation_receipt = false;
             bool copy_status_request = false;
             pb::WorldSessionReply reply;
-            try { reply = dispatch(channel, bytes, self_revocation_receipt, copy_status_request); }
+            try { reply = dispatch(channel, bytes, self_revocation_receipt, copy_status_request,
+                motion_only || draft_motion,motion_only); }
+            catch (const MotionDeferred&) {
+                channel.input.insert(0,deferred_frame);channel.input_started=original_input_started;continue;
+            }
             catch (const CancellationFailure&) {
                 lifecycle_diagnostic(channel, "cancellation_failure_leaving_dispatch");
                 throw;
@@ -1143,12 +1303,16 @@ struct IdentitySessions::Impl {
             }
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_request_id = reply.request_id();
+            channel.motion_reply=pure_movement(candidate);
+            channel.motion_progress_floor.reset();
             channel.output_copy_status_request = copy_status_request && !copy_status_denial;
             channel.output_revocation_denial = copy_status_denial;
             channel.output_transport_write_attempted = false;
             lifecycle_diagnostic(channel, "reply_queued");
             channel.output_started = Clock::now();
         }
+        queue_progress();
+        if(motion_only)return; // Never accept or erase channels from a component-wait callback.
         std::erase_if(channels, [](const auto& channel) { return channel->fd.value < 0 && !channel->departure; });
         if (listener && !broken && ready && !closing) {
             const auto fd = listener->accept();
@@ -1168,10 +1332,11 @@ IdentitySessions::~IdentitySessions() {
     for (auto& channel : impl_->channels) { try { impl_->disconnect(*channel, "shutdown"); } catch (const std::exception&) {} }
 }
 void IdentitySessions::set_tick(std::function<void()> callback) {
-    impl_->client->set_tick([this, callback = std::move(callback)] { impl_->tick(); callback(); });
+    impl_->client->set_tick([this, callback = std::move(callback)] { impl_->tick(); callback(); impl_->pump(true); });
 }
 void IdentitySessions::tick() { impl_->tick(); }
 void IdentitySessions::pump() { impl_->pump(); }
+void IdentitySessions::pump_motion() { impl_->pump(true); }
 void IdentitySessions::settle() { impl_->settle(); }
 void IdentitySessions::shutdown() { impl_->shutdown(); }
 core::v1::ActorLocalViewState IdentitySessions::local_view_control(const core::v1::ActorLocalViewRequest& request) {
