@@ -2,6 +2,9 @@
 
 ## Scope
 
+The root AGENTS.md supplies the current host allocation and recovery requirements.
+Its instructions supersede this document's historical host references.
+
 The user authorizes changes only on `sb16` and `sb16-2` and permits modifying XLibre or another X11 server base. These are the only allowed hosts for this project, including builds, tests, native sessions, and remote helper workloads. Do not use another host unless the user explicitly changes this restriction. There is no requirement to keep old applications or a conventional desktop working. This removes a compatibility burden; it does not make a lost boot/login/SSH recovery route useful.
 
 Each host has 6 GB VRAM, 16 GB RAM, and an SSD, as reported by the user. Plan build parallelism, model sizes, and runtime resource use within those limits. SSH access as `dflanag3` and passwordless sudo were verified on both hosts on 2026-10-06.
@@ -20,6 +23,22 @@ The identity key component requires OpenSSL 3.0 or later and its libcrypto devel
 Its independent witnesses require the openssl command.
 Both hosts already had libssl-dev and openssl version 3.0.13-0ubuntu3.16.
 No package installation or system change was needed for this component.
+
+## M10 SpaceMouse runtime dependency, 2026-10-24
+
+Both test hosts now have `libspnav0` version `1.1-2`.
+The build host uses the matching `libspnav-dev` package.
+The runtime installation added one package. It upgraded no package and installed no daemon.
+The command was `sudo -n apt-get -y --no-install-recommends install libspnav0=1.1-2`.
+The library SHA256 is `2be5d3836fa39077818e66eece816ac244444cd748244efd114dcf7b8d42afc0`.
+No device permissions, login configuration, or running SpaceMouse service changed.
+After retiring dependent M10 payloads, the recovery command is `sudo -n apt-get remove libspnav0`.
+Keep required libraries while those payloads remain active.
+
+The installer initially misread an uninstalled suggested-package record as an installed daemon.
+Separate corrective validation checked the actual dpkg Status field and library bytes.
+The installation was not repeated. Original installation logs remain intact.
+Evidence and native checks are recorded in `M10_NATIVE_CAPTURE_PREFLIGHT_2026-10-24.txt`.
 
 ## Upstream snapshot, checked 2026-10-06
 

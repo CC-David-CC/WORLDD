@@ -1,10 +1,13 @@
 #include "control/physical_capture.hpp"
+#include "control/physical_source.hpp"
+#include "control/physical_query.hpp"
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/XInput2.h>
 #include <algorithm>
 #include <array>
 #include <map>
+#include <limits>
 #include <set>
 #include <stdexcept>
 #include <sys/stat.h>
@@ -12,25 +15,6 @@
 namespace spatial::control {
 namespace {
 void need(bool value, const char* message) { if (!value) throw std::runtime_error(message); }
-std::filesystem::path kernel_node(Display* display, int device) {
-    const auto property = XInternAtom(display, "Device Node", True);
-    if (property == None) return {};
-    Atom type = None; int format = 0; unsigned long length = 0, remaining = 0;
-    unsigned char* data = nullptr;
-    const auto status = XIGetProperty(display, device, property, 0, 256, False, XA_STRING,
-                                      &type, &format, &length, &remaining, &data);
-    std::string value;
-    if (status == Success && type == XA_STRING && format == 8 && length > 0 && length <= 1024 && remaining == 0 && data)
-        value.assign(reinterpret_cast<const char*>(data), length);
-    if (data) XFree(data);
-    if (!value.empty() && value.back() == '\0') value.pop_back();
-    if (value.empty() || value.find('\0') != std::string::npos || value.front() != '/') return {};
-    std::error_code error;
-    const auto canonical = std::filesystem::canonical(value, error);
-    struct stat st{};
-    if (error || stat(canonical.c_str(), &st) != 0 || !S_ISCHR(st.st_mode)) return {};
-    return canonical;
-}
 struct Devices {
     XIDeviceInfo* data;
     int count = 0;
@@ -39,20 +23,26 @@ struct Devices {
 };
 }
 struct PhysicalCapture::Impl {
-    struct Source { v1::DeviceKind kind; std::uint64_t generation, sequence; };
+    struct Source {
+        v1::DeviceKind kind;
+        physical_detail::KernelIdentity identity;
+        std::uint64_t generation, sequence;
+    };
     Display* display;
     Window output;
     Emit emit;
     std::vector<PhysicalSource> selected;
     std::map<int, Source> sources;
     std::map<int, std::uint64_t> generations;
-    int opcode = 0, pointer = 0, keyboard = 0;
+    int opcode = 0, error_base = 0, pointer = 0, keyboard = 0;
+    Atom device_node_property = None;
     bool pointer_grabbed = false, keyboard_grabbed = false;
     DeviceAdapters::Clock::time_point heartbeat{};
     Impl(Display* d, Window o, std::vector<PhysicalSource> s, Emit e)
         : display(d), output(o), emit(std::move(e)), selected(std::move(s)) {}
     v1::DeviceEvent event(int id) {
         auto& source = sources.at(id);
+        need(source.sequence < std::numeric_limits<std::uint64_t>::max(), "Captured source sequence exhausted");
         v1::DeviceEvent result; result.set_protocol_version(1); result.set_source_id("xi-"+std::to_string(id));
         result.set_source_generation(source.generation); result.set_event_sequence(++source.sequence); return result;
     }
@@ -60,25 +50,42 @@ struct PhysicalCapture::Impl {
         auto value = event(id); value.mutable_disconnected(); emit(value); sources.erase(id);
     }
     void refresh() {
+        std::map<std::filesystem::path, std::pair<v1::DeviceKind, physical_detail::KernelIdentity>> configured;
+        std::set<dev_t> physical_devices;
+        for (const auto& selection : selected) {
+            const auto identity = physical_detail::kernel_identity(selection.device_node, selection.kind);
+            if (!identity) continue; // Unplugged by-id paths may resolve again after the next hierarchy event.
+            need(physical_devices.insert(identity->device).second &&
+                 configured.emplace(identity->node, std::make_pair(selection.kind, *identity)).second,
+                 "Configured input sources now alias one kernel device");
+        }
         Devices devices(display, XIAllDevices);
-        std::map<int, v1::DeviceKind> current;
+        std::map<int, std::pair<v1::DeviceKind, physical_detail::KernelIdentity>> current;
+        std::set<dev_t> attached_devices;
         for (int i = 0; i < devices.count; ++i) {
             const auto& device = devices.data[i];
-            if (!device.enabled || (device.use != XISlavePointer && device.use != XISlaveKeyboard)) continue;
-            const auto node = kernel_node(display, device.deviceid);
+            const bool mouse = device.use == XISlavePointer && device.attachment == pointer;
+            const bool keys = device.use == XISlaveKeyboard && device.attachment == keyboard;
+            if (!device.enabled || (!mouse && !keys)) continue;
+            const auto node = physical_detail::device_node(display, device.deviceid, device_node_property, opcode, error_base);
             if (node.empty()) continue;
-            for (const auto& selection : selected) {
-                const bool attached = selection.kind == v1::MOUSE ? device.attachment == pointer && device.use == XISlavePointer :
-                    device.attachment == keyboard && device.use == XISlaveKeyboard;
-                if (attached && node == selection.device_node) current.emplace(device.deviceid, selection.kind);
+            const auto selection = configured.find(node);
+            if (selection != configured.end() && ((mouse && selection->second.first == v1::MOUSE) ||
+                                                 (keys && selection->second.first == v1::KEYBOARD))) {
+                need(attached_devices.insert(selection->second.second.device).second,
+                     "Several X input sources claim one configured kernel device");
+                current.emplace(device.deviceid, selection->second);
             }
         }
         std::vector<int> removed;
-        for (const auto& [id, source] : sources) if (!current.contains(id) || current.at(id) != source.kind) removed.push_back(id);
+        for (const auto& [id, source] : sources)
+            if (!current.contains(id) || current.at(id).first != source.kind || current.at(id).second != source.identity)
+                removed.push_back(id);
         for (int id : removed) disconnect(id);
-        for (const auto& [id, kind] : current) if (!sources.contains(id)) {
-            sources.emplace(id, Source{kind, ++generations[id], 0});
-            auto value = event(id); value.mutable_connected()->set_kind(kind); emit(value);
+        for (const auto& [id, selection] : current) if (!sources.contains(id)) {
+            need(generations[id] < std::numeric_limits<std::uint64_t>::max(), "Captured source generation exhausted");
+            sources.emplace(id, Source{selection.first, selection.second, ++generations[id], 0});
+            auto value = event(id); value.mutable_connected()->set_kind(selection.first); emit(value);
         }
     }
     ~Impl() {
@@ -101,13 +108,14 @@ PhysicalCapture::PhysicalCapture(Display* display, Window output, std::vector<Ph
     int event = 0, error = 0, major = 2, minor = 1;
     need(XQueryExtension(display, "XInputExtension", &r.opcode, &event, &error) &&
          XIQueryVersion(display, &major, &minor) == Success && (major > 2 || (major == 2 && minor >= 1)), "XInput 2.1 required");
-    std::set<std::filesystem::path> nodes;
-    for (auto& source : r.selected) {
+    r.error_base = error;
+    r.device_node_property = XInternAtom(display, "Device Node", True);
+    std::set<dev_t> nodes;
+    for (const auto& source : r.selected) {
         need(source.kind == v1::KEYBOARD || source.kind == v1::MOUSE, "Unsupported physical device kind");
-        source.device_node = std::filesystem::canonical(source.device_node);
-        struct stat st{};
-        need(stat(source.device_node.c_str(), &st) == 0 && S_ISCHR(st.st_mode) && nodes.insert(source.device_node).second,
-             "Physical source must identify one distinct kernel device");
+        const auto identity = physical_detail::kernel_identity(source.device_node, source.kind);
+        need(identity && nodes.insert(identity->device).second,
+             "Physical source must identify one distinct matching kernel input device");
     }
     need(XIGetClientPointer(display, None, &r.pointer), "Cannot identify the physical master pointer");
     Devices master(display, r.pointer);
@@ -144,7 +152,15 @@ bool PhysicalCapture::handle(XEvent& event) {
     if (event.type != GenericEvent || event.xcookie.extension != r.opcode || event.xcookie.send_event) return false;
     if (!XGetEventData(r.display, &event.xcookie)) return false;
     struct Cookie { Display* display; XGenericEventCookie* event; ~Cookie() { XFreeEventData(display, event); } } cookie{r.display, &event.xcookie};
-    if (event.xcookie.evtype == XI_HierarchyChanged) { r.refresh(); return true; }
+    if (event.xcookie.evtype == XI_HierarchyChanged) {
+        const auto& hierarchy = *static_cast<const XIHierarchyEvent*>(event.xcookie.data);
+        for (int i = 0; i < hierarchy.num_info; ++i) {
+            const auto& item = hierarchy.info[i];
+            if ((item.flags & (XISlaveRemoved | XIDeviceDisabled | XISlaveDetached)) && r.sources.contains(item.deviceid))
+                r.disconnect(item.deviceid);
+        }
+        r.refresh(); return true;
+    }
     if (event.xcookie.evtype == XI_RawMotion) {
         const auto& raw = *static_cast<const XIRawEvent*>(event.xcookie.data);
         if (raw.deviceid != r.pointer || !r.sources.contains(raw.sourceid) || r.sources.at(raw.sourceid).kind != v1::MOUSE) return true;
@@ -184,6 +200,7 @@ bool PhysicalCapture::handle(XEvent& event) {
 }
 void PhysicalCapture::pump(DeviceAdapters::Clock::time_point now) {
     auto& r = *impl_;
+    need(now >= r.heartbeat, "Physical capture clock moved backwards");
     if (r.heartbeat != DeviceAdapters::Clock::time_point{} && now - r.heartbeat < std::chrono::milliseconds(100)) return;
     for (const auto& [id, source] : r.sources) {
         (void)source; auto event = r.event(id); event.mutable_heartbeat(); r.emit(event);

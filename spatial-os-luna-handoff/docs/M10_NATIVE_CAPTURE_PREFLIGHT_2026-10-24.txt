@@ -1,0 +1,58 @@
+M10 native capture preflight and XI property boundaries
+Status: IMPLEMENTING. UNQUALIFIED_M10.
+
+Configured keyboard and mouse sources must identify real matching kernel input devices.
+The validator pins each character node with O_PATH and checks its sysfs input subsystem, device number, and capabilities.
+It requires keyboard keys or relative mouse axes and buttons, according to the selected class.
+It rechecks the node identity after reading metadata. It consumes no events and grants no evdev read access.
+Non-input character devices, ordinary files, relative paths, missing nodes, and class mismatches fail closed.
+
+PhysicalCapture retains configured by-id paths. It resolves them again during device refresh.
+It compares kernel identities and rejects duplicate or conflicting X claims for one selected kernel device.
+Core-seat attachment filtering now precedes Device Node property queries.
+Removal, disable, and detach events retire the old source before rebuilding the snapshot.
+Capture sequence and generation exhaustion are checked before incrementing.
+
+The property guard drains earlier X requests through the existing error handler.
+It accepts only this display's matching XIGetProperty BadDevice as an unplug race.
+It forwards unrelated errors and fails the query. It preserves earlier unrelated X errors.
+Property parsing remains bounded and rejects embedded NULs or incomplete payloads.
+
+Selected checks and results
+Both hosts pass Debug and ASan/UBSan kernel identity and isolated native query checks.
+Four kernel groups cover invalid devices, real keyboard/mouse identities, symlink reconnection, and descriptor lifetime.
+Both hosts validate their real kernel keyboard and mouse metadata without evdev read permission.
+One native method per cell checks five independent boundary groups on the retained qualified XLibre server.
+Those groups cover a removed XI device, unrelated errors, prior errors, bounded property bytes, and rejection before capture effects.
+The native check also acquires and releases the core pointer grab after rejection.
+No skipped check or sanitizer diagnostic was accepted.
+Software X tests do not grab GNOME's devices.
+Physical event delivery, actual unplug recovery, six signed SpaceMouse axes, and GPU acceptance remain UNRUN here.
+Compositor capture routing, the independent actor worker, and visible controls remain pending.
+
+Failures and deployment corrections
+Build31 lacked the explicit XI.h error-definition include.
+Build32 exposed XIChangeProperty's mutable-buffer signature in the new probe.
+Build33 uses the installed declarations and builds both profiles successfully.
+Deployment34 refused before runtime because the sanitizer payload required a missing libspnav.so.0.
+Both hosts received libspnav0 version 1.1-2 from the configured Ubuntu repository.
+No SpaceMouse daemon was installed or started. No device permissions changed.
+The installer then misclassified dpkg's uninstalled suggested-package record because its query returned exit zero.
+Corrective validation36 checked the actual package Status and matching library bytes without repeating installation.
+The corrected runtime ran only after dependency checks, complete payload verification, and checked writeback.
+Original failures and installation logs remain intact.
+
+Library SHA256: 2be5d3836fa39077818e66eece816ac244444cd748244efd114dcf7b8d42afc0.
+Recovery after retiring dependent payloads: sudo -n apt-get remove libspnav0.
+The build-only libspnav-dev dependency remains on middle-child. No development tools were installed on test hosts.
+
+Evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Source pins: source-inputs-33.json. Build receipts: build-native-capture-run-33.
+Archive SHA256: de331d6e6e2249916576586f2fa1d30f5386f899965cfc9ec2873b073ad2bd25.
+Manifest SHA256: 93987083c2c2d964fa493105f67fa56cec2c3030da40fe00d5653a6e1dd95540.
+Archive bytes: 4412828. Expanded bytes: 16950496.
+Runtime fixtures, bindings, and security-auth binaries reuse the verified startup package26 with explicit file hashes.
+Native servers, wrappers, libraries, and installed helpers retain their accepted M09 pins.
+Controller copies: evidence/HOST/native-capture-results-35 and native-capture-run-36.
+System receipts: evidence/HOST/spnav-runtime-system-change-36.json and native-dependency-install-run-35.
+Collection manifest: native-capture-collection-37.json.

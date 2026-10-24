@@ -562,7 +562,8 @@ add_library(spatial-control-menu STATIC src/control/menu.cpp)
 target_link_libraries(spatial-control-menu PUBLIC spatial-control-adapters)
 add_library(spatial-device-stream STATIC src/control/device_stream.cpp)
 target_link_libraries(spatial-device-stream PUBLIC spatial-control-adapters)
-add_library(spatial-control-native STATIC src/control/physical_capture.cpp src/control/spacemouse.cpp)
+add_library(spatial-control-native STATIC src/control/physical_capture.cpp src/control/physical_source.cpp
+    src/control/physical_query.cpp src/control/spacemouse.cpp)
 target_link_libraries(spatial-control-native PUBLIC spatial-control-adapters X11::Xi PkgConfig::SPNAV)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/control_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
@@ -653,6 +654,18 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-control-adapters-check PRIVATE spatial-control-adapters)
     add_test(NAME actor-control-adapters COMMAND $<TARGET_FILE:spatial-control-adapters-check>)
     set_tests_properties(actor-control-adapters PROPERTIES TIMEOUT 60)
+    add_executable(spatial-physical-capture-probe src/testing/physical_capture_probe.cpp src/x11/compositor_connection.cpp)
+    target_link_libraries(spatial-physical-capture-probe PRIVATE spatial-control-native spatial-compositor-config
+        PkgConfig::XCB ${CMAKE_DL_LIBS})
+    target_link_options(spatial-physical-capture-probe PRIVATE "LINKER:--export-dynamic-symbol=xcb_connect_to_display_with_auth_info")
+    add_dependencies(spatial-physical-capture-probe spatial-security-auth compositor-python-protobuf security-python-protobuf)
+    add_test(NAME actor-physical-source COMMAND $<TARGET_FILE:spatial-physical-capture-probe> --kernel)
+    set_tests_properties(actor-physical-source PROPERTIES TIMEOUT 60)
+    add_test(NAME actor-physical-query-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_physical_capture_queries.py"
+        $<TARGET_FILE:spatial-physical-capture-probe> $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(actor-physical-query-native PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_pb2.py"
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v1
