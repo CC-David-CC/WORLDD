@@ -1,3 +1,24 @@
+## 2026-10-24: Native stage cancellation and checked stopped-world recovery pass focused checks
+
+Cancellation drains submitted Bind, Select, or Present work without starting a later stage.
+A submitted valid Present may finish. Its cancelled receipt cannot be replayed or reused.
+Native pixels and exact frame increments independently witness these boundaries.
+A new regression reproduces pending-selection recovery failure on both hosts.
+Two related regressions reproduce obsolete tickets surviving checked world retirement.
+Recovery now validates exact stop receipts and settles submitted selection before compositor recovery.
+It drops obsolete frames only after checked presentation retirement.
+Lost compositor transport preserves fenced observation and cleanup obligations.
+The original foreground fixture also fixes an import-order argument shift that selected old helpers.
+Explicit source, launcher, and live coordinator checks establish the intended candidate lane.
+Both hosts pass 24 methods in Debug and ASan/UBSan: 96 accepted completions.
+No corrected check fails or skips. Collected outputs contain no sanitizer diagnostic.
+The preceding source233 candidate fails three intended regressions per host with corrected fixture pins.
+Evidence: presentation-cancellation-collected-242 and presentation-cancellation-summary-242.json under the external M10 evidence root.
+Read docs/M10_RETAINED_PRESENTATION_DIRECTION_2026-10-24.txt for source, fixture, and earlier refusal records.
+Host context replacement, remote geometry, same-client observation, and three-actor real workflows remain pending.
+The complete frozen M10 gate remains pending. Accepted M09 is unchanged.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
 ## 2026-10-24: Retained movement failure also cancels already active motion
 
 The draft remains disabled unless trusted configuration explicitly enables it.

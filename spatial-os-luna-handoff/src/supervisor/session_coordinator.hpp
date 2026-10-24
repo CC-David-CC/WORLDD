@@ -39,7 +39,15 @@ public:
     };
     LocalPresentationTicket begin_present_local_actor(const workspace::v1::ControlOwner&,
         const core::v1::ActorLocalViewIdentity&, std::uint32_t width, std::uint32_t height);
-    std::optional<core::v1::ActorLocalViewState> poll_present_local_actor(const LocalPresentationTicket&);
+    enum class LocalPresentationStage { bind, select, present };
+    struct LocalPresentationProgress {
+        LocalPresentationStage stage;
+        bool submitted = false, cancelled = false;
+    };
+    // Trusted inspection performs no I/O and cannot advance the operation.
+    LocalPresentationProgress local_presentation_progress(const LocalPresentationTicket&) const;
+    std::optional<core::v1::ActorLocalViewState> poll_present_local_actor(const LocalPresentationTicket&,
+        unsigned maximum_steps = 3);
     // Drain only the existing request. Never advance a cancelled frame to another effect.
     void cancel_present_local_actor(const LocalPresentationTicket&);
     void retire_local_actor(const workspace::v1::ControlOwner&, const core::v1::ActorLocalViewIdentity&);

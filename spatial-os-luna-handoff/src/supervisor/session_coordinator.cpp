@@ -171,6 +171,35 @@ struct SessionCoordinator::Impl {
         catch(const WorldError&){frame.selection_token.reset();throw;}
         frame.selection_token.reset();frame.stage=World::LocalFrame::Present;
     }
+    void retire_stopped_presentation(World& world) {
+        require(presentation && world.presentation_attached && world.stopped,
+            "Presentation recovery requires stopped retained world ownership");
+        world.invalidate_local_attestations();
+        if(world.presentation_retired)return;
+        const auto checked=world.supervisor->stop();
+        require(checked.SerializeAsString()==world.record.SerializeAsString() && checked.stage()==v1::OWNED_SCOPES_STOPPED &&
+            checked.has_process_stopped() && checked.has_native_stopped(),
+            "Presentation recovery requires checked supervisor receipts");
+        if(world.local_frame) {
+            world.local_frame->cancelled=true;
+            // The stopped producer cannot finish a world request. Its checked
+            // receipts permit recovery, but the live compositor still owns its
+            // submitted selection. Consume that reply before reusing its stream.
+            try {drain_local_selection(world);}
+            catch(const WorldError& error) {
+                // A correlated typed denial has retired the selection exchange.
+                // Transport or validation failures remain uncertain and propagate.
+                std::cerr<<"Stopped-world selection denied before recovery: "<<error.what()<<'\n';
+            }
+        }
+        presentation->recover(world.presentation,checked.process_stopped(),checked.native_stopped());
+        const auto retired=presentation->detach(world.presentation);
+        require(retired.stage()==render::v1::RETIRED,"Presentation retirement remains unconfirmed");
+        world.presentation_retired=true;
+        // Drop obsolete tickets only after exact process/native stop and
+        // compositor retirement. An unconfirmed recovery retains its obligations.
+        world.local_frame.reset();world.exchange.reset();
+    }
     workspace::v1::ControlOwnerState administrative(const workspace::v1::ControlOwner& owner, int endpoint = -1,
         bool fence = false, const v1::AuthorityLaunchRecord* cleanup = nullptr) {
         live(); require(sequence != UINT64_MAX, "Session administrative request sequence exhausted");
@@ -251,15 +280,7 @@ render::v1::GeometryPresentationState SessionCoordinator::retire_geometry(const 
 }
 void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner& owner){
     auto& state=*impl_;auto& world=state.find_owned(owner);
-    require(state.presentation && world.presentation_attached && world.stopped,"Presentation recovery requires stopped retained world ownership");
-    world.invalidate_local_attestations();
-    if(world.presentation_retired)return;
-    const auto checked=world.supervisor->stop();
-    require(checked.SerializeAsString()==world.record.SerializeAsString() && checked.stage()==v1::OWNED_SCOPES_STOPPED &&
-        checked.has_process_stopped() && checked.has_native_stopped(),"Presentation recovery requires checked supervisor receipts");
-    state.presentation->recover(world.presentation,checked.process_stopped(),checked.native_stopped());
-    const auto retired=state.presentation->detach(world.presentation);
-    require(retired.stage()==render::v1::RETIRED,"Presentation retirement remains unconfirmed");world.presentation_retired=true;
+    state.retire_stopped_presentation(world);
 }
 core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity,std::uint32_t width,std::uint32_t height) {
@@ -322,14 +343,23 @@ SessionCoordinator::LocalPresentationTicket SessionCoordinator::begin_present_lo
     frame.deadline=Clock::now()+std::chrono::seconds(10);world.local_frame=std::move(frame);
     return ticket;
 }
-std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_local_actor(const LocalPresentationTicket& ticket) {
+SessionCoordinator::LocalPresentationProgress SessionCoordinator::local_presentation_progress(
+        const LocalPresentationTicket& ticket) const {
+    auto& world=impl_->find_owned(ticket.owner);const auto& frame=impl_->frame(world,ticket);
+    const auto stage=frame.stage==World::LocalFrame::Bind?LocalPresentationStage::bind:
+        frame.stage==World::LocalFrame::Select?LocalPresentationStage::select:LocalPresentationStage::present;
+    return {stage,bool(frame.world_token || frame.selection_token),frame.cancelled};
+}
+std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_local_actor(
+        const LocalPresentationTicket& ticket,unsigned maximum_steps) {
+    require(maximum_steps>=1 && maximum_steps<=3,"Invalid local presentation poll budget");
     auto& state=*impl_;auto& world=state.find(ticket.owner);auto& frame=state.frame(world,ticket);
     require(!frame.cancelled,"Local presentation operation was cancelled");
     try {
         require(Clock::now()<frame.deadline,"Local presentation operation timed out");
         require(!world.failed && !world.stopped && world.presentation.presentation_generation()==ticket.presentation_generation,
             "Local presentation producer changed");
-        for(unsigned step=0;step<3;++step) {
+        for(unsigned step=0;step<maximum_steps;++step) {
             if(frame.stage==World::LocalFrame::Select) {
                 if(!frame.selection_token)frame.selection_token=state.presentation->begin_select_local_actor(frame.target);
                 try {
@@ -675,13 +705,7 @@ std::vector<std::string> SessionCoordinator::stop_retained_worlds() {
         }
         if (world.presentation_attached && !world.presentation_retired) {
             try {
-                require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED &&
-                    world.record.has_process_stopped() && world.record.has_native_stopped() && state.presentation,
-                    "Presentation recovery lacks checked world stop receipts");
-                state.presentation->recover(world.presentation, world.record.process_stopped(), world.record.native_stopped());
-                const auto retired = state.presentation->detach(world.presentation);
-                require(retired.stage() == render::v1::RETIRED, "Presentation retirement remains unconfirmed");
-                world.presentation_retired = true;
+                state.retire_stopped_presentation(world);
             } catch (const std::exception& error) {
                 unresolved.push_back(label + ": presentation: " + error.what());
             }

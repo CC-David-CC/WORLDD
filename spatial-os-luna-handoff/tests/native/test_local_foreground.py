@@ -11,8 +11,9 @@ import issuer_pb2 as identity
 import launch_pb2 as launch
 import session_probe_pb2 as probe
 import world_session_pb2 as session
-import test_resource_isolation as native
+# Parse SOURCE and the launch probe before native security consumes its argument.
 import test_session_application as baseline
+import test_resource_isolation as native
 
 
 class LocalForegroundTests(baseline.SessionApplicationTests):

@@ -25,6 +25,17 @@ message LocalForegroundPresent {
   uint32 width = 2;
   uint32 height = 3;
 }
+message LocalForegroundPoll {
+  uint64 serial = 1;
+  uint32 maximum_steps = 2;
+}
+message LocalForegroundProgress {
+  enum Stage { BIND = 0; SELECT = 1; PRESENT = 2; }
+  uint64 serial = 1;
+  Stage stage = 2;
+  bool submitted = 3;
+  bool cancelled = 4;
+}
 message SessionProbeRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -43,6 +54,9 @@ message SessionProbeRequest {
     SessionWorldCall owned_world = 21;
     LocalForegroundPresent local_present = 22;
     spatial.core.v1.ActorLocalViewIdentity local_retire = 23;
+    LocalForegroundPresent local_begin = 24;
+    LocalForegroundPoll local_poll = 25;
+    uint64 local_cancel = 26;
   }
 }
 message SessionProbeReply {
@@ -58,5 +72,7 @@ message SessionProbeReply {
     SessionWorldStarted started = 16;
     spatial.core.v1.ActorLocalViewState local_frame = 22;
     bool local_retired = 23;
+    LocalForegroundProgress local_progress = 24;
+    bool local_cancelled = 26;
   }
 }

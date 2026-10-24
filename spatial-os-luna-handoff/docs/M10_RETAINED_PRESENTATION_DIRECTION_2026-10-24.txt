@@ -329,3 +329,65 @@ Production remains compiled source220 from checkpoint e1335b89a6d7bd810a066b48bc
 Only tests and maintained summaries change. No build or stable deployment is changed.
 Presentation cancellation at each stage, stale completion, and component recovery remain unproven by this increment.
 M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
+Native stage cancellation and checked recovery, source237
+Trusted polls accept a one-to-three-stage budget. The production default remains three.
+Read-only progress inspection validates an exact retained ticket and performs no I/O.
+The test-driver schema adds private begin, poll, cancel, and progress fields 24 through 26.
+These fixture operations invoke the production coordinator. Actors receive no new authority or transport.
+No production Protobuf schema, acceptance assertion, or lock entry changes in this increment.
+The native fixture pauses real owned processes through pinned process handles.
+It resumes each held reply after cancellation starts and checks that cancellation drains it.
+Independent native pixels and exact frame increments detect later-stage rendering and replay.
+Cancellation before submission also preserves the next owner. Stale tickets cannot poll or cancel that owner.
+An already-submitted valid Present may complete before cancellation returns. No later stage is submitted.
+Cancellation is not rollback of effects already authorized and submitted.
+
+Three source233 failures reproduce with corrected child pins on both hosts.
+Pending selection prevents stopped-world retirement with Host presentation exchange already in progress.
+Pending Bind and Present survive retirement as obsolete live tickets.
+Each predecessor runs eight methods: five pass and three fail. Its raw exits remain one.
+The correction revalidates exact stopped process/native receipts before touching pending ownership.
+It marks the frame cancelled and drains only an already-submitted compositor selection.
+A correlated typed denial retires that exchange. Lost or malformed transport remains unresolved.
+Compositor recovery and detach then require checked retirement before dropping the frame and world exchange.
+Explicit recovery and retained-world shutdown use the same implementation.
+A missing compositor preserves the broker's fenced observation obligations until checked cleanup permits release.
+
+Fixture integrity repairs
+Attempt234 rejected all five new commands with Unknown protobuf fields before cancellation assertions.
+A legacy import-order bug shifted SOURCE, launch probe, and security-auth positional arguments.
+A symlinked security helper then selected the source116 foreground executable and child helpers.
+Attempt235 added an explicit coordinator but its executable witness hit non-dumpable /proc permissions.
+Attempt236 used a pidfd-bracketed sudo readlink and reached a real coordinator collision with source116 children.
+Those reports are preserved separately. They do not establish the intended mixed candidate lane.
+The corrected foreground import order parses SOURCE and the launch probe before native security.
+The new test checks those exact CLI pins and the actual live coordinator executable.
+Attempt240 repeats the regressions with the intended source220 world, compositor, and supervisor dependencies.
+An independent read-only review identified the import shift and a delayed-reply witness race.
+One lock now orders SIGCONT, its flag, and the receipt-side snapshot before joining the helper thread.
+The review found no blocker in the checked recovery helper. Primary execution provides the test evidence.
+
+Focused result and provenance
+Both hosts pass eight new methods, twelve original foreground methods, and four original context methods per profile.
+Debug and ASan/UBSan therefore provide 96 completions: 32 new regressions and 64 original methods.
+No corrected method fails or skips. Collected outputs contain no sanitizer diagnostic.
+Both canonical run receipts return command/wrapper zero. Selected runtime processes are absent afterward.
+Compiled source manifest: presentation-cancellation-source-237.json; base 521615ac63d86bff38e9868866389ee591d05b2f.
+Exact archive: presentation-cancellation-source237-exact-238.tar.gz; verified 1675 files.
+Archive SHA256: 217c7895a33af54033fc80174a3fa4b84b0f57e6b2ed653d96a14acbd7ca4e94.
+The test-only overlay fixes import order and witness ordering after compilation. Production still matches source237.
+Debug package manifest SHA256: 59fbbe93d740c9dd46f967b36728d5aca9829ad07168015cdfff696094c18bd8.
+ASan/UBSan manifest SHA256: 02427b06a8405690b38f9d9c0a8ccfae92f42beb573b0e65b9f45917c149dfb7.
+The new coordinator/probe uses each selected profile. World, compositor, and supervisor remain source220 in that profile.
+Broker, issuer, security, and confined native witness remain the declared source116 Debug dependencies.
+These selected mixed component packages are not one final frozen M10 deployment.
+Raw reports: presentation-cancellation-collected-242. Summary: presentation-cancellation-summary-242.json.
+Earlier refusals: presentation-cancellation-predecessor-collected-238 and presentation-cancellation-import-review-239.json.
+Sb16 collected archive SHA256: 1db87ae025e1ef3d0db63fd3e115f5f623541dc3ef2bb147ac178e866a9be2fb; 398 verified files.
+Sb16-2 archive SHA256: 9ffc226435ebd9e1aed135c21e3ef2cc880fba0f755b6f169d76aa9eb6aa5e9e; 395 verified files.
+The final audit verifies payload bytes, modes, links, and native/library closure after execution.
+No stable deployment changes. No artifact cleanup occurs in this increment.
+Host context replacement, remote geometry/same-client scheduling, and real three-actor file/application workflows remain pending.
+The combined candidate still needs independent generation and the full two-host qualification gate.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.

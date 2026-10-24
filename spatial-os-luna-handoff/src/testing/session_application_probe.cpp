@@ -9,6 +9,7 @@
 #include <cstring>
 #include <csignal>
 #include <set>
+#include <map>
 
 // Forward management to the real coordinator. Application actions use its local actor channel.
 int main(int argc, char** argv) {
@@ -69,6 +70,15 @@ int main(int argc, char** argv) {
         *binding.mutable_control_owner() = owner; spatial::write_frame(std::cout, binding);
         spatial::core::v1::Request identities; identities.set_protocol_version(1); identities.set_request_id(45);
         identities.mutable_runtime_identities(); spatial::write_frame(std::cout, coordinator.world_call(owner, identities));
+        std::map<std::uint64_t,spatial::supervisor::SessionCoordinator::LocalPresentationTicket> local_tickets;
+        const auto progress = [&](const auto& ticket,auto& reply) {
+            const auto state=coordinator.local_presentation_progress(ticket);
+            auto* value=reply.mutable_local_progress();value->set_serial(ticket.serial);
+            using Stage=spatial::supervisor::SessionCoordinator::LocalPresentationStage;
+            using Output=spatial::testing::v1::LocalForegroundProgress;
+            value->set_stage(state.stage==Stage::bind?Output::BIND:state.stage==Stage::select?Output::SELECT:Output::PRESENT);
+            value->set_submitted(state.submitted);value->set_cancelled(state.cancelled);
+        };
         std::string bytes;
         while (spatial::read_frame(std::cin, bytes)) {
             spatial::testing::v1::SessionProbeRequest request;
@@ -84,6 +94,18 @@ int main(int argc, char** argv) {
                     *reply.mutable_local_frame()=coordinator.present_local_actor(owner,value.identity(),value.width(),value.height());
                 }else if (request.has_local_retire()) {
                     coordinator.retire_local_actor(owner,request.local_retire());reply.set_local_retired(true);
+                }else if (request.has_local_begin()) {
+                    if(local_tickets.size()>=64)throw std::runtime_error("Too many fixture presentation tickets");
+                    const auto& value=request.local_begin();
+                    auto ticket=coordinator.begin_present_local_actor(owner,value.identity(),value.width(),value.height());
+                    local_tickets.emplace(ticket.serial,ticket);progress(ticket,reply);
+                }else if (request.has_local_poll()) {
+                    const auto& value=request.local_poll();const auto& ticket=local_tickets.at(value.serial());
+                    auto frame=coordinator.poll_present_local_actor(ticket,value.maximum_steps());
+                    if(frame)*reply.mutable_local_frame()=*frame;
+                    else progress(ticket,reply);
+                }else if (request.has_local_cancel()) {
+                    coordinator.cancel_present_local_actor(local_tickets.at(request.local_cancel()));reply.set_local_cancelled(true);
                 }
                 else if (request.has_owned_world())
                     *reply.mutable_result() = coordinator.world_call(request.owned_world().owner(), request.owned_world().request());
