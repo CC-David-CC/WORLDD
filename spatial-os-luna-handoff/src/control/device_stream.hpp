@@ -10,6 +10,7 @@ class DeviceStream final {
 public:
     enum class Role { Capture, Controller };
     DeviceStream(int owned_descriptor,pid_t expected_peer,std::uint64_t capture_generation,Role);
+    static void validate_endpoint(int borrowed_descriptor,pid_t expected_peer);
     ~DeviceStream();
     DeviceStream(const DeviceStream&)=delete;
     DeviceStream& operator=(const DeviceStream&)=delete;

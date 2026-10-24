@@ -1,0 +1,123 @@
+M10 PRIVATE CONTINUOUS CAPTURE
+Status: FOCUSED-PASS, UNQUALIFIED_M10.
+Base: e8abbf87668e64b7e533cd93b3966acb000e162b.
+
+Additive private interface change, documented before schema edits
+control.proto adds explicit native device selection and private capture progress.
+HostSessionConfig adds native capture configuration or a bounded trusted endpoint pool.
+The options are mutually exclusive and require shared actor controls.
+Inherited endpoints must be distinct unnamed seqpacket sockets with the trusted parent kernel peer.
+Validate aliases and close-on-exec before launching any child.
+An endpoint fixes one capture epoch. Never reset generations on a reused endpoint.
+The pool supports trusted adapters and software qualification without physical grabs.
+Neither mode creates an ordinary actor input API or accepts actor credentials in events.
+
+Private presentation start_capture transfers exactly one descriptor with an epoch and native configuration.
+stop_capture carries one exact epoch. Repeated retirement is idempotent.
+A stale stop cannot retire a newer capture.
+Reserve attempted epochs before native effects. Retain uncertain cleanup obligations.
+Native selection validates real kernel device identities before any grab.
+The compositor X thread owns capture and libspnav. It never waits for worldd while emitting.
+
+The host owns an independent DeviceStream receiver bound to one immutable actor/capture context.
+It drains bounded batches while root requests wait.
+It retains capture timestamps and monitors active-source silence independently of actor exchanges.
+No connected source means no source-silence failure.
+EOF, malformed input, overflow, and active-source silence retire only the affected binding.
+Checked transition input release disarms old-context interruption before capture retirement.
+Fresh capture activation follows checked projection and native controls presentation.
+Private processed sequence progress follows checked semantic handling and its output/interruption barrier.
+It does not acknowledge raw datagram reception.
+
+Keep the 250 ms gesture age and 350 ms source silence limits unchanged.
+Preserve all existing fields, 151 locked assertions, oracles, witnesses, and unrelated pins.
+These private schemas are outside acceptance.lock.json. No lock refresh is needed.
+Full generated-binding reproducibility remains required on the final candidate.
+
+Selected checks, before implementation
+Validate native start/stop descriptor counts, peers, epochs, and invalid device selection before grabs.
+Run independent 100 ms keyboard/mouse producers through the production seqpacket receiver.
+Exercise root requests, real native menu output, cancellation, and world handoff under continuous capture.
+Check processed progress after checked handling, rather than channel receipt.
+Exercise EOF, malformed packets, queue overflow, active-source silence, and empty-source liveness.
+Verify stale receiver events and failures cannot affect an adopted context.
+Run related worker/controller, native menu, and projection regressions on both test hosts.
+Use Debug and focused ASan/UBSan. Build only on middle-child.
+Physical input acceptance and full M10 qualification remain pending.
+
+Observed dependency defect and correction
+Source149 builds Debug and ASan/UBSan successfully.
+Its 29 C++ fixture groups pass on both hosts with both build profiles.
+Debug native capture, menu, continuous input, and projection checks pass on both hosts.
+The first native run stopped before startup because a test helper hid inherited start().
+The next run exposed an artifact selector dropped by the delegated environment allowlist.
+Corrected fixtures derive spatialwm from the explicitly supplied candidate host executable.
+Keep those failures separate from production runtime evidence.
+
+ASan then reproduced a 48-byte libspnav leak during repeated capture startup on both hosts.
+libspnav1.1 allocates an event queue before connection and leaves it allocated on failure.
+Its close API rejects cleanup without an opened connection.
+See pinned upstream source and the local correction in third_party/libspnav/README.txt.
+The project builds that private copy with sanitizers enabled and preserves the system installation.
+Add repeated failed-open and successful-recovery regressions with descriptor counts.
+Do not suppress leak detection.
+
+The existing visible-host control assertions remain unchanged.
+Their input adapter now uses the independently running production capture transport.
+The explicit source-silence test retains coverage for deliberate heartbeat loss.
+This replaces the old serial fixture's false continuously-alive assumption.
+All corrected sanitizer and related visible-control results remain pending.
+
+Cancellation publication and startup failure review
+Source154 repeated silence checks exposed a fixture expecting exactly one Stop.
+Adapter expiry and receiver expiry can each send a fresh checked Stop.
+Stop is idempotent under CONTRACT.md. Neither request replays an uncertain effect.
+The read-only helper reviewed a silence-only peer accepting at most two fresh Stops.
+Keep the global strict EOF helper and withheld-reply regressions unchanged.
+Publish pending cancellation before the retirement flag, then notify the worker.
+Retirement fences ingress. It does not acknowledge Stop.
+
+Run156 reproduces capture startup failure stopping retained world services on both hosts.
+Adapter startup failure must instead retain ordinary actor authority and world services.
+Report capture inactive and retired. Preserve any uncertain capture cleanup obligation.
+This private stop extension permits fencing an attempted newer epoch only when capture is inactive.
+It prevents later reuse of that retired epoch.
+It cannot stop an active different epoch or an already newer epoch.
+Record this administrative boundary explicitly. Existing actor schemas and locked tests remain unchanged.
+
+Reviewed focused result, 2026-10-24
+Source157 builds the changed targets in Debug and ASan/UBSan on middle-child.
+Run158 passes all ten selected suites in each host/profile cell.
+Both hosts together complete 140 C++ groups and 92 native Python methods.
+No selected method failed, skipped, or remained unrun. No sanitizer diagnostic was accepted.
+The changed host, controller, compositor, and private libspnav use the selected instrumentation.
+World, issuer, and broker dependencies remain the retained source116 Debug baseline.
+These results do not establish a fully sanitized world session or the full M10 gate.
+
+The clean target-only production build also passes with BUILD_TESTING and SPATIAL_INPUT_TESTS disabled.
+It builds spatial-host-session and spatialwm without test-target prerequisites.
+Both hosts import all 22 generated modules and the production provision_storage entrypoint.
+Every generated module resolves inside that production-only bundle and matches the Debug generation bytes.
+This checks production dependency coverage. Final independent generation reproducibility remains pending.
+
+Evidence root on middle-child:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023
+Source manifest: continuous-capture-source-157.json
+Manifest SHA256: e57b1f574d926bb7219473af53bba36b354a784f5f968c4d7f38d730854cd1ec
+Exact source: m10-source157-exact-160.tar.gz, 1667 files.
+Archive SHA256: 37396154339ea16103a4e846b3b63aab7d72cda346330a6dfe28bd49d5a761c2
+Terminal audit: continuous-capture-terminal-audit-160.json
+Collected host logs and receipts: continuous-capture-collected-160/{sb16,sb16-2}
+Primary review: continuous-capture-primary-review-160.json
+Production build: production-no-tests-run-159
+Production imports: production-bindings-terminal-{sb16,sb16-2}-161.json
+Private upstream integrity: libspnav-private-source-provenance-154.json
+Earlier failures remain preserved in runs150, 152, 153, 155, and156.
+This result update changes maintained documentation only after the compiled source snapshot.
+
+Remaining milestone work
+Complete the human plus two independently authenticated scripted actor workflow.
+Prove real cabinet files and confined application control through the same production action owner.
+Complete remaining cross-world foreground, remote geometry, and compositor-failure concealment witnesses.
+Freeze the combined candidate before the complete two-host qualification matrix.
+Physical-device acceptance, real models, performance qualification, Spatial-M1, and LOCAL_READY remain pending.

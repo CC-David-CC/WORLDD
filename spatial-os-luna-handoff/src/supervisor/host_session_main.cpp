@@ -1,6 +1,8 @@
 #include "supervisor/session_coordinator.hpp"
 #include "supervisor/host_actor_controller.hpp"
 #include "supervisor/host_actor_worker.hpp"
+#include "platform/presentation_stream.hpp"
+#include "control/native_capture_config.hpp"
 #include "world/actor_session_client.hpp"
 #include "host_session.pb.h"
 #include "actor_session_client.pb.h"
@@ -10,6 +12,7 @@
 #include <array>
 #include <algorithm>
 #include <cstddef>
+#include <climits>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
@@ -117,6 +120,7 @@ void check_peer(int fd, pid_t expected) {
 void check_descriptor_aliases(int config_fd,int control_fd,const spatial::supervisor::v1::HostSessionConfig& c) {
     std::vector<int> descriptors{config_fd,control_fd,static_cast<int>(c.broker_native_fd()),static_cast<int>(c.compositor_native_fd())};
     for (const auto fd:c.broker().inherited_source_fds()) descriptors.push_back(static_cast<int>(fd));
+    for (const auto fd:c.trusted_capture_fds()) descriptors.push_back(static_cast<int>(fd));
     for (const auto& world:c.worlds()) {
         descriptors.push_back(static_cast<int>(world.native_fd()));
         descriptors.push_back(static_cast<int>(world.actor_listener_fd()));
@@ -175,6 +179,12 @@ void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
     validate_actor_profile(c.initial_actor_tls_config(),c.initial_world_id());
     if (c.shared_actor_controls()) (void)host_controls(c.controls_preferences_path());
     else need(c.controls_preferences_path().empty(), "Control preferences require shared actor controls");
+    need((!c.has_native_capture() && c.trusted_capture_fds().empty()) || c.shared_actor_controls(),
+        "Capture requires shared actor controls");
+    need(!c.has_native_capture() || c.trusted_capture_fds().empty(),"Native and inherited capture sources are mutually exclusive");
+    need(c.trusted_capture_fds_size()<=64,"Too many inherited capture endpoints");
+    if(c.has_native_capture())control::validate_native_capture(c.native_capture());
+    for(const auto fd:c.trusted_capture_fds())need(fd>=3 && fd<=INT_MAX,"Invalid inherited capture descriptor");
 }
 }
 
@@ -182,6 +192,7 @@ int main(int argc,char** argv) {
     std::unique_ptr<SessionCoordinator> session;
     std::unique_ptr<HostActorController> controller;
     std::unique_ptr<HostActorWorker> actor_worker;
+    std::vector<PresentationStream::File> capture_pool;
     int control=-1;
     bool operation_ok=false, cleanup_ok=true;
     bool service_start_attempted=false, presentation_start_attempted=false, presentation_started=false;
@@ -196,6 +207,13 @@ int main(int argc,char** argv) {
         spatial::supervisor::v1::HostSessionConfig config;
         need(google::protobuf::TextFormat::ParseFromString(config_contents(config_fd),&config),"Malformed host textproto configuration"); validate_config(config);
         check_descriptor_aliases(config_fd,control,config);
+        for(const auto fd:config.trusted_capture_fds())control::DeviceStream::validate_endpoint(static_cast<int>(fd),parent);
+        for(const auto fd:config.trusted_capture_fds()) {
+            capture_pool.emplace_back(static_cast<int>(fd));
+            const int descriptor_flags=fcntl(static_cast<int>(fd),F_GETFD);
+            need(descriptor_flags>=0 && fcntl(static_cast<int>(fd),F_SETFD,descriptor_flags|FD_CLOEXEC)==0,
+                "Cannot isolate inherited capture endpoint from child processes");
+        }
         const int flags=fcntl(control,F_GETFL);
         need(flags>=0 && fcntl(control,F_SETFL,flags|O_NONBLOCK)==0,"Cannot set nonblocking control transport");
         service_start_attempted=true;
@@ -233,7 +251,31 @@ int main(int argc,char** argv) {
         }
         controller->start_geometry_presentation();
         controller->synchronize_controls_presentation();
-        if(config.shared_actor_controls())actor_worker=std::make_unique<HostActorWorker>(*controller);
+        if(config.shared_actor_controls()) {
+            HostActorWorker::CaptureStart start;
+            HostActorWorker::CaptureStop stop;
+            if(config.has_native_capture()) {
+                start=[&session,native=config.native_capture()](const auto& binding) {
+                    int pair[2];need(socketpair(AF_UNIX,SOCK_SEQPACKET|SOCK_CLOEXEC,0,pair)==0,"Cannot create private native capture pair");
+                    PresentationStream::File consumer(pair[0]),producer(pair[1]);
+                    auto stream=std::make_unique<control::DeviceStream>(consumer.release(),getpid(),binding->capture_generation,
+                        control::DeviceStream::Role::Controller);
+                    session->start_capture(binding->capture_generation,native,producer.value);
+                    return HostActorWorker::CaptureEndpoint{std::move(stream),0};
+                };
+                stop=[&session](const auto& binding){session->stop_capture(binding->capture_generation);};
+            } else if(!capture_pool.empty()) {
+                start=[&capture_pool,parent,index=std::size_t{0}](const auto& binding) mutable {
+                    need(index<capture_pool.size(),"Trusted capture endpoint pool exhausted");
+                    const auto slot=++index;
+                    auto stream=std::make_unique<control::DeviceStream>(capture_pool[slot-1].release(),parent,
+                        binding->capture_generation,control::DeviceStream::Role::Controller);
+                    return HostActorWorker::CaptureEndpoint{std::move(stream),static_cast<std::uint32_t>(slot)};
+                };
+                stop=[](const auto&){}; // No physical grab; closing the exact receiver retires this slot.
+            }
+            actor_worker=std::make_unique<HostActorWorker>(*controller,std::move(start),std::move(stop));
+        }
         std::uint64_t last_id=0;
         while(!stopped) {
             need(!actor_worker || !actor_worker->failed(),"Actor worker terminated unexpectedly");
@@ -258,7 +300,7 @@ int main(int argc,char** argv) {
                         else if(request.has_geometry_status()) { *reply.mutable_geometry_status()=controller->geometry_status(request.generation()); reply.set_accepted(true); }
                         else if(request.has_action()) { auto result=controller->action(request.generation(),request.action()); *reply.mutable_action()=result; reply.set_accepted(true); }
                         else if(request.has_propose()) { *reply.mutable_proposed()=controller->propose(request.generation(),request.propose()); reply.set_accepted(true); }
-                        else if(request.has_controls_status()) { *reply.mutable_controls()=controller->control_status(request.generation()); reply.set_accepted(true); }
+                        else if(request.has_controls_status()) { *reply.mutable_controls()=actor_worker ? actor_worker->control_status(request.generation()) : controller->control_status(request.generation()); reply.set_accepted(true); }
                         else if(request.has_captured_device()) {
                             if(actor_worker) {
                                 const auto binding=actor_worker->capture_binding();
@@ -295,6 +337,7 @@ int main(int argc,char** argv) {
         }
         operation_ok=true;
     } catch(const std::exception& error) { std::cerr<<"host session failed: "<<error.what()<<'\n'; }
+    if(actor_worker && !actor_worker->shutdown()) {cleanup_ok=false;std::cerr<<"Native capture cleanup remains unconfirmed\n";}
     actor_worker.reset(); // Stop exchanges before returning coordinator ownership to this thread.
     controller.reset(); // Release actor TLS channels before owned-process cleanup.
     if(service_start_attempted && !session) {

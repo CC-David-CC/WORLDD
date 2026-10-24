@@ -1,4 +1,8 @@
 #include "render/renderer.hpp"
+#include "control/device_stream.hpp"
+#include "control/physical_capture.hpp"
+#include "control/spacemouse.hpp"
+#include "control/native_capture_config.hpp"
 #include "render/presentation_inputs.hpp"
 #include "render/controls_overlay.hpp"
 #include "x11/compositor_connection.hpp"
@@ -21,6 +25,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <optional>
+#include <poll.h>
 #include <stdexcept>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -87,7 +92,11 @@ struct Renderer::Impl {
     std::unique_ptr<XInputRouter> input;
     std::unique_ptr<PresentationInputs> bindings;
     std::unique_ptr<ControlsOverlay> controls;
+    std::unique_ptr<control::DeviceStream> capture_stream;
+    std::unique_ptr<control::PhysicalCapture> physical_capture;
+    std::unique_ptr<control::SpaceMouseSource> spacemouse;
     ~Impl() {
+        physical_capture.reset();spacemouse.reset();capture_stream.reset();
         controls.reset(); // Release GL resources while this context is current.
         bindings.reset(); input.reset(); surfaces.reset(); native_input.reset();
         if (context) {
@@ -238,10 +247,23 @@ void Renderer::events() {
     auto& r = *impl_;
     for (unsigned drained=0; drained<256 && XPending(r.display); ++drained) {
         XEvent event{}; XNextEvent(r.display, &event);
+        if(r.physical_capture) {
+            try {if(r.physical_capture->handle(event))continue;}
+            catch(...) {stop_capture();}
+        }
         if (event.type == Expose && event.xexpose.window == r.window && event.xexpose.count == 0) r.output();
         if (r.surfaces) r.surfaces->event(event);
         if (event.type == DestroyNotify && event.xdestroywindow.window == r.window)
             throw std::runtime_error("Compositor output was destroyed");
+    }
+    if(r.capture_stream) {
+        try {
+            const auto now=control::DeviceAdapters::Clock::now();
+            if(r.physical_capture)r.physical_capture->pump(now);
+            if(r.spacemouse)r.spacemouse->pump(now);
+            pollfd peer{r.capture_stream->descriptor(),static_cast<short>(POLLIN),0};
+            if(poll(&peer,1,0)<0 || (peer.revents&(POLLIN|POLLHUP|POLLERR|POLLNVAL)))stop_capture();
+        } catch(...) {stop_capture();}
     }
     check_x(r.display);
 }
@@ -311,6 +333,40 @@ void Renderer::present_controls(const control::v1::ControlMenuView& view) {
     r.controls->set(view);
     r.output(); // Receipt follows swap, GL completion, and the X error barrier.
 }
+void Renderer::start_capture(int fd,pid_t creator,std::uint64_t generation,
+        const control::v1::NativeCaptureConfig& config) {
+    auto& r=*impl_;
+    // DeviceStream owns the transferred descriptor even if subsequent validation fails.
+    auto stream=std::make_unique<control::DeviceStream>(fd,creator,generation,control::DeviceStream::Role::Capture);
+    control::validate_native_capture(config);
+    if(r.capture_stream)throw std::invalid_argument("Native capture is already active");
+    if(!r.presented.width) {
+        wire::RenderCommand blank;blank.set_width(r.info.viewport().width());blank.set_height(r.info.viewport().height());
+        auto* scene=blank.mutable_scene();scene->mutable_camera()->mutable_position();scene->mutable_camera()->mutable_orientation()->set_w(1);
+        auto* projection=scene->mutable_config();projection->set_vertical_fov(std::acos(-1.0)/2);
+        projection->set_near_clip(.01);projection->set_far_clip(1000);projection->mutable_background();
+        (void)draw(blank);
+    }
+    XResizeWindow(r.display,r.window,r.info.viewport().width(),r.info.viewport().height());
+    XMapRaised(r.display,r.window);check_x(r.display);
+    r.capture_stream=std::move(stream);
+    const auto emit=[&r](const control::v1::DeviceEvent& event) {
+        r.capture_stream->emit(event,control::DeviceAdapters::Clock::now());
+    };
+    try {
+        if(!config.physical_sources().empty()) {
+            std::vector<control::PhysicalSource> sources;
+            for(const auto& source:config.physical_sources())sources.push_back({source.device_node(),source.kind()});
+            r.physical_capture=std::make_unique<control::PhysicalCapture>(r.display,r.window,std::move(sources),emit);
+        }
+        if(config.spacemouse()) {r.spacemouse=std::make_unique<control::SpaceMouseSource>(emit);(void)r.spacemouse->open();}
+        check_x(r.display);
+    } catch(...) {stop_capture();throw;}
+}
+void Renderer::stop_capture() {
+    auto& r=*impl_;r.physical_capture.reset();r.spacemouse.reset();r.capture_stream.reset();check_x(r.display);
+}
+bool Renderer::capture_active() const {return bool(impl_->capture_stream);}
 void Renderer::bind_input(const render::v1::WorldPresentationBinding& binding, int descriptor) {
     auto& r=*impl_;
     r.bindings->bind(binding,descriptor);

@@ -3,6 +3,7 @@
 #undef main
 #include "supervisor/host_actor_controller.hpp"
 #include "supervisor/host_actor_worker.hpp"
+#include "platform/presentation_stream.hpp"
 #include <sys/un.h>
 #include <future>
 #include <signal.h>
@@ -717,6 +718,173 @@ void worker_watchdog_interrupts_without_actor_locks() {
     }
     host.reset();
 }
+supervisor::HostActorWorker::CaptureStart capture_pair_factory(std::unique_ptr<control::DeviceStream>& producer) {
+    return [&producer](const auto& binding) {
+        int pair[2];check(socketpair(AF_UNIX,SOCK_SEQPACKET|SOCK_CLOEXEC,0,pair)==0,"Capture fixture socketpair failed");
+        PresentationStream::File first(pair[0]),second(pair[1]);
+        producer=std::make_unique<control::DeviceStream>(first.release(),getpid(),binding->capture_generation,control::DeviceStream::Role::Capture);
+        return supervisor::HostActorWorker::CaptureEndpoint{
+            std::make_unique<control::DeviceStream>(second.release(),getpid(),binding->capture_generation,control::DeviceStream::Role::Controller),1};
+    };
+}
+control::v1::DeviceEvent receiver_event(std::uint64_t sequence,bool connect=false) {
+    control::v1::DeviceEvent event;event.set_protocol_version(1);event.set_source_id("independent-keyboard");
+    event.set_source_generation(1);event.set_event_sequence(sequence);
+    if(connect)event.mutable_connected()->set_kind(control::v1::KEYBOARD);else event.mutable_heartbeat();
+    return event;
+}
+void worker_independent_capture_and_silence() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    std::atomic<unsigned> checked_stops{0};
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        for(unsigned sequence=1;sequence<=2;++sequence) {
+            controlled_accept(fd,sequence+2,sequence,core::v1::ActorActionRequest::kStop);
+            checked_stops.store(sequence);
+            pollfd input{fd,POLLIN,0};check(poll(&input,1,1500)>0,"Silence fixture did not reach cancellation or EOF");
+            char byte;const auto size=recv(fd,&byte,1,MSG_PEEK|MSG_DONTWAIT);
+            if(size==0)return;
+            check(size>0 && sequence<2,"Silence produced more than two fresh checked Stops");
+        }
+    });
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;unsigned stopped=0;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[&](const auto&){++stopped;});
+        const auto binding=worker.capture_binding();std::atomic<bool> done{false},emitter_failed{false};std::atomic<std::uint64_t> emitted{0};
+        std::jthread emitter([&](std::stop_token stop) {
+            try {
+                std::uint64_t sequence=1;producer->emit(receiver_event(sequence,true),std::chrono::steady_clock::now());emitted.store(sequence);
+                while(!done.load() && !stop.stop_requested()) {
+                    std::this_thread::sleep_for(100ms);if(done.load() || stop.stop_requested())break;
+                    producer->emit(receiver_event(++sequence),std::chrono::steady_clock::now());emitted.store(sequence);
+                }
+            }catch(const std::exception&){emitter_failed.store(true);}
+        });
+        // The parent can wait while this receiver continues accepting100ms capture.
+        std::this_thread::sleep_for(450ms);
+        worker.call([]{std::this_thread::sleep_for(180ms);});
+        const auto status=worker.call([&]{return worker.control_status(0);});
+        done.store(true);emitter.join();
+        check(!emitter_failed.load() && status.capture_active() && !status.capture_retired() && status.capture_source_slot()==1 &&
+            status.processed_capture_sequence()>=3 && emitted.load()>=5,"Independent capture did not remain healthy while the parent waited");
+        // Keep the endpoint open. Actual source silence must still retire it.
+        const auto deadline=std::chrono::steady_clock::now()+1500ms;
+        while(!binding->retired() && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(10ms);
+        check(binding->retired(),"Independent receiver ignored350ms active-source silence");
+        worker.call([]{});
+        const bool available=host->control_available();const bool clean=worker.shutdown();
+        source.finish(); // Surface peer errors before testing cached pre-shutdown availability.
+        check(available && clean && stopped==1 && checked_stops.load()>=1 && checked_stops.load()<=2,
+            "Silence lost checked ordinary cancellation or capture cleanup");
+    }
+    producer.reset();host.reset();
+}
+void worker_both_silence_detector_orders_keep_checked_authority() {
+    for(const bool adapter_first:{false,true}) {
+        Fixture fixture;Endpoint source(fixture,2s);
+        source.start([&](int fd) {
+            handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);
+            if(adapter_first)controlled_accept(fd,4,2,core::v1::ActorActionRequest::kStop);
+            closed(fd);
+        });
+        auto host=shared_host(source,fixture);
+        {
+            supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();
+            worker.call([&] {
+                auto packet=worker_packet(binding,1,true);
+                packet.set_monotonic_nanoseconds(static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    (std::chrono::steady_clock::now()-400ms).time_since_epoch()).count()));
+                (void)worker.device_event(binding,packet);
+                if(adapter_first)(void)host->tick_controls(0); // Actual adapter expiry before receiver retirement.
+                worker.capture_failed(binding); // Actual receiver failure entrypoint.
+            },binding);
+            check(binding->retired(),"Receiver did not publish ingress retirement");
+            worker.call([]{}); // Retirement publication must precede pending cancellation.
+            const bool available=host->control_available();worker.shutdown();source.finish();
+            check(available,"A valid detector ordering lost ordinary actor authority");
+        }
+        host.reset();
+    }
+}
+void worker_capture_start_failure_preserves_actor_and_cleanup_obligations() {
+    for(const bool cleanup_failure:{false,true}) {
+        Fixture fixture;Endpoint source(fixture,2s);
+        source.start([&](int fd){handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);});
+        auto host=shared_host(source,fixture);unsigned retirements=0;
+        {
+            supervisor::HostActorWorker worker(*host,[](const auto&) -> supervisor::HostActorWorker::CaptureEndpoint {
+                throw std::runtime_error("Fixture capture activation failure");
+            },[&](const auto&){++retirements;if(cleanup_failure)throw std::runtime_error("Fixture capture cleanup uncertainty");});
+            const auto binding=worker.capture_binding();worker.call([]{});
+            const auto status=worker.call([&]{return worker.control_status(0);});
+            check(binding && status.capture_retired() && !status.capture_active() && status.available(),
+                "Capture activation failure lost actor authority or claimed live input");
+            const bool clean=worker.shutdown();source.finish();
+            check(clean!=cleanup_failure && retirements>=1,"Capture startup failure lost its checked cleanup obligation");
+        }
+        host.reset();
+    }
+}
+void worker_capture_without_sources_does_not_expire() {
+    Fixture fixture;Endpoint source(fixture,2s);source.start([&](int fd){handshake(fd,fixture);closed(fd);});
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;unsigned stopped=0;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[&](const auto&){++stopped;});
+        std::this_thread::sleep_for(500ms);
+        const auto status=worker.call([&]{return worker.control_status(0);});
+        check(status.capture_active() && !status.capture_retired() && status.processed_capture_sequence()==0,
+            "An empty native source population became a false source-loss failure");
+        check(worker.shutdown() && stopped==1,"Empty capture did not retire once with checked cleanup");
+    }
+    producer.reset();host.reset();source.finish();
+}
+void worker_capture_eof_and_malformed_are_bound() {
+    for(const bool malformed:{false,true}) {
+        Fixture fixture;Endpoint source(fixture,2s);
+        source.start([&](int fd){handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);});
+        auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+        {
+            supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
+            const auto binding=worker.capture_binding();producer->emit(receiver_event(1,true),std::chrono::steady_clock::now());
+            const auto connected=std::chrono::steady_clock::now()+1s;
+            while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected)std::this_thread::sleep_for(5ms);
+            check(binding->processed_sequence()==1,"Capture connection lacked its checked progress receipt");
+            if(malformed)check(send(producer->descriptor(),"\x80",1,MSG_NOSIGNAL)==1,"Malformed capture was not sent");
+            else producer.reset();
+            const auto deadline=std::chrono::steady_clock::now()+1500ms;
+            while(!binding->retired() && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(5ms);
+            check(binding->retired(),"EOF or malformed capture did not retire its exact binding");
+            worker.call([]{});
+            check(binding->processed_sequence()==1 && host->control_available() && worker.shutdown(),
+                "Capture failure acknowledged malformed input or lost checked cleanup");
+        }
+        producer.reset();host.reset();source.finish();
+    }
+}
+void worker_capture_progress_waits_for_output_barrier() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd){handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);});
+    std::promise<void> presenting;
+    auto host=shared_host(source,fixture,[](const auto&){},[&](auto,const auto& view){
+        if(view.visible()){presenting.set_value();std::this_thread::sleep_for(500ms);}
+    });
+    std::unique_ptr<control::DeviceStream> producer;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
+        const auto binding=worker.capture_binding();producer->emit(receiver_event(1,true),std::chrono::steady_clock::now());
+        const auto connected=std::chrono::steady_clock::now()+1s;
+        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected)std::this_thread::sleep_for(5ms);
+        check(binding->processed_sequence()==1,"Output test did not confirm its connection");
+        auto event=receiver_event(2);event.mutable_key()->set_keysym("F10");event.mutable_key()->set_pressed(true);
+        producer->emit(event,std::chrono::steady_clock::now());
+        check(presenting.get_future().wait_for(1s)==std::future_status::ready,"Output test did not reach the presentation callback");
+        check(binding->processed_sequence()==1,"Raw capture reception acknowledged unfinished native output");
+        source.finish();worker.call([]{});
+        check(binding->processed_sequence()==1 && !host->control_available(),"Interrupted output published a processed capture receipt");
+        check(worker.shutdown(),"Interrupted output lost capture retirement");
+    }
+    producer.reset();host.reset();
+}
 }
 
 int main(int argc, char** argv) {
@@ -732,6 +900,12 @@ int main(int argc, char** argv) {
             worker_checked_transition_release_disarms_old_capture_urgency();std::cout<<"PASS worker-checked-transition-release-disarms-all-old-urgency\n";
             worker_transition_withheld_release_keeps_watchdog();std::cout<<"PASS worker-transition-withheld-release-keeps-watchdog\n";
             worker_watchdog_interrupts_without_actor_locks();std::cout<<"PASS worker-exact-session-watchdog-without-actor-locks\n";
+            worker_independent_capture_and_silence();std::cout<<"PASS worker-independent-capture-and-source-silence\n";
+            worker_both_silence_detector_orders_keep_checked_authority();std::cout<<"PASS worker-both-silence-detector-orders-checked\n";
+            worker_capture_start_failure_preserves_actor_and_cleanup_obligations();std::cout<<"PASS worker-capture-start-failure-authority-and-cleanup\n";
+            worker_capture_without_sources_does_not_expire();std::cout<<"PASS worker-empty-capture-does-not-expire\n";
+            worker_capture_eof_and_malformed_are_bound();std::cout<<"PASS worker-capture-eof-and-malformed-exact-binding\n";
+            worker_capture_progress_waits_for_output_barrier();std::cout<<"PASS worker-capture-progress-output-interruption-barrier\n";
             return 0;
         }
         if (argc == 2 && std::string(argv[1]) == "--shared-only") {

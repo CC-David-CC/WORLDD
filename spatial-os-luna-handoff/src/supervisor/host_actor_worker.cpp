@@ -1,4 +1,5 @@
 #include "supervisor/host_actor_worker.hpp"
+#include "supervisor/host_capture_receiver.hpp"
 #include <chrono>
 #include <algorithm>
 #include <iostream>
@@ -12,7 +13,9 @@ std::int64_t nanoseconds() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count();
 }
 }
-HostActorWorker::HostActorWorker(HostActorController& controller) : controller_(controller) {
+HostActorWorker::HostActorWorker(HostActorController& controller,CaptureStart start,CaptureStop stop_callback)
+    : controller_(controller),start_capture_(std::move(start)),stop_capture_(std::move(stop_callback)) {
+    if(bool(start_capture_)!=bool(stop_capture_))throw std::invalid_argument("Capture requires checked start and stop callbacks");
     std::promise<void> ready;
     auto future = ready.get_future();
     worker_ = std::thread([this, ready = std::move(ready)]() mutable { run(std::move(ready)); });
@@ -26,12 +29,27 @@ HostActorWorker::HostActorWorker(HostActorController& controller) : controller_(
     }
 }
 HostActorWorker::~HostActorWorker() {
+    (void)shutdown();
+}
+bool HostActorWorker::shutdown() noexcept {
     stop();
     if (worker_.joinable()) worker_.join();
     if (watchdog_.joinable()) watchdog_.join();
+    return capture_cleanup_complete_.load();
 }
 HostActorWorker::Binding HostActorWorker::capture_binding() const {
     std::lock_guard lock(watch_mutex_); return binding_;
+}
+control::v1::ControlStatus HostActorWorker::control_status(std::uint64_t generation) const {
+    auto result=controller_.control_status(generation);
+    const auto binding=capture_binding();
+    if(binding && binding->actor_generation==generation) {
+        result.set_processed_capture_sequence(binding->processed_sequence());
+        result.set_capture_active(binding->capture_active_.load() && !binding->retired());
+        result.set_capture_source_slot(binding->source_slot_.load());
+        result.set_capture_retired(binding->retired());
+    }
+    return result;
 }
 bool HostActorWorker::current(const Binding& binding) const {
     std::lock_guard lock(watch_mutex_);
@@ -71,6 +89,10 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
             std::cerr << "Captured actor input retired its binding\n";
         }
         controller_.synchronize_controls_presentation();
+        synchronize_capture();
+        if(!complete([&] {
+            if(binding_==binding && !binding->retired())binding->processed_sequence_.store(packet.packet_sequence());
+        },true))settle_context();
     };
     if (enqueue(std::move(work))) return true;
     (void)request_cancel(binding);
@@ -86,11 +108,46 @@ control::v1::ControlStatus HostActorWorker::device_event(const Binding& binding,
 bool HostActorWorker::request_cancel(const Binding& binding) noexcept {
     std::lock_guard lock(watch_mutex_);
     if (!binding || binding_ != binding) return false;
-    if (binding->retired_.exchange(true)) return true;
+    if (binding->retired()) return true;
     pending_cancel_ = binding;
     cancel_pending_.store(true);
+    binding->retired_.store(true); // Observed retirement implies cancellation is already pending.
     changed_.notify_all();
     return true;
+}
+void HostActorWorker::capture_failed(const Binding& binding) noexcept {
+    // Ordinary checked cancellation runs first. The independent watchdog can
+    // interrupt its exact flight without taking controller or actor locks.
+    (void)request_cancel(binding);
+}
+void HostActorWorker::retire_capture() {
+    if(!capture_owner_)return;
+    capture_owner_->capture_active_.store(false);
+    receiver_.reset();
+    stop_capture_(capture_owner_); // Keep the owner if the receipt is uncertain.
+    capture_owner_.reset();capture_cleanup_complete_.store(true);
+}
+void HostActorWorker::synchronize_capture() {
+    if(!start_capture_)return;
+    const auto binding=capture_binding();
+    try {
+        if(capture_owner_ && (capture_owner_!=binding || capture_owner_->retired()))retire_capture();
+        if(!binding || binding->retired() || capture_owner_)return;
+        capture_owner_=binding;capture_cleanup_complete_.store(false);
+        auto endpoint=start_capture_(binding);
+        if(!endpoint.stream)throw std::runtime_error("Capture startup returned no private endpoint");
+        binding->source_slot_=endpoint.source_slot;
+        receiver_=std::make_unique<HostCaptureReceiver>(*this,binding,std::move(endpoint.stream));
+        binding->capture_active_.store(true);
+    } catch(...) {
+        // Capture availability does not own world or workspace execution.
+        capture_failed(binding);
+        try {throw;}
+        catch(const std::exception& error){std::cerr<<"Capture unavailable for its actor context: "<<error.what()<<'\n';}
+        catch(...){std::cerr<<"Capture unavailable for its actor context\n";}
+        try {retire_capture();}
+        catch(...){capture_cleanup_complete_.store(false);std::cerr<<"Capture cleanup remains unconfirmed\n";}
+    }
 }
 identity::v1::HostActorTransitionResult HostActorWorker::transition_proposed(std::uint64_t generation,
         const identity::v1::HostActorTransitionRequest& proposal) {
@@ -178,8 +235,8 @@ void HostActorWorker::watch() noexcept {
                 }
                 if (urgent) if (const auto interrupt = context->interrupt.lock()) {
                     interrupt->request();
-                    if(interrupt->requested() && binding_==context && !context->retired_.exchange(true)) {
-                        pending_cancel_=context;cancel_pending_.store(true);changed_.notify_all();
+                    if(interrupt->requested() && binding_==context && !context->retired()) {
+                        pending_cancel_=context;cancel_pending_.store(true);context->retired_.store(true);changed_.notify_all();
                     }
                 }
             }
@@ -191,7 +248,8 @@ void HostActorWorker::watch() noexcept {
 void HostActorWorker::run(std::promise<void> ready) noexcept {
     bool announced = false;
     try {
-        refresh_context(); ready.set_value(); announced = true;
+        refresh_context();controller_.synchronize_controls_presentation();synchronize_capture();
+        ready.set_value(); announced = true;
         auto tick = Clock::now(), render = tick;
         unsigned burst = 0;
         while (!stopping_) {
@@ -226,6 +284,8 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                 if (cancelled && cancelled == capture_binding() && controller_.control_available()) {
                     core::v1::ActorActionRequest stop; stop.mutable_stop();
                     (void)controller_.propose(cancelled->actor_generation, stop);
+                    std::lock_guard lock(watch_mutex_);
+                    if(flight_ && flight_->binding==cancelled)flight_->release_satisfied=true;
                 }
                 if (Clock::now() >= tick) {
                     const auto capture=capture_binding();
@@ -238,6 +298,7 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                     render = Clock::now() + interval;
                 }
                 controller_.synchronize_controls_presentation();
+                synchronize_capture();
             } catch (const std::exception&) {
                 std::cerr << "Actor worker operation failed; checked context remains required\n";
             }
@@ -250,6 +311,7 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
         try { refresh_context(); } catch (...) {}
         stop(); // Close the exact actor transport before notifying an idle root reader.
     }
+    try {retire_capture();}catch(...) {capture_cleanup_complete_.store(false);std::cerr<<"Capture cleanup remains unconfirmed\n";}
     end_exchange(); stopping_.store(true); changed_.notify_all();
     std::lock_guard lock(queue_mutex_); queue_.clear();
 }

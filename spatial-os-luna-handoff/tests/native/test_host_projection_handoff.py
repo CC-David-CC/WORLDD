@@ -8,6 +8,14 @@ import test_host_shared_controls as shared
 
 
 class ProjectionHandoffTests(shared.SharedHostControlsTests):
+    def prepare(self, **options):
+        config, descriptors = super().prepare(**options)
+        # Candidate companions follow the explicitly supplied host executable.
+        compositor = shared.production.HOST_SESSION_BINARY.with_name('spatialwm')
+        self.assertTrue(compositor.is_file() and os.access(compositor, os.X_OK))
+        config.compositor_executable = str(compositor)
+        return config, descriptors
+
     def retain_services(self):
         worlds = self.retained_pids()
         compositors = self.live_compositor_pids()

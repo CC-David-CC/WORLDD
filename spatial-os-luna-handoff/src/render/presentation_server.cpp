@@ -2,6 +2,8 @@
 #include "render/presentation_inputs.hpp"
 #include "render/renderer.hpp"
 #include "render/controls_overlay.hpp"
+#include "control/device_stream.hpp"
+#include "control/native_capture_config.hpp"
 #include "platform/presentation_stream.hpp"
 #include "platform/process_handle.hpp"
 #include "presentation.pb.h"
@@ -51,6 +53,7 @@ struct Server {
     std::map<std::uint64_t,GeometryTarget> geometry_targets;
     std::uint64_t sequence=0,selected=0,selected_geometry=0;
     std::uint64_t controls_generation=0,controls_sequence=0;
+    std::uint64_t capture_generation=0;
     std::optional<protocol::LocalActorPresentationTarget> selected_local;
     bool shutdown=false;
     Server(Renderer& renderer,int fd,pid_t owner):renderer(renderer),control(fd,owner,owner),owner(owner),owner_process(retain_owner(owner)){}
@@ -115,7 +118,7 @@ struct Server {
         protocol::PresentationControlReply reply;reply.set_protocol_version(1);reply.set_request_id(request.request_id());
         try {
             validate_message(request);
-            require(frame.descriptors.size()==(request.has_attach()?2U:0U),"Incorrect presentation control descriptor count");
+            require(frame.descriptors.size()==(request.has_attach()?2U:request.has_start_capture()?1U:0U),"Incorrect presentation control descriptor count");
             sequence=request.request_id();
             if(request.has_attach()){
                 const auto& attach=request.attach();const auto& binding=attach.binding();
@@ -229,7 +232,25 @@ struct Server {
                 controls_generation=value.capture_generation();controls_sequence=value.menu_sequence();
                 renderer.present_controls(value.view());
                 *reply.mutable_controls()=value;
+            }else if(request.has_start_capture()){
+                const auto& value=request.start_capture();
+                require(value.capture_generation()>capture_generation && value.has_config(),"Stale or incomplete capture start");
+                require(!renderer.capture_active(),"Retire native capture before starting another epoch");
+                control::validate_native_capture(value.config());
+                control::DeviceStream::validate_endpoint(frame.descriptors[0].value,owner);
+                capture_generation=value.capture_generation(); // Retain attempted startup through native failures.
+                renderer.start_capture(frame.descriptors[0].release(),owner,capture_generation,value.config());
+                auto* state=reply.mutable_capture();state->set_capture_generation(capture_generation);state->set_active(renderer.capture_active());
+            }else if(request.has_stop_capture()){
+                const auto generation=request.stop_capture().capture_generation();
+                require(generation>0 && generation>=capture_generation &&
+                    (generation==capture_generation || !renderer.capture_active()),"Stale or unknown capture retirement");
+                // An inactive child can fence a failed startup before it reserved
+                // the attempted epoch. A live different capture is never touched.
+                capture_generation=generation;
+                renderer.stop_capture();reply.mutable_capture()->set_capture_generation(generation);
             }else if(request.has_shutdown()){
+                if(renderer.capture_active())throw WorldError(wire::IN_USE,"Retire native capture before compositor shutdown");
                 if(!worlds.empty() || !geometry_targets.empty())throw WorldError(wire::IN_USE,"Retire presentation targets before compositor shutdown");
                 shutdown=true;reply.set_shutting_down(true);
             }else throw std::invalid_argument("Missing presentation control operation");

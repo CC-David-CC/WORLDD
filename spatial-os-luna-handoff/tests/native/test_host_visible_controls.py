@@ -1,9 +1,15 @@
 """Human menu actions must change the actual production-host foreground."""
 import unittest
-import test_host_shared_controls as shared
+import test_host_continuous_capture as continuous
 
 
-class VisibleHostControlsTests(shared.SharedHostControlsTests):
+class VisibleHostControlsTests(continuous.ContinuousCaptureTests):
+    def connect_keyboard(self, generation=0):
+        self.human_capture = self.producer(generation)
+
+    def key(self, keysym, pressed=True, generation=0):
+        return self.wait_processed(self.human_capture.key(keysym, pressed), generation)
+
     def test_f10_preferences_and_escape_change_real_pixels_before_reply(self):
         self.ready_host()
         self.connect_keyboard()

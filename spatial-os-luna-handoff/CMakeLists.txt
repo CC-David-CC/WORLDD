@@ -14,7 +14,6 @@ find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(XCB REQUIRED IMPORTED_TARGET xcb)
-pkg_check_modules(SPNAV REQUIRED IMPORTED_TARGET spnav)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 configure_file(config/conformance.textproto runtime.textproto COPYONLY)
@@ -419,10 +418,12 @@ endif()
 # Include all production inputs and build settings in the reported identity.
 # Reconfigure on edits as well as newly added sources. Never report only HEAD
 # for a binary that may contain uncommitted source changes.
-file(GLOB_RECURSE build_inputs CONFIGURE_DEPENDS src/*.cpp src/*.hpp proto/*.proto config/*.textproto)
+file(GLOB_RECURSE build_inputs CONFIGURE_DEPENDS src/*.cpp src/*.hpp proto/*.proto config/*.textproto
+    third_party/libspnav/*.c third_party/libspnav/*.h third_party/libspnav/README.txt)
 list(APPEND build_inputs "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 list(SORT build_inputs)
 set(build_material "${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION}:${CMAKE_BUILD_TYPE}:${CMAKE_CXX_FLAGS}:${CMAKE_CXX_FLAGS_DEBUG}:${CMAKE_CXX_FLAGS_RELEASE}:${CMAKE_CXX_FLAGS_RELWITHDEBINFO}:${SPATIAL_SANITIZERS}:${Protobuf_VERSION}:${SQLite3_VERSION}:${OPENSSL_VERSION}")
+string(APPEND build_material ":${CMAKE_C_COMPILER_ID}:${CMAKE_C_COMPILER_VERSION}:${CMAKE_C_FLAGS}:${CMAKE_C_FLAGS_DEBUG}:${CMAKE_C_FLAGS_RELEASE}:${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 foreach(input IN LISTS build_inputs)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${input}")
     file(SHA256 "${input}" input_hash)
@@ -571,8 +572,14 @@ target_link_libraries(spatial-control-menu PUBLIC spatial-control-adapters)
 add_library(spatial-device-stream STATIC src/control/device_stream.cpp)
 target_link_libraries(spatial-device-stream PUBLIC spatial-control-adapters)
 add_library(spatial-control-native STATIC src/control/physical_capture.cpp src/control/physical_source.cpp
-    src/control/physical_query.cpp src/control/spacemouse.cpp)
-target_link_libraries(spatial-control-native PUBLIC spatial-control-adapters X11::Xi PkgConfig::SPNAV)
+    src/control/physical_query.cpp src/control/spacemouse.cpp src/control/native_capture_config.cpp)
+add_library(spatial-spnav STATIC third_party/libspnav/spnav.c third_party/libspnav/proto.c)
+target_include_directories(spatial-spnav PUBLIC third_party/libspnav)
+# Retain upstream's unused-parameter diagnostic without making it a build failure.
+target_compile_options(spatial-spnav PRIVATE -Wno-error=unused-parameter)
+target_link_libraries(spatial-control-native PUBLIC spatial-control-adapters X11::Xi spatial-spnav)
+target_link_libraries(spatialwm PRIVATE spatial-control-native spatial-device-stream)
+target_link_libraries(spatial-presentation-probe PRIVATE spatial-control-native spatial-device-stream)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/control_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1"
@@ -656,6 +663,11 @@ if(BUILD_TESTING)
     add_test(NAME actor-control-menu COMMAND $<TARGET_FILE:spatial-control-menu-check>)
     set_tests_properties(actor-control-menu PROPERTIES TIMEOUT 60)
     add_executable(spatial-device-stream-check tests/core/test_device_stream.cpp)
+    add_executable(spatial-spnav-open-cleanup-check tests/core/test_spnav_open_cleanup.cpp)
+    target_link_libraries(spatial-spnav-open-cleanup-check PRIVATE spatial-spnav Threads::Threads)
+    target_link_options(spatial-spnav-open-cleanup-check PRIVATE "LINKER:--wrap=socket" "LINKER:--wrap=connect" "LINKER:--wrap=fopen")
+    add_test(NAME spnav-open-cleanup COMMAND $<TARGET_FILE:spatial-spnav-open-cleanup-check>)
+    set_tests_properties(spnav-open-cleanup PROPERTIES TIMEOUT 20)
     target_link_libraries(spatial-device-stream-check PRIVATE spatial-device-stream)
     add_test(NAME actor-device-stream COMMAND $<TARGET_FILE:spatial-device-stream-check>)
     set_tests_properties(actor-device-stream PROPERTIES TIMEOUT 60)
@@ -2184,11 +2196,11 @@ endif()
 target_link_libraries(spatial-session-broker PUBLIC spatial-authority-launch spatial-core spatial-control-admin)
 add_library(spatial-host-actor-controller STATIC src/supervisor/host_actor_controller.cpp)
 target_link_libraries(spatial-host-actor-controller PUBLIC spatial-session-broker spatial-actor-transition spatial-protobuf spatial-control-menu)
-add_library(spatial-host-actor-worker STATIC src/supervisor/host_actor_worker.cpp)
-target_link_libraries(spatial-host-actor-worker PUBLIC spatial-host-actor-controller Threads::Threads)
+add_library(spatial-host-actor-worker STATIC src/supervisor/host_actor_worker.cpp src/supervisor/host_capture_receiver.cpp)
+target_link_libraries(spatial-host-actor-worker PUBLIC spatial-host-actor-controller spatial-device-stream Threads::Threads)
 add_executable(spatial-host-session src/supervisor/host_session_main.cpp ${host_session_proto_sources} ${host_session_proto_headers})
 target_include_directories(spatial-host-session PRIVATE src)
-target_link_libraries(spatial-host-session PRIVATE spatial-host-actor-worker spatial-protobuf)
+target_link_libraries(spatial-host-session PRIVATE spatial-host-actor-worker spatial-protobuf spatial-control-native)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
@@ -2365,6 +2377,28 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
     set_tests_properties(host-shared-controls-native PROPERTIES TIMEOUT 600
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME host-continuous-capture-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_host_continuous_capture.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
+    set_tests_properties(host-continuous-capture-native PROPERTIES TIMEOUT 600
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME host-capture-start-failure-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_host_capture_start_failure.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
+    set_tests_properties(host-capture-start-failure-native PROPERTIES TIMEOUT 600
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME capture-presentation-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_capture_presentation.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(capture-presentation-native PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME host-projection-handoff-native COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"

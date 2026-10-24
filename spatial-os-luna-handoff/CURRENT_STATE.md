@@ -1,3 +1,15 @@
+## 2026-10-24: M10 continuous capture passes focused checks on both hosts
+
+Continuous native capture now feeds the serialized production actor worker through an independent receiver.
+Checked cancellation preserves actor sequencing. Capture startup failure preserves retained worlds and ordinary actor authority.
+The private libspnav copy fixes reproduced failed-open resource leaks without suppressing sanitizers.
+Both hosts and both profiles pass 140 C++ groups and 92 native Python methods in total.
+Changed components use the selected instrumentation. World, issuer, and broker dependencies remain source116 Debug.
+A clean production build passes with testing disabled. Both hosts import its 22 generated modules and provision_storage.
+Read docs/M10_CONTINUOUS_CAPTURE_2026-10-24.txt for source pins, evidence, preserved failures, and scope.
+Three-actor real-file/application workflows, remaining foreground witnesses, and the full frozen gate remain pending.
+M10, Spatial-M1, and LOCAL_READY remain unqualified. Historical entries below retain their dated status.
+
 ## 2026-10-24: M10 prepared native frames enforce surface lifetime at commitment
 
 Five regressions reproduce successful stale-frame receipts on the predecessor.

@@ -34,6 +34,8 @@ public:
     void clear_presentation();
     core::v1::PixelExtent native_viewport() const;
     void present_controls(std::uint64_t capture_generation,const control::v1::ControlMenuView&);
+    void start_capture(std::uint64_t,const control::v1::NativeCaptureConfig&,int borrowed_endpoint);
+    void stop_capture(std::uint64_t);
     void stop_presentation();
     void recover_presentation(const workspace::v1::ControlOwner&);
     // Transfers one actor-only endpoint to the caller, which must close it. No caller FD is admitted.

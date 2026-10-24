@@ -150,3 +150,17 @@ Native tests retain Debug world/compositor dependencies. ASan/UBSan coverage her
 See ../spatial-os-luna-handoff/docs/M10_PROJECTION_HANDOFF_2026-10-24.txt for source and evidence details.
 Continuous capture remains unconnected. Three-actor real-file/application workflows and the frozen full gate remain pending.
 This is an UNQUALIFIED_M10 component checkpoint. The complete goal remains active.
+
+2026-10-24 continuous capture and checked failure isolation
+The compositor now produces continuous capture independently of root requests and actor exchanges.
+An independent receiver checks source lifetime and dispatches through the serialized production actor worker.
+Capture retirement preserves exact actor bindings and checked Stop ordering.
+Capture startup failure preserves ordinary actor authority and retained world services.
+A reproduced libspnav failed-open leak is fixed in a pinned private copy with sanitizers enabled.
+Both hosts and both profiles pass 140 C++ groups and 92 native Python methods in total.
+Changed components use their selected instrumentation. World/issuer/broker dependencies remain source116 Debug.
+The clean production target build passes with testing disabled.
+Both hosts import all 22 production generated modules and provision_storage from that build.
+Read ../spatial-os-luna-handoff/docs/M10_CONTINUOUS_CAPTURE_2026-10-24.txt for exact source and evidence pins.
+Three-actor real-file/application workflows, remaining foreground witnesses, and the frozen full gate remain pending.
+M10 remains UNQUALIFIED. The full user goal remains active.

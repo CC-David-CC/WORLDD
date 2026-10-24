@@ -25,6 +25,7 @@ void private_peer(int fd,pid_t expected){
         credentials.pid==expected&&credentials.uid==geteuid(),"Device stream requires its configured private kernel peer");
 }
 }
+void DeviceStream::validate_endpoint(int fd,pid_t peer){private_peer(fd,peer);}
 DeviceStream::DeviceStream(int fd,pid_t peer,std::uint64_t generation,Role role):descriptor_(fd),generation_(generation),role_(role){
     try{
         need(generation>0,"Missing device capture generation");private_peer(fd,peer);

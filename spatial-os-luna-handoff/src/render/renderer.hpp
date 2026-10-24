@@ -6,6 +6,7 @@
 #include "control.pb.h"
 #include <filesystem>
 #include <memory>
+#include <sys/types.h>
 namespace spatial {
 class Renderer {
 public:
@@ -28,6 +29,10 @@ public:
     void initialize_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void clear_presentation();
     void present_controls(const control::v1::ControlMenuView&);
+    void start_capture(int owned_descriptor,pid_t socket_creator,std::uint64_t generation,
+        const control::v1::NativeCaptureConfig&);
+    void stop_capture();
+    bool capture_active() const;
     void bind_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void confirm_input_retired(const render::v1::WorldPresentationBinding& binding);
     void retire_input(const render::v1::WorldPresentationBinding&);

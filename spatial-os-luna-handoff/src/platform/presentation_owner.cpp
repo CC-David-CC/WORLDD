@@ -188,4 +188,19 @@ void PresentationOwner::shutdown(){
     protocol::PresentationControlRequest request;request.mutable_shutdown();auto reply=impl_->call(std::move(request));
     require(reply.has_shutting_down() && reply.shutting_down(),"Compositor shutdown unconfirmed");impl_->stopped=true;impl_->control.reset();
 }
+void PresentationOwner::start_capture(std::uint64_t generation,const control::v1::NativeCaptureConfig& config,int endpoint){
+    protocol::PresentationControlRequest request;auto* value=request.mutable_start_capture();
+    value->set_capture_generation(generation);*value->mutable_config()=config;
+    const auto reply=impl_->call(std::move(request),{endpoint});
+    if(!reply.has_capture() || reply.capture().capture_generation()!=generation || !reply.capture().active()) {
+        impl_->control.reset();throw std::runtime_error("Native capture activation unconfirmed");
+    }
+}
+void PresentationOwner::stop_capture(std::uint64_t generation){
+    protocol::PresentationControlRequest request;request.mutable_stop_capture()->set_capture_generation(generation);
+    const auto reply=impl_->call(std::move(request));
+    if(!reply.has_capture() || reply.capture().capture_generation()!=generation || reply.capture().active()) {
+        impl_->control.reset();throw std::runtime_error("Native capture retirement unconfirmed");
+    }
+}
 }

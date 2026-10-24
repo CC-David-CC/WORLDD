@@ -260,6 +260,14 @@ void SessionCoordinator::stop_presentation(){
     }
     state.presentation->shutdown();state.presentation.reset();
 }
+void SessionCoordinator::start_capture(std::uint64_t generation,const control::v1::NativeCaptureConfig& config,int endpoint){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    state.presentation->start_capture(generation,config,endpoint);
+}
+void SessionCoordinator::stop_capture(std::uint64_t generation){
+    auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");
+    state.presentation->stop_capture(generation);
+}
 workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesystem::path& path,
     v1::AuthoritySupervisorConfig config, int native, int actor_listener, unsigned local_actor_channels,const std::string& world_id) {
     auto& state = *impl_; state.live(); validate_message(config);

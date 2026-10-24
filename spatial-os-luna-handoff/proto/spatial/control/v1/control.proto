@@ -36,6 +36,9 @@ message ControlProfiles {
 // Private capture-to-controller transport. The channel fixes actor and host.
 // Events cannot carry an actor identity, actor token, sequence, or grant.
 enum DeviceKind { DEVICE_UNSPECIFIED = 0; KEYBOARD = 1; MOUSE = 2; SPACEMOUSE = 3; }
+// Trusted native selection. These paths never appear in actor observations.
+message NativePhysicalSource { string device_node = 1; DeviceKind kind = 2; }
+message NativeCaptureConfig { repeated NativePhysicalSource physical_sources = 1; bool spacemouse = 2; }
 message DeviceConnected { DeviceKind kind = 1; }
 message DeviceDisconnected {}
 message DeviceHeartbeat {}
@@ -71,6 +74,11 @@ message ControlStatus {
   uint32 viewport_width = 8;
   uint32 viewport_height = 9;
   uint64 capture_generation = 10;
+  // Host-private progress. Sequence means checked handling, not raw reception.
+  uint64 processed_capture_sequence = 11;
+  bool capture_active = 12;
+  uint32 capture_source_slot = 13;
+  bool capture_retired = 14;
 }
 
 // One private datagram. CLOCK_MONOTONIC and the capture epoch belong to this host.

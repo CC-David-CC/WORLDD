@@ -23,6 +23,10 @@ message HostSessionConfig {
   repeated HostRemoteWorld remote_worlds = 12;
   bool shared_actor_controls = 13;
   string controls_preferences_path = 14;
+  spatial.control.v1.NativeCaptureConfig native_capture = 15;
+  // Fresh private endpoints from the trusted parent, one per capture epoch.
+  // Mutually exclusive with native_capture. Slots are one-based in private status.
+  repeated uint32 trusted_capture_fds = 16;
 }
 message HostRemoteWorld {
   string world_id = 1;

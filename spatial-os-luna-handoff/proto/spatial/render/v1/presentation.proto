@@ -61,6 +61,10 @@ message HostControlsPresentation {
   uint64 menu_sequence = 2;
   spatial.control.v1.ControlMenuView view = 3;
 }
+// Start carries exactly one root-created private seqpacket endpoint.
+message HostCaptureStart { uint64 capture_generation = 1; spatial.control.v1.NativeCaptureConfig config = 2; }
+message HostCaptureStop { uint64 capture_generation = 1; }
+message HostCaptureState { uint64 capture_generation = 1; bool active = 2; }
 message PresentationControlRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -80,6 +84,8 @@ message PresentationControlRequest {
     LocalActorPresentationTarget select_local_actor = 21;
     LocalActorPresentationTarget retire_local_actor = 22;
     HostControlsPresentation controls = 23;
+    HostCaptureStart start_capture = 24;
+    HostCaptureStop stop_capture = 25;
   }
 }
 message PresentationControlReply {
@@ -94,6 +100,7 @@ message PresentationControlReply {
     bool selection_cleared = 8;
     LocalActorPresentationState local_actor_state = 9;
     HostControlsPresentation controls = 10;
+    HostCaptureState capture = 11;
   }
 }
 // A channel is bound by the control owner. The world cannot choose its binding.
