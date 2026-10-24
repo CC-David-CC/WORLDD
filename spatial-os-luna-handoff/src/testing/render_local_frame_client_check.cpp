@@ -16,8 +16,7 @@ using namespace spatial;
 namespace {
 void check(bool okay, const char* message) { if (!okay) throw std::runtime_error(message); }
 }
-int main() {
-    try {
+void exercise(const std::string& kind) {
         char name[]="/tmp/spatial-local-frame-client-XXXXXX";
         const auto directory=mkdtemp(name);check(directory,"Cannot create private client fixture directory");
         struct Remove {std::filesystem::path path;~Remove(){std::filesystem::remove_all(path);}} remove{directory};
@@ -26,7 +25,7 @@ int main() {
         PresentationStream::File process(static_cast<int>(syscall(SYS_pidfd_open,getpid(),0)));
         PresentationStream::File native(open("/dev/null",O_RDONLY|O_CLOEXEC));
         std::exception_ptr peer_error;
-        std::jthread peer([fd=peer_fd.release(),&peer_error](std::stop_token stop) {
+        std::jthread peer([fd=peer_fd.release(),&peer_error,&kind](std::stop_token stop) {
             try {
                 PresentationStream stream(fd,getpid(),getpid());
                 const auto receive=[&] {
@@ -44,10 +43,27 @@ int main() {
                 core::v1::RenderResult reply;reply.set_protocol_version(1);reply.set_request_id(1);reply.mutable_ready();
                 stream.send(reply.SerializeAsString());
                 auto next=receive();request.Clear();
-                check(next.descriptors.empty() && request.ParseFromString(next.bytes) && request.request_id()==3 &&
-                    request.has_command() && request.command().has_sync(),
-                    "Denied preparation was transmitted or subsequent sequence was not retained");
-                reply.Clear();reply.set_protocol_version(1);reply.set_request_id(3);reply.mutable_snapshot();
+                check(next.descriptors.empty() && request.ParseFromString(next.bytes) && request.has_command(),
+                    "Unexpected frame command");
+                if(kind=="denial") {
+                    check(request.request_id()==3 && request.command().has_sync(),
+                        "Denied preparation was transmitted or subsequent sequence was not retained");
+                    reply.Clear();reply.set_protocol_version(1);reply.set_request_id(3);reply.mutable_snapshot();
+                }else{
+                    check(request.request_id()==2 && request.command().prepare_local_frame(),"Missing preparation request");
+                    reply.Clear();reply.set_protocol_version(1);reply.set_request_id(2);
+                    auto* frame=reply.mutable_frame();frame->set_frame_id(1);frame->set_xid(77);
+                    frame->set_presentation_generation(kind=="missing-generation"?0:37);
+                    stream.send(reply.SerializeAsString());stream.flush();
+                    if(kind=="missing-generation")return;
+                    auto committed=receive();request.Clear();
+                    check(committed.descriptors.empty() && request.ParseFromString(committed.bytes) &&
+                        request.request_id()==3 && request.command().has_commit_local_frame() &&
+                        request.command().commit_local_frame().frame_id()==1,"Unexpected commitment request");
+                    reply.set_request_id(3);
+                    if(kind=="changed-generation")frame->set_presentation_generation(38);
+                    if(kind=="changed-frame")frame->set_frame_id(2);
+                }
                 stream.send(reply.SerializeAsString());stream.flush();
             }catch(...){peer_error=std::current_exception();}
         });
@@ -61,18 +77,49 @@ int main() {
             scene.mutable_camera()->mutable_position();scene.mutable_camera()->mutable_orientation()->set_w(1);
             auto* config=scene.mutable_config();config->set_vertical_fov(1.5);config->set_near_clip(.01);config->set_far_clip(1000);
             config->mutable_background();config->mutable_barrier_color();
-            bool rejected=false;
-            try {
-                worker.prepare_local_frame(identity,scene,64,64,[] {
-                    throw WorldError(core::v1::FORBIDDEN,"Actor observation was revoked before send");
-                });
-            }catch(const WorldError& error){rejected=error.code==core::v1::FORBIDDEN;}
-            check(rejected,"Pre-send authorization denial was not returned");
-            worker.check_alive();
-            (void)worker.synchronize();
+            if(kind=="denial") {
+                bool rejected=false;
+                try {
+                    worker.prepare_local_frame(identity,scene,64,64,[] {
+                        throw WorldError(core::v1::FORBIDDEN,"Actor observation was revoked before send");
+                    });
+                }catch(const WorldError& error){rejected=error.code==core::v1::FORBIDDEN;}
+                check(rejected,"Pre-send authorization denial was not returned");
+                worker.check_alive();(void)worker.synchronize();
+            }else{
+                if(kind=="missing-generation") {
+                    bool rejected=false;
+                    try{(void)worker.prepare_local_frame(identity,scene,64,64);}
+                    catch(const std::runtime_error& error){rejected=std::string(error.what())=="Prepared compositor frame identity mismatch";}
+                    check(rejected,"Missing producer generation was accepted");
+                }else{
+                    const auto prepared=worker.prepare_local_frame(identity,scene,64,64);
+                    check(prepared.presentation_generation()==37,"Producer generation was not preserved");
+                    bool rejected=false;
+                    try {
+                        const auto committed=worker.commit_local_frame(identity,prepared.frame_id());
+                        check(kind=="exact" && committed.SerializeAsString()==prepared.SerializeAsString(),
+                            "Changed commitment receipt was accepted");
+                    }catch(const std::runtime_error& error){
+                        rejected=std::string(error.what())=="Committed compositor frame identity mismatch";
+                        check(kind!="exact" && rejected,"Unexpected commitment error");
+                    }
+                    check(rejected==(kind!="exact"),"Incorrect commitment outcome");
+                    bool stale=false;
+                    try{(void)worker.commit_local_frame(identity,prepared.frame_id());}
+                    catch(const WorldError& error){stale=error.code==core::v1::STALE_TARGET;}
+                    check(stale,"Consumed commitment remained replayable");
+                }
+            }
         }
         peer.join();if(peer_error)std::rethrow_exception(peer_error);
-        std::cout<<"PASS definite-unsent-authorization-keeps-shared-producer\n";
+}
+int main() {
+    try {
+        for(const std::string kind:{"denial","exact","missing-generation","changed-generation","changed-frame"}) {
+            exercise(kind);
+            std::cout<<"PASS "<<kind<<'\n';
+        }
         return 0;
     }catch(const std::exception& error){std::cerr<<error.what()<<'\n';return 1;}
 }

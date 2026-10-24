@@ -86,3 +86,11 @@ All 151 locked acceptance IDs/assertions and unrelated lock pins remain unchange
 
 Combined foreground clearing, world/host wiring, and the complete M10 qualification remain UNRUN.
 The component recovery fixtures do not substitute for actual compositor retirement witnesses.
+
+Checked fleet retention
+The observation-watch package and manifest are retained on r730 under:
+/mnt/data10tb/spatial-desktop/packages/current/m10-d938d119-observation-watch-20261024-unqualified
+The checked copy includes frozen inputs, primary review, terminal audit, and checkpoint receipt.
+All destination bytes match. The exact mounted ext4 UUID and project owner marker were checked.
+External receipt: fleet-observation-watch-59.json. Its command and wrapper receipts are zero.
+R730 supplied storage only. No runtime or build ran there.

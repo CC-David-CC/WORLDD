@@ -99,7 +99,12 @@ message ActorLocalViewState {
   PixelExtent viewport = 7;
 }
 message ActorLocalFrameCommit { uint64 frame_id = 1; }
-message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
+message FrameReply {
+  string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4;
+  // Actual retained producer generation on local preparation and commitment receipts.
+  // Zero for legacy rendering without an actor-bound local target.
+  uint64 presentation_generation = 5;
+}
 // Private worldd-to-spatialwm protocol. No actor credentials cross this boundary.
 message SurfaceHandle { string id = 1; uint64 generation = 2; }
 message SurfaceRecord {

@@ -1970,6 +1970,11 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(local-frame-presentation PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME local-frame-lifetime COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_local_frame_lifetime.py"
+            $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(local-frame-lifetime PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME presentation-server COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_presentation_server.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(presentation-server PROPERTIES TIMEOUT 180

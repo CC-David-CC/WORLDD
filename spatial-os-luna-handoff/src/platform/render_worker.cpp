@@ -183,7 +183,7 @@ wire::FrameReply RenderWorker::prepare_local_frame(const wire::ActorLocalViewIde
     command.set_prepare_local_frame(true);
     const auto reply=exchange(command,before_send);
     if (!reply.has_frame() || !reply.frame().path().empty() || reply.frame().world_revision()!=scene.world_revision() ||
-        reply.frame().frame_id()<=frame_id_ || !reply.frame().xid())
+        reply.frame().frame_id()<=frame_id_ || !reply.frame().xid() || !reply.frame().presentation_generation())
         throw std::runtime_error("Prepared compositor frame identity mismatch");
     frame_id_=reply.frame().frame_id(); prepared_frame_=reply.frame(); prepared_identity_=identity;
     return prepared_frame_;

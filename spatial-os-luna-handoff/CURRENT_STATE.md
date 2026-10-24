@@ -1,3 +1,16 @@
+## 2026-10-24: M10 prepared native frames enforce surface lifetime at commitment
+
+Five regressions reproduce successful stale-frame receipts on the predecessor.
+The correction rejects changed native generations before visible commitment and consumes invalid frames.
+Local prepare and commit receipts carry the actual retained producer generation.
+Both hosts and profiles pass 292 Python completions and 20 C++ transport groups.
+No corrected test failed or skipped. No sanitizer diagnostic appeared.
+The explicit additive schema migration preserves all 151 acceptance assertions and unrelated lock pins.
+Read docs/M10_LOCAL_FRAME_LIFETIME_2026-10-24.txt for exact evidence and remaining integration work.
+World/host foreground authority, visible controls, capture routing, and three-actor workflows remain pending.
+M10 remains unqualified. The accepted M09 runtime remains preserved.
+Historical entries below retain their dated status.
+
 ## 2026-10-24: M10 broker observation watches pass focused qualification
 
 Private broker watches bind an actor view, producer generation, and authorization fence.

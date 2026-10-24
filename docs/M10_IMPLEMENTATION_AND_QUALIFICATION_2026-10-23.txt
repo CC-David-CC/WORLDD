@@ -81,3 +81,10 @@ Both hosts and profiles completed 580 accepted methods. Original collector refus
 See ../spatial-os-luna-handoff/docs/M10_OBSERVATION_WATCH_2026-10-24.txt for evidence and limits.
 The world must still clear native foreground pixels before releasing a watch or acknowledging revocation.
 World/host integration and the full frozen M10 gate remain pending.
+
+2026-10-24 prepared native frame lifetime checkpoint
+Five predecessor failures are reproduced and corrected before visible commitment.
+Both hosts and profiles pass 292 Python methods and 20 C++ transport groups.
+Local frame receipts now carry the actual retained producer generation.
+See ../spatial-os-luna-handoff/docs/M10_LOCAL_FRAME_LIFETIME_2026-10-24.txt for source pins and contract changes.
+Combined actor observation authority, world/host integration, and the full M10 goal remain pending.

@@ -281,6 +281,7 @@ struct Server {
                             require(value.has_commit_local_frame() && !value.prepare_local_frame(),"Invalid local frame commit");
                             *reply.mutable_frame()=renderer.commit_local_frame(identity,value.commit_local_frame().frame_id());
                         }
+                        reply.mutable_frame()->set_presentation_generation(world.binding.presentation_generation());
                     }
                 }else{
                 require(value.protocol_version()==1 && value.request_id()==world.sequence &&

@@ -7,9 +7,9 @@ import test_presentation_server as baseline
 
 
 class LocalFrameTests(baseline.PresentationServerTests):
-    def ready(self):
+    def ready(self, index=1):
         self.launch()
-        self.binding, self.producer = self.attach(1)
+        self.binding, self.producer = self.attach(index)
         self.hello(self.producer)
         self.assertTrue(self.control(select=self.binding).state.selected)
         seed = self.draw(self.producer, 2, (17, 34, 51))
@@ -64,6 +64,8 @@ class LocalFrameTests(baseline.PresentationServerTests):
         self.assertFalse(reply.frame.path)
         self.assertEqual(reply.frame.world_revision, 17)
         self.assertGreater(reply.frame.frame_id, 0)
+        target = kwargs.get('target', self.target)
+        self.assertEqual(reply.frame.presentation_generation, target.binding.presentation_generation)
         return reply.frame
 
     def geometry(self):

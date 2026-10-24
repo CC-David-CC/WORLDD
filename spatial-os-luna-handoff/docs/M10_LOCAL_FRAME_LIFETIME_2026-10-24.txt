@@ -1,0 +1,73 @@
+M10 local frame lifetime and producer generation contract
+Date: 2026-10-24. Status: FOCUSED FRAME BOUNDARY PASS, UNQUALIFIED_M10.
+Base: d938d1190abd0448a8b565837eccb9672ccd9c0b.
+
+FrameReply adds presentation_generation at field 5.
+Local prepare and commit receipts obtain it from the retained compositor producer binding.
+It names the presentation producer, independently of the actor authority generation.
+RenderWorker requires a positive generation and exact matching commitment receipt.
+Legacy frame receipts retain zero. No new actor action or authority is introduced.
+Existing protobuf fields and all 151 acceptance IDs and assertions remain unchanged.
+Only the core.proto hash and this explicit migration notice change in acceptance.lock.json.
+Unrelated schema hashes, tests, oracles, codecs, and native witnesses remain unchanged.
+Generated binding reproducibility remains required on the final frozen M10 candidate.
+
+Prepared frames retain their native surface handles.
+Commit consumes the pending frame before synchronizing and checking every mapped generation.
+Resize, unmap, remap, or destruction invalidate the old frame before visible output changes.
+Preparation also rejects stale native application handles instead of silently skipping their texture.
+This boundary supports the upcoming broker watch and Actors integration.
+It does not establish current actor authority or complete foreground revocation.
+
+Selected checks: external local-frame-lifetime-selected-checks-56.json.
+New native lifecycle regressions run against the immutable predecessor before the correction.
+Corrected native and transport checks run on both hosts in Debug and ASan/UBSan.
+Builds ran on middle-child only. Verified focused runtime results follow.
+The full M10 gate, world/host integration, capture routing, and three-actor workflows remain pending.
+
+Verified focused results
+Five native regressions failed against immutable predecessor local-frames-47 on sb16 Debug.
+Each received a successful frame where STALE_TARGET was required.
+The predecessor logs and package source pins remain preserved externally.
+
+The corrected candidate passed on both hosts in Debug and ASan/UBSan.
+Each host/profile completed 73 Python methods and five C++ transport groups.
+Total: 292 Python method completions and 20 C++ group completions.
+Failed: 0. Skipped: 0. Sanitizer diagnostics: 0.
+All command.exit and wrapper.exit receipts are zero.
+The seven new native methods cover five lifecycle regressions and two producer-generation cases.
+Producer generations 37 and 73 differ from authority generation 1.
+Independent X readback checks rejected frames leave visible output unchanged.
+A failed commitment cannot be replayed. Fresh valid frames still commit.
+The five transport groups cover definite-unsent denial, exact receipts, missing generation,
+changed generation, and changed frame identity. These groups use a protocol peer.
+They do not substitute for the actual compositor lifecycle evidence.
+
+Related methods per cell: local-frame-presentation 12, local-frame-owner 6,
+presentation-server 20, geometry-presentation-native 10, shared-render-client 7,
+and presentation-owner 11. All prior assertions remain present.
+
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023
+Frozen inputs: source-inputs-57.json. Build: build-local-frame-lifetime-run-57.
+Package: local-frame-lifetime-58/payload.tar.gz.
+Archive SHA256: d137d649a865e9b2fc7210a166f1062f1a816059142894ec3a1654f91012973b.
+Manifest SHA256: a822290da2bb913029fd842cb6b77ed275dbb2f7cbed06765c35e982ddd54a89.
+Predecessor audit: local-frame-lifetime-predecessor-audit-56.json.
+Collection: local-frame-lifetime-collection-60.json.
+Terminal audit: local-frame-lifetime-terminal-audit-60.json.
+Static schema comparison: local-frame-schema-review-56/review.json.
+That comparison proves the only descriptor change is FrameReply field 5.
+All 151 locked IDs/assertions and unrelated lock entries remain unchanged.
+The static guard verifies every current locked file hash.
+
+Deployment verified complete coverage, hashes, modes, executability, dependency closure, and writeback completion.
+A static prelaunch check caught old receipt names before any deployment action.
+Corrected unique run58 names preserve all prior evidence. No test ran during that refusal.
+Exact incoming archives were retired after extracted payload verification and root reference scans.
+The verified temporary extraction was removed and recovered 674447360 measured free bytes on middle-child.
+Later maintained-summary edits change no compiled or test input.
+
+This boundary does not qualify combined actor authority or persistent foreground clearing.
+World/host integration, held navigation, visible controls, capture routing, and three-actor workflows remain pending.
+The complete frozen M10 gate and generated-binding reproducibility remain UNRUN.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.

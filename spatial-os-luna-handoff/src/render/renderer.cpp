@@ -77,6 +77,7 @@ struct Renderer::Impl {
     } presented, observed, prepared;
     std::optional<wire::ActorLocalViewIdentity> prepared_identity;
     wire::FrameReply prepared_frame;
+    std::vector<wire::SurfaceHandle> prepared_surfaces;
     std::uint64_t frame_id = 0, security_sequence = 0;
     std::filesystem::path captures;
     wire::RendererReady info;
@@ -311,6 +312,7 @@ wire::FrameReply Renderer::draw(const wire::RenderCommand& command,int capture_f
 }
 void Renderer::discard_prepared_local_frame() {
     impl_->prepared_identity.reset(); impl_->prepared_frame.Clear();
+    impl_->prepared_surfaces.clear();
 }
 wire::FrameReply Renderer::prepare_local_frame(const wire::RenderCommand& command) {
     discard_prepared_local_frame();
@@ -320,6 +322,8 @@ wire::FrameReply Renderer::prepare_local_frame(const wire::RenderCommand& comman
         command.has_commit_local_frame() || command.has_clear_local_view())
         throw std::invalid_argument("Invalid local frame preparation");
     const auto result = draw_scene(command, nullptr);
+    for (const auto& surface : command.scene().surfaces())
+        impl_->prepared_surfaces.push_back(surface.handle());
     impl_->prepared_frame = result; impl_->prepared_identity = command.local_actor_view();
     return result;
 }
@@ -330,7 +334,12 @@ wire::FrameReply Renderer::commit_local_frame(const wire::ActorLocalViewIdentity
         r.prepared_identity->SerializeAsString() != identity.SerializeAsString())
         throw WorldError(wire::STALE_TARGET, "Local frame is not prepared for this actor view");
     const auto result = r.prepared_frame;
+    const auto surfaces = r.prepared_surfaces;
     discard_prepared_local_frame(); // Output failure cannot make this frame replayable.
+    synchronize();
+    for (const auto& handle : surfaces)
+        if (!r.surfaces->native(handle))
+            throw WorldError(wire::STALE_TARGET, "Prepared application surface changed before commitment");
     XResizeWindow(r.display, r.window, r.prepared.width, r.prepared.height);
     XMapRaised(r.display, r.window); check_x(r.display);
     std::swap(r.prepared, r.presented);
@@ -445,6 +454,8 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
         const bool textured=!panel.surface.id().empty();
         if (textured) {
             const auto texture=r.surfaces->texture(panel.surface);
+            if (!texture && preparing)
+                throw WorldError(wire::STALE_TARGET, "Application surface changed before frame preparation");
             if (!texture) continue; // A later native generation cannot inherit an earlier scene handle.
             glBindTexture(GL_TEXTURE_2D,texture->name);
             glUniform1i(glGetUniformLocation(r.program,"inverted"),texture->inverted);
