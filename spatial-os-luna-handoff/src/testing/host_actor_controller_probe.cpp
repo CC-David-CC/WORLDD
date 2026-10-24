@@ -609,6 +609,87 @@ void worker_presentation_receipt_cannot_publish_after_actor_interruption() {
     }
     host.reset();
 }
+void worker_checked_transition_release_disarms_old_capture_urgency() {
+    for (const bool menu : {false, true}) {
+        Fixture a, b; a.world="world-a"; b.world="world-b";
+        Endpoint source(a,2s), destination(b,2s);
+        std::promise<void> entered, release; auto gate=release.get_future().share();
+        std::atomic<bool> armed{false};
+        source.start([&](int fd) {
+            handshake(fd,a);std::uint64_t id=3,sequence=1;
+            if(menu)controlled_accept(fd,id++,sequence++,core::v1::ActorActionRequest::kStop);
+            controlled_accept(fd,id++,sequence++,core::v1::ActorActionRequest::kStop);
+            if(menu)controlled_accept(fd,id++,sequence++,core::v1::ActorActionRequest::kStop);
+            state(fd,a,id++);
+            const auto departure=receive(fd,pb::WorldSessionRequest::kDepart,id);
+            check(departure.depart().seq()==sequence,"Released transition changed departure sequencing");
+            auto reply=reply_for(id);auto* receipt=reply.mutable_departed();
+            receipt->set_actor_id(a.actor_id);receipt->set_world_id(a.world);receipt->set_transition_id(a.transition);
+            send_reply(fd,reply);closed(fd);
+        });
+        destination.start([&](int fd) {
+            handshake(fd,b,true);receive(fd,pb::WorldSessionRequest::kActivate,3);
+            auto reply=reply_for(3);opened(b,reply.mutable_opened());send_reply(fd,reply);
+            controlled_accept(fd,4,1,core::v1::ActorActionRequest::kStop);closed(fd);
+        });
+        auto host=shared_host(source,a,[](const auto&) {},[&](auto,const auto& view) {
+            if(menu && !view.visible() && armed.exchange(false)){entered.set_value();gate.wait();}
+        });
+        host->register_remote_world(b.world,[&] {
+            if(!menu){entered.set_value();gate.wait();}
+            return std::move(destination.client);
+        });
+        {
+            supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();
+            const auto pin=binding->interrupt.lock();
+            if(menu) {
+                check(worker.post_device(binding,worker_packet(binding,1,true)),"Menu source did not connect");
+                worker.call([] {});
+                worker.call([&] {
+                    auto packet=worker_packet(binding,2);packet.mutable_event()->mutable_key()->set_keysym("F10");
+                    packet.mutable_event()->mutable_key()->set_pressed(true);
+                    check(worker.device_event(binding,packet).menu_open(),"Transition menu did not open");
+                },binding);
+            }
+            armed.store(menu);auto proposal=request_for(a);proposal.clear_departure_sequence();
+            auto transition=worker.submit([&] {return worker.transition_proposed(0,proposal);},binding,true);
+            const bool reached=entered.get_future().wait_for(1s)==std::future_status::ready;
+            if(!reached){release.set_value();(void)transition.get();throw std::runtime_error("Released transition did not reach its gate");}
+            // A queued old Stop must not rearm the release deadline.
+            auto queued=worker.submit([] {return true;},binding,true);
+            const bool waiting=transition.wait_for(500ms)==std::future_status::timeout;
+            const bool interrupted=pin->requested();
+            const bool retired=binding->retired();
+            release.set_value();const auto result=transition.get();
+            check(waiting && !interrupted,"Checked release retained old capture urgency during a healthy transition");
+            check(retired!=menu,"Capture retirement did not follow validated generation advancement");
+            check(result.actor_control_available() && result.actor_transition().destination_activation_confirmed(),
+                "Released transition did not complete checked departure and activation");
+            check(queued.get() && binding->retired(),"Retired queued cancellation affected the adopted context");
+            check(worker.call([&] {return host->propose(1,shared_stop()).accepted();}),"Adopted actor lost ordinary authority");
+        }
+        host.reset();source.finish();destination.finish();
+    }
+}
+void worker_transition_withheld_release_keeps_watchdog() {
+    Fixture fixture;Endpoint source(fixture,2s);std::atomic<bool> destination_called{false};
+    source.start([&](int fd) {
+        handshake(fd,fixture);const auto request=receive(fd,pb::WorldSessionRequest::kControlAction,3);
+        check(request.control_action().has_stop(),"Transition did not request ordinary Stop first");closed(fd);
+    });
+    auto host=shared_host(source,fixture);
+    host->register_remote_world("world-b",[&]() -> std::unique_ptr<ActorSessionClient> {destination_called.store(true);return {};});
+    {
+        supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        auto proposal=request_for(fixture);proposal.clear_departure_sequence();const auto started=std::chrono::steady_clock::now();
+        auto result=worker.submit([&] {return worker.transition_proposed(0,proposal);},binding,true);
+        source.finish();bool rejected=false;try{(void)result.get();}catch(const std::exception&){rejected=true;}
+        const auto elapsed=std::chrono::steady_clock::now()-started;
+        check(rejected && pin->requested() && elapsed>=300ms && elapsed<1500ms && !destination_called,
+            "Withheld transition release escaped its350ms input watchdog");
+    }
+    host.reset();
+}
 void worker_watchdog_interrupts_without_actor_locks() {
     Fixture fixture; Endpoint source(fixture,2s);
     std::promise<void> waiting;
@@ -648,6 +729,8 @@ int main(int argc, char** argv) {
             worker_malformed_current_capture_retires_before_more_delivery();std::cout<<"PASS worker-malformed-current-capture-retires-and-cancels\n";
             worker_queue_empty_cancellation_has_its_own_watchdog_urgency();std::cout<<"PASS worker-queue-empty-cancellation-watchdog\n";
             worker_presentation_receipt_cannot_publish_after_actor_interruption();std::cout<<"PASS worker-presentation-receipt-interruption-barrier\n";
+            worker_checked_transition_release_disarms_old_capture_urgency();std::cout<<"PASS worker-checked-transition-release-disarms-all-old-urgency\n";
+            worker_transition_withheld_release_keeps_watchdog();std::cout<<"PASS worker-transition-withheld-release-keeps-watchdog\n";
             worker_watchdog_interrupts_without_actor_locks();std::cout<<"PASS worker-exact-session-watchdog-without-actor-locks\n";
             return 0;
         }

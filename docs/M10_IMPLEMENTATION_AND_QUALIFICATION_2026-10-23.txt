@@ -137,3 +137,16 @@ See ../spatial-os-luna-handoff/docs/M10_VISIBLE_CONTROLS_2026-10-24.txt and M10_
 The current source is a reviewed UNQUALIFIED_M10 draft. It is not integrated milestone qualification.
 Different-FOV adapter handoff, continuous capture, source-loss transport witnesses, and three-actor workflows remain required.
 The frozen combined candidate, generation reproducibility proof, and complete two-host M10 gate remain pending.
+
+2026-10-24 projection handoff and checked transition release
+The different-FOV native regression reproduced a retired-adapter callback after confirmed destination activation.
+Projection now updates only current adapters. Replacement adapters receive checked destination projection before capture publication.
+Related native testing exposed cancellation urgency extending past checked Stop into healthy destination preparation.
+The worker now records checked release before menu output and retires old capture at validated generation advancement.
+The initial Stop retains its 350 ms watchdog. Later transition exchanges retain their ordinary transport deadlines.
+Source141 passes 100 C++ fixture groups across both hosts and both profiles.
+Both native transition methods pass in each cell, including a stricter RGB/process-identity witness rerun145.
+Native tests retain Debug world/compositor dependencies. ASan/UBSan coverage here concerns the changed host/controller components.
+See ../spatial-os-luna-handoff/docs/M10_PROJECTION_HANDOFF_2026-10-24.txt for source and evidence details.
+Continuous capture remains unconnected. Three-actor real-file/application workflows and the frozen full gate remain pending.
+This is an UNQUALIFIED_M10 component checkpoint. The complete goal remains active.

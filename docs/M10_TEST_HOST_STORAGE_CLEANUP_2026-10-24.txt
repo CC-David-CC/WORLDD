@@ -188,3 +188,20 @@ Qualified M09 payloads and graphics dependencies remain preserved. All logs and 
 Failure package 68, exact source 66, test overlays, and unresolved native failures remain verified on fleet storage.
 Source supplement: fleet-foreground-source66-supplement-74.json.
 No qualification is inferred from archiving or capacity recovery.
+
+Qualification capacity, cleanup 139
+Removed on sb16-2 only:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/world-local-foreground-75
+Measured recovered free bytes: 3829252096. Free bytes afterward: 4391231488.
+The exact package remains on middle-child and on verified fleet storage:
+/mnt/data10tb/spatial-desktop/packages/current/m10-1d84b871-local-foreground-20261024-unqualified
+Archive SHA256: 14c08c2a3b5e2432bc29cd24c9a3b8766e9f6d3367d8879139a82a485a6a2723.
+All 14 retained fleet files were rehashed before deletion.
+The removal checked machine identity, filesystem UUID, complete file coverage, hashes, and the exact directory inode.
+Root process and mount scans found no live references.
+Qualified M09 native dependencies were verified outside the removal target.
+The source116 Debug runtime package remains verified on sb16-2.
+Its seven renderer menu methods passed. Its separate serial F12 failure remains preserved.
+The first cleanup preflight incorrectly required the combined run119 wrapper to pass.
+It stopped before deletion. Corrective139b checked the individual renderer result and retained the known failure explicitly.
+Evidence: foreground-retention-reverified-139.json and foreground-retirement-139.json under the external M10 root.

@@ -271,7 +271,9 @@ int main(int argc,char** argv) {
                         else if(request.has_controls_tick()) { *reply.mutable_controls()=controller->tick_controls(request.generation()); reply.set_accepted(true); }
                         else if(request.has_transition() || request.has_transition_proposal()) {
                             need(request.generation()==controller->generation(),"Stale host actor generation");
-                            auto result=request.has_transition_proposal() ? controller->transition_proposed(request.generation(),request.transition_proposal()) :
+                            auto result=request.has_transition_proposal() ?
+                                (actor_worker ? actor_worker->transition_proposed(request.generation(),request.transition_proposal()) :
+                                                controller->transition_proposed(request.generation(),request.transition_proposal())) :
                                                                           controller->transition(request.transition());
                             *reply.mutable_transition()=result;
                             reply.set_generation(controller->generation()); reply.set_accepted(result.actor_control_available()); reply.set_detail(result.detail());

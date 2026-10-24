@@ -18,6 +18,8 @@ public:
     using PresentationInspect = std::function<render::v1::PresentationState(const workspace::v1::ControlOwner&)>;
     using PresentationSelect = std::function<render::v1::PresentationState(const workspace::v1::ControlOwner&)>;
     using ControlsPresentation = std::function<void(std::uint64_t,const control::v1::ControlMenuView&)>;
+    enum class TransitionPhase { InputReleased, CaptureRetired };
+    using TransitionProgress = std::function<void(TransitionPhase)>;
     HostActorController(SessionCoordinator& session, std::string current_world,
                         std::unique_ptr<ActorSessionClient> current_client);
     // Explicit fixture seam. Production callers must use the SessionCoordinator constructor.
@@ -42,7 +44,7 @@ public:
     void start_controls(const control::v1::ControlProfiles&, control::ControlsMenu::Persist);
     core::v1::ActorActionReply propose(std::uint64_t generation, const core::v1::ActorActionRequest&);
     identity::v1::HostActorTransitionResult transition_proposed(std::uint64_t generation,
-        const identity::v1::HostActorTransitionRequest&);
+        const identity::v1::HostActorTransitionRequest&, TransitionProgress = {});
     control::v1::ControlStatus device_event(std::uint64_t generation, const control::v1::CapturedDeviceEvent&);
     control::v1::ControlStatus tick_controls(std::uint64_t generation);
     control::v1::ControlStatus control_status(std::uint64_t generation) const;
@@ -59,7 +61,8 @@ public:
     std::string current_world() const;
 
 private:
-    identity::v1::HostActorTransitionResult transition_locked(const identity::v1::HostActorTransitionRequest&);
+    identity::v1::HostActorTransitionResult transition_locked(const identity::v1::HostActorTransitionRequest&,
+        const TransitionProgress& = {});
     void require_controls_locked(std::uint64_t generation) const;
     void create_controls_locked(const control::v1::ControlProfiles&, std::uint64_t initial_sequence);
     control::v1::ControlStatus control_status_locked() const;

@@ -76,6 +76,8 @@ public:
     // Nonblocking receiver API. Keep the exact binding obtained at stream creation.
     bool post_device(const Binding&, control::v1::CapturedDeviceEvent);
     control::v1::ControlStatus device_event(const Binding&, const control::v1::CapturedDeviceEvent&);
+    identity::v1::HostActorTransitionResult transition_proposed(std::uint64_t,
+        const identity::v1::HostActorTransitionRequest&);
     bool request_cancel(const Binding&) noexcept;
 
 private:
@@ -85,6 +87,7 @@ private:
         std::int64_t started;
         Binding binding;
         bool urgent;
+        bool release_satisfied = false;
     };
     bool enqueue(Work);
     bool current(const Binding&) const;

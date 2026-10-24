@@ -92,6 +92,30 @@ bool HostActorWorker::request_cancel(const Binding& binding) noexcept {
     changed_.notify_all();
     return true;
 }
+identity::v1::HostActorTransitionResult HostActorWorker::transition_proposed(std::uint64_t generation,
+        const identity::v1::HostActorTransitionRequest& proposal) {
+    if (std::this_thread::get_id() != worker_.get_id())
+        throw std::invalid_argument("Actor transition must run on its worker");
+    const auto binding = capture_binding();
+    if (!binding || binding->actor_generation != generation)
+        throw std::invalid_argument("Stale transition capture binding");
+    return controller_.transition_proposed(generation, proposal, [this, binding](auto phase) {
+        std::lock_guard lock(watch_mutex_);
+        if (binding_ != binding || !flight_ || flight_->binding != binding)
+            throw std::runtime_error("Transition lost its exact capture flight");
+        if (const auto interrupt = binding->interrupt.lock(); interrupt && interrupt->requested())
+            throw std::runtime_error("Transition input release was interrupted");
+        if (phase == HostActorController::TransitionPhase::InputReleased) {
+            // Only a checked Stop reaches this hook. Remaining exchanges keep
+            // their ordinary transport deadlines, without old capture urgency.
+            flight_->release_satisfied = true;
+        } else {
+            if (!flight_->release_satisfied)
+                throw std::runtime_error("Capture retirement preceded checked release");
+            binding->retired_.store(true);
+        }
+    });
+}
 void HostActorWorker::refresh_context() {
     Binding next;
     if (controller_.control_available()) {
@@ -142,7 +166,7 @@ void HostActorWorker::watch() noexcept {
             // flight pinned through request(), so an old decision cannot select
             // a new flight's handle or outlive its completion barrier.
             std::lock_guard lock(watch_mutex_);
-            if (flight_ && flight_->binding && nanoseconds() - flight_->started >=
+            if (flight_ && !flight_->release_satisfied && flight_->binding && nanoseconds() - flight_->started >=
                 std::chrono::duration_cast<std::chrono::nanoseconds>(watchdog_limit).count()) {
                 const auto context = flight_->binding;
                 bool urgent = flight_->urgent || pending_cancel_ == context;

@@ -72,7 +72,7 @@ identity::v1::HostActorTransitionResult HostActorController::transition(
     return transition_locked(request);
 }
 identity::v1::HostActorTransitionResult HostActorController::transition_locked(
-    const identity::v1::HostActorTransitionRequest& request) {
+    const identity::v1::HostActorTransitionRequest& request, const TransitionProgress& progress) {
     using namespace identity::v1;
     HostActorTransitionResult result; result.set_protocol_version(1);
     result.set_host_selection(HOST_SELECTION_NOT_ATTEMPTED);
@@ -132,6 +132,7 @@ identity::v1::HostActorTransitionResult HostActorController::transition_locked(
 
     ActorTransitionCoordinator::Outcome outcome;
     try {
+        if (progress) progress(TransitionPhase::CaptureRetired);
         outcome = ActorTransitionCoordinator::transition(*source, source_world,
             request.destination_world_id(), request.transition_id(), request.departure_sequence(),
             destination.channel, request.destination_room(), request.has_destination_pose() ? &request.destination_pose() : nullptr);
@@ -262,7 +263,8 @@ void HostActorController::refresh_foreground_locked() {
             local_target_=LocalTarget{*destination->second.owner,identity};
         }
         const auto view=session_->present_local_actor(local_target_->owner,identity,0,0);
-        if(adapters_)adapters_->set_viewport(view.viewport().width(),view.viewport().height(),view.vertical_fov());
+        if(adapters_ && controls_ && controls_->context().generation == generation_)
+            adapters_->set_viewport(view.viewport().width(),view.viewport().height(),view.vertical_fov());
         geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
         geometry_status_.set_world_id(identity.world_id());geometry_status_.set_actor_id(identity.actor_id());
         geometry_status_.set_room(view.room());*geometry_status_.mutable_camera()=view.camera();
@@ -279,7 +281,7 @@ void HostActorController::refresh_foreground_locked() {
         session_->select_geometry(*geometry_target_);
     }
     session_->publish_geometry(*geometry_target_, view);
-    if(adapters_){
+    if(adapters_ && controls_ && controls_->context().generation == generation_){
         const auto viewport=session_->native_viewport();
         adapters_->set_viewport(viewport.width(),viewport.height(),view.config().vertical_fov());
     }
@@ -468,27 +470,45 @@ std::weak_ptr<const ActorSessionInterrupt> HostActorController::interrupt_handle
     return current_client_->interrupt_handle();
 }
 identity::v1::HostActorTransitionResult HostActorController::transition_proposed(std::uint64_t generation,
-    const identity::v1::HostActorTransitionRequest& proposal) {
+    const identity::v1::HostActorTransitionRequest& proposal, TransitionProgress progress) {
     std::lock_guard lock(mutex_); require_controls_locked(generation);
     validate_message(proposal);
     require(proposal.departure_sequence() == 0, "Shared transition proposals cannot choose an actor sequence");
     const auto before_generation = generation_;
     const auto source_world = current_world_;
     const auto profiles = adapters_->profiles();
+    adapters_->cancel();
+    if (progress) progress(TransitionPhase::InputReleased);
     adapters_->set_menu(false);
     synchronize_controls_presentation_locked();
-    adapters_->cancel();
     auto request = proposal; request.set_departure_sequence(controls_->reserve_sequence(generation));
     actor_sequence_ = request.departure_sequence();
-    auto result = transition_locked(request);
+    auto result = transition_locked(request, progress);
     if (generation_ != before_generation) {
         // Existing transition code advanced the host generation. Old Close
         // callbacks are now stale and cannot close the adopted destination.
         controls_menu_.reset(); adapters_.reset(); controls_.reset();
         if (result.actor_control_available() && !control_fenced_ && current_client_ && !current_client_->failed()) {
-            try { create_controls_locked(profiles, current_world_ == source_world ? actor_sequence_ : 0); }
+            try {
+                create_controls_locked(profiles, current_world_ == source_world ? actor_sequence_ : 0);
+                // The adopted adapter owns sequencing now. Bind its projection
+                // before the worker can publish this context's capture binding.
+                if (session_) {
+                    try { refresh_foreground_locked(); }
+                    catch (const ActorSessionRejected&) {
+                        clear_foreground_locked();
+                        if (!current_client_ || current_client_->failed()) throw;
+                        result.mutable_actor_transition()->set_host_presentation_selection_pending(true);
+                        result.set_host_selection(identity::v1::HOST_SELECTION_NOT_ATTEMPTED);
+                    }
+                }
+            }
             catch (...) {
+                if (session_) (void)retire_foreground_locked();
+                control_fenced_ = true;
+                current_client_.reset();
                 result.set_actor_control_available(false);
+                result.set_host_selection(identity::v1::HOST_SELECTION_UNCERTAIN);
                 result.set_detail("Actor transition completed with shared control fenced during context handoff");
             }
         }

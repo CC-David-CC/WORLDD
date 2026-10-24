@@ -1,0 +1,59 @@
+M10 ADOPTED PROJECTION HANDOFF
+Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+Invariant
+Only the current controls context may receive a checked projection update.
+Initialize replacement adapters before publishing their capture binding.
+Observation denial clears foreground pixels without removing independent navigation authority.
+Uncertain projection setup fences the affected actor and retains foreground cleanup obligations.
+
+Reproducer selected in capture-projection-selected-135.json before implementation.
+Source127 on sb16 fails both native different-FOV transition regressions.
+Both failures report "Retired actor proposal callback" after confirmed destination activation.
+One case transitions A-B-A. The other returns from an observation-denied destination.
+Evidence: projection-before-results-136 under the external M10 artifact root.
+Native dependencies match before and after the executed tests.
+
+Correction
+Skip projection assignment through adapters from a previous host generation.
+After adapter replacement, obtain a checked projection for the adopted context.
+Preserve observation denial separately from transport and projection failures.
+Register host-projection-handoff-native with the existing native resource wrappers.
+
+Corrected results are recorded below.
+Continuous capture and the complete M10 goal remain pending.
+
+Related transition release deadline
+Source137 passes 23 worker/shared/controller fixture groups on sb16 Debug.
+Its two native transitions fail with DEPARTURE_UNCERTAIN and a closed actor TLS channel.
+Evidence: projection-results-138. This is separate from the reproduced retired-adapter failure.
+The root marks an entire transition as cancellation-urgent.
+That urgency incorrectly includes healthy destination preparation after checked Stop succeeds.
+The existing read-only helper confirmed this source-level cause.
+Selected regressions: transition-release-selected-140.json.
+
+The worker now tracks checked release on its exact in-flight operation.
+The controller confirms Stop before menu output and later reports validated generation advancement.
+Checked release disarms all old-flight urgency sources, including queued cancellation work.
+Generation advancement retires the old capture binding.
+Remaining transition exchanges retain their ordinary transport deadlines.
+An unanswered initial Stop still uses the unchanged 350 ms watchdog.
+Regression gates hold destination setup and native-menu callbacks for 500 ms after checked release.
+They queue old cancellation work and check source interruption before releasing each gate.
+These gated regressions use fixture channels. Corrected native results follow.
+
+Corrected component results
+Source141 passes nine worker, five shared-control, and eleven controller groups in all four host/profile cells.
+Accepted total: 100 C++ fixture-group completions across sb16 and sb16-2, Debug and ASan/UBSan.
+Both native different-FOV methods also pass in all four cells.
+The native environment uses the retained source116 Debug world/compositor package.
+ASan/UBSan instruments the changed host/controller components. This is not full sanitized native qualification.
+Evidence: projection-release-results-142; audit: projection-release-terminal-audit-144.json under the external M10 root.
+
+Primary review strengthened the native witness after that pass.
+RGB checks now exclude alpha. Process start times and a compositor pidfd verify retained native services.
+Only those two native methods were rerun. Both pass on each host with each host/controller build profile.
+Evidence: projection-witness-results-145. No skipped method or sanitizer diagnostic was accepted.
+Native dependency hashes match before and after every executed suite.
+All 151 locked acceptance assertions and schema pins remain unchanged.
+The frozen combined candidate, continuous capture, three-actor workflows, and full M10 gate remain pending.
