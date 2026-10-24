@@ -46,3 +46,93 @@ Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-start
 Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26/payload.tar.gz
 Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26/payload
 SHA256: c29cb9fb24bf523aeecdbe35393775a883c8b1fee42d84ac1ced619610241a86
+
+Second verified duplicate transfer cleanup: run51.
+Result: duplicate-transfer-cleanup-results-51.json under the external evidence root.
+Every retained payload passed its full hash inventory before archive removal.
+Retained builder archives remain immutable and checked. No live archive reference was found.
+
+sb16: measured recovered bytes 821051392.
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-01.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-01/focused-core.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-01/payload
+SHA256: 12500707f61ef04d3e5a5daed29ce58a23ac56c93a28eb1e528e7264a43f2360
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-asan-01.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-asan-01/focused-core.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-asan-01/payload
+SHA256: 4baa6200055cb421235f772ea76bc9937925390c1911e1cd637ac4953a1e8583
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-13.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-13/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-13/payload
+SHA256: 840a7befeb771b557d1a862bd5873ecec75a95f293a79a688e6686f6673f6360
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-16.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-16/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-16/payload
+SHA256: 203bfdafd742c6c44c1779464ad52dbc501746ec280ae682d99e2f00c54638a4
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/interrupt-handoff-focused-19.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/interrupt-handoff-focused-19/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/interrupt-handoff-focused-19/payload
+SHA256: 9e36b234bcd58dc6b2689cb82b5a7c04b90cecc4b29379abd9023378bee9190a
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/native-capture-focused-34.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/native-capture-focused-34/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/native-capture-focused-34/payload
+SHA256: de331d6e6e2249916576586f2fa1d30f5386f899965cfc9ec2873b073ad2bd25
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-view-boundary-42.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-view-boundary-42/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-view-boundary-42/payload
+SHA256: 1e1f0191c7c55f38e18868de9b59a5a3d8578c89a1b4e389be6d55787b26bbaa
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/payload
+SHA256: a2d0b65f4c06544568821d195fb1e08dca5be9805248c801b42ca35896fc1f9e
+
+sb16-2: measured recovered bytes 821026816.
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-01.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-01/focused-core.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-01/payload
+SHA256: 12500707f61ef04d3e5a5daed29ce58a23ac56c93a28eb1e528e7264a43f2360
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-asan-01.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-asan-01/focused-core.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/focused-core-asan-01/payload
+SHA256: 4baa6200055cb421235f772ea76bc9937925390c1911e1cd637ac4953a1e8583
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-13.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-13/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-13/payload
+SHA256: 840a7befeb771b557d1a862bd5873ecec75a95f293a79a688e6686f6673f6360
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-16.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-16/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/capture-menu-focused-16/payload
+SHA256: 203bfdafd742c6c44c1779464ad52dbc501746ec280ae682d99e2f00c54638a4
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/interrupt-handoff-focused-19.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/interrupt-handoff-focused-19/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/interrupt-handoff-focused-19/payload
+SHA256: 9e36b234bcd58dc6b2689cb82b5a7c04b90cecc4b29379abd9023378bee9190a
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/native-capture-focused-34.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/native-capture-focused-34/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/native-capture-focused-34/payload
+SHA256: de331d6e6e2249916576586f2fa1d30f5386f899965cfc9ec2873b073ad2bd25
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-view-boundary-42.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-view-boundary-42/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-view-boundary-42/payload
+SHA256: 1e1f0191c7c55f38e18868de9b59a5a3d8578c89a1b4e389be6d55787b26bbaa
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/payload
+SHA256: a2d0b65f4c06544568821d195fb1e08dca5be9805248c801b42ca35896fc1f9e
+
+2026-10-24 observation-watch53 transfer retirement
+Verified both extracted immutable payloads before removing their duplicate incoming archive.
+Retained builder archive and remote payload paths are identical relative to each artifact root.
+Removed on both hosts: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/observation-watch-53.tar.gz
+Retained builder archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/observation-watch-53/payload.tar.gz
+Retained host payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/observation-watch-53/payload
+Retained host manifest: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/observation-watch-53/manifest.json
+Archive SHA256: 74bcc1f6e9dbc2716b01bb1378d7c7cf22f145cb17f1350d89e9ee4618b6cf4c.
+Manifest SHA256: 59b0d8c4ebbaf9140bb3069b56022f19b53e1d9127e82813ffcdca47579eed82.
+Each host verified all 530 payload files. Root process, mount, and loop reference audits passed.
+sb16 measured recovered free bytes: 478167040.
+sb16-2 measured recovered free bytes: 478191616.
+External plan: observation-watch-transfer-retirement-plan-53.json.
+Verified original collection: observation-watch-original-collection-55.json.
+Per-host logs: evidence/HOST/observation-watch-transfer-retirement-53.stdout and .stderr.
+No extracted runtime, failure evidence, source checkout, or qualified M09 dependency was deleted.
