@@ -1,4 +1,5 @@
 #include "world/identity_sessions.hpp"
+#include "world/local_view_validation.hpp"
 #include "world/geometry_view_validation.hpp"
 #include "world/diagnostic_timing.hpp"
 #include "world/authority.hpp"
@@ -71,6 +72,7 @@ struct Channel {
     std::size_t sent = 0;
     bool needs_observation = false;
     bool needs_geometry_observation = false;
+    bool local_view_attested = false;
     std::uint64_t cancellation_generation = 0;
     CancellationCause cancellation_cause = CancellationCause::other;
     std::uint64_t active_request_id = 0, output_request_id = 0;
@@ -214,6 +216,7 @@ struct IdentitySessions::Impl {
         const auto token = std::move(channel.token); channel.token.clear();
         channel.credential.Clear(); channel.claims.Clear(); channel.pending.reset(); channel.prepared.reset(); channel.completing.reset();
         channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
+        channel.local_view_attested = false;
         // Swap queued bytes out before cancellation callbacks can re-enter.
         // The pump sees empty output until Actors::close returns; deferred cancellation settles later.
         std::string pending_output;
@@ -661,6 +664,61 @@ struct IdentitySessions::Impl {
         result.set_authority_generation(generation);
         return result;
     }
+    wire::ActorLocalViewState local_view_control(const wire::ActorLocalViewRequest& request) {
+        validate_message(request);
+        require(request.protocol_version() == 1 && request.has_identity() &&
+                request.operation_case() != wire::ActorLocalViewRequest::OPERATION_NOT_SET,
+                "Invalid retained local view operation");
+        const auto identity = request.identity();
+        validate_local_view_identity(identity);
+        if (broken || !ready || closing || identity.world_id() != world.info().world_id() ||
+            identity.authority_service_incarnation() != participant->service_incarnation() ||
+            identity.authority_generation() != generation)
+            throw WorldError(wire::FORBIDDEN, "Local view does not match the active world authority");
+        Channel* selected = nullptr;
+        for (auto& channel : channels) {
+            if (!channel->token.empty() && channel->view_id == identity.view_id() && channel->fd.value >= 0 &&
+                "identity:" + hex(issuer.issuer_id()) + ":" + hex(channel->claims.actor_id()) == identity.actor_id()) {
+                require(!selected, "Duplicate authenticated local view identity");
+                selected = channel.get();
+            }
+        }
+        if (!selected) throw WorldError(wire::FORBIDDEN, "Local view is not an active authenticated actor session");
+        auto& channel = *selected;
+        const auto token = channel.token;
+        const auto cancellation = channel.cancellation_generation;
+        const auto claims = channel.claims;
+        const auto active = [&] {
+            return !broken && ready && !closing && channel.fd.value >= 0 && channel.token == token &&
+                channel.view_id == identity.view_id() && channel.cancellation_generation == cancellation &&
+                identity.authority_generation() == generation;
+        };
+        (void)current(channel.credential, claims);
+        if (!active()) throw WorldError(wire::UNAUTHORIZED, "Actor session changed during local attestation");
+        const auto actor = principal(claims);
+        if ((config.admission() == pb::EXPLICIT_ACTORS &&
+             !(authority ? authority->allowed(actor, "enter") : admitted.contains(claims.actor_id()))))
+            throw WorldError(wire::FORBIDDEN, "Local view actor is no longer admitted");
+        if (!active())
+            throw WorldError(wire::UNAUTHORIZED, "Actor session changed during local attestation");
+        wire::ActorLocalViewState result;
+        *result.mutable_identity() = identity;
+        if (request.has_bind()) {
+            actors.bind_local_view(token, identity);
+            channel.local_view_attested = true;
+        } else if (request.has_release()) {
+            if (channel.local_view_attested) {
+                channel.local_view_attested = false;
+                actors.release_local_view(token, identity);
+            }
+        } else {
+            if (!channel.local_view_attested)
+                throw WorldError(wire::FORBIDDEN, "Local view requires retained host attestation");
+            throw WorldError(wire::UNIMPLEMENTED, "Local frame presentation is not implemented yet");
+        }
+        result.set_bound(channel.local_view_attested);
+        return result;
+    }
     pb::WorldSessionReply dispatch(Channel& channel, const std::string& bytes,
             bool& self_revocation_receipt, bool& copy_status_request) {
         copy_status_request = false;
@@ -1097,4 +1155,7 @@ void IdentitySessions::tick() { impl_->tick(); }
 void IdentitySessions::pump() { impl_->pump(); }
 void IdentitySessions::settle() { impl_->settle(); }
 void IdentitySessions::shutdown() { impl_->shutdown(); }
+core::v1::ActorLocalViewState IdentitySessions::local_view_control(const core::v1::ActorLocalViewRequest& request) {
+    return impl_->local_view_control(request);
+}
 }

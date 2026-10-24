@@ -1,6 +1,7 @@
 #include "world/actor_session_client.hpp"
 #include "world/control_action.hpp"
 #include "world/geometry_view_validation.hpp"
+#include "world/local_view_validation.hpp"
 #include "core/protocol.hpp"
 #include "identity/keys.hpp"
 #include "identity/tls_support.hpp"
@@ -535,6 +536,16 @@ core::v1::ActorActionReply ActorSessionClient::controlled_action(const core::v1:
         impl_->fail();
         throw;
     }
+}
+
+core::v1::ActorLocalViewIdentity ActorSessionClient::local_view_identity() const {
+    impl_->require_state(Lifecycle::Active, "Actor session is inactive");
+    core::v1::ActorLocalViewIdentity result;
+    result.set_protocol_version(1); result.set_world_id(impl_->world); result.set_actor_id(impl_->expected_actor_id());
+    result.set_view_id(impl_->geometry_view_id); result.set_authority_service_incarnation(impl_->geometry_service_incarnation);
+    result.set_authority_generation(impl_->geometry_authority_generation);
+    validate_local_view_identity(result);
+    return result;
 }
 
 pb::ActorGeometryView ActorSessionClient::geometry_view() {

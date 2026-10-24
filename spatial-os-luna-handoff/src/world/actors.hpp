@@ -37,6 +37,9 @@ public:
         const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
         std::uint64_t sequence);
     bool application_observation_valid(const std::string& token, std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
+    // Retained host management only. This changes local-output eligibility, never actor rights.
+    void bind_local_view(const std::string& token, const core::v1::ActorLocalViewIdentity& identity);
+    void release_local_view(const std::string& token, const core::v1::ActorLocalViewIdentity& identity);
     wire::WorldCheckpointReply checkpoint();
     wire::WorldCheckpointReply checkpoint_closed(const std::string& actor_id);
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
@@ -74,6 +77,8 @@ private:
         std::optional<spatial::authority::v1::ActorRef> principal;
         bool require_observation_grant = false;
         bool local_application_output = true;
+        bool base_local_application_output = true;
+        std::optional<core::v1::ActorLocalViewIdentity> local_view;
         std::array<double, 6> axes{};
         wire::TranslationFrame translation_frame = wire::BODY_TRANSLATION;
         void clear_motion() noexcept { axes.fill(0); translation_frame = wire::BODY_TRANSLATION; }

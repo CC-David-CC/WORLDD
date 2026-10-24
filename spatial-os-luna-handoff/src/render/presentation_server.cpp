@@ -222,6 +222,8 @@ struct Server {
             }else if(request.has_command()){
                 if(world.stage!=protocol::READY)throw WorldError(wire::UNAVAILABLE,"World presentation is not initialized");
                 const auto& value=request.command();
+                require(!value.has_local_actor_view() && !value.prepare_local_frame() && !value.has_commit_local_frame() && !value.has_clear_local_view(),
+                        "Local actor frame operations are not enabled yet");
                 require(value.protocol_version()==1 && value.request_id()==world.sequence &&
                     int(value.has_scene())+int(value.has_sync())+int(value.has_input())==1,"Invalid bound render command");
                 require(!value.capture() || value.has_scene(),"Capture requires a scene");

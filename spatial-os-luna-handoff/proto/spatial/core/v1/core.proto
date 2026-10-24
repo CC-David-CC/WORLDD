@@ -3,6 +3,7 @@ package spatial.core.v1;
 import "security.proto";
 import "copy.proto";
 import "file_actions.proto";
+import "actor_local_view.proto";
 
 // Units: meters, seconds, radians. Right-handed; forward is -Z.
 // Unspecified vector components are zero. Message presence is checked separately.
@@ -75,6 +76,29 @@ message RenderConfig {
   Color actor_color = 10;
 }
 message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
+// Retained host management only. Never part of ActorActionRequest.
+message ActorLocalViewBind {}
+message ActorLocalViewPresent { uint32 width = 1; uint32 height = 2; }
+message ActorLocalViewRelease {}
+message ActorLocalViewRequest {
+  uint32 protocol_version = 1;
+  ActorLocalViewIdentity identity = 2;
+  oneof operation {
+    ActorLocalViewBind bind = 10;
+    ActorLocalViewPresent present = 11;
+    ActorLocalViewRelease release = 12;
+  }
+}
+message ActorLocalViewState {
+  ActorLocalViewIdentity identity = 1;
+  bool bound = 2;
+  bool presented = 3;
+  uint64 frame_id = 4;
+  uint64 world_revision = 5;
+  Pose camera = 6;
+  PixelExtent viewport = 7;
+}
+message ActorLocalFrameCommit { uint64 frame_id = 1; }
 message FrameReply { string path = 1; uint64 frame_id = 2; uint64 world_revision = 3; uint64 xid = 4; }
 // Private worldd-to-spatialwm protocol. No actor credentials cross this boundary.
 message SurfaceHandle { string id = 1; uint64 generation = 2; }
@@ -137,6 +161,10 @@ message RenderCommand {
   RendererInputCommand input = 8;
   bool observe = 9; // Read visibility from an isolated target; never present this view.
   bool include_pixels = 10; // Include bounded RGB8 data only with observe.
+  ActorLocalViewIdentity local_actor_view = 11;
+  bool prepare_local_frame = 12;
+  ActorLocalFrameCommit commit_local_frame = 13;
+  ActorLocalViewRelease clear_local_view = 14;
 }
 message VisibilitySample { uint32 index = 1; Pixel pixel = 2; uint64 pixels = 3; }
 message PixelImage { uint32 width = 1; uint32 height = 2; bytes rgb8 = 3; } // Top-left, packed RGB8.
@@ -145,7 +173,7 @@ message RendererReady { string gl_version = 1; string gl_renderer = 2; }
 message RenderResult {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
-  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; NativeActorInput input = 7; RenderVisibility visibility = 8; }
+  oneof outcome { FrameReply frame = 3; Error error = 4; RendererReady ready = 5; NativeSnapshot snapshot = 6; NativeActorInput input = 7; RenderVisibility visibility = 8; bool local_view_cleared = 9; }
 }
 message ActorAimRequest { Vec3 direction = 1; }
 message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel = 4; double distance = 5; }
@@ -320,6 +348,7 @@ message Request {
     RuntimeResourcesRequest runtime_resources = 55;
     SurfaceAttachSlotRequest surface_attach_slot = 56;
     SurfaceValidateRequest surface_validate = 57;
+    ActorLocalViewRequest actor_local_view = 58;
     RepositoryImportRequest git_repo_import = 60;
     WorktreeCreateRequest git_worktree_create = 61;
     WorktreeStatusRequest git_status = 62;
@@ -479,6 +508,7 @@ message Reply {
     FenceReply fence = 54;
     ResourceStats resources = 55;
     SurfaceValidationReply surface_validation = 57;
+    ActorLocalViewState actor_local_view = 58;
     RepositoryReply repository = 60;
     WorktreeReply worktree = 61;
     GitStatusReply git_status = 62;

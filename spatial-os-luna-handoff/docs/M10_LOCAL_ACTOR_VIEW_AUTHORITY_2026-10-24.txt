@@ -1,0 +1,62 @@
+M10 retained local actor view authority
+Date: 2026-10-24. Status: FOCUSED PASS. UNQUALIFIED_M10.
+Base: b3b1a513e6b11972de2dcc4a71bd42a9fea651d3.
+Branch: m10/shared-actions-qualification-20261023.
+
+The retained host can attest one exact authenticated actor session for local application output.
+The identity binds world, actor, random per-channel view, authority incarnation, and authority generation.
+The management operation requires the inherited private world channel.
+Public actor transport cannot invoke it.
+The client exposes authenticated identity metadata without sending an RPC or consuming an actor sequence.
+
+Attestation grants no admission, workspace access, observation, application control, execution, or administration rights.
+Existing Actors scene and input paths retain every independent authority check.
+Forged world, actor, view, incarnation, and generation bindings reject before enabling application output.
+Closed session views cannot attest replacement channels.
+Release removes TLS local-output eligibility and balances native held input.
+The application remains mapped with its original surface generation.
+Independent local-socket eligibility survives release of retained-host attestation.
+
+The additive schema migration is explicit in M10_LOCAL_ACTOR_VIEW_SCHEMA_MIGRATION_2026-10-24.txt.
+All 151 locked acceptance IDs and unrelated file pins remain unchanged.
+New local frame commands fail closed until their retained presentation implementation exists.
+
+Selected checks were recorded before execution in local-view-selected-checks-42.json.
+Both Debug and ASan/UBSan builds completed on middle-child with parallelism two.
+Runtime checks ran only on sb16 and sb16-2.
+Each host/profile cell passed:
+- actor-local-view-authority: 7 new Python methods.
+- actor-pixels: 16 Python methods, including native surface and revocation fences.
+- world-remote-native: 4 Python methods, including geometry-only remote restrictions.
+- actor-session-client: 54 C++ check groups.
+- actor-session-client-tls: 31 C++ check groups.
+
+Total: 108 Python method completions and 340 C++ check-group completions across four cells.
+These totals include 28 completions of the seven new authority methods.
+Executed failures: 0. Skips: 0. Sanitizer diagnostics: 0.
+Both command.exit and wrapper.exit are zero on each host.
+The native suites used the qualified M09 XACE wrapper and verified graphics dependency closure.
+Deployment verification checked complete file coverage, bytes, modes, executable permission, and shared libraries.
+The writeback guard completed before runtime tests started.
+
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023
+Build: build-local-view-boundary-run-40.
+Frozen source inputs: source-inputs-40.json.
+Package: local-view-boundary-42/payload.tar.gz.
+Archive SHA256: 1e1f0191c7c55f38e18868de9b59a5a3d8578c89a1b4e389be6d55787b26bbaa.
+Manifest SHA256: 4273cec13a5899d0482313c15feb78993e7f696466010c85bb7f5e63c31715f0.
+Per-host results: evidence/HOST/local-view-boundary-results-42/results.json.
+Per-host execution: evidence/HOST/local-view-boundary-run-42.
+Per-host flush: evidence/HOST/local-view-boundary-writeback-42.json.
+Collection: local-view-boundary-collection-43.json.
+The following documentation update changes no runtime build input.
+
+Pending and unrun:
+- Prepared local foreground frames, selected-view validation, and checked foreground retirement.
+- Production host selection of the new local-view capability.
+- Visible controls menu and native capture worker/watchdog integration.
+- Concurrent scripted-actor application and cabinet workflows.
+- Frozen-candidate binding reproducibility and the complete additive M10 qualification matrix.
+
+Local foreground frame presentation is not implemented by this increment.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.

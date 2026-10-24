@@ -22,6 +22,8 @@ public:
     // Call only from the outer scheduler, after handlers and native cancellation finish.
     void settle();
     void shutdown();
+    // Only the inherited retained-world management transport calls this entrypoint.
+    core::v1::ActorLocalViewState local_view_control(const core::v1::ActorLocalViewRequest&);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

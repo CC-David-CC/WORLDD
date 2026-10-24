@@ -1,0 +1,13 @@
+syntax = "proto3";
+package spatial.core.v1;
+
+// One authenticated session view. This identity grants no actor authority.
+// Only the retained local host may attest it through world management.
+message ActorLocalViewIdentity {
+  uint32 protocol_version = 1;
+  string world_id = 2;
+  string actor_id = 3;
+  bytes view_id = 4;
+  bytes authority_service_incarnation = 5;
+  uint64 authority_generation = 6;
+}

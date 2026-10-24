@@ -85,6 +85,8 @@ int main(int argc, char** argv) {
                     continue;
                 }
                 if (command.protocol_version() != 1) throw std::invalid_argument("Invalid render command");
+                if (command.has_local_actor_view() || command.prepare_local_frame() || command.has_commit_local_frame() || command.has_clear_local_view())
+                    throw std::invalid_argument("Local actor frame operations require the retained presentation service");
                 spatial::validate_message(command);
                 if (command.request_id() <= sequence || (int(command.has_scene()) + int(command.has_sync()) + int(command.has_input())) != 1)
                     throw std::invalid_argument("Invalid compositor command sequence or operation");

@@ -50,7 +50,7 @@ void error(wire::Reply& reply, wire::ErrorCode code, const char* message) {
 }
 }
 
-wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker) {
+wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker, const LocalActorViewHandler& local_view) {
     wire::Reply reply;
     reply.set_protocol_version(1); reply.set_request_id(request.request_id());
     try {
@@ -137,6 +137,10 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
             *reply.mutable_frame() = renderer->render(scene, operation.width(), operation.height(), capture);
             break;
         }
+        case wire::Request::kActorLocalView:
+            if (!local_view) throw WorldError(wire::UNIMPLEMENTED, "Owned local actor presentation is unavailable");
+            *reply.mutable_actor_local_view() = local_view(request.actor_local_view());
+            break;
         case wire::Request::kSurfaceFind:
         case wire::Request::kSurfaceGet:
         case wire::Request::kSurfacePlace:
@@ -272,14 +276,14 @@ wire::Reply dispatch(const wire::Request& request, WorldStore* world, Actors* ac
     return reply;
 }
 
-wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker) {
+wire::Reply handle_frame(std::string_view frame, WorldStore* world, Actors* actors, RenderWorker* renderer, Surfaces* surfaces, BrokerClient* broker, const LocalActorViewHandler& local_view) {
     wire::Request request;
     if (frame.size() <= max_frame_bytes) {
         google::protobuf::io::ArrayInputStream array(frame.data(), static_cast<int>(frame.size()));
         google::protobuf::io::CodedInputStream input(&array);
         input.SetTotalBytesLimit(static_cast<int>(max_frame_bytes));
         input.SetRecursionLimit(64);
-        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer, surfaces, broker);
+        if (request.ParseFromCodedStream(&input) && input.ConsumedEntireMessage()) return dispatch(request, world, actors, renderer, surfaces, broker, local_view);
     }
     wire::Reply reply;
     reply.set_protocol_version(1);

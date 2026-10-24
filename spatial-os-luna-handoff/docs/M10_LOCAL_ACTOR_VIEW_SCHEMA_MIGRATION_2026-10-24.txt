@@ -1,0 +1,42 @@
+M10 additive local actor view contract
+Status: IMPLEMENTING. UNQUALIFIED_M10. Retained attestation passed focused runtime checks.
+Local foreground frame presentation remains UNIMPLEMENTED and UNRUN.
+Base: b3b1a513e6b11972de2dcc4a71bd42a9fea651d3.
+
+The approved M10 plan requires actor-bound local application foregrounds.
+Public TLS actor sessions remain application-incapable unless their exact session receives trusted local-host attestation.
+Attestation grants no world admission, workspace access, observation, application control, execution, or administration rights.
+All resulting actions and scene projection retain the existing Actors implementation and authority checks.
+A remote world registration has no locally retained owner and cannot receive this host capability.
+No actor adapter receives the private management or compositor control channel.
+
+actor_local_view.proto defines ActorLocalViewIdentity without importing core.proto.
+Its fields name world, actor, per-channel view, service incarnation, and authority generation.
+The identity grants no authority by itself.
+Core Request and Reply add actor_local_view at field 58 for retained management only.
+The request selects bind, present, or release. The reply contains checked view state and frame metadata.
+ActorActionRequest receives no new host-management action.
+Core dispatch requires an explicit production management callback. Its absence returns UNIMPLEMENTED.
+
+The private RenderCommand adds local_actor_view at 11, prepare_local_frame at 12,
+commit_local_frame at 13, and clear_local_view at 14.
+RenderResult adds local_view_cleared at 9.
+Prepared local frames must match the trusted selected world producer and exact actor view.
+They use actual native application textures. RGB ActorObserve images are not the foreground runtime.
+Authority and actor lifetime must remain valid before frame commitment.
+Old views, foreign producers, stale frame IDs, and retired targets cannot paint a new foreground.
+Legacy producer commands keep their behavior when no local actor target is selected.
+Geometry-only remote ActorGeometryView remains application-incapable.
+
+Both language bindings have one generator per output.
+Production Python generation includes the transitive actor_local_view_pb2 module.
+Generated-code reproducibility must be proved on the frozen milestone candidate.
+
+The acceptance lock records the changed core.proto and the new identity schema explicitly.
+Its accepted M09 predecessor pin remains unchanged.
+All 151 locked IDs, assertions, oracles, codecs, native witnesses, and unrelated file hashes remain unchanged.
+This migration neither qualifies M10 nor weakens any prior gate.
+See external local-foreground-implementation-design-39.txt for the selected implementation and regression matrix.
+
+Focused retained-attestation results are documented in M10_LOCAL_ACTOR_VIEW_AUTHORITY_2026-10-24.txt.
+This result does not qualify prepared-frame or selected-foreground behavior.

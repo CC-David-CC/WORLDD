@@ -1,4 +1,5 @@
 #include "world/actors.hpp"
+#include "world/local_view_validation.hpp"
 #include "world/geometry_view_validation.hpp"
 #include "world/workspace_presentations.hpp"
 #include "world/presentation_geometry.hpp"
@@ -267,6 +268,8 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.application_input = false; actor.keyboard_application.reset();
     actor.require_observation_grant = require_observation_grant;
     actor.local_application_output = local_application_output;
+    actor.base_local_application_output = local_application_output;
+    actor.local_view.reset();
     actor.clear_motion(); actor.expires = now_;
     actor.aim.Clear(); actor.aim_application.reset();
     sessions_.emplace(token, actor.entity.id());
@@ -288,6 +291,27 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
     }
     return result;
 }
+void Actors::bind_local_view(const std::string& token, const core::v1::ActorLocalViewIdentity& identity) {
+    validate_local_view_identity(identity);
+    auto& actor = authenticated(token);
+    if (!actor.principal || actor.entity.id() != identity.actor_id() || store_.info().world_id() != identity.world_id())
+        throw WorldError(wire::FORBIDDEN, "Local output identity does not match the authenticated actor");
+    if (actor.local_view && actor.local_view->SerializeAsString() != identity.SerializeAsString())
+        throw WorldError(wire::STALE_TARGET, "Actor already has another local view identity");
+    actor.local_view = identity;
+    actor.local_application_output = true;
+}
+void Actors::release_local_view(const std::string& token, const core::v1::ActorLocalViewIdentity& identity) {
+    validate_local_view_identity(identity);
+    auto& actor = authenticated(token);
+    if (!actor.local_view || actor.local_view->SerializeAsString() != identity.SerializeAsString())
+        throw WorldError(wire::STALE_TARGET, "Local output identity is not bound to this actor");
+    actor.local_view.reset();
+    actor.local_application_output = actor.base_local_application_output;
+    // A local socket's independent eligibility survives release of host attestation.
+    // TLS clients lose their extra local input mode and must release held input.
+    if (!actor.local_application_output) cancel_control(token);
+}
 std::string Actors::depart(const std::string& token) {
     // Native cleanup can run revocation callbacks that clear the channel's token.
     const std::string retained=token;
@@ -304,6 +328,7 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     } else release_input(actor, true);
     actor.clear_motion(); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
     actor.aim.Clear(); actor.aim_application.reset(); actor.keyboard_application.reset();
+    actor.local_view.reset(); actor.local_application_output = false; actor.base_local_application_output = false;
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
 }

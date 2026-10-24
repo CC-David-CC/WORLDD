@@ -60,3 +60,9 @@ M10 is pending until one frozen candidate passes its complete required matrix on
 Physical keyboard, mouse, SpaceMouse calibration, unplug trials, and visible GPU acceptance remain M14 requirements.
 Provider integration remains M11. Real-model task acceptance remains M12. Timing and soak remain M15.
 Spatial-M1 and LOCAL_READY remain incomplete.
+
+2026-10-24 retained local view authority checkpoint
+Exact-session host attestation passed focused native/TLS checks on both hosts and profiles.
+The new binding grants no actor authority. Release balances held input and preserves applications.
+See ../spatial-os-luna-handoff/docs/M10_LOCAL_ACTOR_VIEW_AUTHORITY_2026-10-24.txt for source and evidence pins.
+Local foreground rendering, visible menu, live capture routing, scripted workflows, and the full M10 gate remain pending.

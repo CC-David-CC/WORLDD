@@ -68,6 +68,8 @@ public:
     // This sends no actor action and never reconnects or replays.
     std::weak_ptr<const ActorSessionInterrupt> rotate_interrupt_handle();
     identity::v1::ActorGeometryView geometry_view();
+    // Immutable identity for the trusted local owner. This grants no actor rights.
+    core::v1::ActorLocalViewIdentity local_view_identity() const;
     bool failed() const noexcept;
     const std::string& expected_world() const noexcept;
     std::string expected_actor_id() const;

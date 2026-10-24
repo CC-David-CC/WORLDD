@@ -592,6 +592,10 @@ void geometry_reply_case(Fixture& f, const std::string& fault) {
         client.authenticate();
         if (later) check(client.geometry_view().sequence() == 2, "valid first view rejected");
         if (fault == "valid" || fault == "near-boundary") {
+            const auto identity = client.local_view_identity();
+            check(identity.protocol_version() == 1 && identity.world_id() == f.world && identity.actor_id() == f.actor_id &&
+                  identity.view_id() == std::string(32, 'v') && identity.authority_service_incarnation() == std::string(32, 's') &&
+                  identity.authority_generation() == 7, "local owner identity differs from the authenticated session");
             const auto view = client.geometry_view();
             check(view.sequence() == 1 && view.room() == "entry", "valid geometry rejected");
             if (fault == "near-boundary") check(view.objects_size() == 4096, "near-boundary view truncated");

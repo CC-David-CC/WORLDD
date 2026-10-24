@@ -68,7 +68,10 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
             const auto size = length(input);
             if (size > max_frame_bytes) throw std::runtime_error("Frame exceeds size limit");
             if (input.size() >= size + 4) {
-                const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer, surfaces, broker);
+                const LocalActorViewHandler local_view = sessions && renderer ? LocalActorViewHandler([&](const auto& request) {
+                    return sessions->local_view_control(request);
+                }) : LocalActorViewHandler{};
+                const auto reply = handle_frame(std::string_view(input).substr(4, size), &world, &actors, renderer, surfaces, broker, local_view);
                 // A dead broker cannot produce a valid operation reply through this authority.
                 if (broker) broker->check_alive();
                 input.erase(0, size + 4); input_started = now;
