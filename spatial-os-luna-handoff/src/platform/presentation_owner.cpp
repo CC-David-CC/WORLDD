@@ -138,6 +138,24 @@ protocol::GeometryPresentationState PresentationOwner::retire_geometry(const pro
     auto result=impl_->geometry_state(std::move(request),target,protocol::RETIRED,false,found->second);
     impl_->geometry_sequences.erase(found);return result;
 }
+protocol::LocalActorPresentationState PresentationOwner::select_local_actor(const protocol::LocalActorPresentationTarget& target){
+    protocol::PresentationControlRequest request;*request.mutable_select_local_actor()=target;
+    const auto reply=impl_->call(std::move(request));
+    if(!reply.has_local_actor_state() || !reply.local_actor_state().selected() ||
+        reply.local_actor_state().target().SerializeAsString()!=target.SerializeAsString()){
+        impl_->control.reset();throw std::runtime_error("Selected local actor view unconfirmed");
+    }
+    return reply.local_actor_state();
+}
+protocol::LocalActorPresentationState PresentationOwner::retire_local_actor(const protocol::LocalActorPresentationTarget& target){
+    protocol::PresentationControlRequest request;*request.mutable_retire_local_actor()=target;
+    const auto reply=impl_->call(std::move(request));
+    if(!reply.has_local_actor_state() || reply.local_actor_state().selected() ||
+        reply.local_actor_state().target().SerializeAsString()!=target.SerializeAsString()){
+        impl_->control.reset();throw std::runtime_error("Retired local actor view unconfirmed");
+    }
+    return reply.local_actor_state();
+}
 void PresentationOwner::clear_selection(){
     protocol::PresentationControlRequest request;request.mutable_clear_selection();
     const auto reply=impl_->call(std::move(request));

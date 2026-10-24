@@ -4,6 +4,7 @@
 #include "platform/process_handle.hpp"
 #include "presentation.pb.h"
 #include "world/store.hpp"
+#include "world/local_view_validation.hpp"
 #include <array>
 #include <cerrno>
 #include <chrono>
@@ -171,6 +172,48 @@ wire::FrameReply RenderWorker::render(const wire::RenderScene& scene, std::uint3
     frame_id_ = reply.frame().frame_id();
     return reply.frame();
 }
+wire::FrameReply RenderWorker::prepare_local_frame(const wire::ActorLocalViewIdentity& identity,
+        const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height,
+        const std::function<void()>& before_send) {
+    if (!shared_) throw WorldError(wire::UNIMPLEMENTED, "Local frames require retained presentation ownership");
+    prepared_identity_.reset(); prepared_frame_.Clear();
+    validate_local_view_identity(identity); validate_render_extent(width, height);
+    wire::RenderCommand command; *command.mutable_local_actor_view()=identity;
+    *command.mutable_scene()=scene; command.set_width(width); command.set_height(height);
+    command.set_prepare_local_frame(true);
+    const auto reply=exchange(command,before_send);
+    if (!reply.has_frame() || !reply.frame().path().empty() || reply.frame().world_revision()!=scene.world_revision() ||
+        reply.frame().frame_id()<=frame_id_ || !reply.frame().xid())
+        throw std::runtime_error("Prepared compositor frame identity mismatch");
+    frame_id_=reply.frame().frame_id(); prepared_frame_=reply.frame(); prepared_identity_=identity;
+    return prepared_frame_;
+}
+wire::FrameReply RenderWorker::commit_local_frame(const wire::ActorLocalViewIdentity& identity,
+        std::uint64_t frame_id, const std::function<void()>& before_send) {
+    if (!shared_) throw WorldError(wire::UNIMPLEMENTED, "Local frames require retained presentation ownership");
+    validate_local_view_identity(identity);
+    if (!frame_id || !prepared_identity_ || prepared_identity_->SerializeAsString()!=identity.SerializeAsString() ||
+        prepared_frame_.frame_id()!=frame_id)
+        throw WorldError(wire::STALE_TARGET, "Actor frame is not prepared on this producer");
+    const auto expected=prepared_frame_; prepared_identity_.reset(); prepared_frame_.Clear();
+    wire::RenderCommand command; *command.mutable_local_actor_view()=identity;
+    command.mutable_commit_local_frame()->set_frame_id(frame_id);
+    const auto reply=exchange(command,before_send);
+    if (!reply.has_frame() || reply.frame().SerializeAsString()!=expected.SerializeAsString())
+        throw std::runtime_error("Committed compositor frame identity mismatch");
+    return reply.frame();
+}
+void RenderWorker::clear_local_view(const wire::ActorLocalViewIdentity& identity) {
+    if (!shared_) throw WorldError(wire::UNIMPLEMENTED, "Local frames require retained presentation ownership");
+    validate_local_view_identity(identity);
+    if (prepared_identity_ && prepared_identity_->SerializeAsString()==identity.SerializeAsString()) {
+        prepared_identity_.reset(); prepared_frame_.Clear();
+    }
+    wire::RenderCommand command; *command.mutable_local_actor_view()=identity; command.mutable_clear_local_view();
+    const auto reply=exchange(command);
+    if (!reply.has_local_view_cleared() || !reply.local_view_cleared())
+        throw std::runtime_error("Local actor view clearing unconfirmed");
+}
 wire::NativeSnapshot RenderWorker::synchronize() {
     wire::RenderCommand command; command.mutable_sync();
     const auto reply = exchange(command);
@@ -269,8 +312,10 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std
         *request.mutable_command()=command;
         deadline_=Clock::now()+std::chrono::seconds(10);
         wire::RenderResult reply;
+        bool submitted=false;
         try {
             tick_();if(before_send)before_send();
+            submitted=true; // send may deliver bytes before throwing.
             shared_->stream->send(request.SerializeAsString(),capture_fd>=3?std::vector<int>{capture_fd}:std::vector<int>{});
             while(shared_->stream->pending_output()){
                 if(before_send)before_send();
@@ -283,7 +328,12 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std
             }
             reply=receive();
             if(reply.request_id()!=sequence_)throw std::runtime_error("Shared compositor response identity mismatch");
-        }catch(...){shared_->stream.reset();throw;}
+        }catch(...){
+            // A definite pre-send authority denial affects only this actor operation.
+            // Once submitted, uncertain delivery still fences the exact producer channel.
+            if(submitted)shared_->stream.reset();
+            throw;
+        }
         if(reply.has_error())throw WorldError(reply.error().code(),reply.error().message().c_str());
         return reply;
     }

@@ -13,6 +13,9 @@ public:
     wire::RendererReady ready() const;
     wire::FrameReply draw(const wire::RenderCommand& command, int capture_fd = -1);
     wire::FrameReply draw_geometry(const identity::v1::ActorGeometryView& view);
+    wire::FrameReply prepare_local_frame(const wire::RenderCommand& command);
+    wire::FrameReply commit_local_frame(const wire::ActorLocalViewIdentity&, std::uint64_t frame_id);
+    void discard_prepared_local_frame();
     wire::RenderVisibility observe(const wire::RenderCommand& command);
     int connection() const;
     void events();

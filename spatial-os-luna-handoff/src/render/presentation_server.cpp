@@ -6,6 +6,8 @@
 #include "presentation.pb.h"
 #include "world/store.hpp"
 #include "world/geometry_view_validation.hpp"
+#include "world/local_view_validation.hpp"
+#include <optional>
 #include "workspace/control_owner.hpp"
 #include <cerrno>
 #include <climits>
@@ -47,6 +49,7 @@ struct Server {
     std::map<std::uint64_t,WorldChannel> worlds;
     std::map<std::uint64_t,GeometryTarget> geometry_targets;
     std::uint64_t sequence=0,selected=0,selected_geometry=0;
+    std::optional<protocol::LocalActorPresentationTarget> selected_local;
     bool shutdown=false;
     Server(Renderer& renderer,int fd,pid_t owner):renderer(renderer),control(fd,owner,owner),owner(owner),owner_process(retain_owner(owner)){}
     WorldChannel& find(const Binding& binding){
@@ -80,9 +83,25 @@ struct Server {
         result.set_selected(selected_geometry==target.target.presentation_generation());
         result.set_last_view_sequence(target.last_sequence);return result;
     }
+    static void validate_local_target(const protocol::LocalActorPresentationTarget& target) {
+        validate_message(target); PresentationInputs::validate_binding(target.binding());
+        validate_local_view_identity(target.identity());
+        require(target.identity().world_id()==target.binding().world_id() &&
+            target.identity().authority_service_incarnation()==target.binding().service_incarnation() &&
+            target.identity().authority_generation()==target.binding().authority_generation(),
+            "Local actor view does not match its world producer");
+    }
+    bool matches_local(const WorldChannel& world, const wire::ActorLocalViewIdentity& identity) const {
+        return selected_local && selected==world.binding.presentation_generation() &&
+            selected_local->binding().SerializeAsString()==world.binding.SerializeAsString() &&
+            selected_local->identity().SerializeAsString()==identity.SerializeAsString();
+    }
+    void clear_selection() {
+        renderer.clear_presentation(); selected=0; selected_geometry=0; selected_local.reset();
+    }
     void retire(WorldChannel& world){
         world.channel.reset();
-        if(selected==world.binding.presentation_generation()){renderer.clear_presentation();selected=0;}
+        if(selected==world.binding.presentation_generation())clear_selection();
         if(world.stage==protocol::RETIRED)return;
         try {renderer.retire_input(world.binding);world.stage=protocol::RETIRED;}
         catch (...){world.stage=protocol::UNCERTAIN;}
@@ -134,7 +153,7 @@ struct Server {
                 if(target.stage!=protocol::ATTACHED && target.stage!=protocol::READY)
                     throw WorldError(wire::UNAVAILABLE,"Geometry presentation target is not available");
                 if(selected_geometry!=target.target.presentation_generation() || selected!=0)renderer.clear_presentation();
-                selected=0;selected_geometry=target.target.presentation_generation();target.stage=protocol::READY;
+                selected_local.reset();selected=0;selected_geometry=target.target.presentation_generation();target.stage=protocol::READY;
                 *reply.mutable_geometry_state()=geometry_state(target);
             }else if(request.has_publish_geometry()){
                 const auto& value=request.publish_geometry();auto& target=find_geometry(value.target());
@@ -162,8 +181,20 @@ struct Server {
                 auto& world=find(request.select());
                 if(world.stage!=protocol::READY || !world.channel || !world.process.live())
                     throw WorldError(wire::UNAVAILABLE,"World presentation is not ready");
-                if(selected!=world.binding.presentation_generation() || selected_geometry!=0)renderer.clear_presentation();
-                selected_geometry=0;selected=world.binding.presentation_generation();*reply.mutable_state()=state(world);
+                if(selected!=world.binding.presentation_generation() || selected_geometry!=0 || selected_local)renderer.clear_presentation();
+                selected_local.reset();selected_geometry=0;selected=world.binding.presentation_generation();*reply.mutable_state()=state(world);
+            }else if(request.has_select_local_actor()){
+                const auto& target=request.select_local_actor();validate_local_target(target);
+                auto& world=find(target.binding());
+                if(world.stage!=protocol::READY || !world.channel || !world.process.live())
+                    throw WorldError(wire::UNAVAILABLE,"Local actor producer is not ready");
+                if(!selected_local || selected_local->SerializeAsString()!=target.SerializeAsString())clear_selection();
+                selected=world.binding.presentation_generation();selected_local=target;
+                auto* result=reply.mutable_local_actor_state();*result->mutable_target()=target;result->set_selected(true);
+            }else if(request.has_retire_local_actor()){
+                const auto& target=request.retire_local_actor();validate_local_target(target);(void)find(target.binding());
+                if(selected_local && selected_local->SerializeAsString()==target.SerializeAsString())clear_selection();
+                *reply.mutable_local_actor_state()->mutable_target()=target;
             }else if(request.has_detach()){
                 auto& world=find(request.detach());retire(world);*reply.mutable_state()=state(world);
                 if(world.stage==protocol::RETIRED)worlds.erase(world.binding.presentation_generation());
@@ -182,7 +213,7 @@ struct Server {
                 if(world.stage!=protocol::RETIRED){renderer.confirm_input_retired(world.binding);world.stage=protocol::RETIRED;}
                 *reply.mutable_state()=state(world);
             }else if(request.has_clear_selection()){
-                renderer.clear_presentation();selected=0;selected_geometry=0;
+                clear_selection();
                 reply.set_selection_cleared(true);
             }else if(request.has_shutdown()){
                 if(!worlds.empty() || !geometry_targets.empty())throw WorldError(wire::IN_USE,"Retire presentation targets before compositor shutdown");
@@ -222,8 +253,36 @@ struct Server {
             }else if(request.has_command()){
                 if(world.stage!=protocol::READY)throw WorldError(wire::UNAVAILABLE,"World presentation is not initialized");
                 const auto& value=request.command();
-                require(!value.has_local_actor_view() && !value.prepare_local_frame() && !value.has_commit_local_frame() && !value.has_clear_local_view(),
-                        "Local actor frame operations are not enabled yet");
+                const bool local=value.has_local_actor_view() || value.prepare_local_frame() ||
+                    value.has_commit_local_frame() || value.has_clear_local_view();
+                if(local){
+                    validate_local_view_identity(value.local_actor_view());
+                    const auto& identity=value.local_actor_view();
+                    require(identity.world_id()==world.binding.world_id() &&
+                        identity.authority_service_incarnation()==world.binding.service_incarnation() &&
+                        identity.authority_generation()==world.binding.authority_generation(),"Local frame producer mismatch");
+                    const bool selected_view=matches_local(world,identity);
+                    if(selected_view && value.prepare_local_frame())renderer.discard_prepared_local_frame();
+                    require(value.protocol_version()==1 && value.request_id()==world.sequence &&
+                        int(value.has_scene())+int(value.has_sync())+int(value.has_input())+
+                        int(value.has_commit_local_frame())+int(value.has_clear_local_view())==1 &&
+                        !value.capture() && !value.observe() && !value.include_pixels() &&
+                        !value.has_sync() && !value.has_input(),"Invalid local actor frame operation");
+                    if(value.has_clear_local_view()){
+                        require(!value.prepare_local_frame(),"Clear cannot prepare a local frame");
+                        if(selected_view)clear_selection();
+                        reply.set_local_view_cleared(true); // An old clear cannot blank a newer actor view.
+                    }else{
+                        if(!selected_view)throw WorldError(wire::FORBIDDEN,"Local actor view is not selected");
+                        if(value.has_scene()){
+                            require(value.prepare_local_frame(),"Local scene requires preparation");
+                            *reply.mutable_frame()=renderer.prepare_local_frame(value);
+                        }else{
+                            require(value.has_commit_local_frame() && !value.prepare_local_frame(),"Invalid local frame commit");
+                            *reply.mutable_frame()=renderer.commit_local_frame(identity,value.commit_local_frame().frame_id());
+                        }
+                    }
+                }else{
                 require(value.protocol_version()==1 && value.request_id()==world.sequence &&
                     int(value.has_scene())+int(value.has_sync())+int(value.has_input())==1,"Invalid bound render command");
                 require(!value.capture() || value.has_scene(),"Capture requires a scene");
@@ -233,8 +292,9 @@ struct Server {
                 else if(value.has_input())*reply.mutable_input()=renderer.input(world.binding,value.input());
                 else if(value.observe())*reply.mutable_visibility()=renderer.observe(value);
                 else {
-                    if(selected!=world.binding.presentation_generation())throw WorldError(wire::FORBIDDEN,"World is not selected for presentation");
+                    if(selected!=world.binding.presentation_generation() || selected_local)throw WorldError(wire::FORBIDDEN,"World is not selected for unbound presentation");
                     *reply.mutable_frame()=renderer.draw(value,value.capture()?frame.descriptors[0].value:-1);
+                }
                 }
             }else throw std::invalid_argument("Missing world presentation operation");
         }catch(const WorldError& error){reply.mutable_error()->set_code(error.code);reply.mutable_error()->set_message(error.what());}

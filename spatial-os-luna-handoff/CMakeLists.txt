@@ -87,6 +87,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/presentation.proto
     DEPENDS proto/spatial/render/v1/presentation.proto proto/spatial/render/v1/compositor_native.proto
+        proto/spatial/core/v1/actor_local_view.proto
         proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
 add_custom_target(presentation-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.py")
 add_dependencies(presentation-python-protobuf geometry-view-python-protobuf)
@@ -1924,6 +1925,24 @@ if(BUILD_TESTING)
         add_test(NAME shared-render-client COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_shared_render_client.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(shared-render-client PROPERTIES TIMEOUT 90
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_executable(spatial-render-local-frame-client-check src/testing/render_local_frame_client_check.cpp)
+        target_link_libraries(spatial-render-local-frame-client-check PRIVATE spatial-core Threads::Threads)
+        add_test(NAME local-frame-client COMMAND $<TARGET_FILE:spatial-render-local-frame-client-check>)
+        set_tests_properties(local-frame-client PROPERTIES TIMEOUT 20)
+        add_custom_target(local-frame-presentation-fixtures DEPENDS worldd spatialwm
+            spatial-render-local-frame-client-check
+            spatial-security-auth spatial-presentation-owner-probe python-protobuf presentation-python-protobuf
+            broker-python-protobuf scope-python-protobuf native-scope-python-protobuf)
+        add_test(NAME local-frame-owner COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_local_frame_owner.py"
+            $<TARGET_FILE:spatial-presentation-owner-probe>)
+        set_tests_properties(local-frame-owner PROPERTIES TIMEOUT 90
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME local-frame-presentation COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_local_frame_presentation.py"
+            $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(local-frame-presentation PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME presentation-server COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_presentation_server.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)

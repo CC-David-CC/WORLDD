@@ -20,6 +20,23 @@ int main(int argc,char** argv){
         geometry.set_protocol_version(1);geometry.set_world_id("geometry-test");geometry.set_actor_id("observer");
         geometry.set_geometry_view_id(std::string(32,'v'));geometry.set_authority_service_incarnation(std::string(32,'i'));
         geometry.set_authority_generation(1);geometry.set_presentation_generation(2);
+        if(mode.starts_with("local_")){
+            close(pair[0]);close(pair[1]);
+            spatial::render::v1::LocalActorPresentationTarget target;*target.mutable_binding()=binding;
+            auto* view=target.mutable_identity();view->set_protocol_version(1);view->set_world_id(binding.world_id());
+            view->set_actor_id("human");view->set_view_id(std::string(32,'v'));
+            view->set_authority_service_incarnation(binding.service_incarnation());view->set_authority_generation(1);
+            bool rejected=false;
+            try{
+                owner.select_local_actor(target);owner.retire_local_actor(target);
+                if(mode!="local_success")return 10;
+                owner.shutdown();std::cout<<"local view sequence confirmed\n";
+            }catch(const std::exception& e){rejected=true;std::cout<<e.what()<<'\n';}
+            if(mode=="local_success" && rejected)return 11;
+            try{owner.inspect(binding);return 12;}
+            catch(const std::exception& e){std::cout<<e.what()<<'\n';}
+            return 0;
+        }
         if(mode=="geometry_sequence"){
             owner.attach_geometry(geometry);owner.select_geometry(geometry);
             spatial::identity::v1::ActorGeometryView view;

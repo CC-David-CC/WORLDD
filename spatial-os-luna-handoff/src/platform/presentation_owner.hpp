@@ -23,6 +23,8 @@ public:
     render::v1::GeometryPresentationState publish_geometry(const render::v1::GeometryPresentationTarget&,
         const identity::v1::ActorGeometryView&);
     render::v1::GeometryPresentationState retire_geometry(const render::v1::GeometryPresentationTarget&);
+    render::v1::LocalActorPresentationState select_local_actor(const render::v1::LocalActorPresentationTarget&);
+    render::v1::LocalActorPresentationState retire_local_actor(const render::v1::LocalActorPresentationTarget&);
     void clear_selection();
     void shutdown();
 private:

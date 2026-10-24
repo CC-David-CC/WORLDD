@@ -66,3 +66,11 @@ Exact-session host attestation passed focused native/TLS checks on both hosts an
 The new binding grants no actor authority. Release balances held input and preserves applications.
 See ../spatial-os-luna-handoff/docs/M10_LOCAL_ACTOR_VIEW_AUTHORITY_2026-10-24.txt for source and evidence pins.
 Local foreground rendering, visible menu, live capture routing, scripted workflows, and the full M10 gate remain pending.
+
+2026-10-24 prepared local frame checkpoint
+Production spatialwm now prepares native textures separately from visible and observed frames.
+Exact producer/view checks, commitment, stale-frame refusal, and targeted clearing passed focused checks.
+Both hosts and profiles passed 264 Python completions and four C++ transport groups.
+See ../spatial-os-luna-handoff/docs/M10_LOCAL_FRAME_PRESENTATION_2026-10-24.txt for evidence and limits.
+Broker-backed observation retirement and world/host integration remain pending.
+The complete M10 goal and qualification boundary remain unchanged.

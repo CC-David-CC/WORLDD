@@ -6,6 +6,7 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <sys/types.h>
 namespace spatial {
 // Owned production compositor; one bounded in-flight scene, scheduler serviced while waiting.
@@ -20,6 +21,11 @@ public:
     RenderWorker& operator=(const RenderWorker&) = delete;
     wire::FrameReply render(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool capture);
     wire::RenderVisibility observe(const wire::RenderScene& scene, std::uint32_t width, std::uint32_t height, bool include_pixels = false);
+    wire::FrameReply prepare_local_frame(const wire::ActorLocalViewIdentity&, const wire::RenderScene&,
+        std::uint32_t width, std::uint32_t height, const std::function<void()>& before_send = {});
+    wire::FrameReply commit_local_frame(const wire::ActorLocalViewIdentity&, std::uint64_t frame_id,
+        const std::function<void()>& before_send = {});
+    void clear_local_view(const wire::ActorLocalViewIdentity&);
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command, const std::function<void()>& before_send = {});
     render::v1::NativeActorSeatIdentity native_actor_seat(const std::string& actor);
@@ -41,6 +47,8 @@ private:
     int socket_ = -1, pidfd_ = -1;
     std::uint64_t sequence_ = 0;
     std::uint64_t frame_id_ = 0;
+    std::optional<wire::ActorLocalViewIdentity> prepared_identity_;
+    wire::FrameReply prepared_frame_;
     bool busy_ = false;
     std::function<void()> tick_ = [] {};
     std::chrono::steady_clock::time_point deadline_;

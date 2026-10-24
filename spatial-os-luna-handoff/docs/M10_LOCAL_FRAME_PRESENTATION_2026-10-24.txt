@@ -1,0 +1,94 @@
+M10 private prepared-frame contract
+Date: 2026-10-24. Status: FOCUSED BOUNDARY PASS. UNQUALIFIED_M10.
+Base: eaa69534529aa931737b7735ad0873c14bf1fc87.
+
+The trusted host selects one local actor identity on an attached world presentation producer.
+The target binds the retained WorldPresentationBinding and exact ActorLocalViewIdentity.
+PresentationControlRequest adds select_local_actor at 21 and retire_local_actor at 22.
+PresentationControlReply adds local_actor_state at 9.
+These private additions grant no actor authority and add no public actor operation.
+Existing core prepared-frame field numbers remain unchanged.
+No locked acceptance assertion, witness, or lock entry changes.
+
+Preparation renders actual native textures into a third independent framebuffer.
+It does not map, resize, or swap the visible window.
+Observations retain their separate framebuffer and cannot overwrite pending human frames.
+Only the selected producer and exact actor view can prepare or commit.
+Commit requires the pending frame identity. Successful commits consume that identity.
+Failed preparation, selection change, retirement, and foreground clear discard pending frames.
+Old view clearing cannot blank a newer selected view.
+Unbound producer rendering is denied while an actor target is selected.
+Legacy selected-world rendering remains available after explicit legacy selection.
+Standalone compositor protocol refuses private retained-frame tags.
+
+The private owner validates selection and retirement replies.
+The RenderWorker producer validates prepared and committed frame identities.
+Actor authority and lifetime fences, host selection, and immediate revocation clearing remain integration work.
+This increment alone cannot qualify local actor presentation or M10.
+Held-navigation behavior must follow the explicit review in external local-frame-motion-review-43.txt.
+
+The two touched presentation_owner source files use LF after this edit.
+Their prior CRLF bytes caused new lines to fail the repository whitespace guard.
+No other file receives a line-ending conversion.
+
+Selected checks and external evidence:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-selected-checks-45.json
+Run twelve new real compositor methods and affected presentation regressions.
+Run Debug and ASan/UBSan on sb16 and sb16-2.
+Builds run on middle-child with parallelism two and per-directory locks.
+Full M10 qualification remains pending.
+
+Pre-send denial correction:
+The producer previously closed its shared channel after any before_send callback exception.
+A definite unsent authorization denial must leave the shared producer usable for other actors.
+The exchange now retains the channel until submission starts.
+Failures after submission retain the existing uncertain-delivery fencing behavior.
+One C++ transport fixture checks that a denied preparation sends no bytes.
+It also checks that the next synchronization succeeds with a fresh request sequence.
+This fixture is client transport evidence. It is not native authorization acceptance.
+Six additional private-owner methods check malformed replies and checked selection/retirement.
+
+Verified focused runtime results
+Both hosts passed in Debug and ASan/UBSan.
+Each host/profile cell completed 66 Python methods and one C++ transport group.
+Python methods: local-frame-presentation 12, local-frame-owner 6, presentation-server 20,
+geometry-presentation-native 10, shared-render-client 7, and presentation-owner 11.
+The C++ group is definite-unsent-authorization-keeps-shared-producer.
+Total: 264 Python method completions and four C++ check-group completions.
+Failed: 0. Skipped: 0. Sanitizer diagnostics: 0.
+Both command.exit and wrapper.exit are zero on each host.
+
+The twelve native frame methods use independent X readback from production spatialwm.
+They prove pending frames neither paint nor resize the foreground before commitment.
+Another observation cannot overwrite that frame.
+They prove old view clearing cannot blank a replacement view.
+They also render and repaint a real application texture through the prepared buffer.
+These are compositor protocol boundary tests. They do not prove actor authority integration.
+The C++ pre-send check uses a protocol peer and proves client transport behavior only.
+
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023
+Initial builds: build-local-frames-run-45, both profiles passed.
+Corrected pre-send client builds: build-local-frames-run-46, both profiles passed.
+Frozen inputs: source-inputs-46.json.
+Package: local-frames-47/payload.tar.gz.
+Archive SHA256: a2d0b65f4c06544568821d195fb1e08dca5be9805248c801b42ca35896fc1f9e.
+Manifest SHA256: c52668d6b6736539964c1daa99534bc1d36143896a728c2b0cfb03e285a1bfc4.
+Per-host results: evidence/HOST/local-frames-results-47/results.json.
+Per-host execution: evidence/HOST/local-frames-run-47.
+Per-host deployment flush: evidence/HOST/local-frames-writeback-47.json.
+Collection: local-frames-collection-48.json.
+Terminal audit: local-frames-terminal-audit-48.json.
+All graphics runs verified the retained M09 XACE wrapper and dependency closure.
+Deployment checked complete file coverage, hashes, modes, executable bits, and shared libraries.
+The writeback guard ran before tests.
+The later summary edit changes no compiled input.
+
+Pending integration and qualification
+Persistent application observation needs broker-backed revocation notification and clear acknowledgement.
+World actor frame preparation must share existing scene and authority fences.
+The production host must select the exact active local actor target.
+Held navigation, room transitions, actor closure, and revocation need combined runtime checks.
+Broader shared input and cancellation regressions remain required across that combined change.
+The visible menu, native capture worker/watchdog, and three-actor workflows remain pending.
+The full frozen M10 gate and generated-binding reproducibility proof remain unrun.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.

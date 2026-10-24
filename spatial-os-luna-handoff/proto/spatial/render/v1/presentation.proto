@@ -6,6 +6,7 @@ import "broker.proto";
 import "process_scope.proto";
 import "native_scope.proto";
 import "geometry_view.proto";
+import "actor_local_view.proto";
 message PresentationEmpty {}
 // Attach carries exactly two descriptors: world channel, then its retained pidfd.
 message PresentationAttach {
@@ -44,6 +45,15 @@ message GeometryPresentationState {
   bool selected = 3;
   uint64 last_view_sequence = 4;
 }
+// The host selects one exact actor view on an already retained local producer.
+message LocalActorPresentationTarget {
+  WorldPresentationBinding binding = 1;
+  spatial.core.v1.ActorLocalViewIdentity identity = 2;
+}
+message LocalActorPresentationState {
+  LocalActorPresentationTarget target = 1;
+  bool selected = 2;
+}
 message PresentationControlRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -60,6 +70,8 @@ message PresentationControlRequest {
     GeometryPresentationTarget retire_geometry = 19;
     // Blank foreground pixels and deselect producers without retiring channels.
     PresentationEmpty clear_selection = 20;
+    LocalActorPresentationTarget select_local_actor = 21;
+    LocalActorPresentationTarget retire_local_actor = 22;
   }
 }
 message PresentationControlReply {
@@ -72,6 +84,7 @@ message PresentationControlReply {
     bool shutting_down = 6;
     GeometryPresentationState geometry_state = 7;
     bool selection_cleared = 8;
+    LocalActorPresentationState local_actor_state = 9;
   }
 }
 // A channel is bound by the control owner. The world cannot choose its binding.

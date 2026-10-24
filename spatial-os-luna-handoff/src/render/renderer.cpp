@@ -6,6 +6,7 @@
 #include "x11/input_router.hpp"
 #include "world/store.hpp"
 #include "world/geometry_view_validation.hpp"
+#include "world/local_view_validation.hpp"
 #include <GL/glew.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
@@ -18,6 +19,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <iostream>
+#include <optional>
 #include <stdexcept>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -72,7 +74,9 @@ struct Renderer::Impl {
             if (depth) glDeleteRenderbuffers(1, &depth);
             if (identifiers) glDeleteRenderbuffers(1, &identifiers);
         }
-    } presented, observed;
+    } presented, observed, prepared;
+    std::optional<wire::ActorLocalViewIdentity> prepared_identity;
+    wire::FrameReply prepared_frame;
     std::uint64_t frame_id = 0, security_sequence = 0;
     std::filesystem::path captures;
     wire::RendererReady info;
@@ -86,7 +90,7 @@ struct Renderer::Impl {
             if (program) glDeleteProgram(program);
             if (vao) glDeleteVertexArrays(1, &vao);
             if (vbo) glDeleteBuffers(1, &vbo);
-            presented.release(); observed.release();
+            presented.release(); observed.release(); prepared.release();
             glXMakeCurrent(display, None, nullptr);
             glXDestroyContext(display, context);
         }
@@ -274,6 +278,7 @@ void Renderer::initialize_input(const render::v1::WorldPresentationBinding& bind
 }
 void Renderer::clear_presentation() {
     auto& r=*impl_;
+    discard_prepared_local_frame();
     if(!r.presented.width)return;
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER,r.presented.fbo);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -303,6 +308,34 @@ wire::NativeSnapshot Renderer::synchronize(const render::v1::WorldPresentationBi
 }
 wire::FrameReply Renderer::draw(const wire::RenderCommand& command,int capture_fd) {
     return draw_scene(command, nullptr,capture_fd);
+}
+void Renderer::discard_prepared_local_frame() {
+    impl_->prepared_identity.reset(); impl_->prepared_frame.Clear();
+}
+wire::FrameReply Renderer::prepare_local_frame(const wire::RenderCommand& command) {
+    discard_prepared_local_frame();
+    validate_message(command); validate_local_view_identity(command.local_actor_view());
+    if (!command.prepare_local_frame() || !command.has_scene() || command.observe() || command.capture() ||
+        command.include_pixels() || command.has_sync() || command.has_input() ||
+        command.has_commit_local_frame() || command.has_clear_local_view())
+        throw std::invalid_argument("Invalid local frame preparation");
+    const auto result = draw_scene(command, nullptr);
+    impl_->prepared_frame = result; impl_->prepared_identity = command.local_actor_view();
+    return result;
+}
+wire::FrameReply Renderer::commit_local_frame(const wire::ActorLocalViewIdentity& identity, std::uint64_t frame_id) {
+    validate_local_view_identity(identity);
+    auto& r = *impl_;
+    if (!frame_id || !r.prepared_identity || r.prepared_frame.frame_id() != frame_id ||
+        r.prepared_identity->SerializeAsString() != identity.SerializeAsString())
+        throw WorldError(wire::STALE_TARGET, "Local frame is not prepared for this actor view");
+    const auto result = r.prepared_frame;
+    discard_prepared_local_frame(); // Output failure cannot make this frame replayable.
+    XResizeWindow(r.display, r.window, r.prepared.width, r.prepared.height);
+    XMapRaised(r.display, r.window); check_x(r.display);
+    std::swap(r.prepared, r.presented);
+    r.output();
+    return result;
 }
 wire::FrameReply Renderer::draw_geometry(const identity::v1::ActorGeometryView& view) {
     validate_geometry_view(view);
@@ -360,7 +393,9 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
     const auto panels = scene_panels(command.scene());
     auto& r = *impl_;
     synchronize();
-    auto& target = visibility ? r.observed : r.presented;
+    const bool preparing = command.prepare_local_frame();
+    const bool presenting = !visibility && !preparing;
+    auto& target = visibility ? r.observed : preparing ? r.prepared : r.presented;
     if (!target.fbo) {
         glGenFramebuffers(1, &target.fbo); glGenRenderbuffers(1, &target.color);
         glGenRenderbuffers(1, &target.depth); glGenRenderbuffers(1, &target.identifiers);
@@ -378,9 +413,9 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
         glRenderbufferStorage(GL_RENDERBUFFER, GL_R32UI, target.width, target.height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_RENDERBUFFER, target.identifiers);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) throw std::runtime_error("Incomplete scene framebuffer");
-        if (!visibility) XResizeWindow(r.display, r.window, target.width, target.height);
+        if (presenting) XResizeWindow(r.display, r.window, target.width, target.height);
     }
-    if (!visibility) { XMapRaised(r.display, r.window); check_x(r.display); }
+    if (presenting) { XMapRaised(r.display, r.window); check_x(r.display); }
     glBindFramebuffer(GL_FRAMEBUFFER, target.fbo);
     const GLenum attachments[]{GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, attachments); glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -428,7 +463,8 @@ wire::FrameReply Renderer::draw_scene(const wire::RenderCommand& command, wire::
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STREAM_DRAW);
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
-    if (!visibility) r.output();
+    if (presenting) r.output();
+    else if (preparing) { glFinish(); check_gl(); }
     else {
         glFinish(); check_gl();
         std::vector<GLuint> indices(std::size_t(target.width) * target.height);
