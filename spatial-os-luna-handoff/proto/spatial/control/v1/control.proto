@@ -70,6 +70,7 @@ message ControlStatus {
   double cursor_y = 7;
   uint32 viewport_width = 8;
   uint32 viewport_height = 9;
+  uint64 capture_generation = 10;
 }
 
 // One private datagram. CLOCK_MONOTONIC and the capture epoch belong to this host.

@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include "core/protocol.hpp"
 #include "core/geometry.hpp"
+#include "world/control_action.hpp"
+#include <limits>
 
 namespace spatial::supervisor {
 namespace {
@@ -28,6 +30,7 @@ HostActorController::HostActorController(PresentationInspect inspect, Presentati
             "Initial actor client does not match current world");
 }
 HostActorController::~HostActorController() {
+    controls_menu_.reset(); adapters_.reset(); controls_.reset();
     if(session_ && geometry_target_) { try { session_->retire_geometry(*geometry_target_);geometry_target_.reset(); } catch (...) { control_fenced_=true; } }
 }
 
@@ -61,6 +64,14 @@ identity::v1::HostActorTransitionResult HostActorController::transition(
         result.set_detail("Another host actor transition is in progress");
         return result;
     }
+    require(!shared_enabled_, "Use the shared transition proposal API while controls own sequencing");
+    legacy_used_ = true;
+    return transition_locked(request);
+}
+identity::v1::HostActorTransitionResult HostActorController::transition_locked(
+    const identity::v1::HostActorTransitionRequest& request) {
+    using namespace identity::v1;
+    HostActorTransitionResult result; result.set_protocol_version(1);
     result.set_host_selection(HOST_SELECTION_NOT_ATTEMPTED);
     result.set_actor_control_available(!control_fenced_ && current_client_ && !current_client_->failed());
     try {
@@ -202,7 +213,9 @@ identity::v1::WorldSessionReply HostActorController::action(std::uint64_t genera
     require(lock.owns_lock(), "Host actor operation already in progress");
     require(!control_fenced_ && !transitioning_ && current_client_ && generation == generation_,
             "Unavailable or stale host actor context");
+    require(!shared_enabled_, "Use shared actor proposals while controls own sequencing");
     validate_message(request);
+    legacy_used_ = true;
     return current_client_->action(request);
 }
 std::uint64_t HostActorController::generation() const {
@@ -289,5 +302,141 @@ void HostActorController::pump_geometry_presentation() {
 std::string HostActorController::current_world() const {
     std::lock_guard lock(mutex_);
     return current_world_;
+}
+void HostActorController::require_controls_locked(std::uint64_t generation) const {
+    require(shared_enabled_ && controls_ && adapters_ && controls_menu_ && generation == generation_ &&
+            !transitioning_ && !control_fenced_ && current_client_ && !current_client_->failed(),
+            "Unavailable or stale shared actor context");
+}
+void HostActorController::create_controls_locked(const control::v1::ControlProfiles& profiles,
+                                                 std::uint64_t initial_sequence) {
+    require(current_client_ && !current_client_->failed() && !controls_ && !adapters_ && !controls_menu_ &&
+            capture_generation_ < std::numeric_limits<std::uint64_t>::max(), "Cannot create shared actor context");
+    const auto generation = generation_;
+    try {
+        // Revocation is independent of the host/actor operation locks. An old
+        // watchdog cannot interrupt a retained source after this handoff.
+        (void)current_client_->rotate_interrupt_handle();
+        controls_ = std::make_unique<control::ActorControl>(
+            control::ActorContext{current_world_, current_client_->expected_actor_id(), generation},
+            [this, generation](const auto& request) {
+                require(generation == generation_ && current_client_ && !control_fenced_, "Retired actor proposal callback");
+                actor_sequence_ = request.seq();
+                if (!actor_input::reversible(request)) return current_client_->action(request);
+                identity::v1::WorldSessionReply reply; reply.set_protocol_version(1);
+                *reply.mutable_action() = current_client_->controlled_action(request);
+                return reply;
+            }, [this, generation] {
+                require(generation == generation_ && current_client_ && !control_fenced_, "Retired actor inspection callback");
+                return current_client_->inspect();
+            }, [this, generation] {
+                if (generation == generation_) { control_fenced_ = true; current_client_.reset(); }
+            }, initial_sequence);
+        adapters_ = std::make_unique<control::DeviceAdapters>(*controls_, profiles);
+        controls_menu_ = std::make_unique<control::ControlsMenu>(*adapters_, persist_controls_);
+        actor_sequence_ = initial_sequence; ++capture_generation_; capture_sequence_ = 0;
+    } catch (...) {
+        controls_menu_.reset(); adapters_.reset(); controls_.reset();
+        control_fenced_ = true; current_client_.reset();
+        throw;
+    }
+}
+void HostActorController::start_controls(const control::v1::ControlProfiles& profiles,
+                                         control::ControlsMenu::Persist persist) {
+    std::lock_guard lock(mutex_);
+    require(!shared_enabled_ && !legacy_used_ && !transitioning_ && !control_fenced_ && current_client_ &&
+            !current_client_->failed() && bool(persist), "Shared control requires a fresh authenticated host context");
+    control::validate_profiles(profiles);
+    persist_controls_ = std::move(persist);
+    create_controls_locked(profiles, 0);
+    shared_enabled_ = true;
+}
+core::v1::ActorActionReply HostActorController::propose(std::uint64_t generation,
+    const core::v1::ActorActionRequest& request) {
+    std::lock_guard lock(mutex_); require_controls_locked(generation);
+    validate_message(request);
+    require(request.token().empty() && !request.has_seq(), "Shared proposals cannot choose actor tokens or sequences");
+    if (request.has_stop()) {
+        adapters_->cancel();
+        core::v1::ActorActionReply reply; reply.set_accepted(true); return reply;
+    }
+    try { return controls_->propose(generation, request); }
+    catch (const ActorInputCancelled&) { adapters_->acknowledged_cancellation(); throw; }
+}
+control::v1::ControlStatus HostActorController::control_status_locked() const {
+    require(shared_enabled_ && adapters_, "Shared actor controls are not configured");
+    auto result = adapters_->status(); result.set_capture_generation(capture_generation_);
+    result.set_available(!control_fenced_ && !transitioning_ && current_client_ &&
+                         !current_client_->failed() && result.available());
+    return result;
+}
+control::v1::ControlStatus HostActorController::control_status(std::uint64_t generation) const {
+    std::lock_guard lock(mutex_);
+    require(generation == generation_, "Stale shared actor status context");
+    return control_status_locked();
+}
+control::v1::ControlMenuView HostActorController::controls_menu(std::uint64_t generation) const {
+    std::lock_guard lock(mutex_);
+    require(shared_enabled_ && controls_menu_ && generation == generation_, "Stale or missing controls menu");
+    return controls_menu_->view();
+}
+control::v1::ControlStatus HostActorController::device_event(std::uint64_t generation,
+    const control::v1::CapturedDeviceEvent& packet) {
+    std::lock_guard lock(mutex_); require_controls_locked(generation);
+    validate_message(packet);
+    require(packet.protocol_version() == 1 && packet.capture_generation() == capture_generation_ &&
+            packet.packet_sequence() > capture_sequence_ && packet.has_event() && packet.monotonic_nanoseconds() > 0 &&
+            packet.monotonic_nanoseconds() <= static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()),
+            "Stale or mismatched host capture envelope");
+    capture_sequence_ = packet.packet_sequence();
+    const auto captured = control::DeviceAdapters::Clock::time_point(std::chrono::duration_cast<control::DeviceAdapters::Clock::duration>(
+        std::chrono::nanoseconds(static_cast<std::int64_t>(packet.monotonic_nanoseconds()))));
+    const auto now = control::DeviceAdapters::Clock::now();
+    const bool open = adapters_->status().menu_open();
+    try {
+        const bool fresh = adapters_->event(packet.event(), captured, now);
+        controls_menu_->event(packet.event(), captured, control::DeviceAdapters::Clock::now(), open, fresh);
+    } catch (const ActorInputCancelled&) {
+        // The world confirmed cancellation. The adapter already cleared its held
+        // input and established a fresh-gesture barrier. Never replay the packet.
+        controls_menu_->event(packet.event(), captured, control::DeviceAdapters::Clock::now(), open, false);
+    }
+    return control_status_locked();
+}
+control::v1::ControlStatus HostActorController::tick_controls(std::uint64_t generation) {
+    std::lock_guard lock(mutex_); require_controls_locked(generation);
+    try { adapters_->tick(control::DeviceAdapters::Clock::now()); }
+    catch (const ActorInputCancelled&) {}
+    return control_status_locked();
+}
+std::weak_ptr<const ActorSessionInterrupt> HostActorController::interrupt_handle(std::uint64_t generation) {
+    std::lock_guard lock(mutex_); require_controls_locked(generation);
+    return current_client_->interrupt_handle();
+}
+identity::v1::HostActorTransitionResult HostActorController::transition_proposed(std::uint64_t generation,
+    const identity::v1::HostActorTransitionRequest& proposal) {
+    std::lock_guard lock(mutex_); require_controls_locked(generation);
+    validate_message(proposal);
+    require(proposal.departure_sequence() == 0, "Shared transition proposals cannot choose an actor sequence");
+    const auto before_generation = generation_;
+    const auto source_world = current_world_;
+    const auto profiles = adapters_->profiles();
+    adapters_->cancel();
+    auto request = proposal; request.set_departure_sequence(controls_->reserve_sequence(generation));
+    actor_sequence_ = request.departure_sequence();
+    auto result = transition_locked(request);
+    if (generation_ != before_generation) {
+        // Existing transition code advanced the host generation. Old Close
+        // callbacks are now stale and cannot close the adopted destination.
+        controls_menu_.reset(); adapters_.reset(); controls_.reset();
+        if (result.actor_control_available() && !control_fenced_ && current_client_ && !current_client_->failed()) {
+            try { create_controls_locked(profiles, current_world_ == source_world ? actor_sequence_ : 0); }
+            catch (...) {
+                result.set_actor_control_available(false);
+                result.set_detail("Actor transition completed with shared control fenced during context handoff");
+            }
+        }
+    }
+    return result;
 }
 }

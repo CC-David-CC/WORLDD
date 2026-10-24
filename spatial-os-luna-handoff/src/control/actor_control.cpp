@@ -23,9 +23,9 @@ void checked_reply(const identity::v1::WorldSessionReply& reply) {
 }
 }
 
-ActorControl::ActorControl(ActorContext context, Action action, Inspect inspect, Close close)
+ActorControl::ActorControl(ActorContext context, Action action, Inspect inspect, Close close, std::uint64_t initial_sequence)
     : context_(std::move(context)), action_(std::move(action)),
-      inspect_(std::move(inspect)), close_(std::move(close)) {
+      inspect_(std::move(inspect)), close_(std::move(close)), sequence_(initial_sequence) {
     need(identity_valid(context_.world) && identity_valid(context_.actor), "Invalid authenticated actor context");
     need(bool(action_) && bool(inspect_) && bool(close_), "Actor control requires owned session callbacks");
 }
@@ -54,12 +54,8 @@ core::v1::ActorActionReply ActorControl::propose(std::uint64_t generation,
     validate_message(proposal);
     need(proposal.token().empty() && !proposal.has_seq(), "Adapters cannot choose actor tokens or sequences");
     need(proposal.action_case() != core::v1::ActorActionRequest::ACTION_NOT_SET, "No proposed actor action");
-    if (sequence_ == std::numeric_limits<std::uint64_t>::max()) {
-        fail_locked();
-        throw std::runtime_error("Actor-control sequence exhausted");
-    }
     auto request = proposal;
-    request.set_seq(++sequence_);
+    request.set_seq(next_sequence_locked());
     try {
         const auto reply = action_(request);
         checked_reply(reply);
@@ -123,6 +119,18 @@ core::v1::ActorStateReply ActorControl::inspect(std::uint64_t generation) {
         fail_locked();
         throw;
     }
+}
+std::uint64_t ActorControl::next_sequence_locked() {
+    if (sequence_ == std::numeric_limits<std::uint64_t>::max()) {
+        fail_locked();
+        throw std::runtime_error("Actor-control sequence exhausted");
+    }
+    return ++sequence_;
+}
+std::uint64_t ActorControl::reserve_sequence(std::uint64_t generation) {
+    std::lock_guard lock(mutex_);
+    require_context(generation);
+    return next_sequence_locked();
 }
 void ActorControl::cancel(std::uint64_t generation) {
     core::v1::ActorActionRequest stop;

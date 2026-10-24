@@ -304,11 +304,152 @@ void aba_and_concurrency() {
     initial.finish(); destination.finish(); returning.finish();
 }
 
+std::unique_ptr<supervisor::HostActorController> shared_host(Endpoint& source, const Fixture& fixture,
+    control::ControlsMenu::Persist persist = [](const auto&) {}) {
+    source.client->authenticate();
+    auto result = std::make_unique<supervisor::HostActorController>(
+        [](const auto&) { return presentation("world-b", render::v1::ATTACHED); },
+        [](const auto&) { return presentation("world-b", render::v1::READY, true); },
+        fixture.world, std::move(source.client));
+    result->start_controls(control::default_profiles(), std::move(persist));
+    return result;
+}
+core::v1::ActorActionRequest controlled_accept(int fd, std::uint64_t request_id, std::uint64_t sequence,
+    core::v1::ActorActionRequest::ActionCase kind) {
+    const auto request = receive(fd, pb::WorldSessionRequest::kControlAction, request_id);
+    check(request.control_action().seq() == sequence && request.control_action().token().empty() &&
+          request.control_action().action_case() == kind, "host changed shared actor sequence, identity, or action");
+    auto reply = reply_for(request_id); auto* outcome = reply.mutable_control_action();
+    outcome->set_sequence(sequence); outcome->mutable_accepted()->set_accepted(true); send_reply(fd, reply);
+    return request.control_action();
+}
+core::v1::ActorActionRequest shared_stop() { core::v1::ActorActionRequest result; result.mutable_stop(); return result; }
+void shared_proposals_and_denial() {
+    Fixture fixture; Endpoint source(fixture);
+    source.start([&](int fd) {
+        handshake(fd, fixture);
+        const auto first = receive(fd, pb::WorldSessionRequest::kControlAction, 3);
+        check(first.control_action().seq() == 1 && first.control_action().has_pointer(), "first shared input did not reach its actor");
+        auto reply = reply_for(3); auto* outcome = reply.mutable_control_action(); outcome->set_sequence(1);
+        outcome->mutable_rejected()->mutable_error()->set_code(core::v1::NO_TARGET);
+        outcome->mutable_rejected()->set_cancellation_confirmed(true); send_reply(fd, reply);
+        controlled_accept(fd, 4, 2, core::v1::ActorActionRequest::kStop); closed(fd);
+    });
+    auto host = shared_host(source, fixture);
+    core::v1::ActorActionRequest pointer; pointer.mutable_pointer()->set_button(1); pointer.mutable_pointer()->set_pressed(true);
+    bool cancelled = false;
+    try { (void)host->propose(0, pointer); } catch (const ActorInputCancelled& error) { cancelled = error.error().code() == core::v1::NO_TARGET; }
+    check(cancelled && host->control_available(), "checked rejection disabled or changed shared actor context");
+    auto forged = shared_stop(); forged.set_seq(0); rejects([&] { host->propose(0, forged); });
+    forged = shared_stop(); forged.set_token("foreign"); rejects([&] { host->propose(0, forged); });
+    rejects([&] { host->propose(1, shared_stop()); });
+    auto legacy = shared_stop(); legacy.set_seq(99); rejects([&] { host->action(0, legacy); });
+    rejects([&] { host->transition(request_for(fixture)); });
+    rejects([&] { host->start_controls(control::default_profiles(), [](const auto&) {}); });
+    check(host->propose(0, shared_stop()).accepted(), "fresh proposal failed after checked cancellation");
+    host.reset(); source.finish();
+}
+void shared_durable_errors_remain_terminal() {
+    Fixture fixture; Endpoint source(fixture);
+    source.start([&](int fd) {
+        handshake(fd, fixture); const auto request = receive(fd, pb::WorldSessionRequest::kAction, 3);
+        check(request.action().seq() == 1 && request.action().has_object_release(), "durable action used the input cancellation wrapper");
+        denial(fd, 3); closed(fd);
+    });
+    auto host = shared_host(source, fixture); const auto pin = host->interrupt_handle(0).lock();
+    core::v1::ActorActionRequest release; release.mutable_object_release()->set_commit(false);
+    rejects([&] { host->propose(0, release); });
+    check(!host->control_available() && !host->control_status(0).available() && pin->requested(), "durable error retained shared control");
+    rejects([&] { host->propose(0, shared_stop()); }); host.reset(); source.finish();
+}
+void shared_capture_menu_and_stop_cache() {
+    Fixture fixture; Endpoint source(fixture);
+    source.start([&](int fd) {
+        handshake(fd, fixture);
+        const auto first = controlled_accept(fd, 3, 1, core::v1::ActorActionRequest::kInput);
+        check(first.input().axes_size() == 6 && first.input().axes(2) == -1 &&
+              first.input().translation_frame() == core::v1::LEVEL_TRANSLATION, "host changed level keyboard input");
+        controlled_accept(fd, 4, 2, core::v1::ActorActionRequest::kStop);
+        controlled_accept(fd, 5, 3, core::v1::ActorActionRequest::kStop);
+        controlled_accept(fd, 6, 4, core::v1::ActorActionRequest::kStop);
+        controlled_accept(fd, 7, 5, core::v1::ActorActionRequest::kStop);
+        controlled_accept(fd, 8, 6, core::v1::ActorActionRequest::kInput);
+        controlled_accept(fd, 9, 7, core::v1::ActorActionRequest::kStop); closed(fd);
+    });
+    unsigned saved = 0; auto host = shared_host(source, fixture, [&](const auto&) { ++saved; });
+    const auto epoch = host->control_status(0).capture_generation(); check(epoch > 0, "missing capture epoch");
+    std::uint64_t sequence = 0;
+    auto packet = [&] {
+        control::v1::CapturedDeviceEvent value; value.set_protocol_version(1); value.set_capture_generation(epoch);
+        value.set_packet_sequence(++sequence); value.set_monotonic_nanoseconds(static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()));
+        auto* event = value.mutable_event(); event->set_protocol_version(1); event->set_source_id("keyboard");
+        event->set_source_generation(1); event->set_event_sequence(sequence); return value;
+    };
+    auto connection = packet(); connection.mutable_event()->mutable_connected()->set_kind(control::v1::KEYBOARD);
+    host->device_event(0, connection);
+    auto forward = packet(); forward.mutable_event()->mutable_key()->set_keysym("w"); forward.mutable_event()->mutable_key()->set_pressed(true);
+    auto wrong = forward; wrong.set_capture_generation(epoch + 1); rejects([&] { host->device_event(0, wrong); });
+    host->device_event(0, forward); rejects([&] { host->device_event(0, forward); }); host->tick_controls(0);
+    host->propose(0, shared_stop()); host->tick_controls(0);
+    auto key = [&](const std::string& name, bool down) {
+        auto event = packet(); event.mutable_event()->mutable_key()->set_keysym(name);
+        event.mutable_event()->mutable_key()->set_pressed(down); return host->device_event(0, event);
+    };
+    key("F10", true); check(host->controls_menu(0).visible(), "host did not expose its in-session menu state");
+    key("Right", true); key("Right", false); check(saved == 1, "host did not persist the active menu choice");
+    key("F10", false); key("F10", true); check(!host->controls_menu(0).visible(), "host menu did not close");
+    host->tick_controls(0); key("w", false); key("w", true); host->tick_controls(0);
+    host->propose(0, shared_stop()); host.reset(); source.finish();
+}
+void shared_transition_context(bool denied) {
+    Fixture a, b; a.world = "world-a"; b.world = "world-b"; Endpoint source(a), destination(b);
+    source.start([&](int fd) {
+        handshake(fd, a); controlled_accept(fd, 3, 1, core::v1::ActorActionRequest::kStop); state(fd, a, 4);
+        if (denied) { controlled_accept(fd, 5, 3, core::v1::ActorActionRequest::kStop); closed(fd); return; }
+        const auto depart = receive(fd, pb::WorldSessionRequest::kDepart, 5);
+        check(depart.depart().seq() == 2, "departure bypassed the shared sequence owner");
+        auto reply = reply_for(5); auto* receipt = reply.mutable_departed(); receipt->set_actor_id(a.actor_id);
+        receipt->set_world_id(a.world); receipt->set_transition_id(a.transition); send_reply(fd, reply); closed(fd);
+    });
+    destination.start([&](int fd) {
+        handshake(fd, b, true, false, [&](auto& reply) {
+            if (denied) { reply.clear_prepared(); reply.mutable_error()->set_code(core::v1::FORBIDDEN); }
+        });
+        if (denied) { closed(fd); return; }
+        receive(fd, pb::WorldSessionRequest::kActivate, 3); auto reply = reply_for(3); opened(b, reply.mutable_opened()); send_reply(fd, reply);
+        controlled_accept(fd, 4, 1, core::v1::ActorActionRequest::kStop); closed(fd);
+    });
+    auto host = shared_host(source, a); const auto old = host->interrupt_handle(0).lock();
+    const auto old_epoch = host->control_status(0).capture_generation();
+    host->register_remote_world(b.world, [&] { return std::move(destination.client); });
+    auto request = request_for(a); request.clear_departure_sequence();
+    const auto result = host->transition_proposed(0, request);
+    check(result.actor_control_available() && host->generation() == 1 && host->control_available(), "shared transition lost its adopted context");
+    check(host->control_status(1).capture_generation() > old_epoch, "world transition retained the capture epoch");
+    old->request(); check(host->control_available(), "retired source watchdog interrupted the new context");
+    rejects([&] { host->propose(0, shared_stop()); });
+    check(host->propose(1, shared_stop()).accepted(), "new context was closed by retired control teardown");
+    if (denied) check(result.actor_transition().phase() == pb::PREPARATION_REJECTED && host->current_world() == a.world && !old->requested(),
+                      "denied preparation lost source identity or interruption revocation");
+    else check(result.actor_transition().destination_activation_confirmed() && host->current_world() == b.world,
+               "successful transition did not adopt destination actor context");
+    host.reset(); source.finish(); destination.finish();
 }
 
-int main() {
+}
+
+int main(int argc, char** argv) {
     signal(SIGPIPE, SIG_IGN);
     try {
+        if (argc == 2 && std::string(argv[1]) == "--shared-only") {
+            shared_proposals_and_denial(); std::cout << "PASS shared-proposals-sequences-checked-denial-and-legacy-refusal\n";
+            shared_durable_errors_remain_terminal(); std::cout << "PASS shared-durable-errors-terminal\n";
+            shared_capture_menu_and_stop_cache(); std::cout << "PASS shared-capture-epochs-menu-stop-cache\n";
+            shared_transition_context(true); std::cout << "PASS shared-denied-preparation-source-sequence-watchdog\n";
+            shared_transition_context(false); std::cout << "PASS shared-transition-destination-sequence-and-teardown\n";
+            return 0;
+        }
         setup_exception_does_not_wedge();
         std::cout << "PASS controller-setup-exception-does-not-wedge\n";
         inspect_fences_transition();

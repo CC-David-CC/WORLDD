@@ -4,6 +4,7 @@
 #include <atomic>
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <utility>
 
@@ -35,7 +36,10 @@ public:
 private:
     friend class ActorSessionClient;
     explicit ActorSessionInterrupt(int descriptor) noexcept : descriptor_(descriptor) {}
+    bool retire() const noexcept;
     const int descriptor_;
+    mutable std::mutex mutex_;
+    mutable bool retired_ = false;
     mutable std::atomic<bool> requested_{false};
 };
 // Owns one private local stream or mutually authenticated TLS connection.
@@ -60,6 +64,9 @@ public:
     identity::v1::WorldSessionReply action(const core::v1::ActorActionRequest& action);
     core::v1::ActorActionReply controlled_action(const core::v1::ActorActionRequest& action);
     std::weak_ptr<const ActorSessionInterrupt> interrupt_handle();
+    // Revoke old watchdog handles when retaining this channel in a new host context.
+    // This sends no actor action and never reconnects or replays.
+    std::weak_ptr<const ActorSessionInterrupt> rotate_interrupt_handle();
     identity::v1::ActorGeometryView geometry_view();
     bool failed() const noexcept;
     const std::string& expected_world() const noexcept;

@@ -2,6 +2,7 @@
 #include "control/actor_control.hpp"
 #include <atomic>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -51,9 +52,9 @@ struct Peer {
         for (int i = 0; i < 6; ++i) state->add_axes(0);
         return reply;
     }
-    std::unique_ptr<ActorControl> controller() {
+    std::unique_ptr<ActorControl> controller(std::uint64_t initial_sequence = 0) {
         return std::make_unique<ActorControl>(control::ActorContext{"world", "actor", 7},
-            [this](const auto& r) { return act(r); }, [this] { return inspect(); }, [this] { ++closed; });
+            [this](const auto& r) { return act(r); }, [this] { return inspect(); }, [this] { ++closed; }, initial_sequence);
     }
 };
 core::v1::ActorActionRequest stop() { core::v1::ActorActionRequest r; r.mutable_stop(); return r; }
@@ -113,6 +114,15 @@ void checked_outcomes_and_inspection() {
         check(!controller->available() && peer.closed == 1, "foreign or unsolicited observation left context usable");
     }
 }
+void reserved_sequences_and_retained_source_highwater() {
+    Peer peer; auto controller = peer.controller(37);
+    controller->cancel(7); check(controller->reserve_sequence(7) == 39, "departure did not share the action sequence");
+    rejects([&] { controller->reserve_sequence(6); }); controller->cancel(7);
+    check(peer.sequences == std::vector<std::uint64_t>{38, 40}, "retained source reused or lost its reserved sequence");
+    Peer exhausted; auto last = exhausted.controller(std::numeric_limits<std::uint64_t>::max());
+    rejects([&] { last->reserve_sequence(7); });
+    check(!last->available() && exhausted.closed == 1 && exhausted.sequences.empty(), "sequence exhaustion did not fence before transport");
+}
 void concurrent_adapters_share_one_sequence() {
     Peer peer; auto controller = peer.controller();
     std::vector<std::thread> senders;
@@ -135,6 +145,7 @@ int main() {
         uncertainty_is_terminal(); std::cout << "PASS uncertainty-terminal-no-replay\n";
         confirmed_cancellation_allows_only_fresh_actions(); std::cout << "PASS confirmed-cancellation-fresh-sequence\n";
         checked_outcomes_and_inspection(); std::cout << "PASS checked-outcomes-and-actor-binding\n";
+        reserved_sequences_and_retained_source_highwater(); std::cout << "PASS reserved-sequences-retained-source-highwater\n";
         concurrent_adapters_share_one_sequence(); std::cout << "PASS concurrent-adapters-independent-contexts\n";
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

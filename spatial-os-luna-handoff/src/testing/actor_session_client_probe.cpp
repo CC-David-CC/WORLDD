@@ -16,6 +16,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -752,6 +753,90 @@ void interrupt_handle_lifetime(Fixture& f) {
     close(sockets[0]); close(sockets[1]);
 }
 
+void interrupt_rotation_revokes_old_handle(Fixture& f) {
+    session(f, [&](auto& client, int peer) {
+        client.authenticate();
+        auto old = client.interrupt_handle().lock();
+        auto fresh = client.rotate_interrupt_handle().lock();
+        check(old && fresh && old != fresh, "interrupt rotation retained the old capability");
+        old->request();
+        check(!old->requested() && !client.failed(), "retired watchdog interrupted the retained actor channel");
+        core::v1::ActorActionRequest stop; stop.set_seq(1); stop.mutable_stop();
+        check(client.action(stop).action().accepted(), "retired handle killed fresh actor input");
+        fresh->request();
+        failed_no_replay(client, peer, f);
+    }, [&](int fd) {
+        handshake(fd, f);
+        const auto action = receive(fd, pb::WorldSessionRequest::kAction, 3);
+        check(action.action().seq() == 1 && action.action().has_stop(), "rotation changed or replayed actor input");
+        auto reply = reply_for(3); reply.mutable_action()->set_accepted(true); send_reply(fd, reply);
+        peer_closed(fd);
+    });
+}
+void destruction_with_retired_handle_closes_channel(Fixture& f, bool fail_rotation = false) {
+    int sockets[2]{};
+    check(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sockets) == 0, "rotation socketpair failed");
+    struct PeerOwner { int fd; ~PeerOwner() { close(fd); } } peer{sockets[1]};
+    auto client = std::make_unique<ActorSessionClient>(sockets[0], f.credential, f.key_path, f.world, 500ms);
+    std::exception_ptr peer_error;
+    std::thread worker([&] { try { handshake(peer.fd, f); } catch (...) { peer_error = std::current_exception(); shutdown(peer.fd, SHUT_RDWR); } });
+    try { client->authenticate(); }
+    catch (...) { shutdown(peer.fd, SHUT_RDWR); worker.join(); throw; }
+    worker.join(); if (peer_error) std::rethrow_exception(peer_error);
+    const auto retired = client->interrupt_handle().lock();
+    if (fail_rotation) {
+        rlimit original{}; check(getrlimit(RLIMIT_NOFILE, &original) == 0, "cannot inspect fixture descriptor limit");
+        struct RestoreLimit { rlimit value; ~RestoreLimit() { (void)setrlimit(RLIMIT_NOFILE, &value); } } restore{original};
+        auto exhausted = original; exhausted.rlim_cur = 0;
+        check(setrlimit(RLIMIT_NOFILE, &exhausted) == 0, "cannot bound fixture descriptor allocation");
+        bool rejected = false;
+        try { (void)client->rotate_interrupt_handle(); } catch (const std::exception&) { rejected = true; }
+        check(setrlimit(RLIMIT_NOFILE, &original) == 0, "cannot restore fixture descriptor limit");
+        check(rejected && client->failed(), "failed replacement capability left actor control usable");
+        peer_closed(peer.fd);
+        client.reset();
+    } else {
+        const auto fresh = client->rotate_interrupt_handle();
+        check(retired && !fresh.expired(), "rotation did not retain current ownership");
+        client.reset();
+        check(fresh.expired(), "client destruction leaked its current interruption capability");
+        peer_closed(peer.fd);
+    }
+    retired->request();
+    check(!retired->requested(), "retired handle was reactivated after client destruction");
+}
+void interrupt_rotation_race(Fixture& f) {
+    for (unsigned iteration = 0; iteration < 16; ++iteration) {
+        session(f, [&](auto& client, int peer) {
+            client.authenticate(); auto old = client.interrupt_handle().lock();
+            std::atomic<bool> go{false};
+            std::jthread racer([old, &go] { while (!go.load(std::memory_order_acquire)) std::this_thread::yield(); old->request(); });
+            go.store(true, std::memory_order_release);
+            std::shared_ptr<const ActorSessionInterrupt> fresh;
+            try { fresh = client.rotate_interrupt_handle().lock(); }
+            catch (const std::exception&) { check(client.failed(), "lost rotation race left actor control usable"); }
+            racer.join();
+            if (fresh) {
+                check(!client.failed(), "old watchdog affected the rotated context");
+                core::v1::ActorActionRequest stop; stop.set_seq(1); stop.mutable_stop();
+                check(client.action(stop).action().accepted(), "successful rotation lost fresh actor input");
+                fresh->request();
+            }
+            failed_no_replay(client, peer, f);
+        }, [&](int fd) {
+            handshake(fd, f);
+            pollfd ready{fd, POLLIN, 0}; check(poll(&ready, 1, 2000) > 0, "rotation race made no terminal progress");
+            char byte; const auto count = recv(fd, &byte, 1, MSG_PEEK | MSG_DONTWAIT);
+            if (count == 0) return;
+            check(count == 1, "rotation race peer read failed");
+            const auto action = receive(fd, pb::WorldSessionRequest::kAction, 3);
+            check(action.action().seq() == 1 && action.action().has_stop(), "rotation race replayed or changed input");
+            auto reply = reply_for(3); reply.mutable_action()->set_accepted(true); send_reply(fd, reply);
+            peer_closed(fd);
+        });
+    }
+}
+
 void controlled_input_reply(Fixture& f, const std::string& fault) {
     session(f, [&](auto& client, int peer) {
         client.authenticate();
@@ -832,6 +917,9 @@ int main(int argc, char** argv) {
             run("interrupt-blocked-writer", [&] { interrupted_actor_exchange(fixture, true); });
             run("interrupt-idle-client", [&] { interrupt_idle_actor(fixture); });
             run("interrupt-handle-lifetime", [&] { interrupt_handle_lifetime(fixture); });
+            run("interrupt-rotation-revokes-old-handle", [&] { interrupt_rotation_revokes_old_handle(fixture); });
+            run("interrupt-destruction-with-retired-handle", [&] { destruction_with_retired_handle_closes_channel(fixture); destruction_with_retired_handle_closes_channel(fixture, true); });
+            run("interrupt-rotation-race", [&] { interrupt_rotation_race(fixture); });
             return 0;
         }
         if (argc == 2 && std::string(argv[1]) == "--controlled-input-only") {

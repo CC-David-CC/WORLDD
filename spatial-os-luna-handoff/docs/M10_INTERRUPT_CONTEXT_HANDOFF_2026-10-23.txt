@@ -1,0 +1,30 @@
+M10 interruption capability and retained actor context
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+A rejected world transition may retain the same authenticated source channel in a new host generation.
+An old watchdog must not interrupt that retained channel after a new context becomes active.
+ActorSessionClient.rotate_interrupt_handle revokes the old in-process interruption capability.
+It sends no actor action and does not reconnect, authenticate again, or replay prior input.
+The new handle still pins the same exact actor socket.
+
+Request and retirement use a separate small handle mutex. Neither acquires the actor-operation mutex.
+If interruption wins the handoff, rotation fails and control remains fenced.
+If retirement wins, later old-handle requests have no effect on the new context.
+Client failure always shuts down its primary socket before closing descriptors.
+A retained retired duplicate therefore cannot keep a failed actor channel alive.
+Wire messages, authority, legacy mutating errors, and cancellation acknowledgements remain unchanged.
+
+Selected checks before execution
+Actor-control-interrupt retains its original four cases and adds three named groups.
+They cover retired watchdog refusal, destruction and failed replacement allocation with old pinned handles, and sixteen retirement/interruption races.
+Actor-session-client and actor-session-client-tls retain every original named case and deadline.
+Actor-control-client retains all nine checked-cancellation peer cases.
+Run Debug and ASan-UBSan on both qualification hosts.
+Run related real host/session and native disconnect release checks before integrating the production host controller.
+Socket EOF and fixture-peer checks do not establish native application release by themselves.
+
+All seven interruption groups pass on both hosts in Debug and ASan-UBSan.
+The combined host matrix also passes the same client, TLS, cancellation, and interruption groups.
+Failure and destruction close the socket even while an old retired capability remains pinned.
+A process-local descriptor limit forces replacement allocation failure without changing runtime deadlines.
+Real native release and application-survival checks remain pending for the new production host path.

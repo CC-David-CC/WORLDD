@@ -1,3 +1,15 @@
+## 2026-10-23: M10 host control ownership passes focused sequencing and handoff checks
+
+HostActorController privately owns shared controls, device state, and menu logic in an opt-in mode.
+Shared proposals own their sequences. Retained-source and adopted-destination transitions preserve the correct sequence boundaries.
+Old control teardown and retired watchdog capabilities cannot close the adopted context.
+Both hosts pass all eleven focused groups in Debug and ASan-UBSan, including every original host/client/TLS group.
+The first build exposed stale incremental objects after timestamp-preserving draft copying. The unchanged corrective source builds and passes.
+Host startup wiring, compositor capture, visible menu drawing, local application foreground, and concurrent workflows remain pending.
+Read docs/M10_HOST_SHARED_CONTROL_2026-10-23.txt and docs/M10_INTERRUPT_CONTEXT_HANDOFF_2026-10-23.txt for scope and evidence.
+M10 remains unqualified. Existing M09 qualification and unresolved startup evidence remain preserved.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M10 timestamped capture and menu logic pass focused checks on both hosts
 
 The private capture stream, queue-age barriers, menu preferences, and measured calibration are implemented as components.

@@ -28,13 +28,16 @@ core::v1::ActorActionReply DeviceAdapters::send(core::v1::ActorActionRequest req
         }
     }
     try { return actor_.propose(actor_.context().generation, request); }
-    catch (const ActorInputCancelled&) { clear_state(); navigating_ = true; fresh_after_ = clock_(); throw; }
+    catch (const ActorInputCancelled&) { acknowledged_cancellation(); throw; }
 }
 void DeviceAdapters::clear_state() {
     for (auto& [id, source] : sources_) {
         (void)id; source.keys.clear(); source.buttons.clear(); source.axes.fill(0); source.has_axes = false;
     }
     axes_sent_ = false; click_enters_ = false;
+}
+void DeviceAdapters::acknowledged_cancellation() {
+    clear_state(); navigating_ = true; fresh_after_ = clock_();
 }
 void DeviceAdapters::cancel() {
     clear_state(); navigating_ = true;

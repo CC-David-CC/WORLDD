@@ -217,6 +217,9 @@ struct ActorSessionClient::Impl {
     void fail() noexcept {
         state = Lifecycle::Failed;
         prepared_transition.clear();
+        // Retired handles may still pin duplicates. Closing only this descriptor
+        // would leave the actor channel alive through those inactive handles.
+        if (channel.get() >= 0) (void)shutdown(channel.get(), SHUT_RDWR);
         if (interrupt) interrupt->request();
         interrupt.reset();
         tls.reset();
@@ -412,7 +415,13 @@ ActorSessionClient::~ActorSessionClient() {
 
 ActorSessionInterrupt::~ActorSessionInterrupt() { close(descriptor_); }
 void ActorSessionInterrupt::request() const noexcept {
-    if (!requested_.exchange(true, std::memory_order_acq_rel)) (void)shutdown(descriptor_, SHUT_RDWR);
+    std::lock_guard lock(mutex_);
+    if (!retired_ && !requested_.exchange(true, std::memory_order_acq_rel)) (void)shutdown(descriptor_, SHUT_RDWR);
+}
+bool ActorSessionInterrupt::retire() const noexcept {
+    std::lock_guard lock(mutex_);
+    retired_ = true;
+    return !requested_.load(std::memory_order_acquire);
 }
 std::weak_ptr<const ActorSessionInterrupt> ActorSessionClient::interrupt_handle() {
     impl_->require_state(Lifecycle::Active, "Actor session is inactive");
@@ -424,6 +433,20 @@ std::weak_ptr<const ActorSessionInterrupt> ActorSessionClient::interrupt_handle(
         impl_->interrupt = std::shared_ptr<ActorSessionInterrupt>(std::move(owned));
     }
     return impl_->interrupt;
+}
+
+std::weak_ptr<const ActorSessionInterrupt> ActorSessionClient::rotate_interrupt_handle() {
+    impl_->require_state(Lifecycle::Active, "Actor session is inactive");
+    try {
+        if (impl_->interrupt) {
+            require(impl_->interrupt->retire(), "Actor interruption won the context handoff");
+            impl_->interrupt.reset();
+        }
+        return interrupt_handle();
+    } catch (...) {
+        impl_->fail();
+        throw;
+    }
 }
 
 pb::WorldSessionReply ActorSessionClient::authenticate(

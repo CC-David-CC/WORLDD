@@ -1,0 +1,51 @@
+M10 trusted host shared-control integration
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+HostActorController may enable shared controls before legacy actions or transitions.
+It privately owns one ActorControl, DeviceAdapters, and ControlsMenu for its authenticated actor context.
+Proposals cannot choose tokens or sequences. Legacy mutation entrypoints are refused in shared mode.
+The existing actor client and worldd retain authentication, authorization, and all actual side effects.
+Durable actions retain strict terminal errors. Checked input cancellation allows only a fresh proposal.
+A shared stop also clears the host's held-input cache. A checked denial resets that cache before further input.
+
+Host controls serialize generation changes and actor operations under the host mutex.
+Private ActorControl callbacks use the existing outer lock and never expose their client or controller.
+Watchdogs retain only the independent socket interruption capability.
+A transition cancels input and reserves departure from the same sequence allocator.
+A denied destination preparation keeps the source sequence high-water mark.
+An adopted destination uses its newly authenticated sequence starting at zero.
+Old controller teardown cannot close the new generation's channel.
+Retained source channels rotate interruption capabilities so old watchdogs cannot affect the new context.
+
+ControlStatus adds capture_generation at field 10. Existing fields and versions remain unchanged.
+Captured events must match that trusted epoch and carry fresh ordered source and packet sequences.
+The menu uses actual capture age for calibration samples, including after delayed delivery.
+The trusted host may inspect menu state. This does not select another actor's physical foreground.
+Compositor capture routing, menu drawing, local application foreground, and host startup wiring remain pending.
+The legacy host API remains available when shared controls are not enabled.
+
+Selected checks before execution
+Actor-control-layer adds sequence reservation, retained high-water marks, and exhaustion before transport.
+Host-actor-shared-control adds five named groups for proposal ordering, checked denial, strict durable errors,
+capture epochs, menu state, stop caches, retained-source continuity, and destination ownership.
+Host-actor-controller retains every original legacy group, including A-B-A and uncertain handoff cases.
+Actor-control-menu adds delayed-delivery calibration age to its original seven groups.
+Run both profiles on both test hosts with checked writeback before runtime.
+Run existing actor client, TLS, cancellation, adapters, and level-motion regressions for the combined source.
+Native host, disconnect, application survival, and actual presentation remain required before milestone integration.
+
+Focused results
+Both qualification hosts pass all eleven selected groups in both build profiles.
+Per profile: actor layer six, shared host five, legacy host eleven, adapters sixteen, menu eight, and stream five.
+Client interruption seven, controlled input nine, legacy client 54, TLS 31, and level motion six also pass.
+No skipped case, missing/duplicate PASS, or sanitizer diagnostic was accepted.
+The new shared-host groups use independent wire peers. They do not qualify native input or rendering.
+The original build20 failed to link after draft copying retained source timestamps older than incremental objects.
+Build21 refreshed those source timestamps without changing source bytes. Both profiles then built successfully.
+The correction receipt records every affected path, before/after timestamp, and unchanged hash.
+Future draft application writes source bytes with fresh timestamps. Final qualification still requires a clean frozen build.
+Source pins: external source-inputs-20.json. Build receipts: build-host-shared-run-21.
+Archive SHA256: 62e4d0a6258b671d1c0de1038727ea923b498e2601a688438e42954a364f3d1c.
+Manifest SHA256: 7e694b0d33be909a4ca24b12400c33cc2cfa0bdb4b01d0b39c66f9c00e8e1fd0.
+Archive bytes: 161659200. Expanded bytes: 806512200.
+Raw results and checked writeback receipts are copied under external evidence/HOST/host-shared-results-21 and host-shared-run-21.

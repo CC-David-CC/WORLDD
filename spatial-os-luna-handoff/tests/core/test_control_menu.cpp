@@ -89,6 +89,14 @@ void stale_gestures_keep_release_bookkeeping_without_editing_preferences(){
     check(!axis_fresh,"Stale calibration fixture did not cross a barrier");axes.menu.event(old,axes.now,true,axis_fresh);
     axes.press("Return");check(axes.menu.view().message()=="SpaceMouse sample is missing or stale","Queued axes became neutral calibration input");
 }
+void calibration_uses_capture_age_after_queued_delivery(){
+    Fixture f;f.down(15);f.press("Return");auto axes=f.event("spacemouse");
+    for(double value:{0.,0.,0.,0.,0.,0.})axes.mutable_axes()->add_raw(value);
+    const auto captured=f.now+std::chrono::milliseconds(1);f.now+=std::chrono::milliseconds(200);
+    const bool fresh=f.adapter.event(axes,captured,f.now);check(fresh,"Fresh delayed axis fixture was rejected before menu delivery");
+    f.menu.event(axes,captured,f.now,true,fresh);f.now+=std::chrono::milliseconds(100);f.press("Return");
+    check(f.menu.view().message()=="SpaceMouse sample is missing or stale","Menu renewed sample age after delayed delivery");
+}
 void ambiguous_calibration_does_not_change_profile(){
     Fixture f;f.down(15);f.press("Return");f.axes({});f.press("Return");f.axes({100,100,0,0,0,0});f.press("Return");
     check(!c::active_profile(f.adapter.profiles()).spacemouse_calibrated()&&f.saves==0,"Ambiguous axes invented a mapping");
@@ -102,5 +110,6 @@ int main(){try{
     six_axis_measurement_and_stale_refusal();std::cout<<"PASS menu-measured-signed-six-axis-calibration\n";
     ambiguous_measurement_can_retry_without_discarding_completed_axes();std::cout<<"PASS menu-calibration-retry-fresh-neutral\n";
     stale_gestures_keep_release_bookkeeping_without_editing_preferences();std::cout<<"PASS menu-stale-gesture-release-bookkeeping\n";
+    calibration_uses_capture_age_after_queued_delivery();std::cout<<"PASS menu-calibration-capture-age\n";
     ambiguous_calibration_does_not_change_profile();std::cout<<"PASS menu-ambiguous-calibration-cancellation\n";
 }catch(const std::exception& e){std::cerr<<e.what()<<'\n';return 1;}}

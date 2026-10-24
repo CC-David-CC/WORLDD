@@ -30,6 +30,12 @@ void ControlsMenu::apply(v1::ControlProfiles p) {
     catch(const std::exception&) {message_="Applied for this session. Saving failed.";}
 }
 void ControlsMenu::event(const v1::DeviceEvent& e,DeviceAdapters::Clock::time_point now,bool previously_open,bool fresh) {
+    event(e,now,now,previously_open,fresh);
+}
+void ControlsMenu::event(const v1::DeviceEvent& e,DeviceAdapters::Clock::time_point captured,
+                         DeviceAdapters::Clock::time_point now,bool previously_open,bool fresh) {
+    need(captured>=DeviceAdapters::Clock::time_point{}&&now>=captured,"Invalid menu capture timestamp");
+    fresh=fresh&&now-captured<std::chrono::milliseconds(250);
     if(e.has_connected())physical_keys_[e.source_id()].clear();
     if(e.has_disconnected()){
         physical_keys_.erase(e.source_id());sampled_=false;calibration_axis_.reset();measuring_=false;
@@ -51,7 +57,7 @@ void ControlsMenu::event(const v1::DeviceEvent& e,DeviceAdapters::Clock::time_po
             raw_[i]=value;
             if(measuring_&&std::abs(value-center_[i])>std::abs(peak_[i]))peak_[i]=value-center_[i];
         }
-        sampled_=true;sample_time_=now;
+        sampled_=true;sample_time_=captured;
     }
     if(previously_open&&fresh_key){
         try{key(e.key().keysym(),now);}catch(const std::invalid_argument& error){message_=error.what();}
@@ -62,7 +68,7 @@ void ControlsMenu::calibrate(DeviceAdapters::Clock::time_point now) {
     if(!measuring_){center_=raw_;peak_.fill(0);measuring_=true;message_.clear();return;}
     unsigned largest=0;for(unsigned i=1;i<6;++i)if(std::abs(peak_[i])>std::abs(peak_[largest]))largest=i;
     const double scale=std::abs(peak_[largest]);
-    need(scale>=1,"Move one axis through its intended full range");
+    need(scale>=1&&scale<=1e9,"Move one axis through its intended full range");
     for(unsigned i=0;i<6;++i)if(i!=largest)need(std::abs(peak_[i])<=scale*.5,"Several axes moved. Retry one axis.");
     for(const auto& axis:calibration_)need(static_cast<unsigned>(std::abs(axis.raw_axis())-1)!=largest,"That raw axis is already assigned. Retry.");
     v1::AxisCalibration axis;axis.set_raw_axis(static_cast<int>(largest+1)*(peak_[largest]<0?-1:1));axis.set_center(center_[largest]);axis.set_full_scale(scale);

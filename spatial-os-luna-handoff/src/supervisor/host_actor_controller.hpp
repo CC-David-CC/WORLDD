@@ -3,6 +3,7 @@
 #include "supervisor/session_coordinator.hpp"
 #include "world/actor_transition_coordinator.hpp"
 #include "host_actor_controller.pb.h"
+#include "control/menu.hpp"
 #include <functional>
 #include <map>
 #include <mutex>
@@ -36,6 +37,17 @@ public:
     identity::v1::WorldSessionReply inspect(std::uint64_t generation);
     identity::v1::WorldSessionReply action(std::uint64_t generation,
                                          const core::v1::ActorActionRequest& request);
+    // Enable before legacy actions or transitions. These objects never escape the trusted host.
+    void start_controls(const control::v1::ControlProfiles&, control::ControlsMenu::Persist);
+    core::v1::ActorActionReply propose(std::uint64_t generation, const core::v1::ActorActionRequest&);
+    identity::v1::HostActorTransitionResult transition_proposed(std::uint64_t generation,
+        const identity::v1::HostActorTransitionRequest&);
+    control::v1::ControlStatus device_event(std::uint64_t generation, const control::v1::CapturedDeviceEvent&);
+    control::v1::ControlStatus tick_controls(std::uint64_t generation);
+    control::v1::ControlStatus control_status(std::uint64_t generation) const;
+    control::v1::ControlMenuView controls_menu(std::uint64_t generation) const;
+    // Obtain on the owner thread before exchanges. The watchdog only requests socket shutdown.
+    std::weak_ptr<const ActorSessionInterrupt> interrupt_handle(std::uint64_t generation);
     std::uint64_t generation() const;
     bool control_available() const;
     identity::v1::ActorGeometryView geometry_view(std::uint64_t generation);
@@ -45,6 +57,10 @@ public:
     std::string current_world() const;
 
 private:
+    identity::v1::HostActorTransitionResult transition_locked(const identity::v1::HostActorTransitionRequest&);
+    void require_controls_locked(std::uint64_t generation) const;
+    void create_controls_locked(const control::v1::ControlProfiles&, std::uint64_t initial_sequence);
+    control::v1::ControlStatus control_status_locked() const;
     bool retire_geometry_locked() noexcept;
     void clear_foreground_locked();
     void refresh_geometry_locked();
@@ -62,5 +78,11 @@ private:
     std::uint64_t generation_ = 0;
     bool transitioning_ = false;
     bool control_fenced_ = false;
+    bool legacy_used_ = false, shared_enabled_ = false;
+    std::uint64_t actor_sequence_ = 0, capture_generation_ = 0, capture_sequence_ = 0;
+    control::ControlsMenu::Persist persist_controls_;
+    std::unique_ptr<control::ActorControl> controls_;
+    std::unique_ptr<control::DeviceAdapters> adapters_;
+    std::unique_ptr<control::ControlsMenu> controls_menu_;
 };
 }

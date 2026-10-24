@@ -22,7 +22,7 @@ public:
     // Must close the exact owned actor channel. It must not reconnect or replay.
     using Close = std::function<void()>;
 
-    ActorControl(ActorContext context, Action action, Inspect inspect, Close close);
+    ActorControl(ActorContext context, Action action, Inspect inspect, Close close, std::uint64_t initial_sequence = 0);
     ~ActorControl();
     ActorControl(const ActorControl&) = delete;
     ActorControl& operator=(const ActorControl&) = delete;
@@ -31,6 +31,8 @@ public:
                                       const core::v1::ActorActionRequest& proposal);
     core::v1::ActorStateReply inspect(std::uint64_t generation);
     void cancel(std::uint64_t generation);
+    // Trusted transition coordination reserves from the same sequence owner.
+    std::uint64_t reserve_sequence(std::uint64_t generation);
     void close() noexcept;
     bool available() const;
     const ActorContext& context() const noexcept { return context_; }
@@ -38,6 +40,7 @@ public:
 private:
     void require_context(std::uint64_t generation) const;
     void fail_locked() noexcept;
+    std::uint64_t next_sequence_locked();
     const ActorContext context_;
     Action action_;
     Inspect inspect_;

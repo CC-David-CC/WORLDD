@@ -20,6 +20,8 @@ public:
     bool event(const v1::DeviceEvent& event, Clock::time_point captured, Clock::time_point now);
     void tick(Clock::time_point now);
     void cancel();
+    // Cache-only reset after a checked world cancellation acknowledgement.
+    void acknowledged_cancellation();
     void set_profiles(const v1::ControlProfiles& profiles);
     void select_profile(const std::string& id);
     void set_menu(bool open);

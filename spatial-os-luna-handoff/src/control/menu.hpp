@@ -14,6 +14,8 @@ public:
     ControlsMenu(DeviceAdapters& adapters, Persist persist);
     // Call after DeviceAdapters::event. An opening menu key cannot edit a row.
     void event(const v1::DeviceEvent&, DeviceAdapters::Clock::time_point now, bool previously_open, bool fresh = true);
+    void event(const v1::DeviceEvent&, DeviceAdapters::Clock::time_point captured,
+               DeviceAdapters::Clock::time_point now, bool previously_open, bool fresh);
     v1::ControlMenuView view() const;
 private:
     void key(const std::string&, DeviceAdapters::Clock::time_point);
