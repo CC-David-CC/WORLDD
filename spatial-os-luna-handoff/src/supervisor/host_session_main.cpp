@@ -179,6 +179,8 @@ void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
     validate_actor_profile(c.initial_actor_tls_config(),c.initial_world_id());
     if (c.shared_actor_controls()) (void)host_controls(c.controls_preferences_path());
     else need(c.controls_preferences_path().empty(), "Control preferences require shared actor controls");
+    need(!c.enable_presentation_continuations() || c.shared_actor_controls(),
+        "Presentation continuations require shared actor controls");
     need((!c.has_native_capture() && c.trusted_capture_fds().empty()) || c.shared_actor_controls(),
         "Capture requires shared actor controls");
     need(!c.has_native_capture() || c.trusted_capture_fds().empty(),"Native and inherited capture sources are mutually exclusive");
@@ -249,6 +251,7 @@ int main(int argc,char** argv) {
             const auto id=world.world_id(); const auto path=world.actor_tls_config();
             controller->register_remote_world(id,[path]{ return std::make_unique<spatial::ActorSessionClient>(path); });
         }
+        if(config.enable_presentation_continuations())controller->enable_presentation_continuations();
         controller->start_geometry_presentation();
         controller->synchronize_controls_presentation();
         if(config.shared_actor_controls()) {

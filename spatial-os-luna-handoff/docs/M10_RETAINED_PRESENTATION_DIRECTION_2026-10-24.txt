@@ -192,3 +192,112 @@ Multi-event revocation during yielding cleanup and lost admission with independe
 Human and two scripted actors still need real-file and confined-application workflows.
 A combined frozen candidate still needs independent Protobuf generation and the complete two-host phase gate.
 M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
+Opt-in local presentation continuations, compiled source220
+HostSessionConfig.enable_presentation_continuations uses private tag 17 and defaults to false.
+The flag requires shared actor controls. It grants no actor authority.
+The host polls foreground Bind, Select, and Present stages through one retained operation ticket.
+Each world management channel has one pending owner. The compositor control channel also has one owner.
+Synchronous callers cannot take over a channel owned by a continuation.
+Tickets bind actor generation, capture generation, exact view, control owner, producer generation, and operation serial.
+The controller validates its context before advancing pending work.
+It validates completion again before updating viewport or geometry status.
+A local frame has one absolute ten-second operation budget.
+Healthy polls perform bounded nonblocking transfers and do not wait for replies.
+The worker polls pending frames every two milliseconds while retaining its normal input cadence.
+Menu-changing capture still waits for checked menu output before publishing its processed sequence.
+A cancelled operation drains submitted requests. It does not start its next stage.
+Attempted target ownership survives failed or uncertain output.
+A checked transition releases input, then cancels its old frame operation before changing generations.
+This also preserves denied transitions that return to the same actor and view.
+Startup presentation and remote geometry retain their existing synchronous paths.
+
+Causal native regression
+The independent human fixture producer and two scripted actors run through production actor-control owners.
+A TLS relay forwards a real credential check for the exact human actor, then holds its real reply.
+Retained movement is explicitly enabled, so this query isolates presentation authorization.
+The authority participant uses its independent connection throughout the hold.
+The default relay behavior still selects INFO. The new trigger is explicit.
+The hold remains 4.1 seconds. Issuer I/O remains five seconds. Input expiry remains 250 ms.
+The preserved source183 synchronous host fails the intended latency assertion on both hosts.
+Sb16 capture receipt query: 4.112971046 seconds. Sb16-2: 4.117580402 seconds.
+Those raw unittest exits are one. The outer reproduction classification is not a passing test.
+Evidence: presentation-predecessor-collected-222.
+An earlier delegated launcher omitted new fixture options. It executed no test method.
+The corrected launcher passes explicit test options inside the existing resource wrapper command.
+The first native fixture selected idle INFO, which busy presentation queries prevented from occurring.
+Both tests failed that setup assertion. Neither failure was classified as the intended reproduction.
+The corrected exact-human credential trigger establishes the causal stall.
+Original setup failures and their corrective records remain externally preserved.
+
+Focused candidate results
+Both hosts pass 76 checks in Debug and ASan/UBSan: 304 accepted completions.
+Each profile covers owner15, local-owner6, worker19, shared5, controller11, held-authority1, other-scripted7, capture7, projection2, and visible-controls3.
+The scripted group includes three denied human transitions that restore fresh capture epochs and source control.
+A stronger test-only timer reruns the affected held-authority method in all four cells.
+Its single 250 ms deadline starts before the independent producer emits the new key.
+It ends after the worker publishes that packet through its checked output barrier.
+The final timing results are:
+  sb16 Debug: 0.693 ms. ASan/UBSan: 63.199 ms.
+  sb16-2 Debug: 83.770 ms. ASan/UBSan: 51.597 ms.
+Each receipt arrives while the authority reply remains withheld and capture remains active.
+Both scripted actors complete at least three refreshed proposals during that hold, each below 250 ms.
+The same world reports active combined human motion afterward and shuts down with checked cleanup.
+These timings measure capture receipts. They do not establish a frame-rate result or physical-device acceptance.
+Total: 308 accepted completions, comprising 140 C++ fixture groups and 168 Python methods.
+No selected candidate check fails or skips. No sanitizer diagnostic appears in 616 inspected evidence files.
+Final integrity checks cover both candidate payloads, their explicit links, native dependencies, and retained fixtures.
+Source116 Debug broker, issuer, client, and security helpers remain declared dependencies.
+The scripted adapter remains source170 in its selected profile.
+World, host, compositor, participant supervisor, and changed C++ probes use source220 in the selected profile.
+Scripted scenarios select retained movement. Additional non-scripted projection fixtures preserve their original world policy and expiry.
+Human capture uses fixture identities and an independent fixture producer. This is not physical input acceptance.
+
+Source and evidence pins
+Base checkpoint: 224594d7b6b5242f676c168b39f47cdd2e0c3cc6.
+Compiled source manifest: presentation-continuation-source-220.json.
+Manifest SHA256: 20826bcae332cb143bb2fc1898c21d56df90e625a94f4e9dca7ba07e200cd4d2.
+Exact source archive: presentation-continuation-source220-exact-225.tar.gz.
+Archive SHA256: 88932eeaf51120eb3cba7546cbd43901c286ea0692af7caa7a9b0af915c2664a.
+Archive and manifest hashes: presentation-continuation-source220-archive-225.json.
+Fixture overlay225 adds the denied-human-source method after compilation.
+Fixture overlay226 strengthens only the capture timer. All production source still matches compiled source220.
+Debug package manifest SHA256: 6e9f5f6140f3bc107cf4927457438b7d1ea98a9d472db77982f72f5f017152be.
+ASan/UBSan package manifest SHA256: 17b3e8a00d45baf55108af2cac54133ca0befc9cc6cb823e2d820f637159ebd3.
+Current raw evidence: presentation-continuation-collected-228.
+Concise result: presentation-continuation-focused-summary-228.json.
+Final integrity and terminal checks: presentation-continuation-audit-228.json.
+All paths use /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023 on middle-child.
+Raw reports and retained package copies remain outside Git.
+Every acceptance lock pin and all 151 assertions remain unchanged.
+
+Test-host capacity recovery
+Cleanup217 retains a verified 19-file scripted dependency subset, including both adapter profiles.
+It removes four exact duplicate package directories from each test host:
+  retained-authority-compiled198-Debug-201
+  retained-authority-compiled198-Debug-203
+  scripted-actor-source170-171
+  scripted-actor-host177-178
+Each directory was directly below the external M10 evidence root.
+Full byte-verified copies remain at those paths on middle-child. Original failure evidence remains separately retained.
+Root process, descriptor, mapping, mount, machine, filesystem, inode, and hash checks precede removal.
+Sb16 recovers 1842319360 bytes. Sb16-2 recovers 1842262016 bytes.
+Cleanup222 removes two unused superseded source216 payload copies from each test host:
+  presentation-continuation-compiled216-Debug-218
+  presentation-continuation-compiled216-ASan-UBSan-218
+Those directories also lived directly below the external M10 evidence root.
+Their full verified builder copies and source archive remain preserved.
+The predecessor reports were collected before removal. No source216 candidate test run was discarded.
+Sb16 recovers 1513070592 bytes. Sb16-2 recovers 1513017344 bytes.
+Exact plans, root scans, and removal receipts remain presentation-capacity-*-217 and presentation-capacity-*-222 artifacts.
+The required scripted dependencies, accepted M09 packages, and current source220 candidate remain present on both hosts.
+
+Remaining work before integration and full qualification
+Add deterministic cancellation at Bind, Select, and Present boundaries.
+Prove that cancelled work starts no later stage and publishes no stale projection or status.
+Exercise delayed old completion after context replacement and world/compositor failure recovery.
+Remote geometry and same-client observation still need independent scheduling.
+Dirty rendering and application damage revisions remain unfinished.
+Three actors still need real cabinet-file and confined editor/terminal workflows.
+Freeze one combined candidate, prove independent generation, and run the complete two-host gate.
+The focused checkpoint does not qualify M10, Spatial-M1, or LOCAL_READY.

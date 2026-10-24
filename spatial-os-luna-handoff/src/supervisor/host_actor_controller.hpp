@@ -57,7 +57,8 @@ public:
     identity::v1::ActorGeometryView geometry_view(std::uint64_t generation);
     identity::v1::HostGeometryStatus geometry_status(std::uint64_t generation) const;
     void start_geometry_presentation();
-    void pump_geometry_presentation();
+    void enable_presentation_continuations();
+    bool pump_geometry_presentation();
     std::string current_world() const;
 
 private:
@@ -69,12 +70,19 @@ private:
     bool retire_foreground_locked() noexcept;
     void clear_foreground_locked();
     void refresh_foreground_locked();
+    void publish_local_frame_locked(const core::v1::ActorLocalViewIdentity&,const core::v1::ActorLocalViewState&);
     void synchronize_controls_presentation_locked();
     struct Destination { std::optional<workspace::v1::ControlOwner> owner; ChannelFactory channel; };
     SessionCoordinator* session_ = nullptr;
     std::optional<render::v1::GeometryPresentationTarget> geometry_target_;
     struct LocalTarget {workspace::v1::ControlOwner owner;core::v1::ActorLocalViewIdentity identity;};
     std::optional<LocalTarget> local_target_;
+    struct LocalFrame {
+        SessionCoordinator::LocalPresentationTicket ticket;
+        std::uint64_t actor_generation, capture_generation;
+    };
+    std::optional<LocalFrame> local_frame_;
+    bool presentation_continuations_ = false;
     identity::v1::HostGeometryStatus geometry_status_;
     PresentationInspect inspect_;
     PresentationSelect select_;

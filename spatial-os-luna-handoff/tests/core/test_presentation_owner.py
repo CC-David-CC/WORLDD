@@ -28,6 +28,25 @@ def exact(n):
 def receive():return p.PresentationControlRequest.FromString(exact(struct.unpack('!I',exact(4))[0]))
 send(p.PresentationControlReply(protocol_version=1,ready=c.RendererReady()))
 r=receive()
+if mode.startswith('local_async_'):
+ if not r.HasField('select_local_actor'):raise RuntimeError('Missing exact asynchronous selection')
+ target=r.select_local_actor
+ time.sleep(.35)
+ reply=p.PresentationControlReply(protocol_version=1,request_id=r.request_id,
+  local_actor_state=p.LocalActorPresentationState(target=target,selected=True))
+ if mode=='local_async_request':reply.request_id+=1
+ if mode=='local_async_target':reply.local_actor_state.target.identity.view_id=b'x'*32
+ if mode=='local_async_denied':
+  reply.ClearField('local_actor_state');reply.error.code=c.FORBIDDEN;reply.error.message='checked selection denial'
+ send(reply)
+ if mode in ('local_async_success','local_async_denied'):
+  r=receive()
+  if not r.HasField('retire_local_actor'):raise RuntimeError('Pending selection stole retirement')
+  send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,
+   local_actor_state=p.LocalActorPresentationState(target=target,selected=False)))
+  r=receive();send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,shutting_down=True))
+ else:receive()
+ sys.exit(0)
 if mode in ('lost_attach','lost_geometry_attach'):s.shutdown(socket.SHUT_RDWR);s.close();time.sleep(10);sys.exit(0)
 if mode=='partial':s.sendall(b'\x00');time.sleep(10);sys.exit(0)
 if mode=='missing_geometry_state':
@@ -76,6 +95,15 @@ class PresentationOwnerTests(unittest.TestCase):
             if mode!='geometry_sequence':self.assertIn('Host presentation ownership unavailable',result.stdout)
             for marker in ('AddressSanitizer','LeakSanitizer','runtime error:'):
                 self.assertNotIn(marker,result.stderr)
+
+    def test_async_selection_keeps_poll_bounded_and_rejects_competing_owners(self):
+        self.attempt('local_async_success','nonblocking polls confirmed')
+    def test_async_selection_rejects_wrong_request_without_reusing_channel(self):
+        self.attempt('local_async_request','reply identity mismatch')
+    def test_async_selection_rejects_wrong_view_without_publishing_completion(self):
+        self.attempt('local_async_target','Selected local actor view unconfirmed')
+    def test_async_checked_denial_preserves_exact_retirement(self):
+        self.attempt('local_async_denied','checked selection denial')
 
     def test_wrong_request_id(self):self.attempt('request_id','reply identity mismatch')
     def test_wrong_binding(self):self.attempt('binding','state mismatch')

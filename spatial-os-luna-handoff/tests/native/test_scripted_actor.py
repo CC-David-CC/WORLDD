@@ -1,5 +1,6 @@
 """Three ordinary authenticated actors through production shared action owners."""
 import os
+import json
 from pathlib import Path
 import select
 import struct
@@ -18,6 +19,7 @@ import grants_pb2 as grants
 import issuer_pb2 as issuer
 import scripted_actor_pb2 as scripted
 import world_session_pb2 as world
+from harness.issuer_progress import DelayedInfoIssuer
 from harness.wire import frame
 
 
@@ -179,6 +181,10 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
             else:
                 self.world_participant_identity = previous
 
+    def world_query_config(self):
+        relay=getattr(self,'_info_relay',None)
+        return self.issuer.config_file(endpoint_port=relay.port if relay else None)
+
     def identity_config(self, config, suffix, admitted):
         # Explicit fixture provisioning. No actor receives this management boundary.
         directory = self.root / ('host-world-authority' + suffix)
@@ -198,9 +204,11 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
             capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
         policy = world.WorldIdentityConfig(protocol_version=1,
-            issuer_client_config=str(self.issuer.config_file()),
+            issuer_client_config=str(self.world_query_config()),
             participant_runtime_config=config.child_participant_config,
             admission=world.EXPLICIT_ACTORS, authority_directory=str(directory))
+        if os.environ.get('SPATIAL_TEST_RETAINED_MOVEMENT') == '1' or getattr(self,'retained_movement_override',False):
+            policy.enable_retained_movement = True
         path = self.config_file('scripted-world-policy' + suffix, policy)
         config.launch.arguments.extend(['--identity-config', str(path)])
         runtime = text_format.Parse(Path(binary).with_name('runtime.textproto').read_text(), core.RuntimeConfig())
@@ -270,6 +278,87 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
         second.close()
         self.stop()
         self.shutdown_checked()
+
+    def test_human_refresh_and_two_scripted_actors_survive_pending_presentation_authority(self):
+        self.retained_movement_override=True
+        selected=os.environ.get('SPATIAL_TEST_PRESENTATION_CONTINUATIONS','1')
+        self.assertIn(selected,('0','1'));self.presentation_continuations_override=selected=='1'
+        self._info_relay=DelayedInfoIssuer(self.issuer, delayed_operation="credential_check", actor_id=self.principal.actor_id)
+        self.ready_host()
+        policy=text_format.Parse((self.root/'scripted-world-policy.textproto').read_text(),world.WorldIdentityConfig())
+        self.assertTrue(policy.enable_retained_movement,'Presentation-specific delay requires retained movement')
+        self.assertEqual(self.presentation_continuations_selected,self.presentation_continuations_override)
+        producer=self.producer()
+        first,second=self.scripted_peer(0),self.scripted_peer(1)
+        self.wait_processed(producer.key('w'))
+        self.wait_autonomous_human_motion([0,0,-1,0,0,0])
+        first_motion=first.motion([1,0,0,0,0,0]);second_motion=second.motion([0,1,0,0,0,0])
+        self._info_relay.delay_armed.set()
+        self.assertTrue(self._info_relay.delay_entered.wait(3),'Human presentation credential check was not held')
+        self.assertFalse(self._info_relay.delay_finished.is_set())
+        input_started=time.monotonic()
+        sequence=producer.key('d');completed=threading.Event();result={}
+        def wait_for_capture():
+            started=input_started
+            try:
+                status=self.wait_processed(sequence)
+                result['processed_sequence']=status.processed_capture_sequence
+                result['capture_active']=status.capture_active
+            except BaseException as error:result['error']=str(error)
+            finally:
+                result['elapsed_seconds']=time.monotonic()-started;completed.set()
+        thread=threading.Thread(target=wait_for_capture,name='checked-human-refresh')
+        thread.start();fast=completed.wait(max(0,.25-(time.monotonic()-input_started)))
+        pending_at_receipt=not self._info_relay.delay_finished.is_set()
+        try:
+            self.assertTrue(self._info_relay.delay_finished.wait(5))
+        finally:
+            thread.join(6)
+            if thread.is_alive():raise AssertionError('Checked human capture query did not settle')
+            evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+            if evidence:
+                target=Path(evidence);target.mkdir(parents=True,exist_ok=True)
+                (target/(self._testMethodName+'-scheduling.json')).write_text(json.dumps(dict(
+                    completed_under_input_expiry=fast,authority_pending_at_capture_receipt=pending_at_receipt,
+                    human=result,input_request_monotonic=input_started,delay_records=self._info_relay.delay_records,
+                    retained_movement=policy.enable_retained_movement,
+                    presentation_continuations=self.presentation_continuations_selected),indent=2)+'\n')
+        self.assertTrue(fast,'Human capture refresh waited for pending presentation authority beyond250ms')
+        self.assertTrue(pending_at_receipt,'Human capture receipt waited for unrelated presentation authority completion')
+        self.assertNotIn('error',result);self.assertTrue(result['capture_active'])
+        self.assertEqual(list(self.state().axes),[1,0,-1,0,0,0])
+        first_motion.close();second_motion.close()
+        for peer in (first,second):
+            during=[duration for start,duration,operation in peer.timings if operation=='propose' and
+                self._info_relay.delay_records[0]['start_monotonic']<=start<self._info_relay.delay_records[0]['end_monotonic']]
+            self.assertGreaterEqual(len(during),3,'Scripted actor did not keep refreshing during held presentation authority')
+            self.assertLess(max(during),.25,'Scripted actor refresh exceeded unchanged input expiry')
+            self.accepted(peer.act(stop=core.ActorStopRequest()));peer.close()
+        self.stop();self.shutdown_checked()
+
+    def test_denied_human_transitions_restore_source_capture_and_pending_frames(self):
+        from host_actor_controller_pb2 import HostActorTransitionRequest
+        initial=self.ready_host(denied=True);producer=self.producer()
+        retained=self.retained_pids();denied=self.worlds[1][0].world_id
+        for generation in range(3):
+            old=self.status(generation);self.stop(generation)
+            reply=self.shared('transition_proposal',generation,HostActorTransitionRequest(
+                protocol_version=1,transition_id=os.urandom(32),destination_world_id=denied))
+            self.assertTrue(reply.accepted,reply)
+            self.assertFalse(reply.transition.actor_transition.destination_activation_confirmed,reply)
+            self.assertTrue(reply.transition.actor_control_available,reply)
+            self.assertEqual(reply.generation,generation+1)
+            producer.close();producer=self.producer(generation+1)
+            status=self.status(generation+1)
+            self.assertGreater(status.capture_generation,old.capture_generation)
+            self.assertGreater(status.capture_source_slot,old.capture_source_slot)
+            self.wait_processed(producer.key('w'),generation+1)
+            self.assertTrue(self.shared('controls_tick',generation+1).accepted)
+            state=self.state(generation+1)
+            self.assertEqual(state.id,initial.inspection.state.id)
+            self.assertEqual(list(state.axes),[0,0,-1,0,0,0])
+            self.assertEqual(self.retained_pids(),retained)
+        self.stop(3);self.shutdown_checked()
 
     def test_proposals_cannot_choose_identity_sequence_or_bypass_authority(self):
         self.agent_rights[1] = [grants.WORLD_ENTER, grants.WORLD_OBSERVE]

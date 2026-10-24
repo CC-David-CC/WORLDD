@@ -331,8 +331,8 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                     tick = Clock::now() + interval;
                 }
                 if (Clock::now() >= render) {
-                    controller_.pump_geometry_presentation();
-                    render = Clock::now() + interval;
+                    const auto pending=controller_.pump_geometry_presentation();
+                    render = Clock::now() + (pending?std::chrono::milliseconds(2):interval);
                 }
                 controller_.synchronize_controls_presentation();
                 synchronize_capture();

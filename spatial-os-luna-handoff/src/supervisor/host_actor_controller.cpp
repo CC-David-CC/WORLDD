@@ -234,6 +234,10 @@ bool HostActorController::retire_foreground_locked() noexcept {
     geometry_status_.Clear();
     if (!geometry_target_ && !local_target_) return true;
     try {
+        if(local_frame_) {
+            session_->cancel_present_local_actor(local_frame_->ticket);
+            local_frame_.reset();
+        }
         if (local_target_) {
             session_->retire_local_actor(local_target_->owner,local_target_->identity);
             local_target_.reset();
@@ -254,6 +258,18 @@ void HostActorController::clear_foreground_locked() {
     try { session_->clear_presentation(); }
     catch (...) { control_fenced_=true;throw; }
 }
+void HostActorController::publish_local_frame_locked(const core::v1::ActorLocalViewIdentity& identity,
+    const core::v1::ActorLocalViewState& view) {
+    if(adapters_ && controls_ && controls_->context().generation == generation_)
+        adapters_->set_viewport(view.viewport().width(),view.viewport().height(),view.vertical_fov());
+    geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
+    geometry_status_.set_world_id(identity.world_id());geometry_status_.set_actor_id(identity.actor_id());
+    geometry_status_.set_room(view.room());*geometry_status_.mutable_camera()=view.camera();
+    geometry_status_.set_view_sequence(view.frame_id());geometry_status_.set_world_revision(view.world_revision());
+    geometry_status_.set_presentation_generation(view.presentation_generation());
+    geometry_status_.set_authority_generation(identity.authority_generation());
+    geometry_status_.set_authority_service_incarnation(identity.authority_service_incarnation());
+}
 void HostActorController::refresh_foreground_locked() {
     const auto destination=destinations_.find(current_world_);
     if (shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
@@ -263,15 +279,7 @@ void HostActorController::refresh_foreground_locked() {
             local_target_=LocalTarget{*destination->second.owner,identity};
         }
         const auto view=session_->present_local_actor(local_target_->owner,identity,0,0);
-        if(adapters_ && controls_ && controls_->context().generation == generation_)
-            adapters_->set_viewport(view.viewport().width(),view.viewport().height(),view.vertical_fov());
-        geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
-        geometry_status_.set_world_id(identity.world_id());geometry_status_.set_actor_id(identity.actor_id());
-        geometry_status_.set_room(view.room());*geometry_status_.mutable_camera()=view.camera();
-        geometry_status_.set_view_sequence(view.frame_id());geometry_status_.set_world_revision(view.world_revision());
-        geometry_status_.set_presentation_generation(view.presentation_generation());
-        geometry_status_.set_authority_generation(identity.authority_generation());
-        geometry_status_.set_authority_service_incarnation(identity.authority_service_incarnation());
+        publish_local_frame_locked(identity,view);
         return;
     }
     const auto view = current_client_->geometry_view();
@@ -323,14 +331,52 @@ void HostActorController::start_geometry_presentation() {
         throw;
     }
 }
-void HostActorController::pump_geometry_presentation() {
+void HostActorController::enable_presentation_continuations() {
+    std::lock_guard lock(mutex_);
+    require(session_ && shared_enabled_ && !local_frame_ && !local_target_ && !geometry_target_,
+        "Presentation continuations require an unpresented shared actor");
+    presentation_continuations_=true;
+}
+bool HostActorController::pump_geometry_presentation() {
     std::unique_lock lock(mutex_, std::try_to_lock);
-    if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return;
-    try { refresh_foreground_locked(); }
+    if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return false;
+    try {
+        const auto destination=destinations_.find(current_world_);
+        if(presentation_continuations_ && shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
+            const auto identity=current_client_->local_view_identity();
+            if(!local_target_ || local_target_->identity.SerializeAsString()!=identity.SerializeAsString()) {
+                if(!retire_foreground_locked())throw std::runtime_error("Previous foreground retirement is unconfirmed");
+                local_target_=LocalTarget{*destination->second.owner,identity};
+            }
+            if(local_frame_ && (local_frame_->actor_generation!=generation_ ||
+                    local_frame_->capture_generation!=capture_generation_ ||
+                    local_frame_->ticket.identity.SerializeAsString()!=identity.SerializeAsString() ||
+                    local_frame_->ticket.owner.SerializeAsString()!=local_target_->owner.SerializeAsString())) {
+                session_->cancel_present_local_actor(local_frame_->ticket);
+                local_frame_.reset();
+            }
+            if(!local_frame_)local_frame_=LocalFrame{
+                session_->begin_present_local_actor(local_target_->owner,identity,0,0),generation_,capture_generation_};
+            const auto pending=*local_frame_;
+            auto result=session_->poll_present_local_actor(pending.ticket);
+            if(!result)return true;
+            local_frame_.reset();
+            // No completion may update projection or status after its exact
+            // actor, capture, view, owner, or producer has changed.
+            require(!transitioning_ && !control_fenced_ && current_client_ && !current_client_->failed() &&
+                pending.actor_generation==generation_ && pending.capture_generation==capture_generation_ && local_target_ &&
+                pending.ticket.identity.SerializeAsString()==current_client_->local_view_identity().SerializeAsString() &&
+                pending.ticket.owner.SerializeAsString()==local_target_->owner.SerializeAsString() &&
+                pending.ticket.presentation_generation==result->presentation_generation(),
+                "Local presentation completion lost its actor context");
+            publish_local_frame_locked(identity,*result);
+        }else refresh_foreground_locked();
+    }
     catch (...) {
         try { clear_foreground_locked(); } catch (...) { control_fenced_=true; }
         if (current_client_->failed()) control_fenced_ = true;
     }
+    return false;
 }
 std::string HostActorController::current_world() const {
     std::lock_guard lock(mutex_);
@@ -479,6 +525,12 @@ identity::v1::HostActorTransitionResult HostActorController::transition_proposed
     const auto profiles = adapters_->profiles();
     adapters_->cancel();
     if (progress) progress(TransitionPhase::InputReleased);
+    // A denied transition can retain this actor and view. Retire its frame
+    // operation before changing host generations or restoring synchronous output.
+    if(local_frame_) {
+        session_->cancel_present_local_actor(local_frame_->ticket);
+        local_frame_.reset();
+    }
     adapters_->set_menu(false);
     synchronize_controls_presentation_locked();
     auto request = proposal; request.set_departure_sequence(controls_->reserve_sequence(generation));

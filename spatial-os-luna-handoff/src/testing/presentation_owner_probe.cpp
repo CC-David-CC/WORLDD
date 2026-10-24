@@ -1,5 +1,7 @@
 #include "platform/presentation_owner.hpp"
 #include <iostream>
+#include <chrono>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -26,6 +28,31 @@ int main(int argc,char** argv){
             auto* view=target.mutable_identity();view->set_protocol_version(1);view->set_world_id(binding.world_id());
             view->set_actor_id("human");view->set_view_id(std::string(32,'v'));
             view->set_authority_service_incarnation(binding.service_incarnation());view->set_authority_generation(1);
+            if(mode.starts_with("local_async_")) {
+                using Clock=std::chrono::steady_clock;
+                const auto token=owner.begin_select_local_actor(target);
+                bool busy=false,stale=false;
+                try{owner.inspect(binding);}catch(const std::exception& error){busy=std::string(error.what())=="Host presentation exchange already in progress";}
+                try{owner.poll_select_local_actor(token+1);}catch(const std::exception& error){stale=std::string(error.what())=="Stale local actor selection operation";}
+                if(!busy || !stale)return 20;
+                const auto started=Clock::now();unsigned ticks=0;bool rejected=false,done=false;
+                while(Clock::now()-started<std::chrono::seconds(3)) {
+                    const auto before=Clock::now();
+                    try{done=owner.poll_select_local_actor(token).has_value();}
+                    catch(const std::exception& error){std::cout<<error.what()<<'\n';rejected=true;break;}
+                    if(Clock::now()-before>std::chrono::milliseconds(25))return 21;
+                    ++ticks;if(done)break;::poll(nullptr,0,1);
+                }
+                if(ticks<50)return 22;
+                if(mode=="local_async_success" || mode=="local_async_denied") {
+                    if((mode=="local_async_success" && !done) || (mode=="local_async_denied" && !rejected))return 23;
+                    owner.retire_local_actor(target);owner.shutdown();
+                }else if(!rejected)return 24;
+                std::cout<<"nonblocking polls confirmed "<<ticks<<'\n';
+                try{owner.inspect(binding);return 25;}
+                catch(const std::exception& error){std::cout<<error.what()<<'\n';}
+                return 0;
+            }
             bool rejected=false;
             try{
                 owner.select_local_actor(target);owner.retire_local_actor(target);

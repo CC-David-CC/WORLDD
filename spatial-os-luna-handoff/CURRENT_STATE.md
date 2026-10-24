@@ -1,3 +1,28 @@
+## 2026-10-24: Opt-in local presentation continuations pass focused scheduling checks
+
+The host can poll local foreground work without occupying its actor worker during healthy waits.
+HostSessionConfig.enable_presentation_continuations explicitly selects this draft. Its default remains false.
+World retained movement remains independently opt-in. Neither flag grants actor authority.
+Tickets bind the actor, capture, exact view, owner, presentation generation, and operation serial.
+The controller checks context before advancing pending work and before publishing viewport or status.
+Cancellation drains submitted requests without starting another frame stage.
+Checked menu output still precedes capture receipt publication.
+Denied transitions cancel old frame work before changing host generations.
+Both hosts pass 76 selected checks in Debug and ASan/UBSan, plus four stronger timing reruns.
+The combined result is 308 accepted completions: 140 C++ fixture groups and 168 Python methods.
+No selected candidate check fails or skips. Collected evidence contains no sanitizer diagnostic.
+A preserved synchronous host takes about 4.11 seconds during a held presentation credential reply.
+The corrected host takes 0.69–83.77 ms from human input emission through its checked capture receipt.
+Both scripted actors keep refreshing through the same 4.1-second authority hold.
+The tests preserve the 250 ms input expiry and 350 ms watchdog limit.
+Repeated denied human transitions, F12/capture recovery, and projection checks pass.
+Final checks verify candidate packages, native dependencies, and retained runtime fixtures.
+Evidence: presentation-continuation-collected-228 and presentation-continuation-audit-228.json under the external M10 evidence root.
+Read docs/M10_RETAINED_PRESENTATION_DIRECTION_2026-10-24.txt for source pins, limitations, and cleanup receipts.
+Deterministic stage cancellation, late completion, and component-failure recovery witnesses remain pending.
+Remote geometry scheduling, three-actor file/application workflows, and the full combined gate remain pending.
+Accepted M09 sessions remain unchanged. M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
 ## 2026-10-24: Default-off retained movement passes focused failure and authority checks
 
 The retained movement draft requires explicit WorldIdentityConfig.enable_retained_movement opt-in.

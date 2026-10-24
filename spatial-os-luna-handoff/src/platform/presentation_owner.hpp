@@ -3,6 +3,8 @@
 #include "platform/process_handle.hpp"
 #include <filesystem>
 #include <memory>
+#include <optional>
+#include <cstdint>
 namespace spatial {
 // Private host-session API. No actor or world receives the control channel.
 class PresentationOwner final {
@@ -24,6 +26,9 @@ public:
         const identity::v1::ActorGeometryView&);
     render::v1::GeometryPresentationState retire_geometry(const render::v1::GeometryPresentationTarget&);
     render::v1::LocalActorPresentationState select_local_actor(const render::v1::LocalActorPresentationTarget&);
+    // One exact control-channel owner. Poll never waits for a reply.
+    std::uint64_t begin_select_local_actor(const render::v1::LocalActorPresentationTarget&);
+    std::optional<render::v1::LocalActorPresentationState> poll_select_local_actor(std::uint64_t);
     render::v1::LocalActorPresentationState retire_local_actor(const render::v1::LocalActorPresentationTarget&);
     void clear_selection();
     core::v1::PixelExtent native_viewport() const;

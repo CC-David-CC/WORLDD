@@ -19,6 +19,7 @@
 #include <vector>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 
 namespace spatial::supervisor {
@@ -48,6 +49,19 @@ struct Pair {
         parent.reset(pair[0]); child.reset(pair[1]);
     }
 };
+void validate_local_presentation(const core::v1::ActorLocalViewState& result,
+    const render::v1::LocalActorPresentationTarget& target,std::uint32_t width,std::uint32_t height) {
+    validate_render_extent(result.viewport().width(),result.viewport().height());
+    require(std::isfinite(result.vertical_fov()) && result.vertical_fov()>0 &&
+        result.vertical_fov()<std::acos(-1.0),"Invalid local actor projection field of view");
+    require(result.bound() && result.presented() && result.identity().SerializeAsString()==target.identity().SerializeAsString() && result.frame_id()>0 &&
+        result.world_revision()>0 && (!width || (result.viewport().width()==width && result.viewport().height()==height)) &&
+        !result.room().empty() && result.room().size()<=256 && result.room().find('\0')==std::string::npos &&
+        result.presentation_generation()==target.binding().presentation_generation() && result.camera().has_position() &&
+        result.camera().has_orientation(),"Local actor presentation receipt does not match its target");
+    const auto& p=result.camera().position();const auto& q=result.camera().orientation();
+    validate_pose({{p.x(),p.y(),p.z()},{q.x(),q.y(),q.z(),q.w()}});
+}
 struct World {
     struct LocalTarget {
         render::v1::LocalActorPresentationTarget target;
@@ -70,6 +84,21 @@ struct World {
     bool presentation_attached=false,presentation_retired=false,world_identity_checked=false;
     bool registered = false, stopped = false, failed = false;
     std::uint64_t sequence = 0;
+    struct Exchange {
+        std::uint64_t token, caller_id;
+        Clock::time_point deadline;
+    };
+    std::optional<Exchange> exchange;
+    struct LocalFrame {
+        SessionCoordinator::LocalPresentationTicket ticket;
+        render::v1::LocalActorPresentationTarget target;
+        enum Stage { Bind, Select, Present } stage = Bind;
+        std::uint32_t width = 0, height = 0;
+        std::optional<std::uint64_t> world_token, selection_token;
+        Clock::time_point deadline;
+        bool cancelled = false;
+    };
+    std::optional<LocalFrame> local_frame;
 };
 }
 struct SessionCoordinator::Impl {
@@ -79,6 +108,7 @@ struct SessionCoordinator::Impl {
     std::unique_ptr<PresentationOwner> presentation;
     std::map<std::uint64_t,render::v1::GeometryPresentationTarget> geometry_targets;
     std::uint64_t presentation_generation=0;
+    std::uint64_t local_operation_sequence=0;
     // Reverse destruction closes world scopes before broker root ownership.
     std::map<std::string, std::unique_ptr<World>> worlds;
     std::uint64_t sequence = 0;
@@ -95,6 +125,52 @@ struct SessionCoordinator::Impl {
         return *found->second;
     }
     World& find(const workspace::v1::ControlOwner& owner) const { live(); return find_owned(owner); }
+    void exchange_failed(World& world) {
+        world.failed=true;world.invalidate_local_attestations();
+        try {administrative(world.owner,-1,true);}
+        catch(const std::exception& error){std::cerr<<"Failed world fence unresolved: "<<error.what()<<'\n';}
+    }
+    std::uint64_t begin_world(World& world,const core::v1::Request& supplied,Clock::time_point deadline) {
+        require(!world.failed && !world.stopped && world.management,"Session world is not available");
+        require(!world.exchange,"World management exchange already in progress");
+        validate_message(supplied);require(supplied.protocol_version()==1,"Unsupported world request version");
+        require(world.sequence!=UINT64_MAX,"World request sequence exhausted");
+        auto request=supplied;request.set_request_id(++world.sequence);
+        world.exchange=World::Exchange{request.request_id(),supplied.request_id(),deadline};
+        try {world.supervisor->live();world.management->send(request.SerializeAsString());}
+        catch(...){exchange_failed(world);throw;}
+        return request.request_id();
+    }
+    std::optional<core::v1::Reply> poll_world(World& world,std::uint64_t token) {
+        require(world.exchange && world.exchange->token==token,"Stale world management operation");
+        try {
+            live();world.supervisor->live();
+            require(!world.failed && !world.stopped && world.management,"Session world is not available");
+            require(Clock::now()<world.exchange->deadline,"Session world response timed out");
+            world.management->flush();
+            auto bytes=world.management->receive();if(!bytes)return {};
+            core::v1::Reply reply;require(reply.ParseFromString(*bytes),"Malformed world reply");validate_message(reply);
+            require(reply.protocol_version()==1 && reply.request_id()==token,"World reply correlation failed");
+            reply.set_request_id(world.exchange->caller_id);world.exchange.reset();return reply;
+        }catch(...){exchange_failed(world);throw;}
+    }
+    World::LocalFrame& frame(World& world,const SessionCoordinator::LocalPresentationTicket& ticket) {
+        require(world.local_frame && world.local_frame->ticket.serial==ticket.serial &&
+            world.local_frame->ticket.presentation_generation==ticket.presentation_generation &&
+            world.local_frame->ticket.owner.SerializeAsString()==ticket.owner.SerializeAsString() &&
+            world.local_frame->ticket.identity.SerializeAsString()==ticket.identity.SerializeAsString(),
+            "Stale local presentation operation");
+        return *world.local_frame;
+    }
+    // A synchronous menu receipt may share the compositor channel. Drain only
+    // selection; leave world-frame scheduling to its explicit continuation owner.
+    void drain_local_selection(World& world) {
+        if(!world.local_frame || !world.local_frame->selection_token)return;
+        auto& frame=*world.local_frame;
+        try {while(!presentation->poll_select_local_actor(*frame.selection_token))::poll(nullptr,0,2);}
+        catch(const WorldError&){frame.selection_token.reset();throw;}
+        frame.selection_token.reset();frame.stage=World::LocalFrame::Present;
+    }
     workspace::v1::ControlOwnerState administrative(const workspace::v1::ControlOwner& owner, int endpoint = -1,
         bool fence = false, const v1::AuthorityLaunchRecord* cleanup = nullptr) {
         live(); require(sequence != UINT64_MAX, "Session administrative request sequence exhausted");
@@ -188,6 +264,7 @@ void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner&
 core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity,std::uint32_t width,std::uint32_t height) {
     auto& state=*impl_;auto& world=state.find(owner);
+    require(!world.local_frame,"Local presentation continuation owns the world channel");
     validate_local_view_identity(identity);
     if (width || height) validate_render_extent(width,height);
     require(state.presentation && world.presentation_attached && world.world_identity_checked &&
@@ -218,22 +295,90 @@ core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const work
         if (reply.has_error()) throw ActorSessionRejected(reply.error());
         require(reply.has_actor_local_view(),"Local actor presentation receipt is missing");
         const auto& result=reply.actor_local_view();
-        validate_render_extent(result.viewport().width(),result.viewport().height());
-        require(std::isfinite(result.vertical_fov()) && result.vertical_fov()>0 &&
-            result.vertical_fov()<std::acos(-1.0),"Invalid local actor projection field of view");
-        require(result.bound() && result.presented() && result.identity().SerializeAsString()==key && result.frame_id()>0 &&
-            result.world_revision()>0 && (!width || (result.viewport().width()==width && result.viewport().height()==height)) &&
-            !result.room().empty() && result.room().size()<=256 && result.room().find('\0')==std::string::npos &&
-            result.presentation_generation()==world.presentation.presentation_generation() && result.camera().has_position() &&
-            result.camera().has_orientation(),"Local actor presentation receipt does not match its target");
-        const auto& p=result.camera().position();const auto& q=result.camera().orientation();
-        validate_pose({{p.x(),p.y(),p.z()},{q.x(),q.y(),q.z(),q.w()}});
+        validate_local_presentation(result,target,width,height);
         return result;
     }catch(...) {retained.attested=false;throw;}
+}
+SessionCoordinator::LocalPresentationTicket SessionCoordinator::begin_present_local_actor(
+    const workspace::v1::ControlOwner& owner,const core::v1::ActorLocalViewIdentity& identity,
+    std::uint32_t width,std::uint32_t height) {
+    auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
+    if(width || height)validate_render_extent(width,height);
+    require(!world.local_frame && !world.exchange,"Local presentation operation already in progress");
+    require(state.presentation && world.presentation_attached && world.world_identity_checked &&
+        !world.stopped && !world.failed && identity.world_id()==world.presentation.world_id() &&
+        identity.authority_service_incarnation()==world.presentation.service_incarnation() &&
+        identity.authority_generation()==world.presentation.authority_generation(),
+        "Local actor does not match the retained producer");
+    require(state.local_operation_sequence!=UINT64_MAX,"Local presentation operation sequence exhausted");
+    render::v1::LocalActorPresentationTarget target;
+    *target.mutable_binding()=world.presentation;*target.mutable_identity()=identity;
+    const auto key=identity.SerializeAsString();
+    require(world.local_targets.contains(key) || world.local_targets.size()<256,"Too many retained local actor targets");
+    auto& retained=world.local_targets.try_emplace(key,World::LocalTarget{target,false}).first->second;
+    LocalPresentationTicket ticket{++state.local_operation_sequence,world.presentation.presentation_generation(),owner,identity};
+    World::LocalFrame frame;frame.ticket=ticket;frame.target=target;frame.width=width;frame.height=height;
+    frame.stage=retained.attested?World::LocalFrame::Select:World::LocalFrame::Bind;
+    frame.deadline=Clock::now()+std::chrono::seconds(10);world.local_frame=std::move(frame);
+    return ticket;
+}
+std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_local_actor(const LocalPresentationTicket& ticket) {
+    auto& state=*impl_;auto& world=state.find(ticket.owner);auto& frame=state.frame(world,ticket);
+    require(!frame.cancelled,"Local presentation operation was cancelled");
+    try {
+        require(Clock::now()<frame.deadline,"Local presentation operation timed out");
+        require(!world.failed && !world.stopped && world.presentation.presentation_generation()==ticket.presentation_generation,
+            "Local presentation producer changed");
+        for(unsigned step=0;step<3;++step) {
+            if(frame.stage==World::LocalFrame::Select) {
+                if(!frame.selection_token)frame.selection_token=state.presentation->begin_select_local_actor(frame.target);
+                try {
+                    if(!state.presentation->poll_select_local_actor(*frame.selection_token))return {};
+                }catch(const WorldError&){frame.selection_token.reset();throw;}
+                frame.selection_token.reset();frame.stage=World::LocalFrame::Present;continue;
+            }
+            if(!frame.world_token) {
+                core::v1::Request request;request.set_protocol_version(1);
+                auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);
+                *operation->mutable_identity()=frame.target.identity();
+                if(frame.stage==World::LocalFrame::Bind)operation->mutable_bind();
+                else {operation->mutable_present()->set_width(frame.width);operation->mutable_present()->set_height(frame.height);}
+                frame.world_token=state.begin_world(world,request,frame.deadline);
+            }
+            auto reply=state.poll_world(world,*frame.world_token);if(!reply)return {};
+            frame.world_token.reset();
+            if(reply->has_error())throw ActorSessionRejected(reply->error());
+            require(reply->has_actor_local_view(),"Local actor presentation receipt is missing");
+            const auto& result=reply->actor_local_view();
+            if(frame.stage==World::LocalFrame::Bind) {
+                require(result.bound() && result.identity().SerializeAsString()==ticket.identity.SerializeAsString(),
+                    "Local actor binding was not confirmed");
+                world.local_targets.at(ticket.identity.SerializeAsString()).attested=true;
+                frame.stage=World::LocalFrame::Select;continue;
+            }
+            validate_local_presentation(result,frame.target,frame.width,frame.height);
+            auto completed=result;world.local_frame.reset();return completed;
+        }
+        return {};
+    }catch(...){
+        if(world.local_frame)world.local_frame->cancelled=true;
+        world.invalidate_local_attestations();throw;
+    }
+}
+void SessionCoordinator::cancel_present_local_actor(const LocalPresentationTicket& ticket) {
+    auto& state=*impl_;auto& world=state.find_owned(ticket.owner);auto& frame=state.frame(world,ticket);
+    frame.cancelled=true;world.invalidate_local_attestations();
+    // Draining may confirm effects already sent. It never starts the next stage.
+    if(frame.world_token) {
+        while(!state.poll_world(world,*frame.world_token))::poll(nullptr,0,2);
+        frame.world_token.reset();
+    }
+    state.drain_local_selection(world);world.local_frame.reset();
 }
 void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity) {
     auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
+    if(world.local_frame)cancel_present_local_actor(world.local_frame->ticket);
     const auto key=identity.SerializeAsString();const auto found=world.local_targets.find(key);
     if (found==world.local_targets.end()) return;
     found->second.attested=false;
@@ -263,6 +408,7 @@ core::v1::PixelExtent SessionCoordinator::native_viewport() const {
 }
 void SessionCoordinator::present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    for(auto& [key,world]:state.worlds){(void)key;state.drain_local_selection(*world);}
     state.presentation->present_controls(generation,view);
 }
 void SessionCoordinator::stop_presentation(){
@@ -423,30 +569,11 @@ const v1::AuthorityLaunchRecord& SessionCoordinator::world_launch(const workspac
 workspace::v1::ControlOwnerState SessionCoordinator::inspect_world(const workspace::v1::ControlOwner& owner) {
     impl_->find(owner); return impl_->administrative(owner);
 }
-core::v1::Reply SessionCoordinator::world_call(const workspace::v1::ControlOwner& owner, const core::v1::Request& supplied) {
-    auto& state = *impl_; auto& world = state.find(owner);
-    require(!world.failed && !world.stopped && world.management, "Session world is not available");
-    validate_message(supplied); require(supplied.protocol_version() == 1, "Unsupported world request version");
-    require(world.sequence != UINT64_MAX, "World request sequence exhausted");
-    auto request = supplied; request.set_request_id(++world.sequence);
-    const auto deadline = Clock::now() + std::chrono::seconds(10);
-    try {
-        world.supervisor->live(); world.management->send(request.SerializeAsString());
-        for (;;) {
-            state.live(); require(Clock::now() < deadline, "Session world response timed out");
-            if (auto bytes = world.management->receive()) {
-                core::v1::Reply reply; require(reply.ParseFromString(*bytes), "Malformed world reply"); validate_message(reply);
-                require(reply.protocol_version() == 1 && reply.request_id() == request.request_id(), "World reply correlation failed");
-                reply.set_request_id(supplied.request_id()); return reply;
-            }
-            world.management->flush(); world.supervisor->live(); poll(nullptr, 0, 2);
-        }
-    } catch (...) {
-        world.failed = true; world.invalidate_local_attestations();
-        try { state.administrative(world.owner, -1, true); }
-        catch (const std::exception& error) { std::cerr << "Failed world fence unresolved: " << error.what() << '\n'; }
-        throw;
-    }
+core::v1::Reply SessionCoordinator::world_call(const workspace::v1::ControlOwner& owner,const core::v1::Request& supplied) {
+    auto& state=*impl_;auto& world=state.find(owner);
+    require(!world.local_frame,"Local presentation continuation owns the world channel");
+    const auto token=state.begin_world(world,supplied,Clock::now()+std::chrono::seconds(10));
+    for(;;){if(auto reply=state.poll_world(world,token))return std::move(*reply);::poll(nullptr,0,2);}
 }
 v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::ControlOwner& owner) {
     auto& state = *impl_; auto& world = state.find_owned(owner);

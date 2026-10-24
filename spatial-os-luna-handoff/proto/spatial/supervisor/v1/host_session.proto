@@ -27,6 +27,8 @@ message HostSessionConfig {
   // Fresh private endpoints from the trusted parent, one per capture epoch.
   // Mutually exclusive with native_capture. Slots are one-based in private status.
   repeated uint32 trusted_capture_fds = 16;
+  // Explicit draft opt-in. Actor authority and capture receipt barriers are unchanged.
+  bool enable_presentation_continuations = 17;
 }
 message HostRemoteWorld {
   string world_id = 1;

@@ -105,8 +105,14 @@ class IssuerLifetimeWitness:
 
 
 class DelayedInfoIssuer(RelayingIssuer):
-    """Forward real issuer replies, holding one selected INFO for exactly4.1s."""
-    def __init__(self, fixture):
+    """Hold one checked INFO or exact actor credential reply for 4.1 seconds."""
+    def __init__(self, fixture, delayed_operation="info", actor_id=None):
+        if delayed_operation not in ("info", "credential_check"):
+            raise ValueError("Unsupported checked issuer delay")
+        if delayed_operation == "credential_check" and (actor_id is None or len(actor_id) != 32):
+            raise ValueError("Credential delay requires one exact actor")
+        self.delayed_operation = delayed_operation
+        self.delayed_actor_id = actor_id
         self.delay_armed = threading.Event()
         self.delay_entered = threading.Event()
         self.delay_finished = threading.Event()
@@ -136,14 +142,18 @@ class DelayedInfoIssuer(RelayingIssuer):
                 reply = upstream.request(request)
                 reply.request_id = sequence
                 delay = False
-                if request.HasField("info"):
+                selected = request.HasField(self.delayed_operation)
+                if selected and self.delayed_operation == "credential_check":
+                    claims = issuer.ActorCredential.FromString(request.credential_check.content.payload)
+                    selected = claims.actor_id == self.delayed_actor_id
+                if selected:
                     with self.status_lock:
                         if self.delay_armed.is_set():
                             self.delay_armed.clear()
                             delay = True
                 if delay:
                     started = time.monotonic()
-                    record = dict(operation="info", start_monotonic=started,
+                    record = dict(operation=self.delayed_operation, start_monotonic=started,
                                   reply_sha256=hashlib.sha256(reply.SerializeToString()).hexdigest())
                     self.delay_records.append(record)
                     self.delay_entered.set()

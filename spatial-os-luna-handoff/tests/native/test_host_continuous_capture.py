@@ -89,6 +89,10 @@ class IndependentProducer:
 class ContinuousCaptureTests(shared.SharedHostControlsTests):
     def prepare(self, capture=True, native=False, **options):
         config, descriptors = super().prepare(**options)
+        continuation=getattr(self,'presentation_continuations_override',None)
+        if continuation is None:continuation=os.environ.get('SPATIAL_TEST_PRESENTATION_CONTINUATIONS') == '1'
+        if continuation:config.enable_presentation_continuations = True
+        self.presentation_continuations_selected=config.enable_presentation_continuations
         compositor = shared.production.HOST_SESSION_BINARY.with_name('spatialwm')
         self.assertTrue(compositor.is_file() and os.access(compositor, os.X_OK))
         config.compositor_executable = str(compositor)

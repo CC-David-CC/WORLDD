@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <optional>
+#include <cstdint>
 
 namespace spatial { class BrokerClient; }
 namespace spatial::supervisor {
@@ -30,6 +32,16 @@ public:
     render::v1::GeometryPresentationState retire_geometry(const render::v1::GeometryPresentationTarget&);
     core::v1::ActorLocalViewState present_local_actor(const workspace::v1::ControlOwner&,
         const core::v1::ActorLocalViewIdentity&, std::uint32_t width, std::uint32_t height);
+    struct LocalPresentationTicket {
+        std::uint64_t serial = 0, presentation_generation = 0;
+        workspace::v1::ControlOwner owner;
+        core::v1::ActorLocalViewIdentity identity;
+    };
+    LocalPresentationTicket begin_present_local_actor(const workspace::v1::ControlOwner&,
+        const core::v1::ActorLocalViewIdentity&, std::uint32_t width, std::uint32_t height);
+    std::optional<core::v1::ActorLocalViewState> poll_present_local_actor(const LocalPresentationTicket&);
+    // Drain only the existing request. Never advance a cancelled frame to another effect.
+    void cancel_present_local_actor(const LocalPresentationTicket&);
     void retire_local_actor(const workspace::v1::ControlOwner&, const core::v1::ActorLocalViewIdentity&);
     void clear_presentation();
     core::v1::PixelExtent native_viewport() const;

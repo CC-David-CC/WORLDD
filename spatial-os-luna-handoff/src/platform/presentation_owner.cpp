@@ -25,6 +25,11 @@ struct PresentationOwner::Impl {
     std::uint64_t menu_sequence=0;
     core::v1::PixelExtent viewport;
     bool stopped=false;
+    struct Pending {
+        protocol::PresentationControlRequest request;
+        std::chrono::steady_clock::time_point deadline;
+    };
+    std::optional<Pending> pending;
     Impl(const std::filesystem::path& executable,const std::filesystem::path& state,int native){
         require(native>=3,"Missing host compositor configuration");
         CompositorConfig config(fcntl(native,F_DUPFD_CLOEXEC,3));
@@ -53,14 +58,38 @@ struct PresentationOwner::Impl {
             }
         }catch(...){control.reset();throw;}
     }
-    protocol::PresentationControlReply call(protocol::PresentationControlRequest request,const std::vector<int>& descriptors={}){
-        live();require(sequence!=UINT64_MAX,"Host presentation sequence exhausted");
+    std::uint64_t begin(protocol::PresentationControlRequest request,const std::vector<int>& descriptors={}){
+        live();require(!pending,"Host presentation exchange already in progress");
+        require(sequence!=UINT64_MAX,"Host presentation sequence exhausted");
         request.set_protocol_version(1);request.set_request_id(++sequence);
-        control->send(request.SerializeAsString(),descriptors);
-        auto reply=receive();
-        if(reply.request_id()!=sequence){control.reset();throw std::runtime_error("Host presentation reply identity mismatch");}
-        if(reply.has_error())throw WorldError(reply.error().code(),reply.error().message().c_str());
-        return reply;
+        pending=Pending{request,std::chrono::steady_clock::now()+std::chrono::seconds(10)};
+        try {control->send(request.SerializeAsString(),descriptors);}
+        catch(...){control.reset();throw;}
+        return sequence;
+    }
+    std::optional<protocol::PresentationControlReply> poll_reply(std::uint64_t token){
+        require(pending && pending->request.request_id()==token,"Stale host presentation operation");
+        try {
+            live();require(std::chrono::steady_clock::now()<pending->deadline,"Host presentation reply deadline exceeded");
+            control->flush();
+            auto frame=control->receive();if(!frame)return {};
+            protocol::PresentationControlReply reply;
+            require(frame->descriptors.empty() && reply.ParseFromString(frame->bytes) && reply.protocol_version()==1,
+                "Invalid host presentation reply");validate_message(reply);
+            require(reply.request_id()==token,"Host presentation reply identity mismatch");
+            pending.reset();
+            if(reply.has_error())throw WorldError(reply.error().code(),reply.error().message().c_str());
+            return reply;
+        }catch(const WorldError&){throw;}
+        catch(...){control.reset();throw;}
+    }
+    protocol::PresentationControlReply call(protocol::PresentationControlRequest request,const std::vector<int>& descriptors={}){
+        const auto token=begin(std::move(request),descriptors);
+        for(;;){
+            if(auto reply=poll_reply(token))return std::move(*reply);
+            pollfd waiters[]{{control->descriptor(),static_cast<short>(POLLIN|(control->pending_output()?POLLOUT:0)),0},{pin.descriptor(),POLLIN,0}};
+            if(poll(waiters,2,10)<0 && errno!=EINTR){control.reset();throw std::runtime_error("Host presentation poll failed");}
+        }
     }
     protocol::PresentationState state(protocol::PresentationControlRequest request,const protocol::WorldPresentationBinding& binding,
         const std::vector<int>& descriptors={}){
@@ -145,13 +174,26 @@ protocol::GeometryPresentationState PresentationOwner::retire_geometry(const pro
     impl_->geometry_sequences.erase(found);return result;
 }
 protocol::LocalActorPresentationState PresentationOwner::select_local_actor(const protocol::LocalActorPresentationTarget& target){
+    const auto token=begin_select_local_actor(target);
+    for(;;){
+        if(auto result=poll_select_local_actor(token))return std::move(*result);
+        ::poll(nullptr,0,2);
+    }
+}
+std::uint64_t PresentationOwner::begin_select_local_actor(const protocol::LocalActorPresentationTarget& target){
     protocol::PresentationControlRequest request;*request.mutable_select_local_actor()=target;
-    const auto reply=impl_->call(std::move(request));
-    if(!reply.has_local_actor_state() || !reply.local_actor_state().selected() ||
-        reply.local_actor_state().target().SerializeAsString()!=target.SerializeAsString()){
+    return impl_->begin(std::move(request));
+}
+std::optional<protocol::LocalActorPresentationState> PresentationOwner::poll_select_local_actor(std::uint64_t token){
+    require(impl_->pending && impl_->pending->request.request_id()==token &&
+        impl_->pending->request.has_select_local_actor(),"Stale local actor selection operation");
+    const auto target=impl_->pending->request.select_local_actor();
+    const auto reply=impl_->poll_reply(token);if(!reply)return {};
+    if(!reply->has_local_actor_state() || !reply->local_actor_state().selected() ||
+        reply->local_actor_state().target().SerializeAsString()!=target.SerializeAsString()){
         impl_->control.reset();throw std::runtime_error("Selected local actor view unconfirmed");
     }
-    return reply.local_actor_state();
+    return reply->local_actor_state();
 }
 protocol::LocalActorPresentationState PresentationOwner::retire_local_actor(const protocol::LocalActorPresentationTarget& target){
     protocol::PresentationControlRequest request;*request.mutable_retire_local_actor()=target;
