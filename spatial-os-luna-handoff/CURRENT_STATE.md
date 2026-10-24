@@ -1,3 +1,18 @@
+## 2026-10-24: Retained movement failure also cancels already active motion
+
+The draft remains disabled unless trusted configuration explicitly enables it.
+A new regression starts real authorized movement before corrupting the next retained proof.
+Generation, cursor, and replay failures stop the actor and reject three subsequent movement requests.
+The test preserves issuer obligations until checked world exit and parent reconciliation.
+Its inherited ten-second expiry distinguishes failure cancellation from ordinary input expiry.
+Both hosts pass eleven selected methods in Debug and ASan/UBSan: 44 accepted completions.
+No corrected candidate method fails or skips. Collected outputs contain no sanitizer diagnostic.
+The first package layout omitted fixture configuration. Its setup failures remain preserved separately.
+This checkpoint changes tests and maintained status only. Production source remains compiled source220.
+Evidence: retained-failure-collected-232 and retained-failure-summary-232.json under the external M10 evidence root.
+Presentation-stage cancellation, late replies, component recovery, and the combined M10 gate remain pending.
+Accepted M09 remains unchanged. M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
 ## 2026-10-24: Opt-in local presentation continuations pass focused scheduling checks
 
 The host can poll local foreground work without occupying its actor worker during healthy waits.

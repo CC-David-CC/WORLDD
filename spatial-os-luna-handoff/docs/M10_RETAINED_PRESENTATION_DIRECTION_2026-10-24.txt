@@ -301,3 +301,31 @@ Dirty rendering and application damage revisions remain unfinished.
 Three actors still need real cabinet-file and confined editor/terminal workflows.
 Freeze one combined candidate, prove independent generation, and run the complete two-host gate.
 The focused checkpoint does not qualify M10, Spatial-M1, or LOCAL_READY.
+
+Failure isolation after active movement, test-only increment232
+The retained movement and local presentation drafts remain separate default-off options.
+A failed qualification does not authorize enabling either draft in accepted sessions.
+The new regression first obtains accepted movement and witnesses a changing real actor pose.
+It then corrupts generation, cursor, or feed sequence in the next private progress receipt.
+The world rejects the pending movement, cancels earlier active motion, and rejects three further attempts.
+The pose remains fixed after rejection. No cached permission or ordinary-dispatch fallback restores movement.
+The ten-second fixture expiry predates this test. Cancellation completes before it can explain the observed stop.
+This is failure isolation evidence, not a 250 ms movement performance result.
+Existing idle-proof rejection and committed-revocation ordering methods also pass.
+The default-off method confirms that omitted configuration preserves ordinary checked dispatch.
+The unresolved issuer activation survives failure until checked world exit and parent reconciliation.
+Required cancellation and cleanup remain allowed. Earlier authorized effects are not retroactively rolled back.
+Both hosts pass eleven methods in Debug and ASan/UBSan: 44 completions, zero corrected failures or skips.
+Collected outputs contain no sanitizer diagnostic. Both canonical run receipts return command/wrapper zero.
+An earlier flattened overlay omitted config/conformance.textproto. All ten methods per host stopped in setup.
+Those setup errors executed no movement assertion. Attempt231 preserves the directory layout and unchanged test bytes.
+Original and corrective receipts remain retained-failure-collected-232 on middle-child.
+Summary: retained-failure-summary-232.json. Test plan: retained-failure-plan-230.json.
+Sb16 collected archive SHA256: 2fe0a31fa1894aa97d2b9e94df9fe2a3a1375264fc1ef8addb5248899e9ee0c1.
+Sb16-2 archive SHA256: 868a770d69cfb11dbd438a9ed44310d03230dbc2aa67cdf3f7e9f2a79d7e72ae.
+The collection verifies 163 and 160 files respectively. Selected runtime jobs are terminal and absent.
+The candidate/native preflight verifies retained packages and dependencies before and after execution.
+Production remains compiled source220 from checkpoint e1335b89a6d7bd810a066b48bc0a88275f05e55a.
+Only tests and maintained summaries change. No build or stable deployment is changed.
+Presentation cancellation at each stage, stale completion, and component recovery remain unproven by this increment.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.
