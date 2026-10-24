@@ -608,6 +608,10 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    add_test(NAME deployment-writeback-flush COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_flush_deployment.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/flush_deployment.py")
+    set_tests_properties(deployment-writeback-flush PROPERTIES TIMEOUT 180)
     protobuf_generate_cpp(control_pose_proto_sources control_pose_proto_headers tests/proto/control_adapter_pose.proto)
     add_executable(spatial-control-adapter-pose-probe tests/core/control_adapter_pose_probe.cpp
         ${control_pose_proto_sources} ${control_pose_proto_headers})

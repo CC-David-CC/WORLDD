@@ -1,0 +1,57 @@
+M10 deployment writeback investigation
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+The test hosts run only this project's requested work. No unrelated workload explains the observed lag.
+The original sb16-2 focused Debug actor-control-world run retains three issuer setup timeouts.
+The complete unchanged class passed later with its original deadlines.
+This does not erase the original failures or identify their exact blocked syscalls.
+
+A bounded replay extracted and verified the same 1,713,649,376-byte deployment payload.
+Both qualified M09 and new M10 Debug setup probes ran under independent syscall traces.
+Immediately after deployment, each complete setup took about 4.45 seconds.
+M09's slowest fdatasync took 1.718 seconds. M10's slowest took 0.985 seconds.
+A filesystem flush then took 28.123 seconds.
+After that flush, both complete setups took about 0.95 seconds.
+Their slowest persistence calls were below twenty milliseconds.
+This reproduces storage persistence latency caused by our deployment activity.
+It does not reproduce the original five-second failures or establish the SSD's full hardware health.
+The evidence shows that this latency affects the qualified M09 baseline and the new M10 source.
+
+The launch mechanism lacked a deployment writeback barrier.
+A successful archive extraction and checksum verification did not mean its writes had reached storage.
+The correction adds tools/flush_deployment.py before M10 runtime jobs.
+It pins the owned canonical payload directory and calls syncfs through coreutils sync -f.
+It records elapsed time, filesystem identity, tool hash, kernel writeback counters, and the exact outcome.
+Only WRITEBACK_FLUSHED permits the following command to start.
+A failure, timeout, or changed directory identity refuses the following command.
+The receipt remains outside the immutable payload. Existing evidence cannot be overwritten.
+No acceptance assertion, runtime deadline, or sanitizer option changes.
+Full qualification must use this barrier after transfer and extraction.
+
+Selected checks before execution
+Deployment-writeback-flush has seven methods.
+They cover a real filesystem flush, pinned directory identity, unchanged payload bytes, unsafe path refusal,
+failed and timed-out sync, descriptor closure, evidence preservation, command ordering, and command refusal.
+Run them on sb16 and sb16-2. Build hosts only inspect registration and syntax.
+Keep the complete original runtime class and deadlines for corrective focused execution.
+Sanitizer qualification retains leak detection and runs without ptrace.
+
+Evidence and cleanup
+The external root is /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Original results: evidence/sb16-2/combined-focused-results-09/Debug-actor-control-world.stderr.
+Initial comparison and corrective class: issuer-diagnostic-results-10 on sb16-2.
+Two sanitizer trace attempts are invalid because LeakSanitizer refuses ptrace. Their original failures remain preserved.
+Bounded replay: deployment-replay-results-11 on sb16-2.
+The exact temporary deployment-replay-stage-11 directory was verified before deletion.
+It contained 1,713,898,473 verified file bytes, including provenance and its ownership marker.
+Measured free space increased from 8,498,171,904 to 10,212,716,544 bytes.
+The required runtime, original archive, manifests, traces, and failed evidence remain preserved.
+This orchestration correction does not qualify M10 or establish native input release.
+
+Focused result
+Writeback-check-run-12 passed all seven methods on each qualification host.
+Both command.exit and wrapper.exit are zero. Neither run skipped a method.
+The preflight flush took 0.106 seconds on sb16 and 0.237 seconds on sb16-2 in those later runs.
+Source tool SHA256: be7718e3ee7983bd88cf734fdf596db3b6a866340809a1b094d5c5a464121f67.
+The source fix is also used before component16 runtime on both hosts.
+Raw logs, original failures, traces, and cleanup receipts are copied under external evidence/HOST.
