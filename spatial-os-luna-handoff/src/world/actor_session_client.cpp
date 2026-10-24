@@ -5,6 +5,7 @@
 #include "core/protocol.hpp"
 #include "identity/keys.hpp"
 #include "identity/tls_support.hpp"
+#include "platform/local_actor_endpoint.hpp"
 #include "actor_session_client.pb.h"
 #include <google/protobuf/text_format.h>
 #include <openssl/err.h>
@@ -67,6 +68,7 @@ enum class Lifecycle { New, Prepared, Active, Departed, Failed };
 struct ActorSessionClient::Impl {
     // Declare ownership before key loading so every constructor exception closes the fd.
     OwnedDescriptor channel;
+    ProcessHandle local_server;
     std::shared_ptr<ActorSessionInterrupt> interrupt;
     identity::tls_detail::Context tls_context{nullptr, SSL_CTX_free};
     std::unique_ptr<SSL, decltype(&SSL_free)> tls{nullptr, SSL_free};
@@ -102,6 +104,18 @@ struct ActorSessionClient::Impl {
         require(google::protobuf::TextFormat::ParseFromString(tls_detail::load_config(config_path), &config),
                 "Invalid actor client TLS configuration");
         validate_message(config);
+        if(config.has_local_endpoint()) {
+            require(config.protocol_version()==1 && config.address().empty() && config.port()==0 && config.server_name().empty() &&
+                config.certificate_path().empty() && config.private_key_path().empty() && config.server_ca_path().empty(),
+                "Local actor transport cannot combine with network TLS settings");
+            if(config.has_io_timeout_ms())timeout=std::chrono::milliseconds(config.io_timeout_ms());
+            require(timeout>=std::chrono::milliseconds(50) && timeout<=std::chrono::seconds(60),"Actor client I/O timeout is out of range");
+            credential=config.actor_credential();world=config.expected_world_id();
+            key.emplace(identity::KeyPair::load(config.actor_signing_key_path()));validate_actor_credential();
+            const auto& endpoint=config.local_endpoint();
+            auto connected=local_actor::connect(endpoint.socket_path(),endpoint.server_pid(),endpoint.server_start_ticks(),timeout);
+            channel.reset(std::exchange(connected.channel_fd,-1));local_server=std::move(connected.server);return;
+        }
         require(config.protocol_version() == 1 && config.port() > 0 && config.port() <= 65535 &&
                     !config.server_name().empty() && config.server_name().find('\0') == std::string::npos &&
                     !config.expected_world_id().empty() && !config.address().empty() &&
@@ -277,6 +291,9 @@ struct ActorSessionClient::Impl {
 
     pb::WorldSessionReply exchange(pb::WorldSessionRequest request,
                                    pb::WorldSessionReply::OutcomeCase expected) {
+        if(local_server.descriptor()>=0 && !local_server.live()) {
+            fail();throw std::runtime_error("Pinned local actor authority stopped");
+        }
         require(state != Lifecycle::Failed && channel.get() >= 0,
                 "Actor client is failed");
         const std::uint64_t request_id = next_id++;
@@ -577,6 +594,7 @@ const std::string& ActorSessionClient::expected_world() const noexcept { return 
 std::string ActorSessionClient::expected_actor_id() const { return impl_->expected_actor_id(); }
 
 bool ActorSessionClient::failed() const noexcept {
-    return impl_->state == Lifecycle::Failed || (impl_->interrupt && impl_->interrupt->requested());
+    return impl_->state == Lifecycle::Failed || (impl_->interrupt && impl_->interrupt->requested()) ||
+        (impl_->local_server.descriptor()>=0 && !impl_->local_server.live());
 }
 } // namespace spatial

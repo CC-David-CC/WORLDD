@@ -41,6 +41,9 @@ message HostWorld {
   uint32 native_fd = 4;
   uint32 actor_listener_fd = 5;
   string actor_tls_config = 6;
+  // Explicit one-shot setup. A changed revision refuses replay; it never selects a workspace.
+  repeated string initial_workspaces = 7;
+  optional uint64 expected_initial_world_revision = 8;
 }
 message HostControlRequest {
   uint32 protocol_version = 1;

@@ -2,6 +2,12 @@ syntax = "proto3";
 package spatial.identity.v1;
 import "issuer.proto";
 
+message ActorLocalEndpoint {
+  string socket_path = 1;
+  uint64 server_pid = 2;
+  uint64 server_start_ticks = 3;
+}
+
 // Private client-side transport settings. Actor signing keys remain separate.
 message ActorSessionClientTlsConfig {
   uint32 protocol_version = 1;
@@ -15,4 +21,6 @@ message ActorSessionClientTlsConfig {
   string actor_signing_key_path = 9;
   SignedCredential actor_credential = 10;
   optional uint32 io_timeout_ms = 11;
+  // Explicit local transport. Network/TLS fields must be absent. No fallback.
+  ActorLocalEndpoint local_endpoint = 12;
 }

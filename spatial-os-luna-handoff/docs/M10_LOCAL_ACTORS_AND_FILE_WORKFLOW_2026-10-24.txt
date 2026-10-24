@@ -1,0 +1,146 @@
+M10 local actor transport and real file workflow
+Status: FOCUSED_PASS, UNQUALIFIED_M10. Both hosts pass the selected Debug and ASan/UBSan checks.
+
+The combined M10 goal still requires one human and two scripted actors using real files and applications.
+The existing TLS path intentionally restricts remote application input and application pixels.
+Treating a loopback TLS connection as local would silently weaken that boundary.
+The draft adds an explicit private Unix actor endpoint. It uses the existing WorldSession Protobuf protocol.
+It preserves signed actor enrollment, fresh authentication, admission, grants, sequencing, and cancellation.
+The local transport grants no actor rights. Remote TLS restrictions remain unchanged.
+
+Explicit private schema additions
+WorldIdentityConfig.local_actor_socket_path uses field9 and defaults to empty.
+ActorSessionClientTlsConfig.local_endpoint uses field12. It requires socket_path, server_pid, and server_start_ticks.
+Network address, port, server name, and certificate settings cannot combine with local_endpoint.
+The client pins the exact live server process before connecting and verifies kernel peer credentials afterward.
+It also checks process start time, socket inode, owner, and permissions. There is no TLS fallback.
+The socket requires an owned0700 directory and an owned0600 entry. Existing endpoint names are refused.
+Use a fresh endpoint name per world-service incarnation. Never unlink an uncertain prior entry at startup.
+The coordinator retains a checked socket identity after the world becomes ready.
+It removes only that exact entry after checked world process/native stop receipts.
+A replacement entry remains untouched and makes cleanup uncertain.
+
+HostWorld.initial_workspaces uses field7. expected_initial_world_revision uses field8.
+These fields explicitly request one-shot initial availability before the initial actor authenticates.
+The expected revision must match. A changed revision refuses replay instead of overriding later state.
+The production world validates each workspace against its real broker before making it available.
+Availability never selects a workspace, creates a cabinet, launches an application, or grants membership.
+Clear the one-shot setup request after checked application. Reconcile uncertain partial setup explicitly.
+Multiple availability operations are not one cross-component atomic transaction.
+All three changed schemas are private configuration schemas outside acceptance.lock.json.
+No existing field, acceptance assertion, oracle, witness, or lock entry changes in this increment.
+
+Selected native regression plan
+Use both sb16 and sb16-2 in Debug and ASan/UBSan.
+Exercise one human control owner and two distinct signed scripted identities.
+Give writable application actors the full explicit filesystem rights their POSIX execution boundary requires.
+Give a separate read-only actor only workspace access, browse, and read rights.
+Browse, create, edit, rename, and read actual shared Git-worktree files through cabinet actions.
+Each actor obtains its own fresh file handles. No actor receives a privileged filesystem path or SSH route.
+Launch three confined POSIX jobs through process_launch. Verify project results and independent confinement records.
+Verify motion and explicit workspace selection through the same actor-control owners.
+Verify local A-B-A reconnect and per-world workspace selection.
+Reject the wrong pinned server without authentication or fallback.
+Keep remote TLS native input disabled. Local input must reach normal target checks.
+Preserve replacement socket files and report uncertain cleanup.
+Reject initial availability setup when its expected world revision differs.
+Run related original identity, actor client, native host, and scripted regressions selected from changed boundaries.
+Record actual test outcomes separately after execution. Compilation alone proves no runtime requirement.
+
+Remaining combined goal
+Actors still need an authorized application-surface discovery and placement action.
+The current management-only surface placement route is not an actor acceptance path.
+Real native editor and terminal control by all three actors remains pending.
+Host context replacement, remote geometry/same-client scheduling, and retained live application damage remain pending.
+The final candidate still needs a frozen source, independent generation proof, and the full two-host gate.
+M10, Spatial-M1, and LOCAL_READY remain unqualified. Accepted M09 remains unchanged.
+
+Buffered capture liveness correction, compiled source248
+The first native file workflow reaches real edits and confined jobs on both Debug hosts.
+It then finds retired human capture before navigation. Preserve that failure as attempt246.
+A smaller production-worker regression reproduces the defect on both hosts using source243 production code.
+Two independent sources keep sending 50 ms heartbeats during 900 ms of ordinary nonurgent work.
+The worker consumes eight queued items, then checks expiry while fresher heartbeats remain queued.
+It incorrectly clears the sources. The following heartbeat then retires the capture binding.
+Both predecessor probe processes exit one with the intended buffered-capture assertion.
+The exact predecessor probe source is retained with its SHA256 from plan247.
+The correction drains at most 128 additional FIFO heartbeat items before checking source expiry.
+Ordinary gesture fairness remains eight items. Queue capacity remains 128.
+Motion expiry remains 250 ms. Source silence and the watchdog remain 350 ms.
+Heartbeat delivery grants no movement authority and does not replay expired gestures.
+The regression also stops its producer and requires subsequent actual source-silence retirement.
+Existing cancellation, malformed input, overflow, and exact interruption checks remain mandatory.
+
+Focused execution status
+Both hosts pass 156 selected checks in each profile: 624 accepted completions across four cells.
+Per host: worker20, client56, TLS31, startup5, world identity29, scripted native8, and file workflow7.
+The client total includes54 named groups and two constructor checks.
+Six unaffected native file methods pass in250. The corrected boundary method passes in258.
+The seven-method file fixture checks real Git-worktree edits, three confined jobs, and later independent navigation.
+It also checks read-only denial, world selection restoration, pinned local peers, replacement sockets, and stale setup.
+The source248 native fixture initially expects NO_TARGET for an authenticated missing application target.
+Production deliberately returns FORBIDDEN to conceal target state. Independent read-only review confirms this contract.
+Test-only overlay253 corrects that expectation. It retains checked cancellation, availability, and fresh Stop/inspection.
+Remote TLS remains UNIMPLEMENTED and fences the client without claiming checked cancellation.
+This negative boundary does not prove successful native application input.
+Both ASan/UBSan run261 command/wrapper receipts are zero. All seven suites pass on each host.
+The ASan matrix includes all seven corrected native file methods. No selected method skips.
+The result comprises 196 Python methods and 428 C++ checks. No sanitizer diagnostic appears in collected outputs.
+Final inventories verify immutable packages, declared links, native dependencies, and fixture bytes.
+Selected candidate processes are absent after checked cleanup.
+The full milestone goal remains active. No stable deployment changes.
+
+Source and evidence
+All following artifacts use /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023 on middle-child.
+Compiled source243 manifest SHA256:9308850d806d405d8beee41ca5bd359bd9dcfaa4f7d83886ea5aa2da13f1debb.
+Source243 exact archive:local-actor-files-source243-exact-246.tar.gz.
+Archive SHA256:4b9582bfface213c100a0e5d7cde5f9ed4bccf08a7d1effb0f593a0e709d289e.
+Corrected source manifest:local-actor-files-source-248.json. Both build command/wrapper receipts are zero.
+Source248 exact archive:local-actor-files-source248-exact-250.tar.gz,1678 files.
+Archive SHA256:ea1d21f80384fafc49ab2d0c3b8c7d0041594f6cf2a665fba7d386611726c6db.
+Debug package250 manifest SHA256:8e4b115c6ab4531c2cfc4707a69752446d99b62b4cb199879aec1c150504fb5a.
+ASan/UBSan package250 manifest SHA256:68bcd32d7afc7291e5cbac65db66dd39785dd1dabb606407d3b61e2c8acb756a.
+Test-only fixture253 SHA256:01f7b9a7c88f089f18368f29006bb8d1885ce756bf3da56623877637a85845d6.
+The final checkpoint changes only that fixture and maintained notes after the source248 compile freeze.
+New host/worker components use source248. World, scripted adapter, and client probes use source243 in each profile.
+The compositor/supervisor remain source220 in each profile. Broker/issuer/security helpers remain source116 Debug.
+This explicit mixed component scope is not the final single-source M10 candidate.
+Initial failure evidence:local-actor-files-failure-collected-247.
+Causal predecessor and raw250/252 results:local-actor-predecessor-collected-256.
+Raw254/258 Debug results:local-actor-debug-collected-262.
+Separate corrective validations and the complete Debug audit remain alongside those archives.
+The original collector expected client57 instead of56 and TLS30 instead of31.
+These metadata mistakes remain in the original immutable manifests. Corrective coverage259 records the actual source counts.
+It also expected plural tests for the one-method corrected boundary run.
+Those test processes exit zero. Preserve the original collector refusals and validate the original bytes separately.
+Do not rerun passed Debug probes to repair accounting.
+The reviewed coverage inventory259 records exact case names and exact suite-specific terminal markers.
+All 43 locked hashes and 151 acceptance assertions remain unchanged.
+
+Deployment and capacity records
+Installer250 stopped before tests because destination parents for reused hardlinks were missing.
+Resume251 verifies partial files, creates missing parents, completes exact links, and preserves frozen modes.
+Related launcher254 first tried to overwrite an already frozen registration file. No test launched in that attempt.
+Resume255 verifies matching existing control files and transfers only missing files.
+Both setup refusals remain separate from executed test outcomes.
+Cleanup249 removes only two obsolete duplicate package directories from each test host:
+  projection-source141-hosts-142
+  bound-worker-source127-core-128
+Their exact parent is the external M10 evidence root above. Verified full copies remain on middle-child.
+Current package links resolve elsewhere. Root process/descriptor/mapping and mount scans find no live reference.
+Sb16 recovers 793948160 bytes. Sb16-2 recovers 793944064 bytes.
+Cleanup264 removes two completed temporary transfer archives on middle-child:
+  local-actor-files-transfer-246.tar
+  local-actor-files-transfer-250.tar
+Their exact parent is the same external evidence root. Full immutable packages and source archives remain retained.
+Checked removal recovers 1391697920 bytes. No failed test report or required fixture is removed.
+
+Final accepted evidence
+Debug audit:local-actor-debug-audit-262.json. ASan/UBSan audit:local-actor-asan-audit-265.json.
+ASan raw reports and executed control helpers:local-actor-asan-collected-265.
+Sb16 Debug archive SHA256:876a19ef8cb59b2f331affcc2d64cf4ef0ff4e19e8fcbb9c146420faed937ecd.
+Sb16-2 Debug archive SHA256:7f408181a0b5ad1f796cfbac82b6142400cd2b79c210cd8a98d0333bf9c51f2a.
+Sb16 ASan archive SHA256:f405684c753b736fb15bf0c2d5924411c37dceb1a69bcfb473388e5876c43c05.
+Sb16-2 ASan archive SHA256:1acd0ef0ad2ec58e6eb5b0901d093072689c975304d2897a14dc8ceece91da46.
+Primary summary:local-actor-file-workflow-summary-266.json.
+These results prove the selected component increment. M10, Spatial-M1, and LOCAL_READY remain unqualified.

@@ -9,6 +9,8 @@ namespace {
 using Clock = std::chrono::steady_clock;
 constexpr auto interval = std::chrono::milliseconds(16);
 constexpr auto watchdog_limit = std::chrono::milliseconds(350);
+constexpr unsigned normal_burst = 8;
+constexpr unsigned queue_limit = 128;
 std::int64_t nanoseconds() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count();
 }
@@ -69,7 +71,7 @@ void HostActorWorker::stop() noexcept {
 }
 bool HostActorWorker::enqueue(Work work) {
     std::lock_guard lock(queue_mutex_);
-    if (stopping_ || queue_.size() >= 128) return false;
+    if (stopping_ || queue_.size() >= queue_limit) return false;
     queue_.push_back(std::move(work));
     changed_.notify_one();
     return true;
@@ -298,7 +300,13 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                         return stopping_ || cancel_pending_ || !queue_.empty();
                     });
                 if (stopping_) break;
-                if (!queue_.empty() && burst < 8 && !cancel_pending_) {
+                // A completed ordinary exchange can leave fresh source liveness
+                // behind older heartbeats. Consume that bounded FIFO backlog
+                // before checking source expiry. Gestures retain the normal
+                // fairness bound and their original capture-age checks.
+                const bool take_work = !queue_.empty() && (burst < normal_burst ||
+                    (burst < normal_burst + queue_limit && queue_.front().capture_heartbeat));
+                if (take_work && !cancel_pending_) {
                     work = std::move(queue_.front()); queue_.pop_front();
                 }
             }

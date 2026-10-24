@@ -171,3 +171,15 @@ Read ../spatial-os-luna-handoff/docs/M10_RETAINED_PRESENTATION_DIRECTION_2026-10
 Retained authorization needs explicit revision/incarnation fences and a reliable invalidation/health protocol.
 It cannot rely on a time-based permission cache or the absence of historical revocation events.
 Preserve the complete human/two-agent, real-file/application, and frozen two-host qualification objective.
+
+2026-10-24 local actors, real files, and buffered capture liveness
+A human and two signed scripted actors pass real-file edits, confined POSIX jobs, and later navigation.
+The explicit local transport pins the world process and preserves ordinary authorization and remote TLS restrictions.
+Revision-bound host startup availability remains separate from workspace selection and cabinet placement.
+A causal regression reproduces false capture expiry with healthy buffered heartbeats on both hosts.
+Bounded FIFO draining fixes it while preserving 250ms motion expiry and 350ms silence/watchdog limits.
+Both hosts pass 156 selected checks in Debug and ASan/UBSan: 624 accepted completions.
+Read ../spatial-os-luna-handoff/docs/M10_LOCAL_ACTORS_AND_FILE_WORKFLOW_2026-10-24.txt for exact evidence and limits.
+This is a reviewed component increment, not one final frozen M10 candidate.
+Real editor/terminal placement and control, remaining context/scheduling checks, generation proof, and the full gate remain pending.
+The user goal remains active. M10, Spatial-M1, and LOCAL_READY remain unqualified.

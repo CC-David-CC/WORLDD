@@ -5,7 +5,8 @@
 #include <vector>
 
 namespace spatial {
-// Local actor channels are inherited unnamed sockets. Remote channels use the explicit TLS listener.
+// Local actor channels use inherited sockets or the explicit private local endpoint.
+// Remote channels use the TLS listener and retain their separate native-output restriction.
 // The supervisor distributes their peer descriptors outside workspace processes.
 void prepare_actor_channel(int fd);
 class IdentitySessions {

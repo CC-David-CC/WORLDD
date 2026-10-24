@@ -882,6 +882,56 @@ void worker_both_silence_detector_orders_keep_checked_authority() {
         host.reset();
     }
 }
+void worker_drains_buffered_capture_before_source_expiry() {
+    Fixture fixture;Endpoint source(fixture,3s);
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        // A false local timeout must not manufacture a Stop while capture is healthy.
+        for(unsigned sequence=1;sequence<=2;++sequence) {
+            pollfd item{fd,POLLIN,0};check(poll(&item,1,3000)>0,"Buffered capture peer did not close");
+            char byte;const auto count=recv(fd,&byte,1,MSG_PEEK|MSG_DONTWAIT);
+            if(count==0)return;
+            controlled_accept(fd,sequence+2,sequence,core::v1::ActorActionRequest::kStop);
+        }
+        closed(fd);
+    });
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
+        const auto binding=worker.capture_binding();std::atomic<bool> failed{false};
+        std::jthread emitter([&](std::stop_token stop) {
+            try {
+                std::uint64_t sequence=1;
+                auto emit=[&](bool connected) {
+                    for(const auto* name:{"buffered-keyboard","buffered-mouse"}) {
+                        auto event=receiver_event(sequence,connected);event.set_source_id(name);
+                        if(connected)event.mutable_connected()->set_kind(std::string(name)=="buffered-keyboard" ? control::v1::KEYBOARD : control::v1::MOUSE);
+                        producer->emit(event,std::chrono::steady_clock::now());
+                    }
+                    ++sequence;
+                };
+                emit(true);
+                while(!stop.stop_requested()) {std::this_thread::sleep_for(50ms);if(!stop.stop_requested())emit(false);}
+            }catch(...){failed.store(true);}
+        });
+        const auto deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->processed_sequence()<2 && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(5ms);
+        check(binding->processed_sequence()>=2,"Buffered capture did not connect both independent sources");
+        // Ordinary work owns no input urgency. The receiver continues validating fresh heartbeats.
+        worker.call([] {std::this_thread::sleep_for(900ms);});
+        const auto status=worker.call([&] {return worker.control_status(0);});
+        const bool healthy=status.capture_active() && !status.capture_retired() && !failed.load();
+        emitter.request_stop();emitter.join();
+        const auto silence_deadline=std::chrono::steady_clock::now()+1500ms;
+        while(!binding->retired() && std::chrono::steady_clock::now()<silence_deadline)std::this_thread::sleep_for(5ms);
+        const bool silence_retired=binding->retired();
+        worker.call([]{});
+        check(worker.shutdown(),"Buffered capture lost checked shutdown");source.finish();
+        check(healthy,"Buffered healthy capture was expired before its queued heartbeats were consumed");
+        check(silence_retired,"Buffered liveness masked later actual source silence");
+    }
+    producer.reset();host.reset();
+}
 void worker_capture_start_failure_preserves_actor_and_cleanup_obligations() {
     for(const bool cleanup_failure:{false,true}) {
         Fixture fixture;Endpoint source(fixture,2s);
@@ -977,6 +1027,7 @@ int main(int argc, char** argv) {
             worker_transition_withheld_release_keeps_watchdog();std::cout<<"PASS worker-transition-withheld-release-keeps-watchdog\n";
             worker_watchdog_interrupts_without_actor_locks();std::cout<<"PASS worker-exact-session-watchdog-without-actor-locks\n";
             worker_independent_capture_and_silence();std::cout<<"PASS worker-independent-capture-and-source-silence\n";
+            worker_drains_buffered_capture_before_source_expiry();std::cout<<"PASS worker-buffered-capture-before-source-expiry\n";
             worker_both_silence_detector_orders_keep_checked_authority();std::cout<<"PASS worker-both-silence-detector-orders-checked\n";
             worker_capture_start_failure_preserves_actor_and_cleanup_obligations();std::cout<<"PASS worker-capture-start-failure-authority-and-cleanup\n";
             worker_capture_without_sources_does_not_expire();std::cout<<"PASS worker-empty-capture-does-not-expire\n";

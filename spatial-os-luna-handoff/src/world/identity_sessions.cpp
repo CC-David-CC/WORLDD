@@ -7,6 +7,7 @@
 #include "world/queued_copy_status.hpp"
 #include "world/control_action.hpp"
 #include "platform/broker.hpp"
+#include "platform/local_actor_endpoint.hpp"
 #include "identity/issuer_client.hpp"
 #include "identity/participant_runtime.hpp"
 #include "identity/keys.hpp"
@@ -169,6 +170,7 @@ struct IdentitySessions::Impl {
     std::unique_ptr<WorldAuthority> authority;
     std::uint64_t observed_revision = 0;
     std::unique_ptr<ActorTlsListener> listener;
+    std::unique_ptr<local_actor::Listener> local_listener;
     std::vector<std::unique_ptr<Channel>> channels;
     std::set<std::string> admitted;
     std::map<std::string, std::set<std::string>> grants;
@@ -182,7 +184,7 @@ struct IdentitySessions::Impl {
 
     Impl(const std::filesystem::path& path, const std::vector<int>& descriptors, WorldStore& store, Actors& engine, BrokerClient* execution, int listener_fd, const std::filesystem::path& tls_config)
         : world(store), actors(engine), broker(execution) {
-        require((!descriptors.empty() || listener_fd >= 0) && descriptors.size() <= 32, "World requires actor transport");
+        require(descriptors.size() <= 32, "Too many inherited actor transports");
         if (listener_fd >= 0) {
             listener = std::make_unique<ActorTlsListener>(listener_fd, tls_config);
             require(descriptors.size() <= listener->limit(), "Local channels exceed the total actor connection limit");
@@ -192,6 +194,9 @@ struct IdentitySessions::Impl {
         validate_message(config);
         require(config.protocol_version() == 1 && (config.admission() == pb::REGISTERED_ACTORS ||
                 config.admission() == pb::EXPLICIT_ACTORS), "World admission policy is required");
+        require(!descriptors.empty() || listener_fd>=0 || !config.local_actor_socket_path().empty(),"World requires actor transport");
+        if(!config.local_actor_socket_path().empty())
+            local_listener=std::make_unique<local_actor::Listener>(config.local_actor_socket_path());
         require(config.authority_directory().empty() || (config.actor_grants().empty() && config.admitted_actor_ids().empty()),
                 "Persistent authority cannot combine with static actor profiles or admission lists");
         for (const auto& id : config.admitted_actor_ids())
@@ -1321,6 +1326,13 @@ struct IdentitySessions::Impl {
                 if (channels.size() < listener->limit()) {
                     channel->tls = listener->peer(fd); channels.push_back(std::move(channel));
                 }
+            }
+        }
+        if(local_listener && !broken && ready && !closing) {
+            const auto fd=local_listener->accept();
+            if(fd>=0) {
+                auto channel=std::make_unique<Channel>(fd);
+                if(channels.size()<(listener?listener->limit():32))channels.push_back(std::move(channel));
             }
         }
     }

@@ -5,6 +5,7 @@
 #include "supervisor/control_admin.hpp"
 #include "platform/broker.hpp"
 #include "platform/presentation_owner.hpp"
+#include "platform/local_actor_endpoint.hpp"
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
 #include "world/geometry_view_validation.hpp"
@@ -13,6 +14,8 @@
 #include "core/scene.hpp"
 #include "core/geometry.hpp"
 #include "world/store.hpp"
+#include "world_session.pb.h"
+#include <google/protobuf/text_format.h>
 #include <map>
 #include <cmath>
 #include <iostream>
@@ -89,6 +92,7 @@ struct World {
         Clock::time_point deadline;
     };
     std::optional<Exchange> exchange;
+    std::unique_ptr<local_actor::RetirementPin> local_endpoint;
     struct LocalFrame {
         SessionCoordinator::LocalPresentationTicket ticket;
         render::v1::LocalActorPresentationTarget target;
@@ -476,13 +480,20 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
             arg != "--presentation-pid" && arg != "--presentation-owner-pid",
             "Session owns world broker endpoint arguments");
     unsigned identity_configs = 0, tls_configs = 0;
+    std::filesystem::path local_actor_path;
     for (int i = 0; i < config.launch().arguments_size(); ++i) {
         const auto& arg = config.launch().arguments(i);
         require(arg != "--actor-fd" && arg != "--actor-listen-fd", "Session owns world actor endpoint arguments");
         if (arg == "--identity-config" || arg == "--actor-tls-config") {
             require(i + 1 < config.launch().arguments_size() &&
                 std::filesystem::path(config.launch().arguments(i + 1)).is_absolute(), "Actor configuration requires an absolute path");
-            if (arg == "--identity-config") ++identity_configs; else ++tls_configs;
+            if (arg == "--identity-config") {
+                ++identity_configs;
+                identity::v1::WorldIdentityConfig profile;
+                require(google::protobuf::TextFormat::ParseFromString(identity::tls_detail::load_config(config.launch().arguments(i+1)),&profile),
+                    "Malformed world identity profile");
+                validate_message(profile);local_actor_path=profile.local_actor_socket_path();
+            } else ++tls_configs;
         }
     }
     require(local_actor_channels <= 32, "Excessive local actor channels");
@@ -569,6 +580,10 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
             require(reply.has_world_info() && reply.world_info().world_id()==world_id,"Presented world identity differs from launch request");
             world.world_identity_checked=true;
         }
+        if(!local_actor_path.empty()) {
+            auto process=world.supervisor->world_handle();
+            world.local_endpoint=std::make_unique<local_actor::RetirementPin>(local_actor_path,process);
+        }
         return world.owner;
     } catch (...) {
         world.failed = true; world.invalidate_local_attestations();
@@ -615,6 +630,7 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
         std::cerr << "World broker fence unconfirmed; stopping owned scopes: " << error.what() << '\n';
     }
     world.record = world.supervisor->stop(); world.stopped = true; world.management.reset(); world.actors.clear();
+    if(world.local_endpoint)world.local_endpoint->retire();
     if(world.presentation_attached)recover_presentation(owner);
     return world.record;
 }
@@ -702,6 +718,13 @@ std::vector<std::string> SessionCoordinator::stop_retained_worlds() {
             // SessionLaunch construction can fail after a child starts. Its constructor
             // cannot return ownership or a checked receipt in that case.
             unresolved.push_back(label + ": launch construction has no checked stop receipt");
+        }
+        if(world.local_endpoint) {
+            try {
+                require(world.stopped && world.record.stage()==v1::OWNED_SCOPES_STOPPED &&
+                    world.record.has_process_stopped() && world.record.has_native_stopped(),"Local endpoint retirement requires checked world stop receipts");
+                world.local_endpoint->retire();
+            }catch(const std::exception& error){unresolved.push_back(label+": local actor endpoint: "+error.what());}
         }
         if (world.presentation_attached && !world.presentation_retired) {
             try {

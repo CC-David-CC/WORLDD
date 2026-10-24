@@ -1,3 +1,19 @@
+## 2026-10-24: Local three-actor real-file workflows pass focused checks
+
+A private local actor endpoint preserves signed authentication and pins the exact live world process.
+Remote TLS retains its existing application-output restrictions. Local transport grants no actor authority.
+Explicit revision-bound startup availability never selects a workspace or creates a cabinet.
+A human and two distinct scripted identities create, edit, rename, and read real Git-worktree files.
+Each actor launches a confined POSIX job through the production broker, then navigates independently.
+A reproduced worker backlog bug falsely expires healthy capture after a cabinet operation.
+Bounded FIFO heartbeat draining fixes it without extending source silence, motion expiry, or watchdog limits.
+Both hosts pass 156 selected checks in Debug and ASan/UBSan: 624 accepted completions.
+Original failure reports and separate collector/oracle corrections remain preserved.
+Read docs/M10_LOCAL_ACTORS_AND_FILE_WORKFLOW_2026-10-24.txt for source, evidence, and exact limits.
+Real editor/terminal discovery, placement, and native control by all three actors remain pending.
+Further context/scheduling cases and the reproducible frozen full M10 gate also remain pending.
+M10, Spatial-M1, and LOCAL_READY remain unqualified. The complete user goal remains active.
+
 ## 2026-10-24: Native stage cancellation and checked stopped-world recovery pass focused checks
 
 Cancellation drains submitted Bind, Select, or Present work without starting a later stage.

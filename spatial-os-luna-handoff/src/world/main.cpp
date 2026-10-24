@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
         }
         if (!state.is_absolute()) throw std::invalid_argument("State directory must be absolute");
         if ((actor_listener == -1) != actor_tls_config.empty()) throw std::invalid_argument("Actor TLS listener and configuration are required together");
-        if (identity_config.empty() != (actor_channels.empty() && actor_listener == -1))
+        if (identity_config.empty() && (!actor_channels.empty() || actor_listener != -1))
             throw std::invalid_argument("World identity configuration and actor transport are required together");
         if (native_fd >= 0 && (native_fd == broker_fd || native_fd == actor_listener ||
                 std::find(actor_channels.begin(), actor_channels.end(), native_fd) != actor_channels.end()))

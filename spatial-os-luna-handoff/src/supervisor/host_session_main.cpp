@@ -168,6 +168,12 @@ void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
              "Invalid world registration configuration");
         need(descriptors.insert(w.native_fd()).second && descriptors.insert(w.actor_listener_fd()).second,"Repeated inherited world descriptor");
         validate_actor_profile(w.actor_tls_config(),w.world_id());
+        need(w.initial_workspaces().empty()==!w.has_expected_initial_world_revision() && w.initial_workspaces_size()<=64,
+            "Initial workspaces require an explicit expected world revision");
+        if(w.has_expected_initial_world_revision())need(w.expected_initial_world_revision()>0,"Invalid initial workspace world revision");
+        std::set<std::string> initial;
+        for(const auto& workspace:w.initial_workspaces())need(!workspace.empty() && workspace.size()<=256 &&
+            workspace.find('\0')==std::string::npos && initial.insert(workspace).second,"Invalid initial workspace registration");
     }
     need(c.remote_worlds_size()<=16,"Too many remote world registrations");
     for(const auto& remote:c.remote_worlds()) {
@@ -227,6 +233,20 @@ int main(int argc,char** argv) {
         for(const auto& world:config.worlds()) {
             auto owner=session->start_world(world.private_config_path(),world.supervisor(),world.native_fd(),world.actor_listener_fd(),0,world.world_id());
             by_world.emplace(world.world_id(),owner);
+            if(!world.initial_workspaces().empty()) {
+                spatial::core::v1::Request request;request.set_protocol_version(1);request.mutable_world_info();
+                const auto info=session->world_call(owner,request);
+                need(info.has_world_info() && info.world_info().world_id()==world.world_id() &&
+                    info.world_info().world_revision()==world.expected_initial_world_revision(),
+                    "Initial workspace setup world revision changed");
+                for(const auto& workspace:world.initial_workspaces()) {
+                    request.clear_world_info();auto* available=request.mutable_workspace_available();
+                    available->set_id(workspace);available->set_available(true);
+                    const auto checked=session->world_call(owner,request);
+                    if(checked.has_error())throw spatial::ActorSessionRejected(checked.error());
+                    need(checked.has_workspace_ack() && checked.workspace_ack().accepted(),"Initial workspace availability was not confirmed");
+                }
+            }
         }
         if(by_world.contains(config.initial_world_id())) {
             const auto retained=session->inspect_presentation(by_world.at(config.initial_world_id()));

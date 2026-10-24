@@ -20,6 +20,8 @@ message WorldIdentityConfig {
   string participant_runtime_config = 7;
   // Explicit draft opt-in. It grants no actor rights. Default preserves checked dispatch.
   bool enable_retained_movement = 8;
+  // Private local runtime endpoint. Omitted by default. Use a fresh path per incarnation.
+  string local_actor_socket_path = 9;
 }
 // TLS connection permission is separate from signed actor identity and world admission.
 message WorldActorTlsConfig {
