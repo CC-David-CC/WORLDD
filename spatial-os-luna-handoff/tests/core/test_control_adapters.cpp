@@ -21,6 +21,7 @@ template<class F> void rejects(F operation) {
 struct Fixture {
     std::vector<core::v1::ActorActionRequest> actions;
     unsigned closes = 0;
+    std::chrono::milliseconds action_delay{0};
     bool aim_empty = false, aim_geometry = false, cancel_next = false;
     c::ActorControl actor{{"world", "actor", 0},
         [this](const auto& request) {
@@ -44,6 +45,7 @@ struct Fixture {
                 auto* visible = observation->add_visible(); visible->set_id("surface"); visible->set_generation(1);
                 if (aim_geometry) visible->set_kind(core::v1::PANEL);
             }
+            now += action_delay;
             return reply;
         }, [] {
             identity::v1::WorldSessionReply reply; reply.set_protocol_version(1);
@@ -52,8 +54,8 @@ struct Fixture {
             for (int i = 0; i < 6; ++i) state->add_axes(0);
             return reply;
         }, [this] { ++closes; }};
-    c::DeviceAdapters adapter{actor};
     c::DeviceAdapters::Clock::time_point now{};
+    c::DeviceAdapters adapter{actor, c::default_profiles(), [this] { return now; }};
     std::map<std::string, std::uint64_t> sequence;
     p::DeviceEvent event(const std::string& source) {
         p::DeviceEvent e; e.set_protocol_version(1); e.set_source_id(source); e.set_source_generation(1);
@@ -204,6 +206,61 @@ void oversized_mouse_samples_do_not_start_an_unbounded_action_batch() {
     rejects([&] { f.adapter.event(event, f.now); });
     check(f.actions.empty(), "oversized pointer sample partially rotated the actor");
 }
+void queued_press_cannot_cross_a_mode_barrier() {
+    Fixture f; f.connect("keyboard", p::KEYBOARD);
+    auto queued = f.event("keyboard"); queued.mutable_key()->set_keysym("w"); queued.mutable_key()->set_pressed(true);
+    const auto captured = f.now + std::chrono::milliseconds(5);
+    f.now += std::chrono::milliseconds(10); f.adapter.set_menu(true);
+    f.now += std::chrono::milliseconds(10); f.adapter.set_menu(false);
+    const auto before = f.actions.size();
+    check(!f.adapter.event(queued, captured, f.now), "queued press crossed a mode barrier");
+    f.adapter.tick(f.now); f.key("w", true); f.adapter.tick(f.now);
+    check(f.actions.size() == before, "queued press or duplicate renewed old movement");
+    f.key("w", false); f.key("w", true); f.adapter.tick(f.now);
+    check(f.last_input().axes(2) == -1, "stale press bookkeeping lost the fresh release");
+}
+void old_release_cancels_active_motion_and_allows_fresh_input() {
+    Fixture f; f.connect("keyboard", p::KEYBOARD); f.key("w", true); f.adapter.tick(f.now);
+    auto released = f.event("keyboard"); released.mutable_key()->set_keysym("w"); released.mutable_key()->set_pressed(false);
+    f.now += std::chrono::milliseconds(300);
+    check(!f.adapter.event(released, c::DeviceAdapters::Clock::time_point(std::chrono::milliseconds(1)), f.now),
+          "expired release was treated as a fresh action");
+    check(f.actions.back().has_stop(), "expired input did not cancel active motion");
+    f.now += std::chrono::milliseconds(1); f.key("w", true); f.adapter.tick(f.now);
+    check(f.last_input().axes(2) == -1, "expired release left the physical key stuck");
+}
+void expired_axes_and_motion_do_not_gain_a_new_receipt_timestamp() {
+    Fixture f; f.connect("mouse", p::MOUSE); f.connect("spacemouse", p::SPACEMOUSE);
+    auto axes = f.event("spacemouse"); for (double x : {100.,0.,0.,0.,0.,0.}) axes.mutable_axes()->add_raw(x);
+    auto motion = f.event("mouse"); motion.mutable_motion()->set_dx(200);
+    f.now += std::chrono::milliseconds(251);
+    check(!f.adapter.event(axes, c::DeviceAdapters::Clock::time_point{}, f.now), "expired axes became fresh");
+    check(!f.adapter.event(motion, c::DeviceAdapters::Clock::time_point{}, f.now), "expired motion became fresh");
+    f.adapter.tick(f.now); check(f.actions.empty(), "expired samples changed the actor");
+    check(f.adapter.last_raw_axes() == std::array<double,6>{}, "expired sample became calibration input");
+    f.now += std::chrono::milliseconds(100); f.adapter.tick(f.now);
+    check(f.actions.back().has_stop(), "receipt time hid source heartbeat loss");
+}
+void future_and_decreasing_capture_times_are_refused() {
+    Fixture f; f.connect("mouse", p::MOUSE);
+    auto first = f.event("mouse"); first.mutable_motion()->set_dx(1);
+    f.now += std::chrono::milliseconds(10); f.adapter.event(first, f.now);
+    const auto before = f.actions.size(); auto old = f.event("mouse"); old.mutable_motion()->set_dx(2);
+    rejects([&] { f.adapter.event(old, f.now - std::chrono::milliseconds(1), f.now); });
+    rejects([&] { f.adapter.event(old, f.now + std::chrono::milliseconds(1), f.now); });
+    check(f.actions.size() == before, "invalid capture time changed the actor");
+}
+void slow_mouse_batch_cancels_before_delivering_more_old_counts() {
+    Fixture f; f.connect("mouse", p::MOUSE); f.action_delay = std::chrono::milliseconds(100);
+    auto motion = f.event("mouse"); motion.mutable_motion()->set_dx(1600);
+    check(!f.adapter.event(motion, f.now), "slow gesture renewed its age for each action");
+    check(f.actions.size() == 4 && f.actions.back().has_stop(), "expired batch did not stop after three accepted look actions");
+    for (unsigned i = 0; i < 3; ++i) check(f.actions[i].has_relative_look(), "slow fixture did not reach real adapter look proposals");
+    check(f.actor.available(), "checked gesture cancellation fenced the actor");
+    f.action_delay = std::chrono::milliseconds(0);
+    motion = f.event("mouse"); motion.mutable_motion()->set_dx(1);
+    check(f.adapter.event(motion, f.now) && f.actions.back().has_relative_look(), "fresh gesture did not follow expired batch cancellation");
+}
 void private_preferences_roundtrip_and_refusals() {
     char path[] = "/tmp/spatial-control-profiles-XXXXXX";
     check(mkdtemp(path) != nullptr, "temporary preferences directory");
@@ -237,6 +294,11 @@ int main() {
         stale_sources_and_disconnect(); std::cout << "PASS stale-source-disconnect-cancellation\n";
         mouse_counts_do_not_depend_on_event_rate(); std::cout << "PASS mouse-event-rate-independence\n";
         oversized_mouse_samples_do_not_start_an_unbounded_action_batch(); std::cout << "PASS bounded-mouse-action-batches\n";
+        queued_press_cannot_cross_a_mode_barrier(); std::cout << "PASS queued-input-mode-barrier\n";
+        old_release_cancels_active_motion_and_allows_fresh_input(); std::cout << "PASS expired-release-fresh-input\n";
+        expired_axes_and_motion_do_not_gain_a_new_receipt_timestamp(); std::cout << "PASS capture-age-not-receipt-time\n";
+        future_and_decreasing_capture_times_are_refused(); std::cout << "PASS invalid-capture-time-refusal\n";
+        slow_mouse_batch_cancels_before_delivering_more_old_counts(); std::cout << "PASS mouse-batch-absolute-gesture-age\n";
         private_preferences_roundtrip_and_refusals(); std::cout << "PASS private-preference-storage\n";
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

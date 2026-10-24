@@ -9,16 +9,26 @@ namespace {
 void need(bool value, const char* message) { if (!value) throw std::invalid_argument(message); }
 constexpr auto source_timeout = std::chrono::milliseconds(350);
 constexpr auto axis_timeout = std::chrono::milliseconds(250);
+constexpr auto event_max_age = std::chrono::milliseconds(250);
+struct ExpiredGesture {};
 bool known_kind(v1::DeviceKind kind) { return kind == v1::KEYBOARD || kind == v1::MOUSE || kind == v1::SPACEMOUSE; }
 }
-DeviceAdapters::DeviceAdapters(ActorControl& actor, v1::ControlProfiles profiles)
-    : actor_(actor), profiles_(std::move(profiles)) {
+DeviceAdapters::DeviceAdapters(ActorControl& actor, v1::ControlProfiles profiles, ClockNow clock)
+    : actor_(actor), clock_(std::move(clock)), profiles_(std::move(profiles)) {
+    need(bool(clock_), "Device adapters require a monotonic clock");
     validate_profiles(profiles_);
     navigating_ = active_profile(profiles_).interaction() != v1::HOLD_TO_NAVIGATE;
 }
 core::v1::ActorActionReply DeviceAdapters::send(core::v1::ActorActionRequest request) {
+    if (event_capture_) {
+        const auto now = clock_();
+        if (now < *event_capture_ || now - *event_capture_ >= event_max_age) {
+            cancel();
+            throw ExpiredGesture{};
+        }
+    }
     try { return actor_.propose(actor_.context().generation, request); }
-    catch (const ActorInputCancelled&) { clear_state(); navigating_ = true; throw; }
+    catch (const ActorInputCancelled&) { clear_state(); navigating_ = true; fresh_after_ = clock_(); throw; }
 }
 void DeviceAdapters::clear_state() {
     for (auto& [id, source] : sources_) {
@@ -29,11 +39,11 @@ void DeviceAdapters::clear_state() {
 void DeviceAdapters::cancel() {
     clear_state(); navigating_ = true;
     actor_.cancel(actor_.context().generation);
+    fresh_after_ = clock_();
 }
 void DeviceAdapters::switch_mode(bool navigating) {
     if (navigating_ == navigating) return;
-    clear_state();
-    actor_.cancel(actor_.context().generation);
+    cancel();
     navigating_ = navigating;
 }
 void DeviceAdapters::set_menu(bool open) {
@@ -178,30 +188,64 @@ void DeviceAdapters::motion(const v1::DeviceMotion& event) {
         send(std::move(request));
     }
 }
-void DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point now) {
+bool DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point now) {
+    return this->event(event, now, now);
+}
+bool DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point captured, Clock::time_point now) {
     validate_message(event);
     need(event.protocol_version() == 1 && !event.source_id().empty() && event.source_id().size() <= 80 &&
          event.source_id().find('\0') == std::string::npos && event.source_generation() > 0 &&
          event.event_sequence() > 0 && event.event_case() != v1::DeviceEvent::EVENT_NOT_SET, "Invalid device event envelope");
+    need(captured >= Clock::time_point{} && now >= captured, "Invalid or future capture timestamp");
+    const bool fresh = captured >= fresh_after_ && now - captured < event_max_age;
     auto found = sources_.find(event.source_id());
     if (event.has_connected()) {
         need(known_kind(event.connected().kind()) && found == sources_.end() && sources_.size() < 64 &&
              (!retired_generations_.contains(event.source_id()) || event.source_generation() > retired_generations_.at(event.source_id())),
              "Invalid, duplicate, or retired device connection");
         Source source{}; source.kind = event.connected().kind(); source.generation = event.source_generation();
-        source.sequence = event.event_sequence(); source.heartbeat = now; source.axes_time = now;
+        source.sequence = event.event_sequence(); source.heartbeat = captured; source.axes_time = captured;
         sources_.emplace(event.source_id(), std::move(source));
-        return;
+        return fresh;
     }
     need(found != sources_.end() && found->second.generation == event.source_generation() &&
-         event.event_sequence() > found->second.sequence && now >= found->second.heartbeat, "Stale or unknown device event");
+         event.event_sequence() > found->second.sequence && captured >= found->second.heartbeat, "Stale or unknown device event");
     auto& source = found->second;
     source.sequence = event.event_sequence();
     if (event.has_disconnected()) {
         retired_generations_[event.source_id()] = source.generation;
-        sources_.erase(found); cancel(); return;
+        sources_.erase(found); cancel(); return fresh;
     }
-    if (event.has_heartbeat()) { source.heartbeat = now; return; }
+    source.heartbeat = captured;
+    if (event.has_heartbeat()) return fresh;
+    if (!fresh) {
+        // Old gestures cannot resume input after a checked mode/context barrier.
+        // Still remember physical edges so a later release permits a fresh press.
+        const bool active = axes_sent_ || !navigating_ || std::any_of(sources_.begin(), sources_.end(), [](const auto& item) {
+            return !item.second.keys.empty() || !item.second.buttons.empty();
+        });
+        if (active) cancel();
+        if (event.has_key()) {
+            need(source.kind == v1::KEYBOARD && !event.key().keysym().empty() && event.key().keysym().size() <= 64 &&
+                 event.key().keysym().find('\0') == std::string::npos, "Invalid stale key event");
+            if (!event.key().repeat()) {
+                if (event.key().pressed()) source.physical_keys.insert(event.key().keysym());
+                else source.physical_keys.erase(event.key().keysym());
+            }
+        } else if (event.has_button()) {
+            need((source.kind == v1::MOUSE || source.kind == v1::SPACEMOUSE) &&
+                 event.button().button() >= 1 && event.button().button() <= 3, "Invalid stale button event");
+            if (event.button().pressed()) source.physical_buttons.insert(event.button().button());
+            else source.physical_buttons.erase(event.button().button());
+        }
+        return false;
+    }
+    event_capture_ = captured;
+    struct ResetCapture {
+        std::optional<Clock::time_point>& capture;
+        ~ResetCapture() { capture.reset(); }
+    } reset{event_capture_};
+    try {
     if (event.has_key()) { need(source.kind == v1::KEYBOARD, "Key from wrong device kind"); key(source, event.key()); }
     else if (event.has_motion()) { need(source.kind == v1::MOUSE, "Motion from wrong device kind"); motion(event.motion()); }
     else if (event.has_button()) {
@@ -211,7 +255,7 @@ void DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point now) 
         need(source.kind == v1::MOUSE && event.scroll().steps_y() >= -64 && event.scroll().steps_y() <= 64,
              "Invalid scroll device or magnitude");
         if (!menu_) {
-            if (!application_target(aim())) return;
+            if (!application_target(aim())) return true;
             core::v1::ActorActionRequest request;
             request.mutable_scroll()->set_steps_y(event.scroll().steps_y()); send(std::move(request));
         }
@@ -231,9 +275,10 @@ void DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point now) 
             normalized[i] = std::clamp((raw[index] - calibration.center()) / calibration.full_scale() *
                                      (calibration.raw_axis() < 0 ? -1 : 1), -1., 1.);
         }
-        source.axes = normalized; source.axes_time = now; source.has_axes = profile.spacemouse_calibrated();
+        source.axes = normalized; source.axes_time = captured; source.has_axes = profile.spacemouse_calibrated();
     }
-    source.heartbeat = now;
+    return true;
+    } catch (const ExpiredGesture&) { return false; }
 }
 void DeviceAdapters::tick(Clock::time_point now) {
     if (std::any_of(sources_.begin(), sources_.end(), [&](const auto& item) {

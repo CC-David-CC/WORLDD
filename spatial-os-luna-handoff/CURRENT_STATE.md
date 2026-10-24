@@ -1,3 +1,16 @@
+## 2026-10-23: M10 timestamped capture and menu logic pass focused checks on both hosts
+
+The private capture stream, queue-age barriers, menu preferences, and measured calibration are implemented as components.
+Both profiles pass sixteen adapter groups, seven menu groups, five stream groups, and six real-world level-motion methods on both hosts.
+The calibration retry defect has a failing predecessor regression and passing correction.
+A deployment writeback guard also passes seven checks on each host. Test deadlines remain unchanged.
+Traced replay locates deployment-induced persistence latency in both qualified M09 and new M10 issuer setup.
+The original timeout evidence remains preserved. Its exact failing syscall was not recorded.
+Production host routing, native foreground, visible menu rendering, concurrent workflows, and full qualification remain pending.
+Read ../docs/M10_CAPTURE_MENU_COMPONENTS_2026-10-23.txt and ../docs/M10_DEPLOYMENT_WRITEBACK_INVESTIGATION_2026-10-23.txt.
+M10 remains unqualified. The accepted M09 runtime remains preserved.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M10 shared control components have focused evidence; session integration remains pending
 
 Actor sequencing, relative look, six control presets, checked cancellation, and socket interruption are implemented as components.

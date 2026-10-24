@@ -1,0 +1,60 @@
+M10 capture transport and menu components
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+The private control schema adds CapturedDeviceEvent, ControlMenuEntry, and ControlMenuView.
+These messages carry host input timing and preference UI. They carry no actor tokens, grants, or chosen actor identity.
+CapturedDeviceEvent binds each packet to a trusted host capture generation and increasing packet sequence.
+DeviceStream owns an inherited unnamed private SOCK_SEQPACKET endpoint with checked kernel peer credentials.
+It uses nonblocking bounded packets. A full output queue permanently fences the stream.
+Malformed, oversized, stale, descriptor-bearing, and wrong-generation packets also fence it.
+The controller still validates every proposed action through ActorControl and worldd.
+
+DeviceAdapters now accepts capture time separately from delivery time.
+Mode changes and confirmed cancellation establish a monotonic fresh-input barrier.
+Older gestures and samples older than 250 milliseconds cannot renew motion or become calibration input.
+Stale release bookkeeping still permits a later fresh press. Active stale input first receives semantic cancellation.
+Source heartbeat age uses capture time. Delayed receipt cannot revive a lost source.
+The existing direct adapter entrypoint remains for synchronous in-process device translation and fixtures.
+Production queued capture must use the timestamped entrypoint.
+
+ControlsMenu implements host preference changes through keyboard interaction.
+It supports six presets, sensitivity, inversion, movement style, key rebinding, and independent editable copies.
+The measured six-axis wizard rejects missing, stale, ambiguous, and reused raw axes.
+Partial calibration is never saved. Cancelling the wizard preserves the previous profile.
+Preference-save failure reports that changes apply only to the current session.
+The menu controller does not render pixels or own actor authority.
+Its compositor rendering and session routing remain pending.
+
+Selected checks before execution
+Actor-control-adapters: the original eleven groups and four queue-age/barrier regressions.
+Actor-control-menu: five groups for presets, variations, bindings, persistence errors, calibration, and cancellation.
+Actor-device-stream: five groups for real private sockets, epochs, framing, transferred-FD cleanup, backpressure, and EOF.
+Run both build profiles on sb16 and sb16-2. Build hosts compile and inspect registration only.
+Deployment-writeback-flush must precede these runtime jobs.
+Native capture integration, watchdog orchestration, application presentation, and concurrent workflows remain pending.
+The final candidate still requires generated-source reproducibility and the complete inherited milestone matrix.
+
+Corrective component16 results
+Both Debug and ASan-UBSan builds complete with checked zero receipts.
+Both hosts pass all sixteen adapter groups, seven menu groups, five private-stream groups, and six level-motion methods.
+Each runtime uses the same pinned M10 focused worldd artifact09 and the newly built adapter probe.
+The deterministic probe now supplies its explicit fixture clock. It still implements no world, motion, or authority.
+No sanitizer diagnostic, skipped method, missing group, or duplicate PASS name was accepted.
+
+The sixth menu regression reproduced a failure against the unchanged component13 implementation on sb16.
+Ambiguous calibration retained old peak values and prevented a successful retry.
+The correction restarts the current axis at a fresh neutral sample while retaining completed axis measurements.
+The seventh menu group checks that stale gestures update release bookkeeping without editing preferences or calibration.
+A sixteenth adapter group checks one absolute gesture age across multiple mouse-look requests.
+Slow successive requests cannot renew an old gesture's age. Expiry sends checked stop before further old counts.
+A new fresh gesture may continue only after that confirmed cancellation.
+
+Component16 archive SHA256: 203bfdafd742c6c44c1779464ad52dbc501746ec280ae682d99e2f00c54638a4.
+Manifest SHA256: f5a59e5c02da077add46f32830d742354cebf541fb823e5635d03ff352e45a37.
+Archive bytes: 57158702. Expanded bytes: 289429884.
+Source-inputs-16.json and the manifest pin source and artifact coverage.
+The first component13 launch refused a nonexistent source directory before any test executed.
+Its prelaunch refusal remains separate. Corrective launch13b used the verified existing fixture source directory.
+Component16 uses that corrected path and the checked deployment writeback guard on both hosts.
+Results and runner receipts are copied under external evidence/HOST/capture-menu-results-16 and capture-menu-run-16.
+Menu rendering, physical capture routing, host-controller integration, native application foreground, and full qualification remain pending.

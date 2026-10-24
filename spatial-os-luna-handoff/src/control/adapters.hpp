@@ -5,6 +5,7 @@
 #include <array>
 #include <chrono>
 #include <map>
+#include <optional>
 #include <set>
 
 namespace spatial::control {
@@ -13,8 +14,10 @@ namespace spatial::control {
 class DeviceAdapters final {
 public:
     using Clock = std::chrono::steady_clock;
-    explicit DeviceAdapters(ActorControl& actor, v1::ControlProfiles profiles = default_profiles());
-    void event(const v1::DeviceEvent& event, Clock::time_point now);
+    using ClockNow = std::function<Clock::time_point()>;
+    explicit DeviceAdapters(ActorControl& actor, v1::ControlProfiles profiles = default_profiles(), ClockNow clock = Clock::now);
+    bool event(const v1::DeviceEvent& event, Clock::time_point now);
+    bool event(const v1::DeviceEvent& event, Clock::time_point captured, Clock::time_point now);
     void tick(Clock::time_point now);
     void cancel();
     void set_profiles(const v1::ControlProfiles& profiles);
@@ -49,6 +52,9 @@ private:
     bool button_held(unsigned button) const;
     void switch_mode(bool navigating);
     ActorControl& actor_;
+    ClockNow clock_;
+    Clock::time_point fresh_after_ = Clock::time_point::min();
+    std::optional<Clock::time_point> event_capture_;
     v1::ControlProfiles profiles_;
     std::map<std::string, Source> sources_;
     std::map<std::string, std::uint64_t> retired_generations_;

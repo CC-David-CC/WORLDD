@@ -25,7 +25,8 @@ int main() {
                 spatial::identity::v1::WorldSessionReply result; result.set_protocol_version(1);
                 *result.mutable_state() = request.state(); return result;
             }, [] {});
-        spatial::control::DeviceAdapters adapters(actor, request.has_profiles() ? request.profiles() : spatial::control::default_profiles());
+        spatial::control::DeviceAdapters adapters(actor, request.has_profiles() ? request.profiles() : spatial::control::default_profiles(),
+            [] { return spatial::control::DeviceAdapters::Clock::time_point{}; });
         for (const auto& event : request.events()) adapters.event(event, spatial::control::DeviceAdapters::Clock::time_point{});
         adapters.tick(spatial::control::DeviceAdapters::Clock::time_point{});
         *reply.mutable_profiles() = adapters.profiles();

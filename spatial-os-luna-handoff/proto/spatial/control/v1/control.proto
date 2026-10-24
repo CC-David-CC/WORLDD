@@ -71,3 +71,22 @@ message ControlStatus {
   uint32 viewport_width = 8;
   uint32 viewport_height = 9;
 }
+
+// One private datagram. CLOCK_MONOTONIC and the capture epoch belong to this host.
+// Neither field selects an actor. The trusted channel fixes its consumer.
+message CapturedDeviceEvent {
+  uint32 protocol_version = 1;
+  uint64 capture_generation = 2;
+  uint64 monotonic_nanoseconds = 3;
+  DeviceEvent event = 4;
+  uint64 packet_sequence = 5;
+}
+message ControlMenuEntry { string label = 1; string value = 2; bool selected = 3; }
+message ControlMenuView {
+  uint32 protocol_version = 1;
+  bool visible = 2;
+  repeated ControlMenuEntry entries = 3;
+  string prompt = 4;
+  string message = 5;
+  repeated double raw_axes = 6;
+}
