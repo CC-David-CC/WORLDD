@@ -1,0 +1,48 @@
+M10 test-host duplicate transfer cleanup
+Status: VERIFIED. This administrative cleanup provides no milestone qualification.
+Date: 2026-10-24.
+
+Only duplicate compressed transfer archives were removed.
+Extracted payloads, manifests, unresolved failures, source pins, and builder archives remain.
+Root process, mount, and loop-device scans found no live references.
+Each extracted payload passed its complete hash inventory before removal.
+Root helpers pinned each file and parent, then rechecked inode identity and references.
+
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023
+Plan: duplicate-transfer-cleanup-plan-41.json.
+Result: duplicate-transfer-cleanup-results-41.json.
+Canonical job: duplicate-transfer-cleanup-run-41.
+
+sb16:
+Free bytes before: 11455356928.
+Free bytes after: 12386373632.
+Measured recovered bytes: 931016704.
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/combined-focused-09.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/combined-focused-09/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/combined-focused-09/payload
+SHA256: caeb70b257509999b15a7b1d4159f89eb7a51536c160ac4a05e506420b007bb5
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-shared-focused-21.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-shared-focused-21/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-shared-focused-21/payload
+SHA256: 62e4d0a6258b671d1c0de1038727ea923b498e2601a688438e42954a364f3d1c
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26/payload
+SHA256: c29cb9fb24bf523aeecdbe35393775a883c8b1fee42d84ac1ced619610241a86
+
+sb16-2:
+Free bytes before: 5665275904.
+Free bytes after: 6596288512.
+Measured recovered bytes: 931012608.
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/combined-focused-09.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/combined-focused-09/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/combined-focused-09/payload
+SHA256: caeb70b257509999b15a7b1d4159f89eb7a51536c160ac4a05e506420b007bb5
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-shared-focused-21.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-shared-focused-21/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-shared-focused-21/payload
+SHA256: 62e4d0a6258b671d1c0de1038727ea923b498e2601a688438e42954a364f3d1c
+Removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26.tar.gz
+Retained archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26/payload.tar.gz
+Retained payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/host-startup-native-26/payload
+SHA256: c29cb9fb24bf523aeecdbe35393775a883c8b1fee42d84ac1ced619610241a86
