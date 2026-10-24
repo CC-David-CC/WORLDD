@@ -1,6 +1,7 @@
 #include "render/presentation_server.hpp"
 #include "render/presentation_inputs.hpp"
 #include "render/renderer.hpp"
+#include "render/controls_overlay.hpp"
 #include "platform/presentation_stream.hpp"
 #include "platform/process_handle.hpp"
 #include "presentation.pb.h"
@@ -49,6 +50,7 @@ struct Server {
     std::map<std::uint64_t,WorldChannel> worlds;
     std::map<std::uint64_t,GeometryTarget> geometry_targets;
     std::uint64_t sequence=0,selected=0,selected_geometry=0;
+    std::uint64_t controls_generation=0,controls_sequence=0;
     std::optional<protocol::LocalActorPresentationTarget> selected_local;
     bool shutdown=false;
     Server(Renderer& renderer,int fd,pid_t owner):renderer(renderer),control(fd,owner,owner),owner(owner),owner_process(retain_owner(owner)){}
@@ -215,6 +217,18 @@ struct Server {
             }else if(request.has_clear_selection()){
                 clear_selection();
                 reply.set_selection_cleared(true);
+            }else if(request.has_controls()){
+                const auto& value=request.controls();
+                require(value.capture_generation()>0 && value.menu_sequence()>0 && value.has_view(),
+                    "Missing host controls context");
+                ControlsOverlay::validate(value.view());
+                if(value.capture_generation()<controls_generation ||
+                    (value.capture_generation()==controls_generation && value.menu_sequence()<=controls_sequence))
+                    throw WorldError(wire::STALE_TARGET,"Stale host controls context or sequence");
+                // Reserve before native output. An uncertain swap cannot reopen an older context.
+                controls_generation=value.capture_generation();controls_sequence=value.menu_sequence();
+                renderer.present_controls(value.view());
+                *reply.mutable_controls()=value;
             }else if(request.has_shutdown()){
                 if(!worlds.empty() || !geometry_targets.empty())throw WorldError(wire::IN_USE,"Retire presentation targets before compositor shutdown");
                 shutdown=true;reply.set_shutting_down(true);

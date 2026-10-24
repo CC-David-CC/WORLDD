@@ -1,5 +1,6 @@
 #include "supervisor/session_coordinator.hpp"
 #include "supervisor/host_actor_controller.hpp"
+#include "supervisor/host_actor_worker.hpp"
 #include "world/actor_session_client.hpp"
 #include "host_session.pb.h"
 #include "actor_session_client.pb.h"
@@ -180,6 +181,7 @@ void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
 int main(int argc,char** argv) {
     std::unique_ptr<SessionCoordinator> session;
     std::unique_ptr<HostActorController> controller;
+    std::unique_ptr<HostActorWorker> actor_worker;
     int control=-1;
     bool operation_ok=false, cleanup_ok=true;
     bool service_start_attempted=false, presentation_start_attempted=false, presentation_started=false;
@@ -230,51 +232,68 @@ int main(int argc,char** argv) {
             controller->register_remote_world(id,[path]{ return std::make_unique<spatial::ActorSessionClient>(path); });
         }
         controller->start_geometry_presentation();
+        controller->synchronize_controls_presentation();
+        if(config.shared_actor_controls())actor_worker=std::make_unique<HostActorWorker>(*controller);
         std::uint64_t last_id=0;
-        auto next_controls_tick = std::chrono::steady_clock::now();
         while(!stopped) {
-            if (config.shared_actor_controls() && std::chrono::steady_clock::now() >= next_controls_tick) {
-                if (controller->control_available()) {
-                    try { (void)controller->tick_controls(controller->generation()); }
-                    catch (const std::exception&) { std::cerr << "Actor controls unavailable after a checked operation failure\n"; }
-                }
-                next_controls_tick = std::chrono::steady_clock::now() + std::chrono::milliseconds(16);
-            }
+            need(!actor_worker || !actor_worker->failed(),"Actor worker terminated unexpectedly");
             pollfd foreground{control,POLLIN,0};
-            const int foreground_ready=poll(&foreground,1,config.shared_actor_controls() ? 16 : 100);
+            const int foreground_ready=poll(&foreground,1,100);
             if(foreground_ready<0 && errno==EINTR)continue;
             need(foreground_ready>=0,"Host foreground poll failed");
-            if(foreground_ready==0) { controller->pump_geometry_presentation(); continue; }
+            if(foreground_ready==0) {
+                if(!actor_worker)controller->pump_geometry_presentation();
+                continue;
+            }
             spatial::supervisor::v1::HostControlRequest request;
             Deadline deadline;
             if(!read_request(control,request,deadline)) break;
-            spatial::supervisor::v1::HostControlReply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id()); reply.set_generation(controller->generation());
-            if(request.protocol_version()!=1 || request.request_id()==0 || request.request_id()<=last_id || request.operation_case()==spatial::supervisor::v1::HostControlRequest::OPERATION_NOT_SET) { reply.set_detail("Invalid version, request ID, or operation"); }
-            else {
-                last_id=request.request_id();
-                try {
-                    if(request.has_inspect()) { auto result=controller->inspect(request.generation()); *reply.mutable_inspection()=result; reply.set_accepted(true); }
-                    else if(request.has_geometry_status()) { *reply.mutable_geometry_status()=controller->geometry_status(request.generation()); reply.set_accepted(true); }
-                    else if(request.has_action()) { auto result=controller->action(request.generation(),request.action()); *reply.mutable_action()=result; reply.set_accepted(true); }
-                    else if(request.has_propose()) { *reply.mutable_proposed()=controller->propose(request.generation(),request.propose()); reply.set_accepted(true); }
-                    else if(request.has_controls_status()) { *reply.mutable_controls()=controller->control_status(request.generation()); reply.set_accepted(true); }
-                    else if(request.has_captured_device()) { *reply.mutable_controls()=controller->device_event(request.generation(),request.captured_device()); reply.set_accepted(true); }
-                    else if(request.has_controls_menu()) { *reply.mutable_menu()=controller->controls_menu(request.generation()); reply.set_accepted(true); }
-                    else if(request.has_controls_tick()) { *reply.mutable_controls()=controller->tick_controls(request.generation()); reply.set_accepted(true); }
-                    else if(request.has_transition() || request.has_transition_proposal()) {
-                        need(request.generation()==controller->generation(),"Stale host actor generation");
-                        auto result=request.has_transition_proposal() ? controller->transition_proposed(request.generation(),request.transition_proposal()) :
-                                                                      controller->transition(request.transition());
-                        *reply.mutable_transition()=result;
-                        reply.set_generation(controller->generation()); reply.set_accepted(result.actor_control_available()); reply.set_detail(result.detail());
-                    } else throw std::invalid_argument("Unsupported host control operation");
-                } catch(const std::exception& e) { reply.set_detail(e.what()); }
-            }
+            auto dispatch=[&] {
+                spatial::supervisor::v1::HostControlReply reply; reply.set_protocol_version(1); reply.set_request_id(request.request_id()); reply.set_generation(controller->generation());
+                if(request.protocol_version()!=1 || request.request_id()==0 || request.request_id()<=last_id || request.operation_case()==spatial::supervisor::v1::HostControlRequest::OPERATION_NOT_SET) { reply.set_detail("Invalid version, request ID, or operation"); }
+                else {
+                    last_id=request.request_id();
+                    try {
+                        if(request.has_inspect()) { auto result=controller->inspect(request.generation()); *reply.mutable_inspection()=result; reply.set_accepted(true); }
+                        else if(request.has_geometry_status()) { *reply.mutable_geometry_status()=controller->geometry_status(request.generation()); reply.set_accepted(true); }
+                        else if(request.has_action()) { auto result=controller->action(request.generation(),request.action()); *reply.mutable_action()=result; reply.set_accepted(true); }
+                        else if(request.has_propose()) { *reply.mutable_proposed()=controller->propose(request.generation(),request.propose()); reply.set_accepted(true); }
+                        else if(request.has_controls_status()) { *reply.mutable_controls()=controller->control_status(request.generation()); reply.set_accepted(true); }
+                        else if(request.has_captured_device()) {
+                            if(actor_worker) {
+                                const auto binding=actor_worker->capture_binding();
+                                need(binding && binding->actor_generation==request.generation(),"Stale human capture actor generation");
+                                *reply.mutable_controls()=actor_worker->device_event(binding,request.captured_device());
+                            } else *reply.mutable_controls()=controller->device_event(request.generation(),request.captured_device());
+                            reply.set_accepted(true);
+                        }
+                        else if(request.has_controls_menu()) { *reply.mutable_menu()=controller->controls_menu(request.generation()); reply.set_accepted(true); }
+                        else if(request.has_controls_tick()) { *reply.mutable_controls()=controller->tick_controls(request.generation()); reply.set_accepted(true); }
+                        else if(request.has_transition() || request.has_transition_proposal()) {
+                            need(request.generation()==controller->generation(),"Stale host actor generation");
+                            auto result=request.has_transition_proposal() ? controller->transition_proposed(request.generation(),request.transition_proposal()) :
+                                                                          controller->transition(request.transition());
+                            *reply.mutable_transition()=result;
+                            reply.set_generation(controller->generation()); reply.set_accepted(result.actor_control_available()); reply.set_detail(result.detail());
+                        } else throw std::invalid_argument("Unsupported host control operation");
+                    } catch(const std::exception& e) { reply.set_detail(e.what()); }
+                }
+                try {controller->synchronize_controls_presentation();}
+                catch(const std::exception& error){reply.set_accepted(false);reply.set_detail(error.what());}
+                return reply;
+            };
+            const bool cancellation=(request.has_propose() && request.propose().has_stop()) || request.has_transition_proposal();
+            auto urgency=actor_worker ? actor_worker->capture_binding() : HostActorWorker::Binding{};
+            if(!urgency || urgency->actor_generation!=request.generation() ||
+                (!request.has_captured_device() && !cancellation) ||
+                (request.has_captured_device() && urgency->capture_generation!=request.captured_device().capture_generation()))
+                urgency.reset();
+            auto reply=actor_worker ? actor_worker->call(dispatch,urgency,cancellation) : dispatch();
             write_reply(control,reply,deadline);
-            // Drain queued controls before starting the next bounded scene exchange.
         }
         operation_ok=true;
     } catch(const std::exception& error) { std::cerr<<"host session failed: "<<error.what()<<'\n'; }
+    actor_worker.reset(); // Stop exchanges before returning coordinator ownership to this thread.
     controller.reset(); // Release actor TLS channels before owned-process cleanup.
     if(service_start_attempted && !session) {
         cleanup_ok=false; std::cerr<<"broker construction cleanup remains uncertain\n";

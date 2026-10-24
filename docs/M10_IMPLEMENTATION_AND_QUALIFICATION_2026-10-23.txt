@@ -122,3 +122,18 @@ This is a reviewed component checkpoint. M10 remains UNQUALIFIED.
 The next production increment must connect native capture, the serialized actor worker/watchdog, and visible controls.
 Preserve the remaining foreground witnesses and the human plus two scripted actor workflows.
 Freeze and run the complete cumulative gate only after the full M10 implementation is ready.
+
+2026-10-24 visible controls and serialized worker draft
+The compositor now draws private host controls over final output, outside actor scene framebuffers.
+The local foreground receipt supplies its sampled vertical field of view.
+All seven source116 native controls-overlay methods pass on both Debug hosts.
+Two production menu methods also pass on each host. Serial-injection F12 fails on source retirement.
+That fixture emits heartbeats between synchronous requests and does not establish continuous capture.
+The root thread now frames shared requests while one actor worker owns operations and foreground exchanges.
+The independent capture receiver and compositor producer are still unconnected.
+After bounded review, source127 passes seven worker and sixteen inherited controller groups in every host/profile cell.
+Accepted total: 92 C++ groups. These private fixture checks do not establish native host or TLS behavior.
+See ../spatial-os-luna-handoff/docs/M10_VISIBLE_CONTROLS_2026-10-24.txt and M10_SERIALIZED_ACTOR_WORKER_2026-10-24.txt there.
+The current source is a reviewed UNQUALIFIED_M10 draft. It is not integrated milestone qualification.
+Different-FOV adapter handoff, continuous capture, source-loss transport witnesses, and three-actor workflows remain required.
+The frozen combined candidate, generation reproducibility proof, and complete two-host M10 gate remain pending.

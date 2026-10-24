@@ -14,6 +14,7 @@
 #include "core/geometry.hpp"
 #include "world/store.hpp"
 #include <map>
+#include <cmath>
 #include <iostream>
 #include <vector>
 #include <fcntl.h>
@@ -204,6 +205,8 @@ core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const work
     require(reply.has_actor_local_view(),"Local actor presentation receipt is missing");
     const auto& result=reply.actor_local_view();
     validate_render_extent(result.viewport().width(),result.viewport().height());
+    require(std::isfinite(result.vertical_fov()) && result.vertical_fov()>0 &&
+        result.vertical_fov()<std::acos(-1.0),"Invalid local actor projection field of view");
     require(result.bound() && result.presented() && result.identity().SerializeAsString()==key && result.frame_id()>0 &&
         result.world_revision()>0 && (!width || (result.viewport().width()==width && result.viewport().height()==height)) &&
         !result.room().empty() && result.room().size()<=256 && result.room().find('\0')==std::string::npos &&
@@ -237,6 +240,14 @@ void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& o
 void SessionCoordinator::clear_presentation(){
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     state.presentation->clear_selection();
+}
+core::v1::PixelExtent SessionCoordinator::native_viewport() const {
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    return state.presentation->native_viewport();
+}
+void SessionCoordinator::present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    state.presentation->present_controls(generation,view);
 }
 void SessionCoordinator::stop_presentation(){
     auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");

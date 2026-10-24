@@ -19,11 +19,14 @@ HostActorController::HostActorController(SessionCoordinator& session, std::strin
     : HostActorController(
         [&session](const auto& owner) { return session.inspect_presentation(owner); },
         [&session](const auto& owner) { return session.select_world(owner); },
-        std::move(world), std::move(client)) { session_ = &session; }
+        std::move(world), std::move(client)) {
+    session_ = &session;
+    present_controls_ = [&session](auto generation,const auto& view) {session.present_controls(generation,view);};
+}
 
 HostActorController::HostActorController(PresentationInspect inspect, PresentationSelect select,
-    std::string world, std::unique_ptr<ActorSessionClient> client)
-    : inspect_(std::move(inspect)), select_(std::move(select)),
+    std::string world, std::unique_ptr<ActorSessionClient> client, ControlsPresentation controls)
+    : inspect_(std::move(inspect)), select_(std::move(select)), present_controls_(std::move(controls)),
       current_world_(std::move(world)), current_client_(std::move(client)) {
     require(bool(inspect_) && bool(select_) && !current_world_.empty() && current_client_ &&
             current_client_->expected_world() == current_world_,
@@ -259,6 +262,7 @@ void HostActorController::refresh_foreground_locked() {
             local_target_=LocalTarget{*destination->second.owner,identity};
         }
         const auto view=session_->present_local_actor(local_target_->owner,identity,0,0);
+        if(adapters_)adapters_->set_viewport(view.viewport().width(),view.viewport().height(),view.vertical_fov());
         geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
         geometry_status_.set_world_id(identity.world_id());geometry_status_.set_actor_id(identity.actor_id());
         geometry_status_.set_room(view.room());*geometry_status_.mutable_camera()=view.camera();
@@ -275,6 +279,10 @@ void HostActorController::refresh_foreground_locked() {
         session_->select_geometry(*geometry_target_);
     }
     session_->publish_geometry(*geometry_target_, view);
+    if(adapters_){
+        const auto viewport=session_->native_viewport();
+        adapters_->set_viewport(viewport.width(),viewport.height(),view.config().vertical_fov());
+    }
     // Store only a checked drawing receipt after the compositor acknowledges it.
     geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
     geometry_status_.set_world_id(view.world_id());geometry_status_.set_actor_id(view.actor_id());
@@ -325,6 +333,23 @@ void HostActorController::pump_geometry_presentation() {
 std::string HostActorController::current_world() const {
     std::lock_guard lock(mutex_);
     return current_world_;
+}
+void HostActorController::synchronize_controls_presentation_locked() {
+    if(!present_controls_ || !shared_enabled_ || !capture_generation_)return;
+    control::v1::ControlMenuView view;view.set_protocol_version(1);
+    if(!control_fenced_ && current_client_ && !current_client_->failed() && controls_menu_)view=controls_menu_->view();
+    const auto bytes=view.SerializeAsString();
+    if(presented_menu_generation_==capture_generation_ && presented_menu_==bytes)return;
+    try { present_controls_(capture_generation_,view); }
+    catch (...) {
+        control_fenced_=true;
+        current_client_.reset(); // Do not retain held input after unconfirmed host output.
+        throw;
+    }
+    presented_menu_=bytes;presented_menu_generation_=capture_generation_;
+}
+void HostActorController::synchronize_controls_presentation() {
+    std::lock_guard lock(mutex_);synchronize_controls_presentation_locked();
 }
 void HostActorController::require_controls_locked(std::uint64_t generation) const {
     require(shared_enabled_ && controls_ && adapters_ && controls_menu_ && generation == generation_ &&
@@ -450,6 +475,8 @@ identity::v1::HostActorTransitionResult HostActorController::transition_proposed
     const auto before_generation = generation_;
     const auto source_world = current_world_;
     const auto profiles = adapters_->profiles();
+    adapters_->set_menu(false);
+    synchronize_controls_presentation_locked();
     adapters_->cancel();
     auto request = proposal; request.set_departure_sequence(controls_->reserve_sequence(generation));
     actor_sequence_ = request.departure_sequence();

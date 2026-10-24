@@ -100,6 +100,7 @@ message ActorLocalViewState {
   PixelExtent viewport = 7;
   string room = 8; // Room sampled with camera before any projection wait.
   uint64 presentation_generation = 9;
+  double vertical_fov = 10; // Radians, sampled with this receipt's projection.
 }
 message ActorLocalFrameCommit { uint64 frame_id = 1; }
 message FrameReply {

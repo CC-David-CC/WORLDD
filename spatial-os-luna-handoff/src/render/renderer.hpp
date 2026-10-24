@@ -3,6 +3,7 @@
 #include "core/protocol.hpp"
 #include "geometry_view.pb.h"
 #include "compositor_native.pb.h"
+#include "control.pb.h"
 #include <filesystem>
 #include <memory>
 namespace spatial {
@@ -26,6 +27,7 @@ public:
     void reserve_input(const render::v1::WorldPresentationBinding&,const supervisor::v1::NativeScopeIdentity* scope=nullptr);
     void initialize_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void clear_presentation();
+    void present_controls(const control::v1::ControlMenuView&);
     void bind_input(const render::v1::WorldPresentationBinding&, int sealed_config_fd);
     void confirm_input_retired(const render::v1::WorldPresentationBinding& binding);
     void retire_input(const render::v1::WorldPresentationBinding&);

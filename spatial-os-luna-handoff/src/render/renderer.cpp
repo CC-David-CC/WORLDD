@@ -1,5 +1,6 @@
 #include "render/renderer.hpp"
 #include "render/presentation_inputs.hpp"
+#include "render/controls_overlay.hpp"
 #include "x11/compositor_connection.hpp"
 #include "core/scene.hpp"
 #include "x11/surfaces.hpp"
@@ -85,7 +86,9 @@ struct Renderer::Impl {
     std::unique_ptr<XSurfaces> surfaces;
     std::unique_ptr<XInputRouter> input;
     std::unique_ptr<PresentationInputs> bindings;
+    std::unique_ptr<ControlsOverlay> controls;
     ~Impl() {
+        controls.reset(); // Release GL resources while this context is current.
         bindings.reset(); input.reset(); surfaces.reset(); native_input.reset();
         if (context) {
             if (program) glDeleteProgram(program);
@@ -107,6 +110,7 @@ struct Renderer::Impl {
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         glDrawBuffer(GL_BACK);
         glBlitFramebuffer(0, 0, presented.width, presented.height, 0, 0, presented.width, presented.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        if (controls) controls->draw(presented.width, presented.height);
         glXSwapBuffers(display, window);
         glFinish(); check_gl(); check_x(display);
     }
@@ -225,13 +229,14 @@ void main() {
     r.surfaces=std::make_unique<XSurfaces>(r.display,r.window,r.overlay,r.native_input.get());
     if (r.native_input) r.input=std::make_unique<XInputRouter>(r.display,*r.native_input,*r.surfaces);
     r.bindings=std::make_unique<PresentationInputs>(r.display,*r.surfaces,native ? native->server_id() : std::string{});
+    r.controls=std::make_unique<ControlsOverlay>(r.display);
 }
 Renderer::~Renderer() = default;
 wire::RendererReady Renderer::ready() const { return impl_->info; }
 int Renderer::connection() const { return ConnectionNumber(impl_->display); }
 void Renderer::events() {
     auto& r = *impl_;
-    while (XPending(r.display)) {
+    for (unsigned drained=0; drained<256 && XPending(r.display); ++drained) {
         XEvent event{}; XNextEvent(r.display, &event);
         if (event.type == Expose && event.xexpose.window == r.window && event.xexpose.count == 0) r.output();
         if (r.surfaces) r.surfaces->event(event);
@@ -287,6 +292,24 @@ void Renderer::clear_presentation() {
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     const float black[4]={0,0,0,1};glClearBufferfv(GL_COLOR,0,black);
     check_gl();r.output();
+}
+void Renderer::present_controls(const control::v1::ControlMenuView& view) {
+    ControlsOverlay::validate(view);
+    auto& r=*impl_;
+    if (view.visible() && !r.presented.width) {
+        // Host UI remains usable before any actor has observation authority.
+        // This blank scene contains no world data and never becomes an observation.
+        wire::RenderCommand blank;
+        blank.set_width(r.info.viewport().width());blank.set_height(r.info.viewport().height());
+        auto* scene=blank.mutable_scene();scene->mutable_camera()->mutable_position();
+        scene->mutable_camera()->mutable_orientation()->set_w(1);
+        auto* config=scene->mutable_config();config->set_vertical_fov(std::acos(-1.0)/2);
+        config->set_near_clip(.01);config->set_far_clip(1000);
+        config->mutable_background();
+        (void)draw(blank);
+    }
+    r.controls->set(view);
+    r.output(); // Receipt follows swap, GL completion, and the X error barrier.
 }
 void Renderer::bind_input(const render::v1::WorldPresentationBinding& binding, int descriptor) {
     auto& r=*impl_;

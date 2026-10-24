@@ -1,0 +1,31 @@
+M10 VISIBLE HOST CONTROLS AND PROJECTION GEOMETRY
+Status: IMPLEMENTING, UNQUALIFIED_M10.
+Base: 4ead509d67fcf6a611d16ca0c13a535dd6cafa62.
+
+Private presentation schema migration
+Import control.proto into the retained host presentation interface.
+Add HostControlsPresentation with capture_generation, menu_sequence, and ControlMenuView.
+Add PresentationControlRequest.controls at field 23.
+Add PresentationControlReply.controls at field 10.
+This operation carries no descriptors. Only the authenticated retained host can publish it.
+Reject older capture generations and nonincreasing sequences within one generation.
+Validate the complete view before changing pixels or advancing the accepted sequence.
+The reply echoes the exact view after native output completes.
+World presentation channels cannot invoke this operation.
+Host preferences grant no observation, workspace, application, or execution authority.
+Draw controls only over the final native output, outside all actor scene framebuffers.
+Hiding controls repaints the retained scene before the reply.
+
+Core receipt migration
+Add ActorLocalViewState.vertical_fov at field 10, in radians.
+Sample it from the same projection as the receipt's camera, room, and viewport.
+The host validates finite 0 < vertical_fov < pi before configuring mouse projection.
+Remote geometry uses its checked view config and the compositor's reported native viewport.
+Changing projection cancels held input through the existing adapter cancellation path.
+No actor action, acceptance assertion, oracle, or independent witness changes.
+Refresh only the core.proto integrity entry after documenting this additive migration.
+
+Selected checks
+External plan: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/menu-viewport-selected-105.json.
+The larger capture/worker/menu plan104 remains required.
+No runtime result or complete qualification is claimed here.

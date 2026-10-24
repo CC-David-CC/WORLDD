@@ -218,11 +218,11 @@ struct Endpoint {
     std::unique_ptr<ActorSessionClient> client;
     std::thread worker;
     std::exception_ptr error;
-    explicit Endpoint(Fixture& f) {
+    explicit Endpoint(Fixture& f, std::chrono::milliseconds timeout = 150ms) {
         int sockets[2];
         check(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sockets) == 0, "socketpair failed");
         peer = sockets[1];
-        try { client = std::make_unique<ActorSessionClient>(sockets[0], f.credential, f.key_path, f.world, 150ms); }
+        try { client = std::make_unique<ActorSessionClient>(sockets[0], f.credential, f.key_path, f.world, timeout); }
         catch (...) { close(peer); throw; }
     }
     void start(std::function<void(int)> run) {

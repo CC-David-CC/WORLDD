@@ -3,6 +3,8 @@
 #include "platform/presentation_stream.hpp"
 #include "platform/compositor_config.hpp"
 #include "world/store.hpp"
+#include "world/local_view_validation.hpp"
+#include "core/scene.hpp"
 #include <chrono>
 #include <fcntl.h>
 #include <map>
@@ -20,6 +22,8 @@ struct PresentationOwner::Impl {
     std::unique_ptr<PresentationStream> control;
     std::map<std::uint64_t,std::uint64_t> geometry_sequences;
     std::uint64_t sequence=0;
+    std::uint64_t menu_sequence=0;
+    core::v1::PixelExtent viewport;
     bool stopped=false;
     Impl(const std::filesystem::path& executable,const std::filesystem::path& state,int native){
         require(native>=3,"Missing host compositor configuration");
@@ -29,6 +33,8 @@ struct PresentationOwner::Impl {
         PresentationStream::File fd(fcntl(process->socket(),F_DUPFD_CLOEXEC,3));
         control.reset(new PresentationStream(fd.release(),creator,process->pid()));
         auto ready=receive();require(ready.request_id()==0 && ready.has_ready(),"Missing host compositor readiness");
+        viewport=ready.ready().viewport();
+        if(ready.ready().has_viewport())validate_render_extent(viewport.width(),viewport.height());
     }
     void live() const {require(getpid()==creator && !stopped && control && pin.live(),"Host presentation ownership unavailable");}
     protocol::PresentationControlReply receive(){
@@ -161,6 +167,21 @@ void PresentationOwner::clear_selection(){
     const auto reply=impl_->call(std::move(request));
     if(!reply.has_selection_cleared() || !reply.selection_cleared()) {
         impl_->control.reset();throw std::runtime_error("Foreground clearing unconfirmed");
+    }
+}
+core::v1::PixelExtent PresentationOwner::native_viewport() const {
+    impl_->live();validate_render_extent(impl_->viewport.width(),impl_->viewport.height());
+    return impl_->viewport;
+}
+void PresentationOwner::present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
+    require(generation>0 && impl_->menu_sequence<UINT64_MAX,"Invalid host controls generation or exhausted sequence");
+    protocol::PresentationControlRequest request;
+    auto* value=request.mutable_controls();value->set_capture_generation(generation);
+    value->set_menu_sequence(++impl_->menu_sequence);*value->mutable_view()=view;
+    const auto expected=value->SerializeAsString();
+    const auto reply=impl_->call(std::move(request));
+    if(!reply.has_controls() || reply.controls().SerializeAsString()!=expected){
+        impl_->control.reset();throw std::runtime_error("Native controls presentation unconfirmed");
     }
 }
 void PresentationOwner::shutdown(){

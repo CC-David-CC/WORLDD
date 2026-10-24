@@ -1,0 +1,65 @@
+M10 SERIALIZED HUMAN ACTOR WORKER
+Status: IMPLEMENTING, UNQUALIFIED_M10. No milestone integration or publication.
+
+One worker owns shared actor operations and foreground exchanges after startup.
+The root thread retains private request framing and checked shutdown orchestration.
+Each caller receives its result after the native controls update is confirmed.
+The queue holds at most 128 operations. Rendering receives service between bounded bursts.
+Physical capture reception must remain independent of synchronous root requests.
+The production receiver and compositor capture endpoint remain unconnected.
+
+Capture lifetime
+A capture binding fixes actor generation, capture generation, and the exact interruption handle.
+Only the worker retires that binding. Receivers retain and observe the same binding object.
+Stale input cannot enqueue urgency, cancel an adopted actor, or select a new interruption handle.
+Current malformed input and queue overflow retire their binding and request ordinary actor cancellation.
+Checked cancellation does not grant, revoke, or replace ordinary actor authority.
+The worker publishes one flight containing its context, timestamp, serial, and urgency.
+Its decision and interruption request share the flight completion barrier.
+It never takes actor or controller locks.
+An interruption request is not a checked cancellation or cleanup receipt.
+Unexpected worker termination interrupts its exact actor and exposes a terminal failure flag.
+The idle root checks that flag every 100 ms. Partial framing may delay observation until its ten-second deadline.
+Actor interruption does not wait for that root observation.
+Uncertain native output closes the affected actor transport. Existing cleanup obligations remain retained.
+
+Evidence and open work
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Source121 passes three initial worker fixture groups and sixteen inherited controller groups in all four host/profile cells.
+Those are private fixture socket checks. They do not establish native presentation or TLS behavior.
+Independent review identified stale cancellation and split watchdog-publication gaps in that source.
+The current binding and flight changes require their own regression results.
+Do not reuse the initial group totals as proof of these corrections.
+
+All seven source116 native menu methods pass on both Debug hosts.
+The two production menu methods also pass. The new serial-injection F12 method fails on source retirement.
+That fixture emits heartbeats between synchronous requests. It does not provide continuous capture.
+The failure does not establish that F12 cancellation is defective.
+Healthy issuer timing logs describe Python fixture requests, not production foreground exchange durations.
+No unrelated host load is assumed. Production latency attribution remains open.
+
+Next integrate the real private seqpacket transport, independent heartbeat receiver, and X-thread capture producer.
+Add a private processed-capture sequence receipt for deterministic cross-channel test synchronization.
+Keep the 250 ms event age and 350 ms source silence limits unchanged.
+Use the same transport for independent fixture-human capture and native physical capture.
+Preserve the serial source-loss regression. Do not call that source continuously alive.
+The three-actor workflows and complete frozen M10 gate remain mandatory.
+
+2026-10-24 reviewed bound-worker fixture result
+Frozen source127 passes seven worker groups and sixteen inherited controller groups in all four cells.
+Accepted total: 92 C++ group completions. Both hosts pass Debug and ASan/UBSan.
+No skipped group or sanitizer diagnostic was accepted. Native dependencies match before and after each suite.
+The final checks cover stale receiver and generic RPC urgency, retired queued input, and malformed current capture.
+They also cover an empty-queue cancellation flight and interruption during a delayed presentation receipt.
+Exact source archive SHA256: 67d70da3aa4dac72cefc056a6639c544116b0b4cbc5e065e148d2e8fd837560c.
+Source manifest SHA256: b233679eb5ba5586bf0011ca27d419674b0e456a0ae5b0b7c7fe3d9f21aed30e.
+Evidence: evidence/{sb16,sb16-2}/bound-worker-core-128 under the external root.
+These remain private socket and callback fixture checks. Source127 native host and TLS reassessment remain unrun.
+
+Open projection handoff review
+Foreground refresh currently precedes shared adapter recreation during a world transition.
+Recheck projection assignment when world fields of view differ.
+Do not send destination projection changes through the retired source adapter.
+Initialize the adopted adapter from a checked destination projection before activating its capture endpoint.
+Add a native transition regression with different world fields of view.
+This remains required implementation work, not a passed feature claim.

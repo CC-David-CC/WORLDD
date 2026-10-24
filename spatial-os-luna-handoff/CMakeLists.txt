@@ -85,8 +85,9 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1/presentation.proto
-    DEPENDS proto/spatial/render/v1/presentation.proto proto/spatial/render/v1/compositor_native.proto
+    DEPENDS proto/spatial/control/v1/control.proto proto/spatial/render/v1/presentation.proto proto/spatial/render/v1/compositor_native.proto
         proto/spatial/core/v1/actor_local_view.proto
         proto/spatial/identity/v1/geometry_view.proto proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
 add_custom_target(presentation-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/presentation_pb2.py")
@@ -431,7 +432,7 @@ endforeach()
 string(SHA256 build_hash "${build_material}")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPATIAL_BUILD_ID \"sha256:${build_hash}\"\n")
 
-add_library(spatial-protobuf STATIC ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${geometry_view_proto_sources} ${geometry_view_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${host_actor_controller_proto_sources} ${host_actor_controller_proto_headers} ${grants_proto_sources} ${grants_proto_headers}
+add_library(spatial-protobuf STATIC ${control_profile_proto_sources} ${control_profile_proto_headers} ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${geometry_view_proto_sources} ${geometry_view_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${host_actor_controller_proto_sources} ${host_actor_controller_proto_headers} ${grants_proto_sources} ${grants_proto_headers}
     ${presentation_interface_proto_cc} ${presentation_interface_proto_h} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
@@ -547,11 +548,11 @@ target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-pres
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
 target_link_libraries(spatial-storage-broker-launch-probe PRIVATE spatial-core)
 add_dependencies(spatial-storage-broker-launch-probe broker-python-protobuf)
-add_executable(spatialwm src/render/presentation_server.cpp src/render/presentation_inputs.cpp src/x11/compositor_connection.cpp src/render/main.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
+add_executable(spatialwm src/render/presentation_server.cpp src/render/presentation_inputs.cpp src/x11/compositor_connection.cpp src/render/main.cpp src/render/renderer.cpp src/render/controls_overlay.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
 target_link_options(spatialwm PRIVATE "LINKER:--export-dynamic-symbol=xcb_connect_to_display_with_auth_info")
 target_link_libraries(spatialwm PRIVATE spatial-presentation-stream spatial-compositor-config PkgConfig::XCB ${CMAKE_DL_LIBS} spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
 add_executable(spatial-presentation-probe src/testing/presentation_probe.cpp ${presentation_probe_sources}
-    src/render/presentation_inputs.cpp src/x11/compositor_connection.cpp src/render/renderer.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
+    src/render/presentation_inputs.cpp src/x11/compositor_connection.cpp src/render/renderer.cpp src/render/controls_overlay.cpp src/x11/surfaces.cpp src/x11/input_router.cpp)
 target_link_options(spatial-presentation-probe PRIVATE "LINKER:--export-dynamic-symbol=xcb_connect_to_display_with_auth_info")
 target_link_libraries(spatial-presentation-probe PRIVATE spatial-compositor-config PkgConfig::XCB ${CMAKE_DL_LIBS} spatial-native-input X11::X11 X11::Xcomposite X11::Xdamage OpenGL::GL GLEW::GLEW)
 add_dependencies(spatial-presentation-probe presentation-probe-python)
@@ -560,7 +561,7 @@ target_link_libraries(spatial-actor-session-client PUBLIC spatial-scene spatial-
 add_library(spatial-actor-control STATIC src/control/actor_control.cpp)
 target_include_directories(spatial-actor-control PUBLIC src)
 target_link_libraries(spatial-actor-control PUBLIC spatial-actor-session-client Threads::Threads)
-add_library(spatial-control-profiles STATIC src/control/profiles.cpp ${control_profile_proto_sources} ${control_profile_proto_headers})
+add_library(spatial-control-profiles STATIC src/control/profiles.cpp)
 target_include_directories(spatial-control-profiles PUBLIC src "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(spatial-control-profiles PUBLIC spatial-scene X11::X11)
 add_library(spatial-control-adapters STATIC src/control/adapters.cpp)
@@ -578,6 +579,7 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/control_pb2.py"
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1/control.proto
     DEPENDS proto/spatial/control/v1/control.proto protobuf::protoc VERBATIM)
 add_custom_target(control-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/control_pb2.py")
+add_dependencies(presentation-python-protobuf control-python-protobuf)
 add_dependencies(spatial-control-native control-python-protobuf)
 add_library(spatial-actor-transition STATIC src/world/actor_transition_coordinator.cpp)
 target_link_libraries(spatial-actor-transition PUBLIC spatial-actor-session-client spatial-protobuf)
@@ -1975,6 +1977,11 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(local-frame-lifetime PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_test(NAME controls-overlay-native COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_controls_overlay.py"
+            $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
+        set_tests_properties(controls-overlay-native PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         add_test(NAME presentation-server COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_presentation_server.py" $<TARGET_FILE:spatialwm> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(presentation-server PROPERTIES TIMEOUT 180
@@ -2177,9 +2184,11 @@ endif()
 target_link_libraries(spatial-session-broker PUBLIC spatial-authority-launch spatial-core spatial-control-admin)
 add_library(spatial-host-actor-controller STATIC src/supervisor/host_actor_controller.cpp)
 target_link_libraries(spatial-host-actor-controller PUBLIC spatial-session-broker spatial-actor-transition spatial-protobuf spatial-control-menu)
+add_library(spatial-host-actor-worker STATIC src/supervisor/host_actor_worker.cpp)
+target_link_libraries(spatial-host-actor-worker PUBLIC spatial-host-actor-controller Threads::Threads)
 add_executable(spatial-host-session src/supervisor/host_session_main.cpp ${host_session_proto_sources} ${host_session_proto_headers})
 target_include_directories(spatial-host-session PRIVATE src)
-target_link_libraries(spatial-host-session PRIVATE spatial-host-actor-controller spatial-protobuf)
+target_link_libraries(spatial-host-session PRIVATE spatial-host-actor-worker spatial-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
@@ -2356,14 +2365,25 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
     set_tests_properties(host-shared-controls-native PROPERTIES TIMEOUT 600
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME host-visible-controls-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_host_visible_controls.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
+    set_tests_properties(host-visible-controls-native PROPERTIES TIMEOUT 600
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_dependencies(spatial-host-session spatial-authority-launch-probe spatial-security-auth
         identityd spatial-issuer-client spatial-authority-supervisor worldd spatialwm workspaced
         spatial-confined-xprobe spatial-storage-broker-launch-probe session-probe-python
         spatial-process-scope-probe spatial-participant-runtime-probe
         compositor-python-protobuf geometry-native-python)
     add_executable(spatial-host-actor-controller-probe src/testing/host_actor_controller_probe.cpp)
-    target_link_libraries(spatial-host-actor-controller-probe PRIVATE spatial-host-actor-controller Threads::Threads)
+    target_link_libraries(spatial-host-actor-controller-probe PRIVATE spatial-host-actor-worker Threads::Threads)
     add_test(NAME host-actor-controller COMMAND $<TARGET_FILE:spatial-host-actor-controller-probe>)
+    add_test(NAME host-actor-worker COMMAND $<TARGET_FILE:spatial-host-actor-controller-probe> --worker-only)
+    set_tests_properties(host-actor-worker PROPERTIES TIMEOUT 60)
     add_test(NAME host-actor-shared-control COMMAND $<TARGET_FILE:spatial-host-actor-controller-probe> --shared-only)
     set_tests_properties(host-actor-shared-control PROPERTIES TIMEOUT 60)
     set_tests_properties(host-actor-controller PROPERTIES TIMEOUT 45)

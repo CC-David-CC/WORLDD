@@ -26,6 +26,8 @@ public:
     render::v1::LocalActorPresentationState select_local_actor(const render::v1::LocalActorPresentationTarget&);
     render::v1::LocalActorPresentationState retire_local_actor(const render::v1::LocalActorPresentationTarget&);
     void clear_selection();
+    core::v1::PixelExtent native_viewport() const;
+    void present_controls(std::uint64_t capture_generation,const control::v1::ControlMenuView&);
     void shutdown();
 private:
     struct Impl;std::unique_ptr<Impl> impl_;

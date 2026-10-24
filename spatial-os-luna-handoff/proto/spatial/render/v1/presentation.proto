@@ -7,6 +7,7 @@ import "process_scope.proto";
 import "native_scope.proto";
 import "geometry_view.proto";
 import "actor_local_view.proto";
+import "control.proto";
 message PresentationEmpty {}
 // Attach carries exactly two descriptors: world channel, then its retained pidfd.
 message PresentationAttach {
@@ -54,6 +55,12 @@ message LocalActorPresentationState {
   LocalActorPresentationTarget target = 1;
   bool selected = 2;
 }
+// Host preferences only. This receipt never enters actor observations.
+message HostControlsPresentation {
+  uint64 capture_generation = 1;
+  uint64 menu_sequence = 2;
+  spatial.control.v1.ControlMenuView view = 3;
+}
 message PresentationControlRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -72,6 +79,7 @@ message PresentationControlRequest {
     PresentationEmpty clear_selection = 20;
     LocalActorPresentationTarget select_local_actor = 21;
     LocalActorPresentationTarget retire_local_actor = 22;
+    HostControlsPresentation controls = 23;
   }
 }
 message PresentationControlReply {
@@ -85,6 +93,7 @@ message PresentationControlReply {
     GeometryPresentationState geometry_state = 7;
     bool selection_cleared = 8;
     LocalActorPresentationState local_actor_state = 9;
+    HostControlsPresentation controls = 10;
   }
 }
 // A channel is bound by the control owner. The world cannot choose its binding.

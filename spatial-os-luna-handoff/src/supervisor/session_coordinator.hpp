@@ -32,6 +32,8 @@ public:
         const core::v1::ActorLocalViewIdentity&, std::uint32_t width, std::uint32_t height);
     void retire_local_actor(const workspace::v1::ControlOwner&, const core::v1::ActorLocalViewIdentity&);
     void clear_presentation();
+    core::v1::PixelExtent native_viewport() const;
+    void present_controls(std::uint64_t capture_generation,const control::v1::ControlMenuView&);
     void stop_presentation();
     void recover_presentation(const workspace::v1::ControlOwner&);
     // Transfers one actor-only endpoint to the caller, which must close it. No caller FD is admitted.

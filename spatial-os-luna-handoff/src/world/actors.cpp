@@ -406,6 +406,7 @@ wire::ActorLocalViewState Actors::present_local_view(const std::string& token,
     wire::ActorLocalViewState result;*result.mutable_identity()=identity;result.set_bound(true);
     result.set_room(foreground.projection.room);*result.mutable_camera()=foreground.projection.scene.camera();
     result.mutable_viewport()->set_width(width);result.mutable_viewport()->set_height(height);
+    result.set_vertical_fov(foreground.projection.scene.config().vertical_fov());
     presenting_local_=true;
     try {
         const auto check=[&] {

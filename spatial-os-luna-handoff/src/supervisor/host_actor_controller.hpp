@@ -17,11 +17,12 @@ public:
     using ChannelFactory = ActorTransitionCoordinator::DestinationFactory;
     using PresentationInspect = std::function<render::v1::PresentationState(const workspace::v1::ControlOwner&)>;
     using PresentationSelect = std::function<render::v1::PresentationState(const workspace::v1::ControlOwner&)>;
+    using ControlsPresentation = std::function<void(std::uint64_t,const control::v1::ControlMenuView&)>;
     HostActorController(SessionCoordinator& session, std::string current_world,
                         std::unique_ptr<ActorSessionClient> current_client);
     // Explicit fixture seam. Production callers must use the SessionCoordinator constructor.
     HostActorController(PresentationInspect inspect, PresentationSelect select, std::string current_world,
-                        std::unique_ptr<ActorSessionClient> current_client);
+                        std::unique_ptr<ActorSessionClient> current_client, ControlsPresentation controls = {});
     ~HostActorController();
     HostActorController(const HostActorController&) = delete;
     HostActorController& operator=(const HostActorController&) = delete;
@@ -46,6 +47,7 @@ public:
     control::v1::ControlStatus tick_controls(std::uint64_t generation);
     control::v1::ControlStatus control_status(std::uint64_t generation) const;
     control::v1::ControlMenuView controls_menu(std::uint64_t generation) const;
+    void synchronize_controls_presentation();
     // Obtain on the owner thread before exchanges. The watchdog only requests socket shutdown.
     std::weak_ptr<const ActorSessionInterrupt> interrupt_handle(std::uint64_t generation);
     std::uint64_t generation() const;
@@ -64,6 +66,7 @@ private:
     bool retire_foreground_locked() noexcept;
     void clear_foreground_locked();
     void refresh_foreground_locked();
+    void synchronize_controls_presentation_locked();
     struct Destination { std::optional<workspace::v1::ControlOwner> owner; ChannelFactory channel; };
     SessionCoordinator* session_ = nullptr;
     std::optional<render::v1::GeometryPresentationTarget> geometry_target_;
@@ -72,6 +75,7 @@ private:
     identity::v1::HostGeometryStatus geometry_status_;
     PresentationInspect inspect_;
     PresentationSelect select_;
+    ControlsPresentation present_controls_;
     mutable std::mutex mutex_;
     std::map<std::string, Destination> destinations_;
     std::string current_world_;
@@ -86,5 +90,7 @@ private:
     std::unique_ptr<control::ActorControl> controls_;
     std::unique_ptr<control::DeviceAdapters> adapters_;
     std::unique_ptr<control::ControlsMenu> controls_menu_;
+    std::string presented_menu_;
+    std::uint64_t presented_menu_generation_ = 0;
 };
 }

@@ -20,6 +20,11 @@ class LocalForegroundTests(baseline.SessionApplicationTests):
     shared_presentation = True
     native_screen_geometry = '256x256x24'
 
+    def config_file(self, name, value):
+        if isinstance(value, core.RuntimeConfig):
+            self.expected_vertical_fov = value.render.vertical_fov
+        return super().config_file(name, value)
+
     def workspace_grant_roots(self):
         scope = grants.Scope(domain=grants.Domain(kind=grants.WORKSPACE, id=baseline.WORKSPACE))
         rights = [r for r in baseline.RIGHTS if r not in (grants.APPLICATION_OBSERVE, grants.APPLICATION_CONTROL)]
@@ -83,6 +88,8 @@ class LocalForegroundTests(baseline.SessionApplicationTests):
         self.assertTrue(reply.HasField('local_frame'), reply)
         self.assertTrue(reply.local_frame.bound and reply.local_frame.presented)
         self.assertEqual(reply.local_frame.identity, self.local_identity)
+        self.assertGreater(reply.local_frame.vertical_fov, 0)
+        self.assertAlmostEqual(reply.local_frame.vertical_fov, self.expected_vertical_fov)
         self.assertEqual(self.pixel(), color[0] << 16 | color[1] << 8 | color[2])
         return reply.local_frame
 

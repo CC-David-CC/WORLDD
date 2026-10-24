@@ -2,6 +2,7 @@
 #include "actor_transition_coordinator_probe.cpp"
 #undef main
 #include "supervisor/host_actor_controller.hpp"
+#include "supervisor/host_actor_worker.hpp"
 #include <sys/un.h>
 #include <future>
 #include <signal.h>
@@ -305,12 +306,13 @@ void aba_and_concurrency() {
 }
 
 std::unique_ptr<supervisor::HostActorController> shared_host(Endpoint& source, const Fixture& fixture,
-    control::ControlsMenu::Persist persist = [](const auto&) {}) {
+    control::ControlsMenu::Persist persist = [](const auto&) {},
+    supervisor::HostActorController::ControlsPresentation controls = {}) {
     source.client->authenticate();
     auto result = std::make_unique<supervisor::HostActorController>(
         [](const auto&) { return presentation("world-b", render::v1::ATTACHED); },
         [](const auto&) { return presentation("world-b", render::v1::READY, true); },
-        fixture.world, std::move(source.client));
+        fixture.world, std::move(source.client),std::move(controls));
     result->start_controls(control::default_profiles(), std::move(persist));
     return result;
 }
@@ -439,9 +441,216 @@ void shared_transition_context(bool denied) {
 
 }
 
+namespace {
+control::v1::CapturedDeviceEvent worker_packet(const supervisor::HostActorWorker::Binding& binding,
+                                             std::uint64_t sequence, bool connected = false) {
+    control::v1::CapturedDeviceEvent packet;
+    packet.set_protocol_version(1);packet.set_capture_generation(binding->capture_generation);
+    packet.set_packet_sequence(sequence);packet.set_monotonic_nanoseconds(static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()));
+    auto* event=packet.mutable_event();event->set_protocol_version(1);event->set_source_id("worker-keyboard");
+    event->set_source_generation(1);event->set_event_sequence(sequence);
+    if(connected)event->mutable_connected()->set_kind(control::v1::KEYBOARD);
+    else event->mutable_heartbeat();
+    return packet;
+}
+void worker_serializes_concurrent_callers() {
+    Fixture fixture; Endpoint source(fixture);
+    source.start([&](int fd) {
+        handshake(fd, fixture);
+        for(unsigned i=0;i<16;++i)controlled_accept(fd,3+i,1+i,core::v1::ActorActionRequest::kStop);
+        closed(fd);
+    });
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);
+        std::vector<std::future<bool>> replies;
+        for(unsigned i=0;i<16;++i)replies.push_back(std::async(std::launch::async,[&] {
+            return worker.call([&] {return host->propose(0,shared_stop()).accepted();});
+        }));
+        for(auto& reply:replies)check(reply.get(),"Concurrent queued proposal was refused");
+    }
+    host.reset();source.finish();
+}
+void worker_queue_bound_and_overflow_cancellation() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);
+        controlled_accept(fd,4,2,core::v1::ActorActionRequest::kStop);closed(fd);
+    });
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);
+        const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        check(worker.post_device(binding,worker_packet(binding,1,true)),"Current capture did not connect");
+        worker.call([] {});
+        std::promise<void> started,release,second_started,second_release;
+        auto gate=release.get_future().share(),second_gate=second_release.get_future().share();
+        auto blocked=worker.submit([&] {started.set_value();gate.wait();});
+        started.get_future().wait();
+        auto following=worker.submit([&] {second_started.set_value();second_gate.wait();});
+        for(unsigned i=0;i<127;++i)check(worker.post_device(binding,worker_packet(binding,2+i)),"Queue refused before its documented bound");
+        check(!worker.post_device(binding,worker_packet(binding,129)),"Queue exceeded its documented bound");
+        release.set_value();blocked.get();
+        auto second_ready=second_started.get_future();
+        if(second_ready.wait_for(2s)!=std::future_status::ready) {
+            second_release.set_value();following.get();throw std::runtime_error("Bound cancellation did not reach its following operation");
+        }
+        (void)following.wait_for(450ms);
+        const bool interrupted=pin->requested();
+        second_release.set_value();following.get();
+        check(binding->retired() && !interrupted,"Retired queued input interrupted a later healthy actor operation");
+        check(worker.call([&] {return host->propose(0,shared_stop()).accepted();}),"Overflow cancellation destroyed ordinary actor authority");
+    }
+    host.reset();source.finish();
+}
+void worker_retired_receiver_cannot_cancel_or_interrupt_adopted_context() {
+    Fixture a,b;a.world="world-a";b.world="world-b";
+    Endpoint source(a,2s),destination(b,2s);
+    source.start([&](int fd) {
+        handshake(fd,a);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);state(fd,a,4);
+        controlled_accept(fd,5,3,core::v1::ActorActionRequest::kStop);closed(fd);
+    });
+    destination.start([&](int fd) {
+        handshake(fd,b,true,false,[&](auto& reply) {reply.clear_prepared();reply.mutable_error()->set_code(core::v1::FORBIDDEN);});
+        closed(fd);
+    });
+    auto host=shared_host(source,a);
+    host->register_remote_world(b.world,[&] {return std::move(destination.client);});
+    {
+        supervisor::HostActorWorker worker(*host);
+        const auto old=worker.capture_binding();
+        auto request=request_for(a);request.clear_departure_sequence();
+        const auto transition=worker.call([&] {return host->transition_proposed(0,request);});
+        check(transition.actor_control_available(),"Denied destination lost its retained source");
+        const auto adopted=worker.capture_binding();const auto pin=adopted->interrupt.lock();
+        check(old!=adopted && old->retired() && adopted->actor_generation==1 &&
+            adopted->capture_generation>old->capture_generation,"Worker did not publish its adopted capture epoch");
+        std::promise<void> started,release;auto gate=release.get_future().share();
+        auto blocked=std::async(std::launch::async,[&] {worker.call([&] {started.set_value();gate.wait();});});
+        started.get_future().wait();
+        bool rejected=true;
+        for(unsigned i=0;i<129;++i)rejected=!worker.post_device(old,worker_packet(old,1+i))&&rejected;
+        rejected=!worker.request_cancel(old)&&rejected;
+        auto stale_rpc=worker.submit([] {return true;},old);
+        (void)blocked.wait_for(450ms);
+        const bool interrupted=pin->requested();
+        release.set_value();blocked.get();check(stale_rpc.get(),"Stale urgency test did not finish its harmless queued operation");
+        check(rejected && !interrupted,"Retired capture affected the adopted actor or its watchdog");
+        check(worker.call([&] {return host->propose(1,shared_stop()).accepted();}),"Adopted actor was closed by old receiver traffic");
+    }
+    host.reset();source.finish();destination.finish();
+}
+void worker_malformed_current_capture_retires_before_more_delivery() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd) {
+        handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);
+    });
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();
+        // A heartbeat cannot precede the source's Connected event.
+        check(worker.post_device(binding,worker_packet(binding,1)),"Current packet did not reach semantic validation");
+        worker.call([] {}); // Bound cancellation and its checked reply precede this barrier.
+        check(binding->retired(),"Malformed current capture remained active");
+        check(!worker.post_device(binding,worker_packet(binding,2)),"Retired malformed source delivered more input");
+        bool rejected=false;
+        try {worker.call([&] {return worker.device_event(binding,worker_packet(binding,2,true));});}
+        catch(const std::invalid_argument&) {rejected=true;}
+        check(rejected,"Synchronous human RPC bypassed retired capture fencing");
+        check(host->control_available(),"Checked capture cancellation destroyed ordinary actor authority");
+    }
+    host.reset();source.finish();
+}
+void worker_queue_empty_cancellation_has_its_own_watchdog_urgency() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd) {
+        handshake(fd,fixture);const auto request=receive(fd,pb::WorldSessionRequest::kControlAction,3);
+        check(request.control_action().has_stop(),"Capture failure did not use ordinary actor cancellation");
+        closed(fd); // Deliberately withhold the Stop reply.
+    });
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        const auto start=std::chrono::steady_clock::now();
+        check(worker.request_cancel(binding),"Current empty-queue cancellation was refused");
+        source.finish(); // EOF must arrive while the worker and controller still exist.
+        const auto elapsed=std::chrono::steady_clock::now()-start;
+        check(elapsed>=300ms && elapsed<1500ms && pin->requested(),"Cancellation flight lacked its own watchdog urgency");
+        check(!worker.call([&] {return host->control_available();}),"Uncertain cancellation left actor control available");
+    }
+    host.reset();
+}
+void worker_presentation_receipt_cannot_publish_after_actor_interruption() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd) {
+        handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);
+    });
+    std::promise<void> presenting;
+    auto host=shared_host(source,fixture,[](const auto&) {},[&](auto,const auto& view) {
+        if(view.visible()) {presenting.set_value();std::this_thread::sleep_for(500ms);}
+    });
+    {
+        supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        check(worker.post_device(binding,worker_packet(binding,1,true)),"Publication test capture did not connect");
+        worker.call([] {});
+        auto opening=worker.submit([&] {
+            auto packet=worker_packet(binding,2);packet.mutable_event()->mutable_key()->set_keysym("F10");
+            packet.mutable_event()->mutable_key()->set_pressed(true);
+            return worker.device_event(binding,packet).menu_open();
+        },binding);
+        check(presenting.get_future().wait_for(1s)==std::future_status::ready,"Menu publication did not reach its real host callback");
+        source.finish(); // Exact actor EOF occurs during the blocked presentation receipt.
+        bool rejected=false;
+        try {(void)opening.get();}catch(const std::exception&) {rejected=true;}
+        check(rejected && pin->requested(),"A healthy result escaped after actor interruption during presentation");
+        check(!worker.call([&] {return host->control_available();}),"Interrupted presentation retained healthy actor status");
+    }
+    host.reset();
+}
+void worker_watchdog_interrupts_without_actor_locks() {
+    Fixture fixture; Endpoint source(fixture,2s);
+    std::promise<void> waiting;
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        const auto request=receive(fd,pb::WorldSessionRequest::kControlAction,3);
+        check(request.control_action().has_stop() && request.control_action().seq()==1,"Watchdog test changed the ordinary actor request");
+        waiting.set_value();closed(fd); // No reply. The exact transport must be interrupted.
+    });
+    auto host=shared_host(source,fixture);const auto pin=host->interrupt_handle(0).lock();
+    {
+        supervisor::HostActorWorker worker(*host);
+        const auto start=std::chrono::steady_clock::now();
+        auto result=std::async(std::launch::async,[&] {
+            try {worker.call([&] {return host->propose(0,shared_stop());},worker.capture_binding(),true);return false;}
+            catch(const std::exception&) {return true;}
+        });
+        waiting.get_future().wait();
+        check(result.wait_for(2s)==std::future_status::ready && result.get(),"Watchdog did not interrupt blocked actor work");
+        const auto elapsed=std::chrono::steady_clock::now()-start;
+        check(elapsed>=300ms && elapsed<2s && pin->requested(),"Watchdog bypassed its exact-session deadline");
+        check(!host->control_available(),"Uncertain interrupted actor remained available");
+        // Confirm peer EOF while the worker and controller still exist.
+        source.finish();
+    }
+    host.reset();
+}
+}
+
 int main(int argc, char** argv) {
     signal(SIGPIPE, SIG_IGN);
     try {
+        if(argc==2 && std::string(argv[1])=="--worker-only") {
+            worker_serializes_concurrent_callers();std::cout<<"PASS worker-serializes-concurrent-callers\n";
+            worker_queue_bound_and_overflow_cancellation();std::cout<<"PASS worker-bounded-queue-overflow-and-retired-input-urgency\n";
+            worker_retired_receiver_cannot_cancel_or_interrupt_adopted_context();std::cout<<"PASS worker-retired-receiver-cannot-affect-adopted-context\n";
+            worker_malformed_current_capture_retires_before_more_delivery();std::cout<<"PASS worker-malformed-current-capture-retires-and-cancels\n";
+            worker_queue_empty_cancellation_has_its_own_watchdog_urgency();std::cout<<"PASS worker-queue-empty-cancellation-watchdog\n";
+            worker_presentation_receipt_cannot_publish_after_actor_interruption();std::cout<<"PASS worker-presentation-receipt-interruption-barrier\n";
+            worker_watchdog_interrupts_without_actor_locks();std::cout<<"PASS worker-exact-session-watchdog-without-actor-locks\n";
+            return 0;
+        }
         if (argc == 2 && std::string(argv[1]) == "--shared-only") {
             shared_proposals_and_denial(); std::cout << "PASS shared-proposals-sequences-checked-denial-and-legacy-refusal\n";
             shared_durable_errors_remain_terminal(); std::cout << "PASS shared-durable-errors-terminal\n";
