@@ -136,3 +136,31 @@ External plan: observation-watch-transfer-retirement-plan-53.json.
 Verified original collection: observation-watch-original-collection-55.json.
 Per-host logs: evidence/HOST/observation-watch-transfer-retirement-53.stdout and .stderr.
 No extracted runtime, failure evidence, source checkout, or qualified M09 dependency was deleted.
+
+Native frame lifetime58 duplicate transfer retirement
+Both hosts removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frame-lifetime-58.tar.gz
+Retained builder archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frame-lifetime-58/payload.tar.gz
+Retained host payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frame-lifetime-58/payload
+Archive SHA256: d137d649a865e9b2fc7210a166f1062f1a816059142894ec3a1654f91012973b.
+Manifest SHA256: a822290da2bb913029fd842cb6b77ed275dbb2f7cbed06765c35e982ddd54a89.
+Removal followed full payload verification and root process/mount reference checks.
+sb16 measured recovered free bytes: 135622656.
+sb16-2 measured recovered free bytes: 135634944.
+External plan: local-frame-lifetime-transfer-retirement-plan-58.json.
+Collection: local-frame-lifetime-collection-60.json.
+
+Superseded native frame payload47 retirement: run61.
+Both hosts removed: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/payload
+Replacement payload: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frame-lifetime-58/payload
+Retained old archive: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/payload.tar.gz on middle-child.
+Retained old manifest: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frames-47/manifest.json on each host.
+The old archive SHA256 remains a2d0b65f4c06544568821d195fb1e08dca5be9805248c801b42ca35896fc1f9e.
+Replacement58 passed every predecessor suite and new lifecycle checks on both hosts and profiles.
+All command and wrapper receipts are zero. Exact old and new payload inventories were checked.
+Root process, mapped-file, descriptor, working-directory, mount, and loop scans found no old payload references.
+The remover checked host identity, filesystem UUID, ownership, and the pinned directory before fd-safe removal.
+All logs, manifests, source checkouts, observation53, replacement58, and qualified M09 dependencies remain preserved.
+sb16 measured recovered free bytes: 664104960.
+sb16-2 measured recovered free bytes: 664080384.
+External plan: superseded-local-frame-payload-cleanup-plan-61.json.
+External results: superseded-local-frame-cleanup-results-61.json.

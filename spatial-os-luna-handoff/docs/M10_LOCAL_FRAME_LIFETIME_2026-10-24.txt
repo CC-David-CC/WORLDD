@@ -71,3 +71,13 @@ This boundary does not qualify combined actor authority or persistent foreground
 World/host integration, held navigation, visible controls, capture routing, and three-actor workflows remain pending.
 The complete frozen M10 gate and generated-binding reproducibility remain UNRUN.
 M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
+Fleet retention and superseded payload cleanup
+The checked package, manifest, source inputs, review, terminal audit, and checkpoint are retained on r730:
+/mnt/data10tb/spatial-desktop/packages/current/m10-ff2c3285-local-frame-lifetime-20261024-unqualified
+Every copied file matches its recorded bytes and hash. The mounted filesystem UUID and project marker were checked.
+External receipt: fleet-local-frame-lifetime-62.json. Command and wrapper receipts are zero.
+After replacement58 passed, both hosts removed only the superseded local-frames-47/payload tree.
+The predecessor archive remains checked on middle-child. Its manifests and failure evidence remain preserved.
+Exact cleanup paths and measured recovered space are recorded in ../../docs/M10_TEST_HOST_STORAGE_CLEANUP_2026-10-24.txt.
+No M09 dependency or active replacement payload was removed.
