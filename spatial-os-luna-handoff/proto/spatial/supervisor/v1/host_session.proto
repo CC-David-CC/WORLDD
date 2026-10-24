@@ -5,6 +5,7 @@ import "launch.proto";
 import "host_actor_controller.proto";
 import "world_session.proto";
 import "core.proto";
+import "control.proto";
 
 // Trusted parent input. Descriptor numbers refer to inherited descriptors.
 message HostSessionConfig {
@@ -20,6 +21,8 @@ message HostSessionConfig {
   string initial_actor_tls_config = 10;
   repeated HostWorld worlds = 11;
   repeated HostRemoteWorld remote_worlds = 12;
+  bool shared_actor_controls = 13;
+  string controls_preferences_path = 14;
 }
 message HostRemoteWorld {
   string world_id = 1;
@@ -42,6 +45,12 @@ message HostControlRequest {
     spatial.core.v1.ActorActionRequest action = 11;
     spatial.identity.v1.HostActorTransitionRequest transition = 12;
     bool geometry_status = 13;
+    spatial.core.v1.ActorActionRequest propose = 14;
+    bool controls_status = 15;
+    spatial.control.v1.CapturedDeviceEvent captured_device = 16;
+    bool controls_menu = 17;
+    bool controls_tick = 18;
+    spatial.identity.v1.HostActorTransitionRequest transition_proposal = 19;
   }
 }
 message HostControlReply {
@@ -55,4 +64,7 @@ message HostControlReply {
   spatial.identity.v1.WorldSessionReply action = 8;
   bool cleanup_complete = 9;
   spatial.identity.v1.HostGeometryStatus geometry_status = 10;
+  spatial.core.v1.ActorActionReply proposed = 11;
+  spatial.control.v1.ControlStatus controls = 12;
+  spatial.control.v1.ControlMenuView menu = 13;
 }

@@ -2104,6 +2104,7 @@ target_link_libraries(spatial-host-session PRIVATE spatial-host-actor-controller
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
@@ -2112,13 +2113,13 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.p
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1/host_session.proto
-    DEPENDS proto/spatial/supervisor/v1/host_session.proto proto/spatial/supervisor/v1/launch.proto
+    DEPENDS proto/spatial/control/v1/control.proto proto/spatial/supervisor/v1/host_session.proto proto/spatial/supervisor/v1/launch.proto
         proto/spatial/identity/v1/host_actor_controller.proto proto/spatial/identity/v1/actor_transition.proto
         proto/spatial/identity/v1/actor_session_client.proto proto/spatial/identity/v1/issuer.proto
         proto/spatial/identity/v1/world_session.proto
         proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
 add_custom_target(host-session-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/host_session_pb2.py")
-add_dependencies(host-session-python-protobuf file-actions-python-protobuf)
+add_dependencies(host-session-python-protobuf file-actions-python-protobuf control-python-protobuf)
 add_dependencies(spatial-host-session provision-storage-python-bindings host-session-python-protobuf actor-session-client-python-protobuf launch-python-protobuf scope-python-protobuf
     native-scope-python-protobuf broker-python-protobuf storage-python-protobuf key-python-protobuf
     issuer-python-protobuf world-session-python-protobuf grants-python-protobuf python-protobuf security-python-protobuf)
@@ -2142,11 +2143,14 @@ add_custom_target(host-actor-python-protobuf DEPENDS
         "${CMAKE_CURRENT_BINARY_DIR}/python/host_actor_controller_pb2.py"
         "${CMAKE_CURRENT_BINARY_DIR}/python/actor_transition_pb2.py")
 add_dependencies(host-actor-python-protobuf file-actions-python-protobuf)
+add_dependencies(host-session-python-protobuf host-actor-python-protobuf
+    world-session-python-protobuf launch-python-protobuf)
 add_dependencies(spatial-host-session host-actor-python-protobuf)
 if(BUILD_TESTING)
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_native_pb2.py"
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto
+            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
@@ -2156,7 +2160,8 @@ if(BUILD_TESTING)
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
             ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/geometry_native.proto
-        DEPENDS tests/proto/geometry_native.proto proto/spatial/supervisor/v1/host_session.proto proto/spatial/workspace/v1/file_actions.proto
+        DEPENDS tests/proto/geometry_native.proto proto/spatial/supervisor/v1/host_session.proto
+            proto/spatial/control/v1/control.proto proto/spatial/workspace/v1/file_actions.proto
             protobuf::protoc VERBATIM)
     add_custom_target(geometry-native-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_native_pb2.py")
     add_dependencies(geometry-native-python file-actions-python-protobuf)
@@ -2243,7 +2248,8 @@ if(BUILD_TESTING)
         compositor-python-protobuf
         spatial-authority-launch-probe spatial-security-auth identityd spatial-issuer-client
         spatial-authority-supervisor worldd spatialwm workspaced spatial-confined-xprobe
-        spatial-storage-broker-launch-probe session-probe-python)
+        spatial-storage-broker-launch-probe spatial-process-scope-probe spatial-participant-runtime-probe
+        session-probe-python)
     add_test(NAME host-actor-controller-native COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} --
@@ -2262,8 +2268,20 @@ if(BUILD_TESTING)
     set_tests_properties(host-session-production-native PROPERTIES
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     set_tests_properties(host-session-production-native PROPERTIES TIMEOUT 1200)
+    add_test(NAME host-shared-controls-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_host_shared_controls.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
+    set_tests_properties(host-shared-controls-native PROPERTIES TIMEOUT 600
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_dependencies(spatial-host-session spatial-authority-launch-probe spatial-security-auth
-        identityd spatial-issuer-client spatial-authority-supervisor worldd spatialwm workspaced)
+        identityd spatial-issuer-client spatial-authority-supervisor worldd spatialwm workspaced
+        spatial-confined-xprobe spatial-storage-broker-launch-probe session-probe-python
+        spatial-process-scope-probe spatial-participant-runtime-probe
+        compositor-python-protobuf geometry-native-python)
     add_executable(spatial-host-actor-controller-probe src/testing/host_actor_controller_probe.cpp)
     target_link_libraries(spatial-host-actor-controller-probe PRIVATE spatial-host-actor-controller Threads::Threads)
     add_test(NAME host-actor-controller COMMAND $<TARGET_FILE:spatial-host-actor-controller-probe>)

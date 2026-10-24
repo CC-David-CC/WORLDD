@@ -131,6 +131,18 @@ void check_descriptor_aliases(int config_fd,int control_fd,const spatial::superv
         identities.push_back(current);
     }
 }
+control::v1::ControlProfiles host_controls(const std::string& configured) {
+    const std::filesystem::path path(configured);
+    need(path.is_absolute() && !path.filename().empty() && std::filesystem::canonical(path.parent_path()) == path.parent_path(),
+         "Control preference location must be absolute and canonical");
+    struct stat parent{};
+    need(lstat(path.parent_path().c_str(), &parent) == 0 && S_ISDIR(parent.st_mode) && parent.st_uid == geteuid() &&
+         (parent.st_mode & 0777) == 0700, "Control preference directory must be private and owned");
+    struct stat file{};
+    if (lstat(path.c_str(), &file) == 0) return control::load_profiles(path);
+    need(errno == ENOENT, "Cannot inspect control preferences");
+    return control::default_profiles();
+}
 void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
     spatial::validate_message(c);
     need(c.protocol_version()==1 && c.has_broker() && c.worlds_size()>=1 && c.worlds_size()<=16,"Unsupported or incomplete host configuration");
@@ -160,6 +172,8 @@ void validate_config(const spatial::supervisor::v1::HostSessionConfig& c) {
     }
     need(worlds.contains(c.initial_world_id()) && std::filesystem::path(c.initial_actor_tls_config()).is_absolute(),"Initial actor world is not configured");
     validate_actor_profile(c.initial_actor_tls_config(),c.initial_world_id());
+    if (c.shared_actor_controls()) (void)host_controls(c.controls_preferences_path());
+    else need(c.controls_preferences_path().empty(), "Control preferences require shared actor controls");
 }
 }
 
@@ -203,6 +217,10 @@ int main(int argc,char** argv) {
         need(client->expected_world()==config.initial_world_id(),"Initial actor TLS profile names another world");
         client->authenticate();
         controller=std::make_unique<HostActorController>(*session,config.initial_world_id(),std::move(client));
+        if (config.shared_actor_controls()) {
+            const auto path = config.controls_preferences_path();
+            controller->start_controls(host_controls(path), [path](const auto& profiles) { control::save_profiles(path, profiles); });
+        }
         for(const auto& world:config.worlds()) {
             const auto id=world.world_id(); const auto path=world.actor_tls_config();
             controller->register_world(id,by_world.at(id),[path]{ return std::make_unique<spatial::ActorSessionClient>(path); });
@@ -213,9 +231,17 @@ int main(int argc,char** argv) {
         }
         controller->start_geometry_presentation();
         std::uint64_t last_id=0;
+        auto next_controls_tick = std::chrono::steady_clock::now();
         while(!stopped) {
+            if (config.shared_actor_controls() && std::chrono::steady_clock::now() >= next_controls_tick) {
+                if (controller->control_available()) {
+                    try { (void)controller->tick_controls(controller->generation()); }
+                    catch (const std::exception&) { std::cerr << "Actor controls unavailable after a checked operation failure\n"; }
+                }
+                next_controls_tick = std::chrono::steady_clock::now() + std::chrono::milliseconds(16);
+            }
             pollfd foreground{control,POLLIN,0};
-            const int foreground_ready=poll(&foreground,1,100);
+            const int foreground_ready=poll(&foreground,1,config.shared_actor_controls() ? 16 : 100);
             if(foreground_ready<0 && errno==EINTR)continue;
             need(foreground_ready>=0,"Host foreground poll failed");
             if(foreground_ready==0) { controller->pump_geometry_presentation(); continue; }
@@ -230,11 +256,18 @@ int main(int argc,char** argv) {
                     if(request.has_inspect()) { auto result=controller->inspect(request.generation()); *reply.mutable_inspection()=result; reply.set_accepted(true); }
                     else if(request.has_geometry_status()) { *reply.mutable_geometry_status()=controller->geometry_status(request.generation()); reply.set_accepted(true); }
                     else if(request.has_action()) { auto result=controller->action(request.generation(),request.action()); *reply.mutable_action()=result; reply.set_accepted(true); }
-                    else {
+                    else if(request.has_propose()) { *reply.mutable_proposed()=controller->propose(request.generation(),request.propose()); reply.set_accepted(true); }
+                    else if(request.has_controls_status()) { *reply.mutable_controls()=controller->control_status(request.generation()); reply.set_accepted(true); }
+                    else if(request.has_captured_device()) { *reply.mutable_controls()=controller->device_event(request.generation(),request.captured_device()); reply.set_accepted(true); }
+                    else if(request.has_controls_menu()) { *reply.mutable_menu()=controller->controls_menu(request.generation()); reply.set_accepted(true); }
+                    else if(request.has_controls_tick()) { *reply.mutable_controls()=controller->tick_controls(request.generation()); reply.set_accepted(true); }
+                    else if(request.has_transition() || request.has_transition_proposal()) {
                         need(request.generation()==controller->generation(),"Stale host actor generation");
-                        auto result=controller->transition(request.transition()); *reply.mutable_transition()=result;
+                        auto result=request.has_transition_proposal() ? controller->transition_proposed(request.generation(),request.transition_proposal()) :
+                                                                      controller->transition(request.transition());
+                        *reply.mutable_transition()=result;
                         reply.set_generation(controller->generation()); reply.set_accepted(result.actor_control_available()); reply.set_detail(result.detail());
-                    }
+                    } else throw std::invalid_argument("Unsupported host control operation");
                 } catch(const std::exception& e) { reply.set_detail(e.what()); }
             }
             write_reply(control,reply,deadline);

@@ -330,7 +330,10 @@ void HostActorController::create_controls_locked(const control::v1::ControlProfi
                 require(generation == generation_ && current_client_ && !control_fenced_, "Retired actor inspection callback");
                 return current_client_->inspect();
             }, [this, generation] {
-                if (generation == generation_) { control_fenced_ = true; current_client_.reset(); }
+                if (generation == generation_) {
+                    control_fenced_ = true; current_client_.reset();
+                    if (session_) clear_foreground_locked();
+                }
             }, initial_sequence);
         adapters_ = std::make_unique<control::DeviceAdapters>(*controls_, profiles);
         controls_menu_ = std::make_unique<control::ControlsMenu>(*adapters_, persist_controls_);
@@ -378,6 +381,9 @@ control::v1::ControlStatus HostActorController::control_status(std::uint64_t gen
 control::v1::ControlMenuView HostActorController::controls_menu(std::uint64_t generation) const {
     std::lock_guard lock(mutex_);
     require(shared_enabled_ && controls_menu_ && generation == generation_, "Stale or missing controls menu");
+    if (control_fenced_ || !current_client_ || current_client_->failed()) {
+        control::v1::ControlMenuView hidden; hidden.set_protocol_version(1); return hidden;
+    }
     return controls_menu_->view();
 }
 control::v1::ControlStatus HostActorController::device_event(std::uint64_t generation,

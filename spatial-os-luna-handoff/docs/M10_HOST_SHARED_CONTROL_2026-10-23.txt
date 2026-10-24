@@ -21,7 +21,8 @@ ControlStatus adds capture_generation at field 10. Existing fields and versions 
 Captured events must match that trusted epoch and carry fresh ordered source and packet sequences.
 The menu uses actual capture age for calibration samples, including after delayed delivery.
 The trusted host may inspect menu state. This does not select another actor's physical foreground.
-Compositor capture routing, menu drawing, local application foreground, and host startup wiring remain pending.
+Compositor capture routing, menu drawing, and local application foreground remain pending.
+The next startup checkpoint is recorded in M10_HOST_STARTUP_CONTROLS_2026-10-24.txt.
 The legacy host API remains available when shared controls are not enabled.
 
 Selected checks before execution

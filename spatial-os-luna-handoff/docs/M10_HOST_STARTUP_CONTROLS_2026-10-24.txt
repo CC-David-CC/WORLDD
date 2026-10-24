@@ -1,0 +1,80 @@
+M10 shared controls at the production host entrypoint
+Status: IMPLEMENTING. UNQUALIFIED_M10.
+
+HostSessionConfig adds shared_actor_controls at field 13 and controls_preferences_path at field 14.
+The trusted sealed startup configuration enables shared controls explicitly. The default preserves legacy behavior.
+Preferences require an absolute canonical parent directory, owned by the runtime user, with mode 0700.
+Only a missing file selects the defaults. Invalid existing preferences fail startup.
+Existing files retain the bounded, no-link, private-file validation in load_profiles.
+Saving uses the existing atomic private-file operation. Preferences grant no authority.
+
+HostControlRequest adds propose, controls_status, captured_device, controls_menu, controls_tick, and transition_proposal at fields 14-19.
+HostControlReply adds proposed, controls, and menu at fields 11-13.
+This private kernel-peer-checked parent channel remains bound to one host actor context.
+It grants no agent access to host administration or physical foreground selection.
+Shared proposals cannot choose actor tokens or sequences. Transition proposals cannot choose departure sequences.
+Captured packets must match the current capture epoch. The host ticks held input every 16 milliseconds while idle.
+A terminal actor failure requests checked foreground retirement before returning.
+The actor stays fenced if retirement remains uncertain. Owned worlds remain alive.
+Menu inspection hides retired state. Menu rendering and native device routing remain pending.
+Production-only Python generation now includes the transitive control schema.
+No locked acceptance assertion, oracle, or witness changes.
+
+Selected checks before execution
+Run four new native cases through the real host entrypoint, issuer, X server, broker, worlds, and compositor.
+Check keyboard motion, stop barriers, menu state, and private saved preferences.
+Check A-B-A with stable native services and retired capture epochs.
+Check denied destination preparation with usable source sequencing.
+Check strict durable denial blanks actual pixels and preserves owned world processes.
+Run existing host-session-production-native and host-actor-controller-native related suites.
+Run host-session-startup with BUILD_TESTING=OFF Python bindings, without skipping packaging validation.
+Use Debug and ASan/UBSan on both qualification hosts. Flush deployment writes before runtime.
+Typed injected device events do not count as physical input evidence.
+These focused cases do not qualify M10 or Spatial-M1.
+
+Focused results
+All selected checks pass on sb16 and sb16-2 in Debug and ASan/UBSan.
+Each cell includes five startup methods, 26 production-host methods, one application handoff method, and four new shared-control methods.
+The successful selected runs total 144 method completions. No skipped case or sanitizer diagnostic was accepted.
+These results prove the startup increment. They do not complete M10 or the additive milestone gate.
+The new navigation case also verifies heartbeat silence, stopped motion, retired-source rejection, and fresh-generation recovery.
+
+The runtime package uses source-inputs-26.json. The final test-only correction uses source-inputs-29.json.
+Only the new native fixture differs between those source inventories. Runtime source and binaries remain identical.
+Archive SHA256: c29cb9fb24bf523aeecdbe35393775a883c8b1fee42d84ac1ced619610241a86.
+Manifest SHA256: 14b68dd828b33c334fb5e273a7e48c2da5c71040766e8446be164c34cd9da251.
+Archive bytes: 428156260. Expanded bytes: 2102720374.
+Retained XLibre wrappers, servers, graphics libraries, and installed helpers match the accepted M09 runtime manifest.
+Production-only binding imports and the host helper argument parser pass in every cell.
+Independent generated-code reproducibility remains required at the frozen milestone gate.
+
+Failures and corrective validation
+Build23 failed because the geometry fixture generator lacked the new transitive control-schema import path.
+The corrected generators and target-only Python dependencies build successfully.
+Package25 refused before transfer because two reachable native fixture executables were missing.
+Their explicit CMake dependencies now produce both helpers during target-only builds.
+Deployment26 refused before runtime because safe extraction retained writable directory defaults.
+Reconciliation27 reverified existing bytes, froze directories, checked executable modes and libraries, then launched once.
+
+The first new fixture accidentally overrode the inherited X-client connect(cookie) method.
+Its four setup errors per cell occurred before host startup. The corrected helper preserves native fixture behavior.
+Correction28 passed three native cases per cell. Its navigation case correctly lost an unrefreshed keyboard source.
+The fixture had omitted capture heartbeats while issuing sequential inspections.
+Correction29 models living capture heartbeats and separately asserts the unchanged 350 ms silence boundary.
+No production timeout or acceptance assertion was relaxed.
+The first result parser mislabelled legacy passes when issuer timing messages interrupted unittest progress lines.
+Separate corrective audits validate unique named tests, exact terminal counts, OK, process exits, and sanitizer diagnostics.
+Original logs and failed result records remain intact.
+
+Evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Controller copies: evidence/HOST/host-startup-results-26, host-startup-results-28, and host-startup-results-29.
+Canonical runtime receipts: evidence/HOST/host-startup-run-27, host-startup-run-28, and host-startup-run-29.
+Separate original-result audits and checked writeback receipts are stored beside those directories.
+Collection manifest: host-startup-collection-30.json.
+
+Lag investigation
+Both qualification hosts are dedicated to this project.
+Investigate lag within project code, deployment orchestration, or hardware. Do not assume unrelated workloads.
+Before runtime27, checked deployment writeback took 9.72 seconds on sb16 and 20.20 seconds on sb16-2.
+Earlier deployment replay proved that our writes can delay filesystem synchronization.
+The original five-second startup timeouts remain unreproduced. Their exact cause remains unproven.

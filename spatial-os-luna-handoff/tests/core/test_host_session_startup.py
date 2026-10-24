@@ -48,9 +48,10 @@ class HostSessionStartupTests(unittest.TestCase):
         self.assertTrue((bindings / 'host_session_pb2.py').is_file())
         self.assertTrue((bindings / 'host_actor_controller_pb2.py').is_file())
         self.assertTrue((bindings / 'actor_transition_pb2.py').is_file())
+        self.assertTrue((bindings / 'control_pb2.py').is_file())
         environment = dict(os.environ, PYTHONPATH=str(bindings))
         imported = subprocess.run([sys.executable, '-c',
-            'import host_session_pb2, host_actor_controller_pb2, actor_transition_pb2'],
+            'import host_session_pb2, host_actor_controller_pb2, actor_transition_pb2, control_pb2'],
             cwd=bindings, env=environment, capture_output=True, text=True, timeout=10)
         self.assertEqual(imported.returncode, 0, imported.stderr)
         helper = Path(__file__).resolve().parents[2] / 'tools' / 'host_session_client.py'
