@@ -152,7 +152,13 @@ message AimHit { string id = 1; uint64 generation = 2; Vec2 uv = 3; Pixel pixel 
 message AimReply { AimHit hit = 1; }
 message ActorOpenRequest { string id = 1; optional string room = 2; Pose pose = 3; repeated string grants = 4; }
 message ActorTokenRequest { string token = 1; }
-message ActorInputRequest { repeated double axes = 1; }
+enum TranslationFrame { BODY_TRANSLATION = 0; LEVEL_TRANSLATION = 1; }
+// Level translation applies the deadzone before deriving the horizontal basis.
+// Angular axes always remain in the actor's body frame.
+message ActorInputRequest { repeated double axes = 1; TranslationFrame translation_frame = 2; }
+// Body-frame angular displacement in radians. This does not refresh rate input.
+// The vector magnitude must not exceed pi/2. It cannot change position.
+message ActorRelativeLookRequest { Vec3 angular_delta = 1; }
 message ActorStopRequest {}
 message ActorPointerRequest { optional uint32 button = 1; optional bool pressed = 2; }
 message ActorKeyRequest { optional string keysym = 1; optional bool pressed = 2; }
@@ -255,6 +261,7 @@ message ActorActionRequest {
     spatial.workspace.copy.v1.WorkspaceCopyRequest workspace_copy = 28;
     spatial.workspace.copy.v1.WorkspaceCopyStatusRequest workspace_copy_status = 29;
     spatial.workspace.v1.ActorCabinetRequest cabinet = 30;
+    ActorRelativeLookRequest relative_look = 31;
   }
 }
 message WorldCheckpointRequest {}
@@ -390,6 +397,7 @@ message ActorStateReply {
   optional string focus = 7;
   uint64 focus_generation = 8;
   optional string workspace = 9;
+  TranslationFrame translation_frame = 10;
 }
 message ObservedRepresentation {
   string id = 1;

@@ -1,0 +1,62 @@
+M10 SHARED ACTIONS: IMPLEMENTATION AND QUALIFICATION
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+Base documentation: 6e671b468a43725ef33c97826eb393640aa648b5.
+Qualified M09 runtime: 11f3605c70c9b4aa29dd1ec84471592bf4162a3f.
+Branch: m10/shared-actions-qualification-20261023.
+Primary checkout: /home/dflanag3/src/m10-shared-actions-20261023 on middle-child.
+External outputs: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+M09 evidence and all unrelated checkouts remain preserved.
+
+Accepted outcome
+Keyboard, mouse, SpaceMouse, and scripted agents use one production actor-action path.
+Every actor keeps an independently authenticated context and monotonically increasing sequence.
+Worldd retains authorization. Existing brokers retain filesystem, process, and application-control effects.
+Native input retains genuine actor devices and the qualified M09 release guarantees.
+The trusted foreground owner presents authorized local application textures and spatial geometry.
+Agent control cannot select another actor's display or bypass ordinary actor actions.
+Remote geometry remains unable to transport application surfaces or application input.
+
+David selected game-style controls with selectable modes and editable variations.
+Provide flight and level keyboard movement. Preserve full six-axis SpaceMouse control in both.
+Provide click-to-control, toggle, and hold-to-navigate interaction styles: six initial presets.
+Default to level movement and click-to-control.
+Default bindings: WASD translation, Space/Ctrl vertical motion, mouse look, Q/E flight roll.
+F9 controls mode switching. F10 opens controls. F12 cancels interaction and returns to navigation.
+Changes occur inside the session without restarting worlds, applications, XLibre, or spatialwm.
+Mode changes cancel held state. Fresh input is required after cancellation or device loss.
+
+Ordered increments
+1. Add bounded relative-look semantics and the shared serialized actor-control layer.
+2. Add deterministic adapters, six presets, profile validation, and external preference storage.
+3. Connect trusted physical XInput2 capture and libspnav input without feedback or direct application delivery.
+4. Integrate actor-bound local foreground presentation and the in-session controls menu.
+5. Exercise concurrent human/scripted controllers, cabinet operations, native applications, and failure recovery.
+6. Freeze the combined candidate and qualify both hosts in Debug and ASan-UBSan.
+
+Tests selected before execution
+actor-relative-look: real worldd authorization, rotation, sequence consumption, bounded values, and input expiry.
+actor-control-layer: immutable contexts, serialized ordering, validated replies, denial handling, and uncertain delivery fencing.
+actor-control-adapters: six presets, all signed axes, combined motion, level frames, binding changes, and cancellation.
+actor-control-level-motion: actual DeviceAdapters proposals enter real worldd after a pitched-camera inspection.
+Require level keyboard displacement after the authoritative deadzone. Preserve body-frame SpaceMouse displacement.
+native-control-adapters: physical-source filtering, native capture refusal, no feedback, device loss, and independent event delivery.
+local-actor-presentation: actual live textures, actor-bound foreground, current authority, stale-frame rejection, and blanking.
+shared-action-workflows: real cabinet edits, confined application interaction, three actors, and unchanged independent authority.
+Inherited M09 named methods, harness, storage scenarios, and all 151 locked acceptance cases remain mandatory.
+Run focused affected checks during implementation. Run the complete cumulative matrix at the phase gate.
+Run runtime checks only on sb16 and sb16-2. Build on middle-child or authorized ROG resources.
+Preserve failed evidence. Do not treat a compilation or a fixture-peer test as runtime qualification.
+
+Interface policy
+Keep production and acceptance transport in versioned Protocol Buffers.
+Document each additive schema migration before refreshing its lock entry.
+Preserve existing field numbers, acceptance assertions, oracles, and independent witness behavior.
+Relative look changes orientation through navigation authority. It cannot teleport an actor or refresh motion expiry.
+Device configuration never grants world, workspace, observation, control, or execution authority.
+
+Completion boundary
+M10 is pending until one frozen candidate passes its complete required matrix on both hosts.
+Physical keyboard, mouse, SpaceMouse calibration, unplug trials, and visible GPU acceptance remain M14 requirements.
+Provider integration remains M11. Real-model task acceptance remains M12. Timing and soak remain M15.
+Spatial-M1 and LOCAL_READY remain incomplete.

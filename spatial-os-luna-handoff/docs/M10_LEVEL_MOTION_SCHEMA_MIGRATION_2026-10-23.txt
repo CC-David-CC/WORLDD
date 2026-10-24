@@ -1,0 +1,41 @@
+M10 level-motion correction and additive schema migration
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+David selected both flight and level keyboard presets for comparison.
+A real DeviceAdapters proposal exposed a frame/deadzone ordering defect on sb16.
+At 60 degrees of pitch, forward keyboard input drifted vertically by 0.003852898987204617 metres in 0.2 seconds.
+The independent SpaceMouse body-translation case passed in the same run.
+Evidence remains in the external m10-shared-actions-20261023/unfixed-level-motion-run-08 directory.
+The original failed test, source pins, and executable pins remain preserved.
+
+Converting keyboard input into body axes before the authoritative deadzone changes its direction.
+The correction adds TranslationFrame and ActorInputRequest.translation_frame at field 2.
+BODY_TRANSLATION is zero and preserves every existing body-twist input.
+LEVEL_TRANSLATION applies the existing deadzone to the original normalized axes first.
+Worldd then derives the horizontal heading from the current authoritative orientation.
+Angular axes remain body-relative in both frames.
+ActorStateReply.translation_frame at field 10 reports this ephemeral input interpretation.
+No new grant, pose-setting API, privileged human operation, or persistent motion state is introduced.
+
+Level motion integrates bounded substeps with swept collision and portal handling.
+Its vertical translation depends only on the vertical axis, including while pitch or roll changes.
+An exactly vertical view derives a finite heading from the camera's right vector.
+Existing body-frame integration retains its original analytic path and subdivision policy.
+No six-axis input vector is normalized to unit length.
+
+In level presets, a fresh nonzero SpaceMouse translation takes precedence over keyboard translation.
+That translation keeps all three body-frame axes. SpaceMouse angular input remains available throughout.
+Flight presets combine keyboard and SpaceMouse contributions with the existing per-axis clamps.
+This prevents two translation frames from silently increasing the configured per-axis movement limit.
+Calibration and source expiry still apply. Physical calibration and noise trials remain M14 requirements.
+
+Only the core.proto pin and explicit migration notice change in the acceptance lock.
+Existing field numbers, all 151 acceptance assertions, codecs, oracles, and native witnesses remain unchanged.
+The old actor-state codec retains its existing projection. New production clients receive the typed frame field.
+Selected checks are actor-control-level-motion, actor-relative-look, actor-runtime, geometry, room/collision,
+authority, transitions, and native captured-input regressions in both build profiles on both hosts.
+Focused results cannot qualify M10 by themselves.
+
+The coherent component checkpoint names the accepted M09 lock as its predecessor.
+Focused artifact 09 retains the earlier intermediate metadata pin in its original manifest.
+This predecessor correction changes no schema bytes, runtime input, acceptance assertion, or fixture.

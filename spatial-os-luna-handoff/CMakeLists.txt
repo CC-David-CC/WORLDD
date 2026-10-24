@@ -14,11 +14,13 @@ find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(XCB REQUIRED IMPORTED_TARGET xcb)
+pkg_check_modules(SPNAV REQUIRED IMPORTED_TARGET spnav)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 configure_file(config/conformance.textproto runtime.textproto COPYONLY)
 set(Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1")
 list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/render/v1" "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1")
+list(APPEND Protobuf_IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1")
 protobuf_generate_cpp(presentation_probe_sources presentation_probe_headers tests/proto/presentation_probe.proto)
 protobuf_generate_cpp(presentation_proto_sources presentation_proto_headers proto/spatial/render/v1/presentation.proto)
 protobuf_generate_cpp(compositor_proto_sources compositor_proto_headers proto/spatial/render/v1/compositor_native.proto)
@@ -30,6 +32,7 @@ protobuf_generate_cpp(copy_job_journal_proto_sources copy_job_journal_proto_head
     proto/spatial/workspace/v1/file_copy_job_journal.proto)
 protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.proto proto/spatial/workspace/copy/v1/copy.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
+protobuf_generate_cpp(control_profile_proto_sources control_profile_proto_headers proto/spatial/control/v1/control.proto)
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
 protobuf_generate_cpp(selection_scope_proto_sources selection_scope_proto_headers proto/spatial/security/v1/selection_scope.proto)
 protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
@@ -547,6 +550,23 @@ target_link_libraries(spatial-presentation-probe PRIVATE spatial-compositor-conf
 add_dependencies(spatial-presentation-probe presentation-probe-python)
 add_library(spatial-actor-session-client STATIC src/world/actor_session_client.cpp)
 target_link_libraries(spatial-actor-session-client PUBLIC spatial-scene spatial-identity-tls)
+add_library(spatial-actor-control STATIC src/control/actor_control.cpp)
+target_include_directories(spatial-actor-control PUBLIC src)
+target_link_libraries(spatial-actor-control PUBLIC spatial-actor-session-client Threads::Threads)
+add_library(spatial-control-profiles STATIC src/control/profiles.cpp ${control_profile_proto_sources} ${control_profile_proto_headers})
+target_include_directories(spatial-control-profiles PUBLIC src "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(spatial-control-profiles PUBLIC spatial-scene X11::X11)
+add_library(spatial-control-adapters STATIC src/control/adapters.cpp)
+target_link_libraries(spatial-control-adapters PUBLIC spatial-actor-control spatial-control-profiles)
+add_library(spatial-control-native STATIC src/control/physical_capture.cpp src/control/spacemouse.cpp)
+target_link_libraries(spatial-control-native PUBLIC spatial-control-adapters X11::Xi PkgConfig::SPNAV)
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/control_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1"
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1/control.proto
+    DEPENDS proto/spatial/control/v1/control.proto protobuf::protoc VERBATIM)
+add_custom_target(control-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/control_pb2.py")
+add_dependencies(spatial-control-native control-python-protobuf)
 add_library(spatial-actor-transition STATIC src/world/actor_transition_coordinator.cpp)
 target_link_libraries(spatial-actor-transition PUBLIC spatial-actor-session-client spatial-protobuf)
 add_library(spatial-input-witness-protobuf STATIC ${input_witness_proto_sources} ${input_witness_proto_headers})
@@ -588,6 +608,35 @@ add_dependencies(spatial-m07-fence-runtime-fixture
 include(CTest)
 if(BUILD_TESTING)
     find_package(Python3 3.11 REQUIRED COMPONENTS Interpreter)
+    protobuf_generate_cpp(control_pose_proto_sources control_pose_proto_headers tests/proto/control_adapter_pose.proto)
+    add_executable(spatial-control-adapter-pose-probe tests/core/control_adapter_pose_probe.cpp
+        ${control_pose_proto_sources} ${control_pose_proto_headers})
+    target_link_libraries(spatial-control-adapter-pose-probe PRIVATE spatial-control-adapters)
+    set(control_pose_python_imports "--proto_path=${CMAKE_CURRENT_SOURCE_DIR}/tests/proto")
+    foreach(directory IN LISTS Protobuf_IMPORT_DIRS)
+        list(APPEND control_pose_python_imports "--proto_path=${directory}")
+    endforeach()
+    add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/control_adapter_pose_pb2.py"
+        COMMAND protobuf::protoc "--python_out=${CMAKE_CURRENT_BINARY_DIR}/python" ${control_pose_python_imports}
+            ${CMAKE_CURRENT_SOURCE_DIR}/tests/proto/control_adapter_pose.proto
+        DEPENDS tests/proto/control_adapter_pose.proto proto/spatial/core/v1/core.proto
+            proto/spatial/control/v1/control.proto protobuf::protoc VERBATIM)
+    add_custom_target(control-pose-python-protobuf DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/control_adapter_pose_pb2.py")
+    add_dependencies(control-pose-python-protobuf python-protobuf control-python-protobuf)
+    add_dependencies(spatial-control-adapter-pose-probe control-pose-python-protobuf)
+    add_test(NAME actor-control-level-motion COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_control_level_motion.py"
+        $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-control-adapter-pose-probe>)
+    set_tests_properties(actor-control-level-motion PROPERTIES TIMEOUT 60
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
+    add_executable(spatial-actor-control-check tests/core/test_actor_control.cpp)
+    target_link_libraries(spatial-actor-control-check PRIVATE spatial-actor-control)
+    add_test(NAME actor-control-layer COMMAND $<TARGET_FILE:spatial-actor-control-check>)
+    set_tests_properties(actor-control-layer PROPERTIES TIMEOUT 60)
+    add_executable(spatial-control-adapters-check tests/core/test_control_adapters.cpp)
+    target_link_libraries(spatial-control-adapters-check PRIVATE spatial-control-adapters)
+    add_test(NAME actor-control-adapters COMMAND $<TARGET_FILE:spatial-control-adapters-check>)
+    set_tests_properties(actor-control-adapters PROPERTIES TIMEOUT 60)
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_input_observer_pb2.py"
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/testing/v1
@@ -798,6 +847,10 @@ if(BUILD_TESTING)
     add_executable(spatial-actor-session-client-probe src/testing/actor_session_client_probe.cpp)
     target_link_libraries(spatial-actor-session-client-probe PRIVATE spatial-actor-session-client Threads::Threads)
     add_test(NAME actor-session-client COMMAND $<TARGET_FILE:spatial-actor-session-client-probe>)
+    add_test(NAME actor-control-client COMMAND $<TARGET_FILE:spatial-actor-session-client-probe> --controlled-input-only)
+    set_tests_properties(actor-control-client PROPERTIES TIMEOUT 30)
+    add_test(NAME actor-control-interrupt COMMAND $<TARGET_FILE:spatial-actor-session-client-probe> --interrupt-only)
+    set_tests_properties(actor-control-interrupt PROPERTIES TIMEOUT 30)
     add_test(NAME actor-geometry-client-hostile-peer
         COMMAND $<TARGET_FILE:spatial-actor-session-client-probe> --geometry-only)
     set_tests_properties(actor-geometry-client-hostile-peer PROPERTIES TIMEOUT 30)
@@ -1899,6 +1952,11 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         set_tests_properties(world-identity PROPERTIES TIMEOUT 120
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+        add_test(NAME actor-control-world COMMAND "${Python3_EXECUTABLE}" -B
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_control_world.py" $<TARGET_FILE:identityd>
+            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        set_tests_properties(actor-control-world PROPERTIES TIMEOUT 180
+            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
         add_custom_target(broker-issuer-progress-fixture DEPENDS workspaced identityd spatial-issuer-client worldd
             spatial-security-auth spatial-process-scope-probe spatial-app-init broker-python-protobuf
             world-session-python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf
@@ -1965,6 +2023,10 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actors.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:worldd>)
     set_tests_properties(actor-runtime PROPERTIES TIMEOUT 60
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME actor-relative-look COMMAND "${Python3_EXECUTABLE}" -B
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_relative_look.py" $<TARGET_FILE:worldd>)
+    set_tests_properties(actor-relative-look PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
     add_test(NAME recovery-boundaries COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_recovery.py" $<TARGET_FILE:spatial-test-host> $<TARGET_FILE:worldd>)
     set_tests_properties(recovery-boundaries PROPERTIES TIMEOUT 60

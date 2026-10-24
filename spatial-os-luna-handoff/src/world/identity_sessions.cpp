@@ -4,6 +4,7 @@
 #include "world/authority.hpp"
 #include "world/actor_tls.hpp"
 #include "world/queued_copy_status.hpp"
+#include "world/control_action.hpp"
 #include "platform/broker.hpp"
 #include "identity/issuer_client.hpp"
 #include "identity/participant_runtime.hpp"
@@ -807,7 +808,7 @@ struct IdentitySessions::Impl {
                     value->mutable_actor()->set_world_id(world.info().world_id());*value->mutable_actor()->mutable_identity()=status;
                     channel.prepared=std::move(*pending);
                 }else *reply.mutable_opened()=activate(channel,*pending,status);
-            } else if (request.has_inspect() || request.has_action() || request.has_grants() || request.has_delegate() || request.has_revoke() ||
+            } else if (request.has_inspect() || request.has_action() || request.has_control_action() || request.has_grants() || request.has_delegate() || request.has_revoke() ||
                        request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "Channel has no authenticated actor");
                 const auto actor = principal(channel.claims);
@@ -931,9 +932,25 @@ struct IdentitySessions::Impl {
                         sync_authority();
                     }
                 } else {
-                    auto action = request.action(); require(action.token().empty(), "Actor channel cannot supply a session token");
-                    action.set_token(channel.token); *reply.mutable_action() = actors.act(action);
-                    channel.needs_observation = action.has_observe() || action.has_aim();
+                    auto action = request.has_control_action() ? request.control_action() : request.action();
+                    require(action.token().empty(), "Actor channel cannot supply a session token");
+                    if (request.has_control_action()) require(actor_input::reversible(action), "Controlled input cannot perform durable or authority actions");
+                    action.set_token(channel.token);
+                    bool accepted = true;
+                    if (!request.has_control_action()) *reply.mutable_action() = actors.act(action);
+                    else {
+                        auto* outcome = reply.mutable_control_action(); outcome->set_sequence(action.seq());
+                        try { *outcome->mutable_accepted() = actors.act(action); }
+                        catch (const WorldError& error) {
+                            if (!actor_input::cancelled_rejection(error.code)) throw;
+                            actors.cancel_control(channel.token);
+                            auto* rejected = outcome->mutable_rejected();
+                            rejected->mutable_error()->set_code(error.code);
+                            rejected->mutable_error()->set_message("Input rejected; held controls cancelled");
+                            rejected->set_cancellation_confirmed(true); accepted = false;
+                        }
+                    }
+                    channel.needs_observation = accepted && (action.has_observe() || action.has_aim());
                 }
             } else throw WorldError(wire::UNKNOWN_METHOD, "No recognized world session operation");
         } catch (const CancellationFailure&) { throw;

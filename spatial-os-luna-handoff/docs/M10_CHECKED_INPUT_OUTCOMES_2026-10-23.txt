@@ -1,0 +1,32 @@
+M10 additive checked input outcomes
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+Ordinary ActorSessionClient.action keeps its existing terminal mutating-error contract.
+A matching error does not prove that no process, filesystem, or native effect occurred.
+Do not reopen, reconnect, or replay that action automatically.
+
+Interactive controls also need ordinary target denials without losing the entire actor session.
+The additive WorldSessionRequest.control_action operation reuses ActorActionRequest unchanged.
+It permits only motion, relative look, stop, aim, pointer, key, scroll, unfocus, and observation.
+Worldd authenticates the same actor and calls the same Actors.act implementation exactly once.
+Persistent object, Git, file, process, workspace, and authority actions cannot use this wrapper.
+
+Success returns ActorControlOutcome.accepted with the matching actor sequence.
+Selected target or permission denials first run the existing stop implementation.
+Worldd confirms native release and settles broker lease cancellation before replying.
+ActorInputCancelled contains a bounded error and explicit cancellation confirmation.
+This acknowledgement does not assert absence of earlier effects.
+An actor may submit a fresh action with a fresh sequence. It must never replay the rejected action.
+Authentication loss, storage errors, internal errors, malformed replies, and unconfirmed cancellation remain terminal.
+The checked client rejects changed sequences, unknown fields, wrong outcomes, false acceptance, and unsafe error codes.
+Device adapters clear cached input after a confirmed cancellation.
+
+The world-session schema adds request field 24, reply field 23, and two outcome messages.
+Existing field numbers, envelope versions, strict action behavior, acceptance assertions, and oracles remain unchanged.
+No locked acceptance source or independent witness changes for this addition.
+
+Selected tests before execution:
+actor-control-client: nine independent peer cases for correlation, confirmed cancellation, and terminal malformed outcomes.
+actor-control-layer: fresh sequence after checked cancellation, plus existing strict-error and uncertain-delivery fencing.
+actor-control-world: authenticated real-world denial, settled motion, fresh input, persistent-action refusal, and stale sequence denial.
+Related native release and authority suites remain required before integration and full qualification.

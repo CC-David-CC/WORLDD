@@ -47,6 +47,27 @@ void set_pose(wire::Pose* out, const Pose& value) {
     auto* q = out->mutable_orientation();
     q->set_x(value.q[0]); q->set_y(value.q[1]); q->set_z(value.q[2]); q->set_w(value.q[3]);
 }
+Pose integrate_level(const Pose& current, const Vec3& linear, const Vec3& angular, double seconds) {
+    auto next = integrate(current, {0, 0, 0}, angular, seconds);
+    auto middle = integrate(current, {0, 0, 0}, angular, seconds / 2);
+    middle.p = {0, 0, 0};
+    auto forward = transform_point(middle, {0, 0, -1});
+    double horizontal = std::hypot(forward[0], forward[2]);
+    if (horizontal <= 1e-6) {
+        // A vertical view still has a horizontal right vector. Derive a finite
+        // heading without restoring room-local state from another room.
+        const auto right = transform_point(middle, {1, 0, 0});
+        forward = {right[2], 0, -right[0]};
+        horizontal = std::hypot(forward[0], forward[2]);
+    }
+    require(horizontal > 0 && std::isfinite(horizontal), "Invalid level movement heading");
+    const double x = forward[0] / horizontal, z = forward[2] / horizontal;
+    next.p[0] += (-z * linear[0] - x * linear[2]) * seconds;
+    next.p[1] += linear[1] * seconds;
+    next.p[2] += (x * linear[0] - z * linear[2]) * seconds;
+    validate_pose(next);
+    return next;
+}
 }
 wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     require(std::filesystem::file_size(path) <= 16384, "Runtime configuration exceeds size limit");
@@ -182,7 +203,7 @@ void Actors::refresh_authority() {
     for (auto& [id, actor] : actors_) {
         (void)id;
         if (!actor.authority) continue;
-        if (!granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
+        if (!granted(actor, "navigate")) { actor.clear_motion(); actor.expires = now_; }
         if (!granted(actor, "observe")) { actor.aim.Clear(); actor.aim_application.reset(); }
         // A retained native seat is identity, not active input authority.
         // Reentrant wait callbacks must not rearm cancellation for idle seats.
@@ -246,7 +267,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.application_input = false; actor.keyboard_application.reset();
     actor.require_observation_grant = require_observation_grant;
     actor.local_application_output = local_application_output;
-    actor.axes.fill(0); actor.expires = now_;
+    actor.clear_motion(); actor.expires = now_;
     actor.aim.Clear(); actor.aim_application.reset();
     sessions_.emplace(token, actor.entity.id());
     wire::ActorOpenReply result; result.set_id(actor.entity.id()); result.set_token(token); return result;
@@ -259,6 +280,7 @@ wire::ActorStateReply Actors::inspect(const std::string& token) {
     if (!workspace.empty()) result.set_workspace(workspace);
     *result.mutable_pose() = actor.entity.pose();
     for (const auto axis : actor.axes) result.add_axes(axis);
+    result.set_translation_frame(actor.translation_frame);
     *result.mutable_held_keys() = actor.native.held_keys();
     *result.mutable_held_buttons() = actor.native.held_buttons();
     if (actor.native.has_focus()) {
@@ -280,7 +302,7 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     if (renderer_ && renderer_->busy()) {
         actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
     } else release_input(actor, true);
-    actor.axes.fill(0); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
+    actor.clear_motion(); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
     actor.aim.Clear(); actor.aim_application.reset(); actor.keyboard_application.reset();
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
@@ -335,6 +357,8 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     case wire::ActorActionRequest::kInput: {
         if (!granted(actor, "navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
         require(request.input().axes_size() == 6, "Expected six motion axes");
+        require(request.input().translation_frame() == wire::BODY_TRANSLATION ||
+                request.input().translation_frame() == wire::LEVEL_TRANSLATION, "Unknown translation frame");
         std::array<double, 6> axes{};
         for (std::size_t i = 0; i < axes.size(); ++i) {
             const double value = request.input().axes(static_cast<int>(i));
@@ -342,11 +366,26 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
             axes[i] = std::abs(value) <= config_.deadzone() ? 0 :
                 std::copysign((std::abs(value) - config_.deadzone()) / (1 - config_.deadzone()), value);
         }
-        actor.axes = axes; actor.expires = now_ + config_.input_timeout();
+        actor.axes = axes; actor.translation_frame = request.input().translation_frame();
+        actor.expires = now_ + config_.input_timeout();
+        break;
+    }
+    case wire::ActorActionRequest::kRelativeLook: {
+        if (!granted(actor, "navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
+        require(request.relative_look().has_angular_delta(), "Missing relative-look angular delta");
+        const auto& delta = request.relative_look().angular_delta();
+        const Vec3 angular{delta.x(), delta.y(), delta.z()};
+        for (const auto value : angular) require(std::isfinite(value), "Relative look must be finite");
+        require(std::hypot(angular[0], angular[1], angular[2]) <= std::acos(-1.0) / 2,
+                "Relative look exceeds pi/2 radians");
+        const auto rotated = integrate(as_pose(actor.entity.pose()), {0, 0, 0}, angular, 1);
+        set_pose(actor.entity.mutable_pose(), rotated);
+        if (!actor.interaction_reset_pending && actor.native.held_buttons_size())
+            actor.capture_motion_pending = true;
         break;
     }
     case wire::ActorActionRequest::kStop:
-        actor.axes.fill(0); actor.expires = now_; actor.aim.Clear(); actor.aim_application.reset(); cancel_object(actor); release_input(actor); actor.keyboard_application.reset(); break;
+        stop_actor(actor); break;
     case wire::ActorActionRequest::kUnfocus:
         release_input(actor); actor.keyboard_application.reset(); break;
     case wire::ActorActionRequest::kPointer:
@@ -861,9 +900,25 @@ void Actors::cabinet_action(Actor& actor, const workspace::v1::ActorCabinetReque
     }
 }
 
-void Actors::release_input(Actor& actor, bool close, bool keep_reservation) {
+void Actors::stop_actor(Actor& actor, bool force_native) {
+    actor.clear_motion(); actor.expires = now_; actor.aim.Clear(); actor.aim_application.reset();
+    cancel_object(actor); release_input(actor, false, false, force_native); actor.keyboard_application.reset();
+}
+void Actors::cancel_control(const std::string& token) {
+    // Require a fresh compositor cancellation even when the last action returned
+    // no native snapshot. Cancellation never allocates an absent native seat.
+    stop_actor(authenticated(token), true);
+    drain_control_releases();
+    if (!control_releases_.empty()) throw std::runtime_error("Application control cancellation remains pending");
+    // Native cancellation and broker IPC can yield to actor revocation.
+    const auto& current = authenticated(token);
+    if (current.native.has_focus() || current.native.held_keys_size() || current.native.held_buttons_size() ||
+        current.application_control || !current.lease.empty() || current.object)
+        throw std::runtime_error("Actor input cancellation is not settled");
+}
+void Actors::release_input(Actor& actor, bool close, bool keep_reservation, bool force_native) {
     close = close || actor.close_pending;
-    if (renderer_ && !actor.native.actor_id().empty()) {
+    if (renderer_ && (force_native || !actor.native.actor_id().empty())) {
         wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
         if (close) command.mutable_close(); else command.mutable_cancel();
         actor.native = renderer_->input(command);
@@ -1486,17 +1541,18 @@ void Actors::step(double target) {
     bool collision_ready = false;
     for (auto& [id, actor] : actors_) {
         (void)id;
-        if (actor.authority && !granted(actor, "navigate")) { actor.axes.fill(0); actor.expires = now_; }
+        if (actor.authority && !granted(actor, "navigate")) { actor.clear_motion(); actor.expires = now_; }
         const double end = std::min(target, actor.expires);
         if (end > now_) {
             const Vec3 linear{actor.axes[0] * config_.linear_gain(), actor.axes[1] * config_.linear_gain(), actor.axes[2] * config_.linear_gain()};
             const Vec3 angular{actor.axes[3] * config_.angular_gain(), actor.axes[4] * config_.angular_gain(), actor.axes[5] * config_.angular_gain()};
             const double speed = std::hypot(linear[0], linear[1], linear[2]);
+            const bool level = actor.translation_frame == wire::LEVEL_TRANSLATION && speed > 0;
             auto current = as_pose(actor.entity.pose());
             if (speed > 0 && !collision_ready) { refresh_collisions(); collision_ready = true; }
             const auto found = collision_rooms_.find(actor.entity.room());
-            if (speed == 0 || found == collision_rooms_.end() ||
-                (found->second.colliders.empty() && found->second.portals.empty()))
+            if (!level && (speed == 0 || found == collision_rooms_.end() ||
+                (found->second.colliders.empty() && found->second.portals.empty())))
                 current = integrate(current, linear, angular, end - now_);
             else {
                 const double radius = config_.actor_radius();
@@ -1504,9 +1560,10 @@ void Actors::step(double target) {
                 const double duration = end - now_;
                 // A body-twist arc deviates from its chord by at most |v||w|dt^2/8.
                 // Inflate each swept sphere by that bound so curved motion cannot skip a thin wall.
-                const double count = std::max(1.0, std::ceil(std::sqrt(speed * rate * duration * duration / (8 * radius * 1e-4))));
+                const double count = std::max(level ? std::max(1., std::ceil(duration * 240)) : 1.,
+                    std::ceil(std::sqrt(speed * rate * duration * duration / (8 * radius * 1e-4))));
                 if (count > 4096) {
-                    actor.axes.fill(0); actor.expires = now_;
+                    actor.clear_motion(); actor.expires = now_;
                     std::cerr << "worldd: cancelled excessive collision subdivision\n";
                 } else {
                     const auto steps = static_cast<unsigned>(count);
@@ -1514,7 +1571,8 @@ void Actors::step(double target) {
                     const double margin = speed * rate * interval * interval / 8;
                     unsigned crossings_left = 32;
                     for (unsigned i = 0; i < steps; ++i) {
-                        const auto next = integrate(current, linear, angular, interval);
+                        const auto next = level ? integrate_level(current, linear, angular, interval) :
+                                                  integrate(current, linear, angular, interval);
                         const auto motion = navigate_rooms(current.p, next, actor.entity.room(), radius + margin,
                                                            collision_rooms_, crossings_left);
                         current = motion.pose; actor.entity.set_room(motion.room);
@@ -1524,7 +1582,7 @@ void Actors::step(double target) {
                             actor.capture_motion_pending = false;
                         }
                         if (motion.stopped) {
-                            actor.axes.fill(0); actor.expires = now_;
+                            actor.clear_motion(); actor.expires = now_;
                             std::cerr << "worldd: stopped obstructed or excessive portal navigation\n";
                             break;
                         }
@@ -1536,7 +1594,7 @@ void Actors::step(double target) {
                 std::any_of(actor.axes.begin(), actor.axes.end(), [](double v) { return v != 0; }))
                 actor.capture_motion_pending = true;
         }
-        if (target >= actor.expires) actor.axes.fill(0);
+        if (target >= actor.expires) actor.clear_motion();
     }
     now_ = target;
 }
@@ -1570,11 +1628,11 @@ void Actors::flush_input() {
         try {
             move_capture(actor, actor.direction);
         } catch (const std::invalid_argument& error) {
-            release_input(actor); actor.axes.fill(0); actor.expires = now_;
+            release_input(actor); actor.clear_motion(); actor.expires = now_;
             std::cerr << "worldd: cancelled unrepresentable capture: " << error.what() << '\n';
         } catch (const WorldError& error) {
             if (error.code != wire::STALE_TARGET && error.code != wire::NO_FOCUS && error.code != wire::FORBIDDEN) throw;
-            release_input(actor); actor.axes.fill(0); actor.expires = now_;
+            release_input(actor); actor.clear_motion(); actor.expires = now_;
             std::cerr << "worldd: cancelled invalid capture: " << error.what() << '\n';
         }
     }

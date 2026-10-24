@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 namespace {
@@ -679,6 +680,120 @@ void geometry_denial_keeps_client_usable(Fixture& f) {
     });
 }
 
+void interrupted_actor_exchange(Fixture& f, bool writing) {
+    std::atomic<bool> reader_received{false};
+    session(f, [&](auto& client, int peer) {
+        client.authenticate();
+        auto handle = client.interrupt_handle().lock(); check(bool(handle), "missing live interrupt handle");
+        core::v1::ActorActionRequest action; action.set_seq(1);
+        if (writing) { action.mutable_key()->set_keysym(std::string(900000, 'x')); action.mutable_key()->set_pressed(true); }
+        else action.mutable_stop();
+        std::jthread watchdog([handle, peer, writing, &reader_received](std::stop_token stop) {
+            const auto deadline = std::chrono::steady_clock::now() + 2s;
+            while (!stop.stop_requested() && std::chrono::steady_clock::now() < deadline) {
+                int pending = 0;
+                const bool ready = writing ? ioctl(peer, FIONREAD, &pending) == 0 && pending > 4 :
+                                             reader_received.load(std::memory_order_acquire);
+                if (ready) { handle->request(); return; }
+                std::this_thread::sleep_for(1ms);
+            }
+        });
+        const auto start = std::chrono::steady_clock::now();
+        rejects([&] { client.action(action); });
+        check(std::chrono::steady_clock::now() - start < 1500ms, "watchdog waited for the three-second actor deadline");
+        check(client.failed() && handle->requested(), "interrupted actor did not fence control");
+        rejects([&] { client.action(action); });
+        if (writing) {
+            std::array<char, 8192> bytes{}; std::size_t count = 0;
+            for (;;) {
+                const auto n = recv(peer, bytes.data(), bytes.size(), MSG_DONTWAIT);
+                if (n == 0) break;
+                check(n > 0, "interrupted writer did not reach EOF"); count += static_cast<std::size_t>(n);
+            }
+            check(count > 4 && count < 900000, "interruption did not stop a partial write");
+        }
+    }, [&](int fd) {
+        handshake(fd, f);
+        if (!writing) {
+            receive(fd, pb::WorldSessionRequest::kAction, 3);
+            reader_received.store(true, std::memory_order_release);
+            pollfd pending{fd, POLLIN, 0}; check(poll(&pending, 1, 2000) > 0, "interrupted reader kept its channel open");
+            char byte; check(recv(fd, &byte, 1, 0) == 0, "interrupted action was replayed");
+        }
+    }, 3s);
+}
+void interrupt_idle_actor(Fixture& f) {
+    session(f, [&](auto& client, int) {
+        client.authenticate();
+        const auto handle = client.interrupt_handle().lock(); check(bool(handle), "idle handle missing");
+        handle->request(); check(client.failed(), "idle interrupted actor still advertises control");
+        core::v1::ActorActionRequest action; action.set_seq(1); action.mutable_stop();
+        rejects([&] { client.action(action); });
+    }, [&](int fd) {
+        handshake(fd, f);
+        pollfd pending{fd, POLLIN, 0}; check(poll(&pending, 1, 2000) > 0, "idle interrupt did not close transport");
+        char byte; check(recv(fd, &byte, 1, 0) == 0, "idle actor sent input after interruption");
+    });
+}
+void interrupt_handle_lifetime(Fixture& f) {
+    std::weak_ptr<const ActorSessionInterrupt> weak;
+    std::shared_ptr<const ActorSessionInterrupt> retained;
+    session(f, [&](auto& client, int) {
+        client.authenticate(); weak = client.interrupt_handle(); retained = weak.lock();
+        check(retained && !retained->requested(), "live handle was already interrupted");
+    }, [&](int fd) { handshake(fd, f); });
+    check(retained->requested(), "client destruction left a retained channel alive");
+    retained.reset(); check(weak.expired(), "closed client leaked its interruption descriptor");
+    int sockets[2]{}; check(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sockets) == 0, "reuse socketpair failed");
+    check(!weak.lock(), "stale watchdog recovered a closed actor handle");
+    const char sent = 'x'; char received = 0;
+    check(send(sockets[0], &sent, 1, 0) == 1 && recv(sockets[1], &received, 1, 0) == 1 && received == sent,
+          "stale interruption affected reused descriptors");
+    close(sockets[0]); close(sockets[1]);
+}
+
+void controlled_input_reply(Fixture& f, const std::string& fault) {
+    session(f, [&](auto& client, int peer) {
+        client.authenticate();
+        core::v1::ActorActionRequest action; action.set_seq(1);
+        action.mutable_key()->set_keysym("x"); action.mutable_key()->set_pressed(true);
+        if (fault != "valid") {
+            rejects([&] { (void)client.controlled_action(action); });
+            failed_no_replay(client, peer, f);
+            return;
+        }
+        bool cancelled = false;
+        try { (void)client.controlled_action(action); }
+        catch (const ActorInputCancelled& error) { cancelled = error.error().code() == core::v1::NO_FOCUS; }
+        check(cancelled && !client.failed(), "checked input cancellation fenced or lost its typed rejection");
+        core::v1::ActorActionRequest fresh; fresh.set_seq(2); fresh.mutable_stop();
+        check(client.controlled_action(fresh).accepted() && !client.failed(), "fresh action did not follow confirmed cancellation");
+    }, [&](int fd) {
+        handshake(fd, f);
+        const auto received = receive(fd, pb::WorldSessionRequest::kControlAction, 3);
+        check(received.control_action().seq() == 1 && received.control_action().token().empty() &&
+              received.control_action().has_key(), "controlled input changed action or identity");
+        auto reply = reply_for(3); auto* outcome = reply.mutable_control_action(); outcome->set_sequence(1);
+        auto* rejection = outcome->mutable_rejected(); rejection->mutable_error()->set_code(core::v1::NO_FOCUS);
+        rejection->set_cancellation_confirmed(true);
+        if (fault == "unconfirmed") rejection->set_cancellation_confirmed(false);
+        if (fault == "sequence") outcome->set_sequence(2);
+        if (fault == "outcome") reply.mutable_action()->set_accepted(true);
+        if (fault == "unknown") rejection->GetReflection()->MutableUnknownFields(rejection)->AddVarint(999, 1);
+        if (fault == "unsafe-code") rejection->mutable_error()->set_code(core::v1::INTERNAL_ERROR);
+        if (fault == "false-acceptance") outcome->mutable_accepted()->set_accepted(false);
+        if (fault == "legacy-error") reply.mutable_error()->set_code(core::v1::FORBIDDEN);
+        if (fault == "missing-outcome") outcome->clear_outcome();
+        send_reply(fd, reply);
+        if (fault == "valid") {
+            const auto fresh = receive(fd, pb::WorldSessionRequest::kControlAction, 4);
+            check(fresh.control_action().seq() == 2 && fresh.control_action().has_stop(), "cancelled action was replayed");
+            auto accepted = reply_for(4); auto* result = accepted.mutable_control_action();
+            result->set_sequence(2); result->mutable_accepted()->set_accepted(true); send_reply(fd, accepted);
+        }
+    });
+}
+
 void malformed_geometry_error_fences(Fixture& f, const std::string& fault) {
     session(f, [&](auto& client, int peer) {
         client.authenticate();
@@ -712,6 +827,19 @@ int main(int argc, char** argv) {
             ++count;
             std::cout << "PASS " << name << '\n';
         };
+        if (argc == 2 && std::string(argv[1]) == "--interrupt-only") {
+            run("interrupt-blocked-reader", [&] { interrupted_actor_exchange(fixture, false); });
+            run("interrupt-blocked-writer", [&] { interrupted_actor_exchange(fixture, true); });
+            run("interrupt-idle-client", [&] { interrupt_idle_actor(fixture); });
+            run("interrupt-handle-lifetime", [&] { interrupt_handle_lifetime(fixture); });
+            return 0;
+        }
+        if (argc == 2 && std::string(argv[1]) == "--controlled-input-only") {
+            for (const std::string fault : {"valid", "unconfirmed", "sequence", "outcome", "unknown",
+                    "unsafe-code", "false-acceptance", "legacy-error", "missing-outcome"})
+                run("controlled-input-" + fault, [&] { controlled_input_reply(fixture, fault); });
+            return 0;
+        }
         if (argc == 2 && std::string(argv[1]) == "--geometry-only") {
             for (const std::string fault : {"valid", "near-boundary", "oversize-frame", "truncated-frame",
                     "actor", "world", "view", "epoch", "service",

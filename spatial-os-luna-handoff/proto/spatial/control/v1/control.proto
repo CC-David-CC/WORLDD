@@ -1,0 +1,73 @@
+syntax = "proto3";
+package spatial.control.v1;
+
+// Host-local preferences. These fields never grant actor authority.
+enum MovementStyle { MOVEMENT_UNSPECIFIED = 0; FREE_FLIGHT = 1; LEVEL_MOVEMENT = 2; }
+enum InteractionStyle { INTERACTION_UNSPECIFIED = 0; CLICK_TO_CONTROL = 1; TOGGLE_CONTROL = 2; HOLD_TO_NAVIGATE = 3; }
+enum BindingAction {
+  BINDING_UNSPECIFIED = 0;
+  FORWARD = 1; BACKWARD = 2; LEFT = 3; RIGHT = 4; UP = 5; DOWN = 6;
+  ROLL_LEFT = 7; ROLL_RIGHT = 8; SWITCH_MODE = 9; OPEN_CONTROLS = 10; CANCEL = 11;
+}
+message KeyBinding { string keysym = 1; BindingAction action = 2; }
+message AxisCalibration {
+  // Signed one-based raw index. Six entries form a signed permutation.
+  sint32 raw_axis = 1;
+  double center = 2;
+  double full_scale = 3;
+}
+message ControlProfile {
+  string id = 1;
+  string label = 2;
+  MovementStyle movement = 3;
+  InteractionStyle interaction = 4;
+  repeated KeyBinding bindings = 5;
+  double mouse_radians_per_count = 6;
+  bool invert_mouse_y = 7;
+  bool spacemouse_calibrated = 8;
+  repeated AxisCalibration spacemouse_axes = 9;
+}
+message ControlProfiles {
+  uint32 protocol_version = 1;
+  string active_profile = 2;
+  repeated ControlProfile profiles = 3;
+}
+
+// Private capture-to-controller transport. The channel fixes actor and host.
+// Events cannot carry an actor identity, actor token, sequence, or grant.
+enum DeviceKind { DEVICE_UNSPECIFIED = 0; KEYBOARD = 1; MOUSE = 2; SPACEMOUSE = 3; }
+message DeviceConnected { DeviceKind kind = 1; }
+message DeviceDisconnected {}
+message DeviceHeartbeat {}
+message DeviceKey { string keysym = 1; bool pressed = 2; bool repeat = 3; }
+message DeviceButton { uint32 button = 1; bool pressed = 2; }
+message DeviceMotion { double dx = 1; double dy = 2; }
+message DeviceAxes { repeated double raw = 1; }
+message DeviceScroll { sint32 steps_y = 1; }
+message DeviceEvent {
+  uint32 protocol_version = 1;
+  string source_id = 2;
+  uint64 source_generation = 3;
+  uint64 event_sequence = 4;
+  oneof event {
+    DeviceConnected connected = 10;
+    DeviceDisconnected disconnected = 11;
+    DeviceHeartbeat heartbeat = 12;
+    DeviceKey key = 13;
+    DeviceButton button = 14;
+    DeviceMotion motion = 15;
+    DeviceAxes axes = 16;
+    DeviceScroll scroll = 17;
+  }
+}
+message ControlStatus {
+  uint32 protocol_version = 1;
+  string active_profile = 2;
+  bool navigating = 3;
+  bool menu_open = 4;
+  bool available = 5;
+  double cursor_x = 6;
+  double cursor_y = 7;
+  uint32 viewport_width = 8;
+  uint32 viewport_height = 9;
+}

@@ -1,0 +1,23 @@
+M10 additive relative-look schema migration
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+David approved the M10 implementation plan, including bounded relative mouse look.
+The base is 6e671b468a43725ef33c97826eb393640aa648b5.
+This migration adds ActorRelativeLookRequest and ActorActionRequest.relative_look at field 31.
+Existing fields, types, tags, and the public envelope version remain unchanged.
+No existing acceptance assertion, oracle, codec, native witness, or test ID changes.
+Only the core.proto pin and this explicit notice change in the acceptance lock.
+The predecessor lock hash is recorded in acceptance.lock.json.
+
+The request contains an explicitly present angular_delta Vec3 in body-frame radians.
+Each component must be finite. Its vector magnitude must not exceed pi/2.
+Worldd requires the current actor session, a fresh positive sequence, and navigation authority.
+It rotates through the existing production body-twist integrator without translating the actor.
+It does not refresh rate-input expiry or grant interaction, observation, or execution authority.
+Captured pointer motion follows the existing deferred native-routing path.
+Old readers reject the unknown additive action. They cannot acknowledge it as successful.
+
+The separate actor-relative-look suite supplies real worldd regressions.
+Its hand encoder can reproduce missing support against the unchanged M09 deployment.
+It covers body rotation, actor isolation, denial, malformed values, event-rate independence, and expiry.
+No implementation or qualification pass is claimed by this migration note.

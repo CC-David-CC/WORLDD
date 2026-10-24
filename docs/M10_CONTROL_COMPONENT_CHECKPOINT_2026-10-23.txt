@@ -1,0 +1,105 @@
+M10 control component checkpoint
+Date: 2026-10-23. Status: UNQUALIFIED_M10. Production session integration remains incomplete.
+
+Source base: 6e671b468a43725ef33c97826eb393640aa648b5.
+Branch: m10/shared-actions-qualification-20261023.
+Checkout: /home/dflanag3/src/m10-shared-actions-20261023 on middle-child.
+External root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+No worker or development build runs on either qualification host.
+M09 remains qualified. This component checkpoint does not replace its runtime or evidence.
+
+Implemented components
+ActorControl serializes proposals for one immutable authenticated actor context.
+It owns action sequencing. Invalid outcomes and uncertain delivery fence and close that context.
+Checked input cancellation permits fresh sequenced actions after worldd settles input and lease cancellation.
+Legacy mutating errors retain their terminal ActorSessionClient behavior.
+The shared world implementation and authority checks still perform every action.
+A pinned socket interruption handle lets a watchdog stop an exchange without waiting for the action mutex.
+Interruption does not establish native release or authorize replay.
+
+DeviceAdapters implements six initial movement and interaction presets.
+It handles physical press edges, mode cancellation, source generations, expiry, signed axes, and bounded mouse look.
+Profiles use bounded private Protobuf files and validated real X keysyms.
+Level keyboard input applies the authoritative deadzone before deriving horizontal movement.
+SpaceMouse translation retains its body frame. Default legacy body motion remains unchanged.
+The new raw XInput2 and libspnav source components compile but remain unintegrated and runtime-unqualified.
+
+Build dependency
+Middle-child uses libspnav-dev 1.1-2, with pkg-config reporting spnav 1.1.
+The recorded installation is external at install-libspnav-build-dependency-01.
+No spacenav daemon was installed or started by this increment.
+Build preparation now requires libspnav-dev alongside the existing X11 and graphics dependencies.
+Required runtime libraries must be checked before deploying an executable that links native capture.
+
+Focused artifact and provenance
+Build-combined-run-09 completed with command.exit=0 and wrapper.exit=0.
+Both Debug and ASan-UBSan targets built with per-directory locks and parallelism two.
+Source-inputs-09.json pins 1595 source files before compilation.
+Combined-focused-09/manifest.json records those inputs and all 246 payload files.
+Archive SHA256: caeb70b257509999b15a7b1d4159f89eb7a51536c160ac4a05e506420b007bb5.
+Manifest SHA256: fa175655d9bf3c656ea042e5497ee7b6be11774ae6eaf1503ea801bfeac358e6.
+Archive bytes: 341186216. Expanded payload bytes: 1713649376.
+Independent extraction matched every payload path and byte before deployment.
+Both test hosts verified the transferred archive, complete inventory, executable modes, and dynamic dependencies.
+The acceptance-lock predecessor metadata was reconciled after this focused build.
+It now identifies the accepted M09 lock. Schema, runtime, and fixture bytes did not change during that reconciliation.
+Every other locked input still matches its accepted M09 pin. All 151 acceptance assertions remain unchanged.
+
+Selected focused results
+Each host ran these ten groups in both profiles:
+actor-control-layer: five named groups.
+actor-control-adapters: eleven named groups.
+actor-control-client: nine independent protocol peer cases.
+actor-control-interrupt: four socket interruption cases.
+actor-session-client: all 54 original named protocol cases.
+actor-session-client-tls: all 31 original named TLS cases.
+actor-relative-look: six real-world methods.
+actor-control-level-motion: six methods forwarding actual adapter proposals into real worldd.
+actor-control-world: five real issuer and authenticated-world methods.
+actor-runtime: all ten original methods.
+Result parsing requires exact counts, unique names, terminal success, and no sanitizer diagnostic.
+No selected case was skipped or accepted as unrun.
+
+Sb16 passed all twenty host/profile groups in the original focused run.
+Sb16-2 passed nineteen groups. Its Debug actor-control-world group failed with three setup errors.
+One error timed out during issuer enrollment. Two identityd initializations exceeded their original five-second bound.
+The other two methods in that original group passed.
+The complete five-method Debug class later passed unchanged on sb16-2 in 10.23 seconds.
+This corrective result is separate. The original failed run remains failed.
+Both original sanitizer actor-control-world groups passed.
+Controller copies are under evidence/HOST/combined-focused-results-09 and combined-focused-run-09.
+
+Open startup investigation
+Sb16-2 showed high disk I/O pressure after our own deployment writes.
+No unrelated workload is assumed. Disk pressure alone does not establish the cause.
+Issuer-diagnostic-results-10 records an exact-deadline comparison with qualified M09 and M10 Debug binaries.
+Their traced issuer initializations took about 87 ms and 76 ms respectively.
+Their complete setup probes passed. The slowest observed persistence syscall was below nine milliseconds.
+Two attempted sanitizer traces failed because LeakSanitizer cannot run under ptrace.
+Those are invalid diagnostic executions, not application regression evidence. Their logs remain preserved.
+Sanitizer qualification keeps leak detection enabled and runs without ptrace.
+Deployment-replay-11 performs one bounded replay of our verified deployment writes with active tracing.
+Its M09/M10 comparisons and pre/post-syncfs observations remain pending at this checkpoint.
+The original stall's cause remains unresolved.
+
+Earlier failures and corrections
+Baseline relative-look tests fail against M09 because that action is absent there.
+An initial new look test rejected NaN inside the harness before transport.
+The corrected test sends raw malformed bytes to worldd. All six methods pass on both hosts and profiles.
+The unknown-X-keysym regression failed against the old validator and passes after the validation correction.
+The level-motion regression reproduced vertical drift before the frame/deadzone correction.
+All six corrected level-motion methods now pass on both hosts and profiles.
+Earlier sanitizer actor startup timeouts remain preserved separately. Later original-class reruns passed.
+No timeout increase or locked assertion change was used for these corrective executions.
+
+Remaining work
+Integrate bounded timestamped capture transport and watchdogs with the production host controller.
+Reject queued input from earlier contexts and modes. Preserve release bookkeeping.
+Present actor-bound authorized live local application textures through the trusted foreground owner.
+Render and connect the in-session controls menu, editable variations, and measured SpaceMouse calibration.
+Exercise three concurrent actors through shared cabinet and native application actions.
+Run related collision, portal, authority, transition, captured-input, and native release regressions.
+Freeze the complete candidate. Prove generated-source reproducibility in two clean environments.
+Run the full inherited M09 matrix and additive M10 gates on both hosts and profiles.
+Native device, GPU, model, performance, and soak requirements retain their later milestone gates.
+M10, Spatial-M1, and LOCAL_READY remain incomplete.

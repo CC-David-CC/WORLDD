@@ -26,6 +26,8 @@ public:
                               std::optional<spatial::authority::v1::ActorRef> principal = {}, bool local_application_output = true);
     void consume_sequence(const std::string& token, std::uint64_t sequence);
     void refresh_authority();
+    // Trusted session wrapper. Uses the same stop implementation and settles leases.
+    void cancel_control(const std::string& token);
     wire::ActorStateReply inspect(const std::string& token);
     wire::ActorCloseReply close(const std::string& token);
     std::string depart(const std::string& token);
@@ -73,6 +75,8 @@ private:
         bool require_observation_grant = false;
         bool local_application_output = true;
         std::array<double, 6> axes{};
+        wire::TranslationFrame translation_frame = wire::BODY_TRANSLATION;
+        void clear_motion() noexcept { axes.fill(0); translation_frame = wire::BODY_TRANSLATION; }
         std::uint64_t sequence = 0, witness_instance_id = 0;
         double expires = 0;
         wire::AimReply aim;
@@ -113,7 +117,8 @@ private:
     std::string selected_workspace(const Actor& actor);
     void step(double target);
     void refresh_native();
-    void release_input(Actor& actor, bool close = false, bool keep_reservation = false);
+    void release_input(Actor& actor, bool close = false, bool keep_reservation = false, bool force_native = false);
+    void stop_actor(Actor& actor, bool force_native = false);
     void poll_control();
     void drain_control_releases();
     void preflight_input_authority(Actor& actor, const workspace::v1::ApplicationRef& application);

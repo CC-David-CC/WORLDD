@@ -1,6 +1,7 @@
 #pragma once
 #include "world_session.pb.h"
 #include <chrono>
+#include <atomic>
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
@@ -15,6 +16,27 @@ public:
     const core::v1::Error& error() const noexcept { return error_; }
 private:
     core::v1::Error error_;
+};
+// A checked input rejection with confirmed cancellation. Prior input may have
+// occurred. Only a fresh action is permitted; the rejected action is never replayed.
+class ActorInputCancelled final : public ActorSessionRejected {
+public:
+    using ActorSessionRejected::ActorSessionRejected;
+};
+// Owner-thread setup returns a weak handle. A watchdog may request shutdown
+// without waiting for an actor exchange. This is not a cancellation receipt.
+class ActorSessionInterrupt final {
+public:
+    ~ActorSessionInterrupt();
+    void request() const noexcept;
+    bool requested() const noexcept { return requested_.load(std::memory_order_acquire); }
+    ActorSessionInterrupt(const ActorSessionInterrupt&) = delete;
+    ActorSessionInterrupt& operator=(const ActorSessionInterrupt&) = delete;
+private:
+    friend class ActorSessionClient;
+    explicit ActorSessionInterrupt(int descriptor) noexcept : descriptor_(descriptor) {}
+    const int descriptor_;
+    mutable std::atomic<bool> requested_{false};
 };
 // Owns one private local stream or mutually authenticated TLS connection.
 // Mutating errors and uncertain exchanges permanently fail it.
@@ -36,6 +58,8 @@ public:
     identity::v1::WorldSessionReply depart(std::uint64_t sequence, std::string transition_id);
     identity::v1::WorldSessionReply inspect();
     identity::v1::WorldSessionReply action(const core::v1::ActorActionRequest& action);
+    core::v1::ActorActionReply controlled_action(const core::v1::ActorActionRequest& action);
+    std::weak_ptr<const ActorSessionInterrupt> interrupt_handle();
     identity::v1::ActorGeometryView geometry_view();
     bool failed() const noexcept;
     const std::string& expected_world() const noexcept;

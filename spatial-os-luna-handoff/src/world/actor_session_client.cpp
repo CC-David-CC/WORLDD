@@ -1,4 +1,5 @@
 #include "world/actor_session_client.hpp"
+#include "world/control_action.hpp"
 #include "world/geometry_view_validation.hpp"
 #include "core/protocol.hpp"
 #include "identity/keys.hpp"
@@ -50,6 +51,7 @@ public:
     OwnedDescriptor(const OwnedDescriptor&) = delete;
     OwnedDescriptor& operator=(const OwnedDescriptor&) = delete;
     int get() const noexcept { return fd_; }
+    int release() noexcept { const int fd = fd_; fd_ = -1; return fd; }
     void reset(int fd = -1) noexcept {
         if (fd_ >= 0) close(fd_);
         fd_ = fd;
@@ -64,6 +66,7 @@ enum class Lifecycle { New, Prepared, Active, Departed, Failed };
 struct ActorSessionClient::Impl {
     // Declare ownership before key loading so every constructor exception closes the fd.
     OwnedDescriptor channel;
+    std::shared_ptr<ActorSessionInterrupt> interrupt;
     identity::tls_detail::Context tls_context{nullptr, SSL_CTX_free};
     std::unique_ptr<SSL, decltype(&SSL_free)> tls{nullptr, SSL_free};
     pb::SignedCredential credential;
@@ -214,13 +217,15 @@ struct ActorSessionClient::Impl {
     void fail() noexcept {
         state = Lifecycle::Failed;
         prepared_transition.clear();
+        if (interrupt) interrupt->request();
+        interrupt.reset();
         tls.reset();
         tls_context.reset();
         channel.reset();
     }
 
     void require_state(Lifecycle expected, const char* message) const {
-        require(state == expected && channel.get() >= 0, message);
+        require(state == expected && channel.get() >= 0 && (!interrupt || !interrupt->requested()), message);
     }
 
     void transfer(void* buffer, std::size_t size, bool writing, Clock::time_point deadline) {
@@ -402,6 +407,23 @@ ActorSessionClient::~ActorSessionClient() {
         ERR_clear_error();
         (void)SSL_shutdown(impl_->tls.get());
     }
+    if (impl_) impl_->fail();
+}
+
+ActorSessionInterrupt::~ActorSessionInterrupt() { close(descriptor_); }
+void ActorSessionInterrupt::request() const noexcept {
+    if (!requested_.exchange(true, std::memory_order_acq_rel)) (void)shutdown(descriptor_, SHUT_RDWR);
+}
+std::weak_ptr<const ActorSessionInterrupt> ActorSessionClient::interrupt_handle() {
+    impl_->require_state(Lifecycle::Active, "Actor session is inactive");
+    if (!impl_->interrupt) {
+        OwnedDescriptor duplicate(fcntl(impl_->channel.get(), F_DUPFD_CLOEXEC, 3));
+        require(duplicate.get() >= 0, "Cannot retain actor interruption descriptor");
+        // Allocation precedes release. Every failure retains exactly one owner.
+        std::unique_ptr<ActorSessionInterrupt> owned(new ActorSessionInterrupt(duplicate.release()));
+        impl_->interrupt = std::shared_ptr<ActorSessionInterrupt>(std::move(owned));
+    }
+    return impl_->interrupt;
 }
 
 pb::WorldSessionReply ActorSessionClient::authenticate(
@@ -465,6 +487,33 @@ pb::WorldSessionReply ActorSessionClient::action(const core::v1::ActorActionRequ
     return impl_->exchange(std::move(request), pb::WorldSessionReply::kAction);
 }
 
+core::v1::ActorActionReply ActorSessionClient::controlled_action(const core::v1::ActorActionRequest& action) {
+    impl_->require_state(Lifecycle::Active, "Actor session is inactive");
+    validate_message(action);
+    require(action.token().empty() && action.has_seq() && action.seq() > 0 && actor_input::reversible(action),
+            "Controlled input requires a fresh sequenced input primitive without a token");
+    pb::WorldSessionRequest request; *request.mutable_control_action() = action;
+    try {
+        const auto reply = impl_->exchange(std::move(request), pb::WorldSessionReply::kControlAction);
+        const auto& outcome = reply.control_action();
+        require(outcome.sequence() == action.seq(), "Controlled input reply changed its actor sequence");
+        if (outcome.has_accepted()) {
+            require(outcome.accepted().accepted(), "Controlled input acceptance was false");
+            return outcome.accepted();
+        }
+        require(outcome.has_rejected() && outcome.rejected().has_error() &&
+                outcome.rejected().cancellation_confirmed() &&
+                actor_input::cancelled_rejection(outcome.rejected().error().code()),
+                "Controlled input rejection lacks checked cancellation");
+        throw ActorInputCancelled(outcome.rejected().error());
+    } catch (const ActorInputCancelled&) {
+        throw;
+    } catch (...) {
+        impl_->fail();
+        throw;
+    }
+}
+
 pb::ActorGeometryView ActorSessionClient::geometry_view() {
     impl_->require_state(Lifecycle::Active, "Actor session is inactive");
     pb::WorldSessionRequest request; request.mutable_geometry_view();
@@ -491,6 +540,6 @@ const std::string& ActorSessionClient::expected_world() const noexcept { return 
 std::string ActorSessionClient::expected_actor_id() const { return impl_->expected_actor_id(); }
 
 bool ActorSessionClient::failed() const noexcept {
-    return impl_->state == Lifecycle::Failed;
+    return impl_->state == Lifecycle::Failed || (impl_->interrupt && impl_->interrupt->requested());
 }
 } // namespace spatial

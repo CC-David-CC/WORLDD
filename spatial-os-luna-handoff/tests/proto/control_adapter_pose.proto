@@ -1,0 +1,20 @@
+syntax = "proto3";
+package spatial.testing.control;
+import "core.proto";
+import "control.proto";
+
+// A thin adapter fixture. State comes from real worldd inspection.
+// Output actions are forwarded to worldd; this fixture implements no world.
+message AdapterPoseRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  spatial.core.v1.ActorStateReply state = 3;
+  spatial.control.v1.ControlProfiles profiles = 4;
+  repeated spatial.control.v1.DeviceEvent events = 5;
+}
+message AdapterPoseReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  repeated spatial.core.v1.ActorActionRequest actions = 3;
+  spatial.control.v1.ControlProfiles profiles = 4;
+}

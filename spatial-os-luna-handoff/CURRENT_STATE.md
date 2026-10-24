@@ -1,3 +1,14 @@
+## 2026-10-23: M10 shared control components have focused evidence; session integration remains pending
+
+Actor sequencing, relative look, six control presets, checked cancellation, and socket interruption are implemented as components.
+Both build profiles compile. New level-motion regressions pass against real worldd on both qualification hosts.
+The first focused matrix passed 39 of 40 groups. Sb16-2 retained three issuer setup timeouts in one Debug group.
+The unchanged five-method class later passed. The original stall remains under investigation.
+Native capture compiles but is not connected to production sessions. The controls menu and local foreground integration remain pending.
+No M10 qualification or replacement of the accepted M09 runtime is claimed.
+Read ../docs/M10_CONTROL_COMPONENT_CHECKPOINT_2026-10-23.txt for pins, evidence, failures, and remaining work.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M09 application-group control is qualified on both hosts
 
 Frozen runtime candidate 11f3605c70c9b4aa29dd1ec84471592bf4162a3f is accepted as QUALIFIED_M09.

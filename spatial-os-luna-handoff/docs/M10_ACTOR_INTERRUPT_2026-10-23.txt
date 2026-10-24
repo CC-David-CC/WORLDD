@@ -1,0 +1,22 @@
+M10 actor transport interruption
+Date: 2026-10-23. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+Physical input loss must not wait behind a blocked actor exchange.
+The owner thread may obtain a weak ActorSessionInterrupt handle after authentication.
+The handle owns a CLOEXEC duplicate of that exact actor socket.
+A watchdog may request shutdown without acquiring the actor-operation mutex.
+The descriptor stays pinned for the handle's lifetime. It cannot retarget a reused descriptor.
+The client reports control unavailable after interruption and never retries the action.
+Client failure and destruction shut down retained duplicates before closing the primary channel.
+Other actors, worlds, applications, and their execution authority remain independent.
+
+A shutdown request is not a native cancellation acknowledgement.
+Earlier effects may remain uncertain. Require independent world/native evidence before claiming input release.
+Normal input denials use the separate checked-cancellation outcome when worldd confirms release.
+Interrupted transport requires explicit recovery. Do not reconnect and replay it automatically.
+
+The new API is an in-process cancellation handle. Actor wire protocols are unchanged by this increment.
+Selected tests before execution:
+actor-control-interrupt: blocked read, partial blocked write, idle interruption, and retained-handle lifetime.
+actor-session-client and actor-session-client-tls: all existing framing, identity, ownership, timeout, and no-replay regressions.
+Native disconnect, actor-retirement, release-order, and application-survival evidence remain mandatory for M10 integration.

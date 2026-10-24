@@ -74,6 +74,19 @@ message WorldSessionActivate { bytes transition_id = 1; }
 message WorldGeometryViewRequest {}
 message WorldSessionInspect {}
 message WorldSessionClose {}
+// A rejected input may have delivered partial input before cancellation.
+// This confirms settled cancellation, never absence of prior effects or replay safety.
+message ActorInputCancelled {
+  spatial.core.v1.Error error = 1;
+  bool cancellation_confirmed = 2;
+}
+message ActorControlOutcome {
+  uint64 sequence = 1;
+  oneof outcome {
+    spatial.core.v1.ActorActionReply accepted = 2;
+    ActorInputCancelled rejected = 3;
+  }
+}
 // Departure invalidates the session. Reply follows checked input cleanup and durable context save.
 message WorldSessionDepart { optional uint64 seq = 1; bytes transition_id = 2; }
 message WorldSessionDeparted {
@@ -110,6 +123,8 @@ message WorldSessionRequest {
     WorldSessionDepart depart = 21;
     WorldSessionActivate activate = 22;
     WorldGeometryViewRequest geometry_view = 23;
+    // Same actor actions and authority. Only reversible input primitives qualify.
+    spatial.core.v1.ActorActionRequest control_action = 24;
   }
 }
 message WorldSessionReply {
@@ -131,5 +146,6 @@ message WorldSessionReply {
     WorldSessionDeparted departed = 20;
     WorldSessionPrepared prepared = 21;
     ActorGeometryView geometry_view = 22;
+    ActorControlOutcome control_action = 23;
   }
 }
