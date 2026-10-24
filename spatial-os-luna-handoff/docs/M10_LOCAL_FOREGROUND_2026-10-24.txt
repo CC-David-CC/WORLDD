@@ -121,3 +121,16 @@ Exact compiled source72 archive SHA256: 78da1f4867434ced6b5dbbacdba9d60e6e137693
 Every archived source path and byte matches source-inputs-72.json.
 These focused results support an unqualified component checkpoint. They do not complete M10.
 Cross-world application foreground, remote geometry sampling, native concealment after compositor death, capture/menu integration, and three-actor workflows remain required.
+
+Retained component checkpoint
+Reviewed source checkpoint: 1d84b871580450a5533ca440523babcb927ce5c5.
+Box-git verifies that commit on m10/shared-actions-qualification-20261023.
+Verified fleet directory: /mnt/data10tb/spatial-desktop/packages/current/m10-1d84b871-local-foreground-20261024-unqualified.
+Fourteen retained files total 804747906 bytes on the authorized durable filesystem.
+They include the production package, exact compiled source, test overlays, audits, and checked commit/push receipts.
+Evidence archive SHA256: 84c43547309d36fc22b3cd6f669ca253b76c4c02cff0cc53fffd49f783d1e34f.
+Fleet verification receipt: fleet-world-local-foreground-101.json under the external M10 evidence root.
+Source mapping: world-local-foreground-source-mapping-101.json.
+Required qualified M09 native wrappers and graphics dependencies remain active outside this component package.
+The deployed package75 and its explicit fixture overlays remain current until their replacement is verified.
+M10 remains UNQUALIFIED.
