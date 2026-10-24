@@ -664,6 +664,22 @@ struct IdentitySessions::Impl {
         result.set_authority_generation(generation);
         return result;
     }
+    void settle_foreground(const authority::v1::ActorRef& actor, bool workspace) {
+        std::optional<broker_wire::ObservationBarrierRequest> barrier;
+        if (workspace) {
+            broker_wire::AuthorizationFenceRequest query;*query.mutable_principal()=actor;
+            barrier.emplace();*barrier->mutable_fence()=broker->authorization_fence(query);
+        }
+        const auto deadline=Clock::now()+client->timeout();
+        for (;;) {
+            tick();actors.flush_input();
+            const bool observed=!barrier || broker->observation_barrier(*barrier).settled();
+            if (observed && actors.cancellation_settled()) return;
+            if (Clock::now()>=deadline)
+                throw WorldError(wire::UNAVAILABLE,"Policy committed but foreground cleanup remains unconfirmed");
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
     wire::ActorLocalViewState local_view_control(const wire::ActorLocalViewRequest& request) {
         validate_message(request);
         require(request.protocol_version() == 1 && request.has_identity() &&
@@ -714,7 +730,8 @@ struct IdentitySessions::Impl {
         } else {
             if (!channel.local_view_attested)
                 throw WorldError(wire::FORBIDDEN, "Local view requires retained host attestation");
-            throw WorldError(wire::UNIMPLEMENTED, "Local frame presentation is not implemented yet");
+            result=actors.present_local_view(token,identity,request.present().width(),request.present().height(),active);
+            if (!active()) throw WorldError(wire::UNAUTHORIZED,"Actor session changed during local presentation");
         }
         result.set_bound(channel.local_view_attested);
         return result;
@@ -969,6 +986,7 @@ struct IdentitySessions::Impl {
                             operation.set_id(request.revoke().id()); operation.set_expected_revision(request.revoke().expected_revision());
                             *reply.mutable_grant() = broker->revoke(operation);
                         }
+                        if (!request.has_grants()) settle_foreground(actor,true);
                         return reply;
                     }
                     if (!authority) throw WorldError(wire::UNIMPLEMENTED, "Persistent world authority is not configured");
@@ -989,6 +1007,7 @@ struct IdentitySessions::Impl {
                             ((channel.needs_observation || channel.needs_geometry_observation) && !authority->allowed(actor, "observe"));
                         sync_authority();
                     }
+                    if (!request.has_grants()) settle_foreground(actor,false);
                 } else {
                     auto action = request.has_control_action() ? request.control_action() : request.action();
                     require(action.token().empty(), "Actor channel cannot supply a session token");

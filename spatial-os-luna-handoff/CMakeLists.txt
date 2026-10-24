@@ -2432,6 +2432,8 @@ if(BUILD_TESTING)
     protobuf_generate_cpp(session_probe_sources session_probe_headers src/testing/session_probe.proto)
     add_executable(spatial-session-application-probe src/testing/session_application_probe.cpp ${session_probe_sources} ${session_probe_headers})
     target_link_libraries(spatial-session-application-probe PRIVATE spatial-session-broker)
+    add_executable(spatial-local-foreground-probe src/testing/local_foreground_runner.cpp ${session_probe_sources} ${session_probe_headers})
+    target_link_libraries(spatial-local-foreground-probe PRIVATE spatial-session-broker)
     add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/session_probe_pb2.py"
         COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/src/testing
@@ -2443,10 +2445,33 @@ if(BUILD_TESTING)
             --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
             ${CMAKE_CURRENT_SOURCE_DIR}/src/testing/session_probe.proto
-        DEPENDS src/testing/session_probe.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
+        DEPENDS src/testing/session_probe.proto proto/spatial/core/v1/actor_local_view.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
     add_custom_target(session-probe-python ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/session_probe_pb2.py")
-    add_dependencies(session-probe-python file-actions-python-protobuf)
+    add_dependencies(session-probe-python file-actions-python-protobuf python-protobuf)
     add_dependencies(spatial-session-application-probe session-probe-python world-session-python-protobuf)
+    add_dependencies(spatial-local-foreground-probe session-probe-python world-session-python-protobuf)
+    if(SPATIAL_INPUT_TESTS)
+    add_custom_target(local-foreground-fixtures DEPENDS observation-watch-fixtures local-frame-presentation-fixtures
+        spatial-local-foreground-probe spatial-session-application-probe spatial-host-session
+        spatial-host-actor-controller-probe spatial-host-actor-native-runner
+        spatial-actor-session-client-probe spatial-actor-session-client-tls-probe session-probe-python)
+    add_test(NAME local-foreground COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_local_foreground.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(local-foreground PROPERTIES TIMEOUT 360
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME local-foreground-context COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_local_foreground_context.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(local-foreground-context PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
     add_test(NAME session-resources COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"

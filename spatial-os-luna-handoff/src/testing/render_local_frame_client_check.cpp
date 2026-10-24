@@ -41,7 +41,13 @@ void exercise(const std::string& kind) {
                 check(request.ParseFromString(hello.bytes) && request.protocol_version()==1 && request.request_id()==1 &&
                     request.has_hello() && hello.descriptors.size()==1,"Unexpected shared producer hello");
                 core::v1::RenderResult reply;reply.set_protocol_version(1);reply.set_request_id(1);reply.mutable_ready();
+                if(kind=="viewport" || kind=="invalid-viewport") {
+                    auto* viewport=reply.mutable_ready()->mutable_viewport();
+                    viewport->set_width(kind=="viewport"?128:0);viewport->set_height(72);
+                }
                 stream.send(reply.SerializeAsString());
+                stream.flush();
+                if(kind=="invalid-viewport")return;
                 auto next=receive();request.Clear();
                 check(next.descriptors.empty() && request.ParseFromString(next.bytes) && request.has_command(),
                     "Unexpected frame command");
@@ -68,7 +74,31 @@ void exercise(const std::string& kind) {
             }catch(...){peer_error=std::current_exception();}
         });
         {
-            RenderWorker worker(directory,":99",producer.value,process.value,getpid(),getpid(),native.value);
+            std::unique_ptr<RenderWorker> retained;
+            bool invalid_viewport=false;
+            try {retained=std::make_unique<RenderWorker>(directory,":99",producer.value,process.value,getpid(),getpid(),native.value);}
+            catch(const std::invalid_argument& error) {
+                check(kind=="invalid-viewport" && std::string(error.what())=="Invalid or excessive frame dimensions",
+                    "Unexpected readiness rejection");
+                invalid_viewport=true;
+            }
+            check(invalid_viewport==(kind=="invalid-viewport"),"Incorrect readiness viewport outcome");
+            if(invalid_viewport) {
+                peer.join();if(peer_error)std::rethrow_exception(peer_error);
+                return;
+            }
+            check(bool(retained),"Valid readiness did not produce a retained worker");
+            auto& worker=*retained;
+            if(kind=="viewport") {
+                const auto viewport=worker.native_viewport();
+                check(viewport.width()==128 && viewport.height()==72,"Native viewport was not preserved");
+            }else{
+                bool missing=false;
+                try{(void)worker.native_viewport();}
+                catch(const WorldError& error){missing=error.code==core::v1::UNAVAILABLE;}
+                check(missing,"Missing native viewport was guessed or accepted");
+            }
+            const bool exact=kind=="exact" || kind=="viewport";
             core::v1::ActorLocalViewIdentity identity;
             identity.set_protocol_version(1);identity.set_world_id("world");identity.set_actor_id("human");
             identity.set_view_id(std::string(32,'v'));identity.set_authority_service_incarnation(std::string(32,'i'));
@@ -98,13 +128,13 @@ void exercise(const std::string& kind) {
                     bool rejected=false;
                     try {
                         const auto committed=worker.commit_local_frame(identity,prepared.frame_id());
-                        check(kind=="exact" && committed.SerializeAsString()==prepared.SerializeAsString(),
+                        check(exact && committed.SerializeAsString()==prepared.SerializeAsString(),
                             "Changed commitment receipt was accepted");
                     }catch(const std::runtime_error& error){
                         rejected=std::string(error.what())=="Committed compositor frame identity mismatch";
-                        check(kind!="exact" && rejected,"Unexpected commitment error");
+                        check(!exact && rejected,"Unexpected commitment error");
                     }
-                    check(rejected==(kind!="exact"),"Incorrect commitment outcome");
+                    check(rejected==!exact,"Incorrect commitment outcome");
                     bool stale=false;
                     try{(void)worker.commit_local_frame(identity,prepared.frame_id());}
                     catch(const WorldError& error){stale=error.code==core::v1::STALE_TARGET;}
@@ -116,7 +146,7 @@ void exercise(const std::string& kind) {
 }
 int main() {
     try {
-        for(const std::string kind:{"denial","exact","missing-generation","changed-generation","changed-frame"}) {
+        for(const std::string kind:{"denial","exact","missing-generation","changed-generation","changed-frame","viewport","invalid-viewport"}) {
             exercise(kind);
             std::cout<<"PASS "<<kind<<'\n';
         }

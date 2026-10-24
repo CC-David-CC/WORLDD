@@ -1,0 +1,44 @@
+M10 runtime library revision
+Date: 2026-10-24. Status: explicit revision; focused corrective validation PASS. UNQUALIFIED_M10.
+
+Ubuntu unattended-upgrade replaced sb16's zlib on 2026-10-24 at 06:33:41-43 EDT.
+The package changed from 1:1.3.dfsg-3.1ubuntu2.2 to 1:1.3.dfsg-3.1ubuntu2.3.
+Only /lib/x86_64-linux-gnu/libz.so.1 differs among the retained native dependency records.
+Original SHA256: 86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892.
+Updated SHA256: f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242.
+The updated bytes already match sb16-2's original qualified M09 dependency records.
+Package verification succeeds. No agent downgraded packages or changed the update policy.
+
+The original M09 provenance remains unchanged.
+Explicit runtime-library-revision-sb16-92.json updates exactly four references to this one library.
+Every other native server, wrapper, library, and source pin remains enforced.
+The corrective driver reverses those exact four changes and compares the complete original native manifest.
+It then verifies every current dependency byte against the explicit revision.
+Revision SHA256: 3b820ed43a47d17e9538a5c84bdbbb75cfc5f91adc088f202025bd23833c4785.
+
+Both original related82 jobs report all 32 suites passing.
+Sb16's final nine sanitizer suites overlap or follow the replacement and require separate reassessment.
+Their original logs remain preserved and are not silently relabeled.
+Sb16 context87 refused during dependency preflight. It executed zero tests.
+Corrective context93 passes all four new methods in both profiles under the explicit revision.
+Sb16-2 retains its original dependency pins and passes its context87 methods in both profiles.
+
+Corrective run96 selects native resource and identity isolation plus foreground and host controls in both profiles.
+It also repeats all nine affected sanitizer suites.
+All 246 Python methods and sixteen C++ groups pass across seventeen suite records.
+No skip or sanitizer diagnostic was accepted.
+The driver checks every unique native dependency immediately before and after each suite.
+Further dependency drift refuses acceptance and preserves affected evidence.
+This focused dependency review does not qualify M09 under a new environment or complete M10.
+The final M10 gate still requires one frozen source, artifact, generator, and runtime dependency snapshot.
+
+Evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Detected drift: runtime-library-drift-sb16-91.json.
+Reference and suite timing: runtime-library-drift-reference-and-timeline-92.json.
+Disposition: runtime-library-drift-disposition-92.txt.
+Corrective selection: native-library-corrective-selected-checks-94.json.
+Terminal sb16 receipts: native-library-corrective-run-96. Command and wrapper exits are zero.
+Combined terminal audit: world-local-foreground-terminal-audit-99.json.
+Original refusal: evidence/sb16/local-foreground-context-run-87.
+Original related evidence: evidence/HOST/world-local-foreground-related-results-80.
+No source, assertion, hash check, or native witness was weakened to accept the new bytes.

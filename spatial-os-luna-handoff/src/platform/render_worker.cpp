@@ -49,6 +49,7 @@ RenderWorker::RenderWorker(const std::filesystem::path& executable, const std::f
         deadline_ = Clock::now() + std::chrono::seconds(10);
         const auto ready = receive();
         if (ready.request_id() != 0 || !ready.has_ready()) throw std::runtime_error("Missing compositor readiness");
+        retain_readiness(ready.ready());
     } catch (...) {
         process_->terminate();
         throw;
@@ -63,9 +64,19 @@ RenderWorker::RenderWorker(const std::filesystem::path& state,std::string displa
         deadline_=Clock::now()+std::chrono::seconds(10);
         const auto ready=receive();
         if(ready.request_id()!=sequence_ || !ready.has_ready())throw std::runtime_error("Missing shared compositor readiness");
+        retain_readiness(ready.ready());
     }catch(...){shared_->stream.reset();throw;}
 }
 RenderWorker::~RenderWorker() = default;
+void RenderWorker::retain_readiness(const wire::RendererReady& ready) {
+    if (!ready.has_viewport()) return;
+    validate_render_extent(ready.viewport().width(),ready.viewport().height());
+    native_viewport_=ready.viewport();
+}
+wire::PixelExtent RenderWorker::native_viewport() const {
+    if (!native_viewport_) throw WorldError(wire::UNAVAILABLE,"Compositor did not report its native viewport");
+    return *native_viewport_;
+}
 pid_t RenderWorker::pid() const {return shared_?shared_->process.pid():process_->pid();}
 const std::string& RenderWorker::display() const {return shared_?shared_->display:process_->display();}
 void RenderWorker::check_alive() const {

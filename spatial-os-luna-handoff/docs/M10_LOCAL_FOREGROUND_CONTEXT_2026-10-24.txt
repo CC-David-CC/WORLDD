@@ -1,0 +1,53 @@
+M10 local foreground context witnesses
+Date: 2026-10-24. Status: FOCUSED PASS. UNQUALIFIED_M10.
+
+Four new native methods pass in Debug and ASan/UBSan on both qualification hosts.
+The total is sixteen method completions. No skip or sanitizer diagnostic was accepted.
+The tests use the retained production coordinator, broker, world, compositor, issuer, and confined native application.
+An independent X client reads actual native output pixels.
+
+A real portal crossing clears the prior room's pixels and observation watch.
+The actor retains its selected workspace. The source-room application remains alive and cannot appear in the destination.
+A fresh destination frame receives a new observation watch.
+
+Room-scoped representation-view revocation clears the visible frame before its receipt.
+The native witness confirms the representation's pixels before revocation and their removal afterward.
+Independent world observation and application control remain authorized.
+The application keeps repainting through its existing execution authority.
+
+World-process death clears the native foreground.
+The broker retains the exact observation watch and application-control reservation.
+Selective recovery requires checked scope cleanup and compositor retirement.
+The recovery receipt records the exact released watch and producer generation.
+The application remains alive. Exact recovery retries return the same receipt.
+
+Compositor-process death cannot produce a successful retirement receipt.
+The coordinator refuses selective recovery and retains the observation obligation.
+The application remains alive until explicit session shutdown.
+This case proves conservative recovery ownership. It does not prove native screen concealment after compositor death.
+That visibility check and cross-world local application foreground witnesses remain required.
+
+The new fixture reads the existing world database only during declarative grant setup.
+Actors receive no database API or additional file capability.
+Ordinary actor actions perform navigation, representation creation, observation, and policy revocation.
+Existing tests, locked assertions, native witnesses, and production sources remain unchanged.
+
+Production package: world-local-foreground-75. Compiled source inventory: source-inputs-72.json.
+New witness: tests/native/test_local_foreground_context.py.
+Witness SHA256: b2d0c5f5e3fba7eb5b7cf716d530539cae22b8cf67a07d111e089f4d3cfd0e63.
+Declared CTest metadata: local-foreground-context-registrations-85.json.
+The explicit test-only deployment is foreground-context-86.
+Sb16 passes runtime93 under explicit dependency revision92. Sb16-2 passes runtime87 under its original dependency pins.
+See ../../docs/M10_RUNTIME_LIBRARY_REVISION_2026-10-24.txt for the detected sb16 package update.
+
+Evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Results: evidence/sb16/local-foreground-context-results-93 and evidence/sb16-2/local-foreground-context-results-87.
+Audit: local-foreground-context-terminal-audit-98.json.
+Primary review: local-foreground-context-primary-review-86.json.
+Selection: local-foreground-context-selected-checks-84.json.
+
+Deployment86 stopped before copying because its controller destination used a remote-only variable.
+Both empty staging directories were verified by host, owner, mode, inode, and complete coverage.
+Correction88 reuses only those exact verified empty directories. No test ran during the failed attempt.
+Original scripts, launcher receipts, reconciliation, and failure explanation remain preserved externally.
+Full M10 and Spatial-M1 remain unqualified.

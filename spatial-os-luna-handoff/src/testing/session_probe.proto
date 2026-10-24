@@ -1,6 +1,7 @@
 syntax = "proto3";
 package spatial.testing.v1;
 import "core.proto";
+import "actor_local_view.proto";
 import "broker.proto";
 import "launch.proto";
 import "issuer.proto";
@@ -19,6 +20,11 @@ message SessionWorldCall {
   spatial.workspace.v1.ControlOwner owner = 1;
   spatial.core.v1.Request request = 2;
 }
+message LocalForegroundPresent {
+  spatial.core.v1.ActorLocalViewIdentity identity = 1;
+  uint32 width = 2;
+  uint32 height = 3;
+}
 message SessionProbeRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -35,6 +41,8 @@ message SessionProbeRequest {
     spatial.workspace.v1.ControlOwner recover_stopped_broker_world = 19;
     SessionWorldStart start_world = 20;
     SessionWorldCall owned_world = 21;
+    LocalForegroundPresent local_present = 22;
+    spatial.core.v1.ActorLocalViewIdentity local_retire = 23;
   }
 }
 message SessionProbeReply {
@@ -48,5 +56,7 @@ message SessionProbeReply {
     spatial.identity.v1.AuthorityRetirementState retirement = 14;
     spatial.supervisor.v1.AuthorityDependentCleanup dependent = 15;
     SessionWorldStarted started = 16;
+    spatial.core.v1.ActorLocalViewState local_frame = 22;
+    bool local_retired = 23;
   }
 }

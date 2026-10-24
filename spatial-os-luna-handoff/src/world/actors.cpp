@@ -201,6 +201,10 @@ void Actors::consume_sequence(const std::string& token, std::uint64_t sequence) 
 }
 void Actors::refresh_authority() {
     refresh_objects();
+    for (auto& [key, foreground] : foregrounds_) {
+        (void)key;
+        if (!foreground_current(foreground)) foreground.clear_pending = true;
+    }
     for (auto& [id, actor] : actors_) {
         (void)id;
         if (!actor.authority) continue;
@@ -306,11 +310,131 @@ void Actors::release_local_view(const std::string& token, const core::v1::ActorL
     auto& actor = authenticated(token);
     if (!actor.local_view || actor.local_view->SerializeAsString() != identity.SerializeAsString())
         throw WorldError(wire::STALE_TARGET, "Local output identity is not bound to this actor");
+    queue_local_clear(identity);
     actor.local_view.reset();
     actor.local_application_output = actor.base_local_application_output;
     // A local socket's independent eligibility survives release of host attestation.
     // TLS clients lose their extra local input mode and must release held input.
     if (!actor.local_application_output) cancel_control(token);
+    flush_input();
+}
+bool Actors::foreground_current(const Foreground& foreground) const {
+    if (foreground.clear_pending) return false;
+    const auto found=actors_.find(foreground.identity.actor_id());
+    if (found==actors_.end()) return false;
+    const auto& actor=found->second;
+    const auto& projection=foreground.projection;
+    if (actor.token.empty() || actor.token!=projection.token || actor.witness_instance_id!=projection.instance ||
+        !actor.local_view || actor.local_view->SerializeAsString()!=foreground.identity.SerializeAsString() ||
+        !actor.local_application_output || actor.entity.room()!=projection.room || !granted(actor,"observe")) return false;
+    const auto scoped=[&](const Projection& sampled) {
+    for (const auto& item : sampled.presentations) {
+        const std::vector<std::string> scope{item.room,item.id};
+        if (!granted(actor,"observe",scope) || !granted(actor,"representation.view",scope)) return false;
+        try {
+            const auto current=store_.presentation(item.id);
+            if (current.room_id!=item.room || current.workspace_id!=item.workspace ||
+                current.generation!=item.generation || current.pose.SerializeAsString()!=item.pose.SerializeAsString()) return false;
+        } catch (const WorldError& error) {
+            if (error.code==wire::NOT_FOUND) return false;
+            throw;
+        }
+    }
+    return true;
+    };
+    if (!scoped(projection) || (foreground.displayed && !scoped(*foreground.displayed))) return false;
+    return !foreground.watch || (broker_ && broker_->observation_active(*foreground.watch));
+}
+void Actors::queue_local_clear(const wire::ActorLocalViewIdentity& identity) {
+    const auto found=foregrounds_.find(identity.SerializeAsString());
+    if (found!=foregrounds_.end()) found->second.clear_pending=true;
+}
+void Actors::drain_foregrounds() {
+    if (presenting_local_ || flushing_foregrounds_ || (renderer_ && renderer_->busy()) || (broker_ && broker_->busy())) return;
+    flushing_foregrounds_=true;
+    struct Reset {bool& flag;~Reset(){flag=false;}} reset{flushing_foregrounds_};
+    for (auto it=foregrounds_.begin();it!=foregrounds_.end();) {
+        auto& value=it->second;
+        if (!value.clear_pending) {++it;continue;}
+        if (!renderer_) throw WorldError(wire::UNAVAILABLE,"Foreground clearing requires the retained compositor");
+        if (!value.cleared) {
+            renderer_->clear_local_view(value.identity);
+            value.cleared=true;
+        }
+        if (value.watch) {
+            if (!broker_) throw WorldError(wire::UNAVAILABLE,"Foreground release requires its retained broker");
+            broker_wire::ObservationWatchRelease request;
+            request.set_id(value.watch->id()); *request.mutable_principal()=value.watch->principal();
+            *request.mutable_view()=value.identity; request.set_presentation_generation(value.watch->presentation_generation());
+            broker_->observation_release(request);
+        }
+        it=foregrounds_.erase(it);
+    }
+}
+wire::ActorLocalViewState Actors::present_local_view(const std::string& token,
+        const wire::ActorLocalViewIdentity& identity,std::uint32_t width,std::uint32_t height,
+        const std::function<bool()>& session_current) {
+    validate_local_view_identity(identity);
+    if (width || height) validate_render_extent(width,height);
+    auto& actor=authenticated(token);
+    if (!renderer_ || !renderer_->has_retained_presentation() || !broker_)
+        throw WorldError(wire::UNIMPLEMENTED,"Local presentation requires the retained compositor and broker");
+    if (!width && !height) {
+        const auto viewport=renderer_->native_viewport();
+        width=viewport.width();height=viewport.height();
+    }
+    if (presenting_local_ || !actor.principal || !actor.local_view ||
+        actor.local_view->SerializeAsString()!=identity.SerializeAsString() || !granted(actor,"observe"))
+        throw WorldError(wire::FORBIDDEN,"Local presentation requires a live attested observer");
+    drain_foregrounds();
+    const auto key=identity.SerializeAsString();
+    for (auto& [id,foreground] : foregrounds_) if (id!=key) foreground.clear_pending=true;
+    drain_foregrounds();
+    auto projection=project_observation(actor,true);
+    if (actor.token!=token || !actor.principal)
+        throw WorldError(wire::FORBIDDEN,"Actor session changed during foreground preparation");
+    broker_wire::AuthorizationFenceRequest query; *query.mutable_principal()=*actor.principal;
+    projection.fences.push_back(broker_->authorization_fence(query));
+    validate_projection(actor,projection,true);
+    auto [entry,inserted]=foregrounds_.try_emplace(key);
+    auto& foreground=entry->second;
+    if (!inserted && !foreground_current(foreground)) {
+        foreground.clear_pending=true;drain_foregrounds();
+        throw WorldError(wire::BUSY,"Retired local foreground requires fresh host selection");
+    }
+    foreground.identity=identity;foreground.projection=std::move(projection);
+    wire::ActorLocalViewState result;*result.mutable_identity()=identity;result.set_bound(true);
+    result.set_room(foreground.projection.room);*result.mutable_camera()=foreground.projection.scene.camera();
+    result.mutable_viewport()->set_width(width);result.mutable_viewport()->set_height(height);
+    presenting_local_=true;
+    try {
+        const auto check=[&] {
+            if (!foreground_current(foreground) || (session_current && !session_current()))
+                throw WorldError(wire::FORBIDDEN,"Local foreground authority changed before submission");
+        };
+        const auto prepared=renderer_->prepare_local_frame(identity,foreground.projection.scene,width,height,check);
+        refresh_native();validate_projection(actor,foreground.projection,true);check();
+        if (!foreground.watch) {
+            broker_wire::ObservationWatchAcquire request;*request.mutable_principal()=*actor.principal;
+            *request.mutable_view()=identity;request.set_presentation_generation(prepared.presentation_generation());
+            *request.mutable_expected()=foreground.projection.fences.back();
+            foreground.watch=broker_->observation_acquire(request);
+        }
+        if (foreground.watch->presentation_generation()!=prepared.presentation_generation())
+            throw WorldError(wire::STALE_TARGET,"Local foreground producer changed");
+        check();
+        const auto committed=renderer_->commit_local_frame(identity,prepared.frame_id(),check);
+        validate_projection(actor,foreground.projection,true);check();
+        foreground.displayed=foreground.projection;
+        result.set_presented(true);result.set_frame_id(committed.frame_id());
+        result.set_world_revision(committed.world_revision());result.set_presentation_generation(committed.presentation_generation());
+        presenting_local_=false;
+        return result;
+    } catch (...) {
+        foreground.clear_pending=true;presenting_local_=false;
+        drain_foregrounds();
+        throw;
+    }
 }
 std::string Actors::depart(const std::string& token) {
     // Native cleanup can run revocation callbacks that clear the channel's token.
@@ -322,6 +446,7 @@ std::string Actors::depart(const std::string& token) {
 }
 wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
+    if (actor.local_view) queue_local_clear(*actor.local_view);
     cancel_object(actor);
     if (renderer_ && renderer_->busy()) {
         actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
@@ -968,6 +1093,11 @@ void Actors::release_input(Actor& actor, bool close, bool keep_reservation, bool
 void Actors::poll_control() {
     if (!broker_) return;
     broker_->poll_control();
+    broker_->poll_observation();
+    for (auto& [key, foreground] : foregrounds_) {
+        (void)key;
+        if (!foreground_current(foreground)) foreground.clear_pending = true;
+    }
     for (auto& [id, actor] : actors_) {
         (void)id;
         if (actor.application_control && !broker_->control_active(*actor.application_control)) {
@@ -1341,6 +1471,10 @@ bool Actors::application_observation_valid(const std::string& token, std::vector
 }
 wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
         std::vector<broker_wire::AuthorizationFence>* fences) {
+    return scene_projection(token, geometry_only, fences, false);
+}
+wire::RenderScene Actors::scene_projection(const std::string& token, bool geometry_only,
+        std::vector<broker_wire::AuthorizationFence>* fences, bool sampled_pose) {
     auto& actor = authenticated(token);
     std::vector<broker_wire::AuthorizationFence> local_fences;
     auto* collected=fences ? fences : &local_fences;
@@ -1354,9 +1488,11 @@ wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
         const auto holder = object_leases_.find(entity.id());
         if (holder != object_leases_.end()) *entity.mutable_pose() = actors_.at(holder->second).object->preview;
     }
+    const auto projection_room=actor.entity.room();
+    const auto projection_pose=actor.entity.pose().SerializeAsString();
     auto result = panel_scene(snapshot, actor.entity, config_.render());
     if (!geometry_only && surfaces_ && actor.local_application_output) {
-        surfaces_->append(result, actor.entity.room());
+        surfaces_->append(result, projection_room);
         std::vector<ObservedApplication> applications;
         std::set<std::string> diagnostic;
         for (const auto& surface : result.surfaces()) {
@@ -1373,8 +1509,6 @@ wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
     }
     struct ProjectionCandidate { PresentationGeometry geometry; std::string workspace_id; };
     std::vector<ProjectionCandidate> candidates;
-    const auto projection_room=actor.entity.room();
-    const auto projection_pose=actor.entity.pose().SerializeAsString();
     for (const auto& record : store_.presentations()) {
         if (record.room_id!=projection_room) continue;
         const std::vector<std::string> scope{record.room_id,record.id};
@@ -1388,7 +1522,7 @@ wire::RenderScene Actors::scene(const std::string& token, bool geometry_only,
         candidates.push_back(std::move(candidate));
     }
     if (!fences) validate_authority_fence(actor,local_fences);
-    if (actor.entity.room()!=projection_room || actor.entity.pose().SerializeAsString()!=projection_pose)
+    if (actor.entity.room()!=projection_room || (!sampled_pose && actor.entity.pose().SerializeAsString()!=projection_pose))
         throw WorldError(wire::STALE_TARGET,"Actor moved during scene projection");
     if (actor.require_observation_grant && !granted(actor,"observe"))
         throw WorldError(wire::FORBIDDEN,"World observation authority changed during scene projection");
@@ -1453,19 +1587,16 @@ identity::v1::ActorGeometryView Actors::geometry_view(const std::string& token, 
         *result.add_presentation_views()=metadata;
     return result;
 }
-wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
-    require(request.has_width() == request.has_height(), "Observation requires both viewport dimensions");
-    const unsigned width = request.has_width() ? request.width() : 512;
-    const unsigned height = request.has_height() ? request.height() : 512;
-    validate_observation_extent(width, height, request.include_pixels());
-    if (!renderer_) throw WorldError(wire::UNIMPLEMENTED, "Observation requires the compositor");
+Actors::Projection Actors::project_observation(Actor& actor, bool sampled_pose) {
     refresh_native();
-    const auto rendered_room=actor.entity.room();
-    const auto rendered_pose=actor.entity.pose().SerializeAsString();
-    std::vector<broker_wire::AuthorizationFence> fences;
-    const auto view = scene(actor.token,false,&fences);
-    struct RenderedPresentation { std::string id, room, workspace; wire::Pose pose; std::uint64_t generation; bool allowed; };
-    std::vector<RenderedPresentation> rendered_presentations;
+    Projection projection;
+    projection.room=actor.entity.room(); projection.pose=actor.entity.pose().SerializeAsString();
+    projection.token=actor.token; projection.instance=actor.witness_instance_id;
+    projection.scene=scene_projection(actor.token,false,&projection.fences,sampled_pose);
+    projection.applications=actor.observed_applications;
+    const auto& view=projection.scene;
+    auto& fences=projection.fences;
+    auto& rendered_presentations=projection.presentations;
     for (const auto& metadata : view.presentation_views()) {
         const auto& representation=metadata.representation_id();
         const auto scope=std::vector<std::string>{metadata.room_id(),representation};
@@ -1481,11 +1612,11 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
             throw WorldError(wire::UNAVAILABLE,"Workspace authority changed before rendering observation");
         rendered_presentations.push_back({representation,record.room_id,record.workspace_id,record.pose,record.generation,allowed});
     }
-    wire::ActorObservation result;
-    result.set_actor(actor.entity.id()); result.set_room(actor.entity.room());
-    *result.mutable_pose() = view.camera(); result.set_world_revision(view.world_revision());
-    result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
-    const auto visibility = renderer_->observe(view, width, height, request.include_pixels());
+    return projection;
+}
+void Actors::validate_projection(Actor& actor, Projection& projection, bool sampled_pose) {
+    auto& fences=projection.fences;
+    const auto& rendered_presentations=projection.presentations;
     if (!application_observation_valid(actor.token,&fences))
         throw WorldError(wire::FORBIDDEN, "Application observation authority changed");
     for (const auto& before : rendered_presentations) {
@@ -1508,10 +1639,27 @@ wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveReq
         if (!granted(actor,"observe",scope) || !granted(actor,"representation.view",scope))
             throw WorldError(wire::FORBIDDEN,"Presentation observation authority changed");
     }
-    if (actor.entity.room()!=rendered_room || actor.entity.pose().SerializeAsString()!=rendered_pose)
+    if (actor.entity.room()!=projection.room || (!sampled_pose && actor.entity.pose().SerializeAsString()!=projection.pose))
         throw WorldError(wire::STALE_TARGET,"Actor moved during observation");
     if (actor.require_observation_grant && !granted(actor,"observe"))
         throw WorldError(wire::FORBIDDEN,"Application observation authority changed");
+    if (actor.token.empty() || actor.token!=projection.token || actor.witness_instance_id!=projection.instance)
+        throw WorldError(wire::FORBIDDEN,"Actor session changed during observation");
+}
+wire::ActorObservation Actors::observe(Actor& actor, const wire::ActorObserveRequest& request) {
+    require(request.has_width() == request.has_height(), "Observation requires both viewport dimensions");
+    const unsigned width = request.has_width() ? request.width() : 512;
+    const unsigned height = request.has_height() ? request.height() : 512;
+    validate_observation_extent(width, height, request.include_pixels());
+    if (!renderer_) throw WorldError(wire::UNIMPLEMENTED, "Observation requires the compositor");
+    auto projection=project_observation(actor,false);
+    const auto& view=projection.scene;
+    wire::ActorObservation result;
+    result.set_actor(actor.entity.id()); result.set_room(projection.room);
+    *result.mutable_pose() = view.camera(); result.set_world_revision(view.world_revision());
+    result.mutable_viewport()->set_width(width); result.mutable_viewport()->set_height(height);
+    const auto visibility = renderer_->observe(view, width, height, request.include_pixels());
+    validate_projection(actor,projection,false);
     result.set_frame_id(visibility.frame_id());
     if (visibility.has_image()) *result.mutable_image() = visibility.image();
     const double focal = static_cast<float>(1 / std::tan(view.config().vertical_fov() / 2));
@@ -1625,7 +1773,11 @@ void Actors::step(double target) {
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
 bool Actors::cancellation_settled() const {
-    if (flushing_input_ || !control_releases_.empty() || (renderer_ && renderer_->busy()) || (broker_ && broker_->busy())) return false;
+    if (flushing_input_ || presenting_local_ || flushing_foregrounds_ || !control_releases_.empty() ||
+        (renderer_ && renderer_->busy()) || (broker_ && broker_->busy())) return false;
+    for (const auto& [key,foreground] : foregrounds_) {
+        (void)key;if (!foreground_current(foreground)) return false;
+    }
     return std::none_of(actors_.begin(), actors_.end(), [](const auto& item) {
         return item.second.close_pending || item.second.interaction_reset_pending;
     });
@@ -1643,6 +1795,7 @@ void Actors::flush_input() {
         if (actor.interaction_reset_pending) release_input(actor);
     }
     drain_control_releases();
+    drain_foregrounds();
     if (broker_ && broker_->busy()) return;
     std::vector<std::string> pending;
     for (const auto& [id, actor] : actors_) if (actor.capture_motion_pending) pending.push_back(id);

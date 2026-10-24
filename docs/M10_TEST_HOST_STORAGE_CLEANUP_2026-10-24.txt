@@ -164,3 +164,27 @@ sb16 measured recovered free bytes: 664104960.
 sb16-2 measured recovered free bytes: 664080384.
 External plan: superseded-local-frame-payload-cleanup-plan-61.json.
 External results: superseded-local-frame-cleanup-results-61.json.
+
+Foreground qualification capacity, cleanup 67 and 74
+Cleanup 67 removed only these exact inactive extracted payloads:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/observation-watch-53/payload
+Retained archive: /mnt/data10tb/spatial-desktop/packages/current/m10-d938d119-observation-watch-20261024-unqualified
+Archive SHA256: 74bcc1f6e9dbc2716b01bb1378d7c7cf22f145cb17f1350d89e9ee4618b6cf4c
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-frame-lifetime-58/payload
+Retained archive: /mnt/data10tb/spatial-desktop/packages/current/m10-ff2c3285-local-frame-lifetime-20261024-unqualified
+Archive SHA256: d137d649a865e9b2fc7210a166f1062f1a816059142894ec3a1654f91012973b
+sb16 recovered 3065376768 bytes.
+sb16-2 recovered 3065360384 bytes.
+Plan: cold-foreground-payload-cleanup-plan-67.json. Canonical run: cold-payload-cleanup-run-67.
+Cleanup 74 removed only these exact inactive extracted payloads:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/world-local-foreground-68/payload
+Retained archive: /mnt/data10tb/spatial-desktop/packages/current/m10-33b6760-foreground-failure-20261024-unqualified
+Archive SHA256: 4ed8a289011bcc156a53ec4128c72670fd934e41233f6239e4b7cb1ca6e5e6ca
+sb16 recovered 3827216384 bytes.
+sb16-2 recovered 3827150848 bytes.
+Plan: cold-foreground-payload-cleanup-plan-74.json. Canonical run: cold-payload-cleanup-run-74.
+Before each deletion, verify host identity, filesystem UUID, complete payload inventory, and root process/mount references.
+Qualified M09 payloads and graphics dependencies remain preserved. All logs and source checkouts remain preserved.
+Failure package 68, exact source 66, test overlays, and unresolved native failures remain verified on fleet storage.
+Source supplement: fleet-foreground-source66-supplement-74.json.
+No qualification is inferred from archiving or capacity recovery.

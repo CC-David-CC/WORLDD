@@ -1,6 +1,7 @@
 #include "supervisor/session_coordinator.hpp"
 #include "platform/broker.hpp"
 #include "identity/tls_support.hpp"
+#include "world/actor_session_client.hpp"
 #include "session_probe.pb.h"
 #include <google/protobuf/text_format.h>
 #include <iostream>
@@ -13,9 +14,17 @@
 int main(int argc, char** argv) {
     try {
         if (std::signal(SIGPIPE, SIG_IGN) == SIG_ERR) throw std::runtime_error("Cannot disable issuer transport SIGPIPE");
+#ifdef SPATIAL_LOCAL_FOREGROUND_PROBE
+        if (argc!=10) throw std::runtime_error("Expected shared compositor and actor delivery inputs");
+        const int listener=std::stoi(argv[8]), delivery_fd=std::stoi(argv[9]), extra_start=10;
+        const std::string world_id=argv[7];
+#else
         if (argc < 7) throw std::runtime_error("Expected broker/world configuration, native inputs, actor listener, and actor delivery socket");
+        const int listener=std::stoi(argv[5]), delivery_fd=std::stoi(argv[6]), extra_start=7;
+        const std::string world_id;
+#endif
         std::set<int> replacement_native;
-        for (int index = 7; index < argc; ++index) {
+        for (int index = extra_start; index < argc; ++index) {
             const int fd = std::stoi(argv[index]);
             if (fd < 3 || !replacement_native.insert(fd).second)
                 throw std::runtime_error("Invalid replacement fixture descriptor");
@@ -33,11 +42,14 @@ int main(int argc, char** argv) {
             spatial::supervisor::v1::AuthorityLaunchReply reply; reply.set_protocol_version(1);
             *reply.mutable_view()->mutable_record() = record; spatial::write_frame(std::cout, reply);
         };
+#ifdef SPATIAL_LOCAL_FOREGROUND_PROBE
+        coordinator.start_presentation(binary/"spatialwm",argv[6],std::stoi(argv[5]));
+#endif
         report(coordinator.broker_launch());
         auto owner = coordinator.start_world(std::string(argv[3]) + ".owned", load(argv[3]),
-            std::stoi(argv[4]), std::stoi(argv[5]), 1);
-        close(std::stoi(argv[5])); report(coordinator.world_launch(owner));
-        spatial::identity::tls_detail::Fd delivery(std::stoi(argv[6]));
+            std::stoi(argv[4]), listener, 1, world_id);
+        close(listener); report(coordinator.world_launch(owner));
+        spatial::identity::tls_detail::Fd delivery(delivery_fd);
         const auto transfer_actor = [&](const spatial::workspace::v1::ControlOwner& target) {
             spatial::identity::tls_detail::Fd actor(coordinator.take_actor_channel(target, 0));
             spatial::supervisor::v1::AuthorityLaunchReply actor_binding; actor_binding.set_protocol_version(1);
@@ -67,6 +79,12 @@ int main(int argc, char** argv) {
                 reply.set_request_id(request.request_id()); spatial::validate_message(request);
                 if (request.protocol_version() != 1) throw std::runtime_error("Unsupported coordinator test version");
                 if (request.has_world()) *reply.mutable_result() = coordinator.world_call(owner, request.world());
+                else if (request.has_local_present()) {
+                    const auto& value=request.local_present();
+                    *reply.mutable_local_frame()=coordinator.present_local_actor(owner,value.identity(),value.width(),value.height());
+                }else if (request.has_local_retire()) {
+                    coordinator.retire_local_actor(owner,request.local_retire());reply.set_local_retired(true);
+                }
                 else if (request.has_owned_world())
                     *reply.mutable_result() = coordinator.world_call(request.owned_world().owner(), request.owned_world().request());
                 else if (request.has_start_world()) {
@@ -98,6 +116,8 @@ int main(int argc, char** argv) {
                     *reply.mutable_dependent() = coordinator.recover_world_after_broker_stop(request.recover_stopped_broker_world());
                 else if (request.has_stop_session()) { *reply.mutable_cleanup() = coordinator.stop(); stopped = true; }
                 else throw std::runtime_error("Missing coordinator test operation");
+            } catch (const spatial::ActorSessionRejected& error) {
+                *reply.mutable_error()=error.error();
             } catch (const std::exception& error) {
                 reply.mutable_error()->set_code(spatial::core::v1::INVALID_ARGUMENT);
                 reply.mutable_error()->set_message(error.what());

@@ -88,3 +88,37 @@ Both hosts and profiles pass 292 Python methods and 20 C++ transport groups.
 Local frame receipts now carry the actual retained producer generation.
 See ../spatial-os-luna-handoff/docs/M10_LOCAL_FRAME_LIFETIME_2026-10-24.txt for source pins and contract changes.
 Combined actor observation authority, world/host integration, and the full M10 goal remain pending.
+
+2026-10-24 combined foreground focused result
+The retained world now connects actor observation authority to native prepare/watch/commit/clear operations.
+The host presents local actors through this checked path and uses the compositor's native display extent.
+Both hosts and profiles pass the selected first-stage native and transport checks.
+Accepted totals: 64 Python methods and 28 C++ groups. No skipped case or sanitizer diagnostic was accepted.
+An initial real host viewport regression and a separate new witness exception mismatch remain preserved.
+The final witness correction changes no production source or acceptance assertion.
+See ../spatial-os-luna-handoff/docs/M10_LOCAL_FOREGROUND_2026-10-24.txt for source, artifact, review, and result pins.
+Related selected regressions are running on both hosts. Their completion remains unproven.
+Room/world and scoped representation foreground witnesses and uncertain cleanup remain required.
+Visible controls, native capture routing/worker/watchdog, three-actor workflows, and the full M10 gate remain pending.
+M10 and the full user goal remain UNQUALIFIED and active.
+
+2026-10-24 native context and dependency reassessment
+Four additional native context methods pass on both hosts in Debug and ASan/UBSan.
+They cover portal crossings, scoped representation revocation, world failure, and missing compositor retirement receipts.
+See ../spatial-os-luna-handoff/docs/M10_LOCAL_FOREGROUND_CONTEXT_2026-10-24.txt for exact proof and limits.
+Both original related matrices report passing all selected suites.
+An automatic sb16 zlib upgrade requires separate reassessment of nine sanitizer suites.
+An explicit dependency revision preserves the original provenance and every unrelated pin.
+Corrective run96 is active. See M10_RUNTIME_LIBRARY_REVISION_2026-10-24.txt.
+Cross-world application foreground and native concealment after compositor failure remain required.
+Capture/menu integration, three-actor workflows, and the frozen cumulative M10 gate remain pending.
+
+2026-10-24 final selected foreground checkpoint review
+The complete selected foreground matrix and all four new context methods pass on both hosts and profiles.
+Sb16's explicit zlib dependency reassessment also passes: 246 Python methods and sixteen C++ groups.
+Native dependency hashes remain unchanged before and after every corrective suite.
+See world-local-foreground-terminal-audit-99.json under the external M10 evidence root.
+This is a reviewed component checkpoint. M10 remains UNQUALIFIED.
+The next production increment must connect native capture, the serialized actor worker/watchdog, and visible controls.
+Preserve the remaining foreground witnesses and the human plus two scripted actor workflows.
+Freeze and run the complete cumulative gate only after the full M10 implementation is ready.

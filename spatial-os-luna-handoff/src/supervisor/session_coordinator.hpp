@@ -28,6 +28,9 @@ public:
     render::v1::GeometryPresentationState publish_geometry(const render::v1::GeometryPresentationTarget&,
         const identity::v1::ActorGeometryView&);
     render::v1::GeometryPresentationState retire_geometry(const render::v1::GeometryPresentationTarget&);
+    core::v1::ActorLocalViewState present_local_actor(const workspace::v1::ControlOwner&,
+        const core::v1::ActorLocalViewIdentity&, std::uint32_t width, std::uint32_t height);
+    void retire_local_actor(const workspace::v1::ControlOwner&, const core::v1::ActorLocalViewIdentity&);
     void clear_presentation();
     void stop_presentation();
     void recover_presentation(const workspace::v1::ControlOwner&);

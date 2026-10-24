@@ -78,6 +78,7 @@ message RenderConfig {
 message RenderRequest { string token = 1; uint32 width = 2; uint32 height = 3; }
 // Retained host management only. Never part of ActorActionRequest.
 message ActorLocalViewBind {}
+// Both dimensions zero select the compositor's native viewport. A single zero is invalid.
 message ActorLocalViewPresent { uint32 width = 1; uint32 height = 2; }
 message ActorLocalViewRelease {}
 message ActorLocalViewRequest {
@@ -97,6 +98,8 @@ message ActorLocalViewState {
   uint64 world_revision = 5;
   Pose camera = 6;
   PixelExtent viewport = 7;
+  string room = 8; // Room sampled with camera before any projection wait.
+  uint64 presentation_generation = 9;
 }
 message ActorLocalFrameCommit { uint64 frame_id = 1; }
 message FrameReply {
@@ -174,7 +177,7 @@ message RenderCommand {
 message VisibilitySample { uint32 index = 1; Pixel pixel = 2; uint64 pixels = 3; }
 message PixelImage { uint32 width = 1; uint32 height = 2; bytes rgb8 = 3; } // Top-left, packed RGB8.
 message RenderVisibility { uint64 frame_id = 1; uint64 world_revision = 2; repeated VisibilitySample visible = 3; PixelImage image = 4; }
-message RendererReady { string gl_version = 1; string gl_renderer = 2; }
+message RendererReady { string gl_version = 1; string gl_renderer = 2; PixelExtent viewport = 3; }
 message RenderResult {
   uint32 protocol_version = 1;
   uint64 request_id = 2;

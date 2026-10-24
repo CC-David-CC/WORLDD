@@ -31,6 +31,8 @@ public:
     render::v1::NativeActorSeatIdentity native_actor_seat(const std::string& actor);
     void check_alive() const;
     bool busy() const { return busy_; }
+    bool has_retained_presentation() const { return bool(shared_); }
+    wire::PixelExtent native_viewport() const;
     void set_tick(std::function<void()> tick) { tick_ = std::move(tick); }
     pid_t pid() const;
     const std::string& display() const;
@@ -39,6 +41,7 @@ private:
     void read_all(char* out, std::size_t size);
     std::string receive_bytes();
     wire::RenderResult receive();
+    void retain_readiness(const wire::RendererReady&);
     wire::RenderResult exchange(wire::RenderCommand command, const std::function<void()>& before_send = {}, int capture_fd = -1);
     struct Shared;
     std::unique_ptr<Shared> shared_;
@@ -47,6 +50,7 @@ private:
     int socket_ = -1, pidfd_ = -1;
     std::uint64_t sequence_ = 0;
     std::uint64_t frame_id_ = 0;
+    std::optional<wire::PixelExtent> native_viewport_;
     std::optional<wire::ActorLocalViewIdentity> prepared_identity_;
     wire::FrameReply prepared_frame_;
     bool busy_ = false;

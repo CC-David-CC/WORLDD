@@ -167,6 +167,8 @@ Renderer::Renderer(const std::string& name, const std::filesystem::path& state, 
         throw std::runtime_error("OpenGL 3.3 with ARB_gpu_shader_fp64 is required");
     r.info.set_gl_version(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
     r.info.set_gl_renderer(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    r.info.mutable_viewport()->set_width(DisplayWidth(r.display, DefaultScreen(r.display)));
+    r.info.mutable_viewport()->set_height(DisplayHeight(r.display, DefaultScreen(r.display)));
     std::cerr << "spatialwm: " << r.info.gl_version() << "; " << r.info.gl_renderer() << '\n';
     const char* vertex = R"(#version 330 core
 layout(location=0) in vec2 position;

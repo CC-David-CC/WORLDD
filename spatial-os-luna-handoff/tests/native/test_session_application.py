@@ -103,6 +103,15 @@ class SessionApplicationTests(existing.SessionActorTests):
             self.assertEqual(path.stat().st_uid,os.getuid()); path.rmdir()
         self.cgroup.rmdir()
 
+    def workspace_grant_roots(self):
+        return [grants.GrantTerms(subject=self.principal,
+            scope=grants.Scope(domain=grants.Domain(kind=grants.WORKSPACE, id=WORKSPACE)), rights=RIGHTS)]
+
+    def world_grant_roots(self):
+        return [grants.GrantTerms(subject=self.principal,
+            scope=grants.Scope(domain=grants.Domain(kind=grants.WORLD, id=self.world_domain)),
+            rights=[grants.WORLD_ENTER, grants.WORLD_NAVIGATE, grants.WORLD_OBSERVE, grants.WORLD_MANIPULATE])]
+
     def broker_config(self, target=38):
         config = super().broker_config(target)
         binary = config.launch.executable
@@ -147,8 +156,7 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertEqual(bootstrap.wait(timeout=5), 0)
         directory = self.root / 'workspace-authority'; directory.mkdir(mode=0o700)
         seed = broker.WorkspaceAuthoritySeed(protocol_version=1, workspace=WORKSPACE, authority_directory=str(directory),
-            roots=[grants.GrantTerms(subject=self.principal,
-                scope=grants.Scope(domain=grants.Domain(kind=grants.WORKSPACE, id=WORKSPACE)), rights=RIGHTS)])
+            roots=self.workspace_grant_roots())
         result = subprocess.run([binary, '--state-dir', str(self.execution), '--init-authority',
             str(self.config_file('workspace-seed', seed))], capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -165,9 +173,7 @@ class SessionApplicationTests(existing.SessionActorTests):
         config = super().world_config()
         directory = self.root / 'world-authority'; directory.mkdir(mode=0o700)
         seed = session.WorldAuthoritySeed(protocol_version=1, authority_directory=str(directory),
-            roots=[grants.GrantTerms(subject=self.principal,
-                scope=grants.Scope(domain=grants.Domain(kind=grants.WORLD, id=self.world_domain)),
-                rights=[grants.WORLD_ENTER, grants.WORLD_NAVIGATE, grants.WORLD_OBSERVE, grants.WORLD_MANIPULATE])])
+            roots=self.world_grant_roots())
         result = subprocess.run([config.launch.executable, '--state-dir', str(self.root / 'world'),
             '--init-authority', str(self.config_file('world-seed', seed))], capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)

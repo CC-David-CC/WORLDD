@@ -61,12 +61,14 @@ private:
     void require_controls_locked(std::uint64_t generation) const;
     void create_controls_locked(const control::v1::ControlProfiles&, std::uint64_t initial_sequence);
     control::v1::ControlStatus control_status_locked() const;
-    bool retire_geometry_locked() noexcept;
+    bool retire_foreground_locked() noexcept;
     void clear_foreground_locked();
-    void refresh_geometry_locked();
+    void refresh_foreground_locked();
     struct Destination { std::optional<workspace::v1::ControlOwner> owner; ChannelFactory channel; };
     SessionCoordinator* session_ = nullptr;
     std::optional<render::v1::GeometryPresentationTarget> geometry_target_;
+    struct LocalTarget {workspace::v1::ControlOwner owner;core::v1::ActorLocalViewIdentity identity;};
+    std::optional<LocalTarget> local_target_;
     identity::v1::HostGeometryStatus geometry_status_;
     PresentationInspect inspect_;
     PresentationSelect select_;

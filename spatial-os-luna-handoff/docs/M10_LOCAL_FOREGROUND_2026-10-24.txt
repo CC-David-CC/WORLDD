@@ -1,0 +1,123 @@
+M10 retained actor foreground integration
+Date: 2026-10-24. Status: selected focused and related checks PASS. UNQUALIFIED_M10.
+Base: 33b67608739f90728341f6e6f1a4441c55195646.
+
+ActorLocalViewState adds sampled room at field 8 and presentation_generation at field 9.
+The camera and room describe one immutable sample before projection waits.
+These private host receipts expose no native XIDs or actor capabilities.
+This explicit additive migration changes only the core.proto pin and migration notice in acceptance.lock.json.
+All 151 acceptance IDs/assertions, existing fields, oracles, witnesses, and unrelated hashes remain unchanged.
+Generated-code reproducibility remains a final frozen-candidate requirement.
+
+Actors shares projection and authority revalidation with ordinary ActorObserve.
+Ordinary observation retains strict pose validation. Local presentation permits same-room motion after its sample.
+A room change invalidates the old sample. Native handles still pass compositor commitment checks.
+The retained world prepares invisible native textures, validates scene/actor/authority fences, and reserves a broker watch.
+Visible commitment requires the same active authenticated view, scoped world rights, and producer generation.
+Checks during preparation cover both the displayed and pending projection.
+Updating the pending scene cannot drop rights checks protecting existing pixels.
+
+Actor close, view release, broker invalidation, world observation loss, and room changes queue exact clearing.
+The world clears the selected view before releasing its watch.
+Cleanup ownership survives cleared actor tokens and participates in cancellation acknowledgements.
+Failed or uncertain cleanup retains its record. A newer view never inherits an older watch.
+Application execution remains independent of foreground observation and application control.
+Workspace policy wrappers await observation barriers after policy commit.
+World policy wrappers settle local foreground cancellation before completed receipts.
+The wrapper deadline reports committed policy with unconfirmed cleanup instead of claiming completion.
+No nested renderer or broker request is issued by frame submission validation.
+
+SessionCoordinator retains local targets before binding, selection, or drawing can partially complete.
+Retirement checks compositor clearing, world release, and absence of that view's broker reservation.
+Shared HostActorController uses this path for retained local worlds.
+Remote registrations keep geometry-only presentation. Legacy host mode retains its established path.
+Denial of observation leaves independently authorized navigation available after checked foreground cleanup.
+Public actor transport receives no host management or compositor-owner channel.
+
+New native regression entrypoint: tests/native/test_local_foreground.py.
+It uses the production retained session, issuer, broker, world, compositor, and confined application.
+An independent X client reads the actual output window.
+The thin local-foreground probe forwards typed production coordinator operations.
+Two declarative seed extension points preserve the existing SessionApplication default fixtures exactly.
+The new fixture separates observation, control, administration, and execution grants for revocation witnesses.
+
+Selected checks are recorded externally in world-local-foreground-selected-checks-64.json.
+Run on both qualification hosts in Debug and ASan/UBSan. Build only on middle-child.
+The context supplement covers local room changes, scoped revocation, and two component-failure cases.
+Production-host application foreground, cross-world presentation, and native visibility after compositor loss remain required.
+Visible controls, capture receiver/worker/watchdog, three-actor workflows, and the full M10 gate remain pending.
+
+Native viewport correction, 2026-10-24
+The initial host integration requested a fixed 1280x720 frame on bounded native displays.
+Both hosts reproduced BadMatch through the unchanged independent host pixel witness.
+Preserved run 70 passed eleven local foreground methods, then failed one of four host methods.
+The new RendererReady.viewport field 3 reports the compositor's native display extent.
+ActorLocalViewPresent accepts a zero pair to request this authoritative native extent.
+A single zero remains invalid. Explicit extents retain their existing validation and exact receipts.
+HostActorController requests the native extent. It never guesses a fallback resolution.
+RenderWorker rejects invalid supplied metadata. Missing metadata permits existing explicit frame requests.
+A native default request without metadata returns UNAVAILABLE before any local foreground allocation.
+Unsupported legacy presentation returns UNIMPLEMENTED before creating cleanup obligations.
+Only the core.proto hash and migration notice change in the acceptance lock.
+All 151 acceptance IDs, assertions, oracles, witnesses, and unrelated pins remain unchanged.
+New regressions check native output dimensions and RGB repaint, metadata preservation, missing metadata, and malformed metadata.
+The unchanged host-native witness must pass on both hosts and both profiles before this repair is accepted.
+Physical display resizing is not qualified by startup viewport metadata.
+Runtime repair verification passed focused phase 1 below. M10 remains UNQUALIFIED.
+
+Focused phase 1 result, runtime 80
+Both qualification hosts pass Debug and ASan/UBSan with actual native XLibre output.
+Each cell passes twelve new local foreground methods and four unchanged host shared-control methods.
+Each cell also passes seven retained frame transport groups.
+The combined accepted totals are 64 Python methods and 28 C++ groups, with no skips or sanitizer diagnostics.
+The unchanged host pixel witness now passes the viewport regression on both hosts and profiles.
+Native default frames match the actual display and repaint real application RGB output.
+Exact-session, revocation, closed-acknowledgement, independent observation/control, and moving-camera checks pass.
+This focused result does not qualify the complete foreground integration or M10.
+Room/world foreground transitions, scoped representation revocation, and uncertain-component witnesses remain required.
+The broader selected related matrix subsequently completed under world-local-foreground-related-run-82 on both hosts.
+Its results use world-local-foreground-related-results-80. The separate dependency reassessment is recorded below.
+
+Production package uses source-inputs-72.json and successful build-world-local-foreground-run-72.
+Archive SHA256: 14c08c2a3b5e2432bc29cd24c9a3b8766e9f6d3367d8879139a82a485a6a2723.
+Manifest SHA256: 12063498b0f0c8f31942a2f6c16180f58139ae6f8b9725fc3475e92cc5ce96ed.
+Archive bytes: 772517282. Expanded bytes: 3827517180.
+Both hosts verify complete deployment coverage, modes, executability, libraries, and checked writeback.
+Native server wrappers and graphics libraries retain the qualified M09 provenance.
+
+Run 76 passed six frame transport groups, then failed the new malformed-readiness witness.
+The existing extent validator throws std::invalid_argument. The new witness incorrectly expected WorldError.
+Correction 78 requires the existing exception type and exact rejection message. Production code remains unchanged.
+Only that fixture source and its two rebuilt executables overlay the immutable production package.
+Explicit overlay manifest: foreground-witness-overlay-79/manifest.json.
+Overlay manifest SHA256: 49c00d3639236649dfd623e3af622aa15be4e315adc0fb3c23e7e482206946b4.
+Source-inputs-78.json differs from source-inputs-72.json only in that test fixture.
+Original run 76, its failed reports, and all earlier failures remain preserved.
+
+Evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Collected evidence: evidence/HOST/world-local-foreground-phase1-results-80 and phase1-run-80.
+Collection: world-local-foreground-phase1-collection-81.json.
+Terminal audit: world-local-foreground-phase1-terminal-audit-81.json.
+Primary review: world-local-foreground-primary-source-review-72.json and world-local-foreground-witness-primary-review-79.json.
+Descriptor/lock review: world-local-foreground-schema-review-72/review.json.
+Full frozen-candidate Protobuf reproducibility and cumulative M10 qualification remain pending.
+
+Failure preservation and capacity
+Original package 68, source 66, test overlays, and native failure evidence remain verified on fleet storage.
+Location: /mnt/data10tb/spatial-desktop/packages/current/m10-33b6760-foreground-failure-20261024-unqualified.
+Exact source archive SHA256: f1cea314a981e377deaf93a26d1e7210ed28c3cb369751130e3069da33361055.
+Only inactive extracted copies were removed from test hosts after archive and reference verification.
+See ../../docs/M10_TEST_HOST_STORAGE_CLEANUP_2026-10-24.txt for exact paths and recovered bytes.
+
+Final selected review, 2026-10-24
+Both hosts and profiles pass all original selected related suites.
+The original phase1 and related selection covers 916 Python methods and 92 C++ groups across four cells.
+Sb16's post-upgrade dependency reassessment passes separately without replacing its original provenance.
+See ../../docs/M10_RUNTIME_LIBRARY_REVISION_2026-10-24.txt for the exact revision and corrective results.
+Four new context methods also pass on both hosts and profiles, totaling sixteen additional method completions.
+See M10_LOCAL_FOREGROUND_CONTEXT_2026-10-24.txt for native room, scope, and failure witnesses and their limits.
+Terminal audit: world-local-foreground-terminal-audit-99.json.
+Exact compiled source72 archive SHA256: 78da1f4867434ced6b5dbbacdba9d60e6e1376935ec4fcb331edb70abb5cdb01.
+Every archived source path and byte matches source-inputs-72.json.
+These focused results support an unqualified component checkpoint. They do not complete M10.
+Cross-world application foreground, remote geometry sampling, native concealment after compositor death, capture/menu integration, and three-actor workflows remain required.

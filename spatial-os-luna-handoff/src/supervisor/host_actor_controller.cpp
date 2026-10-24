@@ -31,7 +31,7 @@ HostActorController::HostActorController(PresentationInspect inspect, Presentati
 }
 HostActorController::~HostActorController() {
     controls_menu_.reset(); adapters_.reset(); controls_.reset();
-    if(session_ && geometry_target_) { try { session_->retire_geometry(*geometry_target_);geometry_target_.reset(); } catch (...) { control_fenced_=true; } }
+    if(session_) (void)retire_foreground_locked();
 }
 
 void HostActorController::register_world(std::string world, workspace::v1::ControlOwner owner,
@@ -154,8 +154,8 @@ identity::v1::HostActorTransitionResult HostActorController::transition_locked(
         return result;
     }
 
-    if(geometry_target_) {
-        try { session_->retire_geometry(*geometry_target_); geometry_target_.reset(); }
+    if(geometry_target_ || local_target_) {
+        try { if (!retire_foreground_locked()) throw std::runtime_error("Foreground retirement remains unconfirmed"); }
         catch (...) { current_client_.reset(); control_fenced_=true; result.set_actor_control_available(false); result.set_host_selection(HOST_SELECTION_UNCERTAIN); result.set_detail(exception_detail()); return result; }
     }
     quarantined_client_ = std::move(outcome.destination);
@@ -171,7 +171,7 @@ identity::v1::HostActorTransitionResult HostActorController::transition_locked(
         current_world_ = request.destination_world_id();
         current_client_ = std::move(quarantined_client_);
         if (session_) {
-            try { refresh_geometry_locked(); }
+            try { refresh_foreground_locked(); }
             catch (const ActorSessionRejected&) {
                 // Observation is separate from navigation and other actor authority.
                 clear_foreground_locked();
@@ -190,7 +190,7 @@ identity::v1::HostActorTransitionResult HostActorController::transition_locked(
         return result;
     } catch (...) {
         const auto detail = exception_detail();
-        retire_geometry_locked();
+        retire_foreground_locked();
         current_client_.reset(); // Source departure is confirmed; its channel cannot control this actor.
         control_fenced_ = true;
         result.set_host_selection(HOST_SELECTION_UNCERTAIN);
@@ -226,12 +226,18 @@ bool HostActorController::control_available() const {
     std::lock_guard lock(mutex_);
     return !control_fenced_ && !transitioning_ && current_client_ && !current_client_->failed();
 }
-bool HostActorController::retire_geometry_locked() noexcept {
+bool HostActorController::retire_foreground_locked() noexcept {
     geometry_status_.Clear();
-    if (!geometry_target_) return true;
+    if (!geometry_target_ && !local_target_) return true;
     try {
-        session_->retire_geometry(*geometry_target_);
-        geometry_target_.reset();
+        if (local_target_) {
+            session_->retire_local_actor(local_target_->owner,local_target_->identity);
+            local_target_.reset();
+        }
+        if (geometry_target_) {
+            session_->retire_geometry(*geometry_target_);
+            geometry_target_.reset();
+        }
         return true;
     } catch (...) {
         // Retain ownership until the coordinator obtains a checked retirement.
@@ -240,11 +246,28 @@ bool HostActorController::retire_geometry_locked() noexcept {
     }
 }
 void HostActorController::clear_foreground_locked() {
-    if(!retire_geometry_locked())throw std::runtime_error("Foreground geometry retirement unconfirmed");
+    if(!retire_foreground_locked())throw std::runtime_error("Foreground geometry retirement unconfirmed");
     try { session_->clear_presentation(); }
     catch (...) { control_fenced_=true;throw; }
 }
-void HostActorController::refresh_geometry_locked() {
+void HostActorController::refresh_foreground_locked() {
+    const auto destination=destinations_.find(current_world_);
+    if (shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
+        const auto identity=current_client_->local_view_identity();
+        if (!local_target_ || local_target_->identity.SerializeAsString()!=identity.SerializeAsString()) {
+            if (!retire_foreground_locked()) throw std::runtime_error("Previous foreground retirement is unconfirmed");
+            local_target_=LocalTarget{*destination->second.owner,identity};
+        }
+        const auto view=session_->present_local_actor(local_target_->owner,identity,0,0);
+        geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
+        geometry_status_.set_world_id(identity.world_id());geometry_status_.set_actor_id(identity.actor_id());
+        geometry_status_.set_room(view.room());*geometry_status_.mutable_camera()=view.camera();
+        geometry_status_.set_view_sequence(view.frame_id());geometry_status_.set_world_revision(view.world_revision());
+        geometry_status_.set_presentation_generation(view.presentation_generation());
+        geometry_status_.set_authority_generation(identity.authority_generation());
+        geometry_status_.set_authority_service_incarnation(identity.authority_service_incarnation());
+        return;
+    }
     const auto view = current_client_->geometry_view();
     if (!geometry_target_) {
         // Record ownership before any selection or publication can fail.
@@ -273,27 +296,27 @@ identity::v1::HostGeometryStatus HostActorController::geometry_status(std::uint6
     require(lock.owns_lock(),"Host actor operation already in progress");
     require(!transitioning_ && generation==generation_,"Unavailable or stale host actor context");
     identity::v1::HostGeometryStatus unavailable;unavailable.set_protocol_version(1);
-    if(control_fenced_ || !current_client_ || current_client_->failed() || !geometry_target_)
+    if(control_fenced_ || !current_client_ || current_client_->failed() || (!geometry_target_ && !local_target_))
         return unavailable;
     return geometry_status_;
 }
 void HostActorController::start_geometry_presentation() {
     std::lock_guard lock(mutex_);
-    require(session_ && current_client_ && !control_fenced_ && !geometry_target_,
+    require(session_ && current_client_ && !control_fenced_ && !geometry_target_ && !local_target_,
             "Geometry presentation requires an unpresented live production actor client");
-    try { refresh_geometry_locked(); }
+    try { refresh_foreground_locked(); }
     catch (const ActorSessionRejected&) {
         clear_foreground_locked();
         if (current_client_->failed()) throw;
     } catch (...) {
-        retire_geometry_locked();
+        retire_foreground_locked();
         throw;
     }
 }
 void HostActorController::pump_geometry_presentation() {
     std::unique_lock lock(mutex_, std::try_to_lock);
     if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return;
-    try { refresh_geometry_locked(); }
+    try { refresh_foreground_locked(); }
     catch (...) {
         try { clear_foreground_locked(); } catch (...) { control_fenced_=true; }
         if (current_client_->failed()) control_fenced_ = true;

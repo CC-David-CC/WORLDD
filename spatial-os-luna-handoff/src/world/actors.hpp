@@ -40,6 +40,9 @@ public:
     // Retained host management only. This changes local-output eligibility, never actor rights.
     void bind_local_view(const std::string& token, const core::v1::ActorLocalViewIdentity& identity);
     void release_local_view(const std::string& token, const core::v1::ActorLocalViewIdentity& identity);
+    core::v1::ActorLocalViewState present_local_view(const std::string& token,
+        const core::v1::ActorLocalViewIdentity&, std::uint32_t width, std::uint32_t height,
+        const std::function<bool()>& session_current = {});
     wire::WorldCheckpointReply checkpoint();
     wire::WorldCheckpointReply checkpoint_closed(const std::string& actor_id);
     wire::ClockReply advance(const wire::ClockAdvanceRequest& request);
@@ -102,6 +105,36 @@ private:
         std::optional<ObjectHold> object;
         wire::ErrorCode object_error = wire::NO_TARGET;
     };
+    struct RenderedPresentation {
+        std::string id, room, workspace;
+        wire::Pose pose;
+        std::uint64_t generation;
+        bool allowed;
+    };
+    struct Projection {
+        wire::RenderScene scene;
+        std::string room, pose, token;
+        std::uint64_t instance = 0;
+        std::vector<broker_wire::AuthorizationFence> fences;
+        std::vector<RenderedPresentation> presentations;
+        std::vector<ObservedApplication> applications;
+    };
+    struct Foreground {
+        wire::ActorLocalViewIdentity identity;
+        Projection projection;
+        std::optional<Projection> displayed;
+        std::optional<broker_wire::ObservationWatch> watch;
+        bool clear_pending = false, cleared = false;
+    };
+    std::map<std::string, Foreground> foregrounds_;
+    bool presenting_local_ = false, flushing_foregrounds_ = false;
+    wire::RenderScene scene_projection(const std::string&, bool geometry_only,
+        std::vector<broker_wire::AuthorizationFence>*, bool sampled_pose);
+    Projection project_observation(Actor&, bool sampled_pose);
+    void validate_projection(Actor&, Projection&, bool sampled_pose);
+    bool foreground_current(const Foreground&) const;
+    void queue_local_clear(const wire::ActorLocalViewIdentity&);
+    void drain_foregrounds();
     Actor& authenticated(const std::string& token);
     bool granted(const Actor&, const std::string& right, const std::vector<std::string>& components = {}) const;
     std::optional<broker_wire::ScopedAuthorityCheckReply> workspace_check(

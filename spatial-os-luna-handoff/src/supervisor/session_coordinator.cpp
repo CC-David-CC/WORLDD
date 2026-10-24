@@ -8,6 +8,10 @@
 #include "identity/participant_stream.hpp"
 #include "identity/tls_support.hpp"
 #include "world/geometry_view_validation.hpp"
+#include "world/local_view_validation.hpp"
+#include "world/actor_session_client.hpp"
+#include "core/scene.hpp"
+#include "core/geometry.hpp"
 #include "world/store.hpp"
 #include <map>
 #include <iostream>
@@ -54,6 +58,7 @@ struct World {
     std::filesystem::path journal_directory;
     std::vector<std::unique_ptr<File>> actors;
     render::v1::WorldPresentationBinding presentation;
+    std::map<std::string,render::v1::LocalActorPresentationTarget> local_targets;
     bool presentation_attached=false,presentation_retired=false,world_identity_checked=false;
     bool registered = false, stopped = false, failed = false;
     std::uint64_t sequence = 0;
@@ -170,6 +175,64 @@ void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner&
     state.presentation->recover(world.presentation,checked.process_stopped(),checked.native_stopped());
     const auto retired=state.presentation->detach(world.presentation);
     require(retired.stage()==render::v1::RETIRED,"Presentation retirement remains unconfirmed");world.presentation_retired=true;
+}
+core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const workspace::v1::ControlOwner& owner,
+        const core::v1::ActorLocalViewIdentity& identity,std::uint32_t width,std::uint32_t height) {
+    auto& state=*impl_;auto& world=state.find(owner);
+    validate_local_view_identity(identity);
+    if (width || height) validate_render_extent(width,height);
+    require(state.presentation && world.presentation_attached && world.world_identity_checked &&
+        !world.stopped && !world.failed && identity.world_id()==world.presentation.world_id() &&
+        identity.authority_service_incarnation()==world.presentation.service_incarnation() &&
+        identity.authority_generation()==world.presentation.authority_generation(),"Local actor does not match the retained producer");
+    render::v1::LocalActorPresentationTarget target;
+    *target.mutable_binding()=world.presentation;*target.mutable_identity()=identity;
+    const auto key=identity.SerializeAsString();
+    require(world.local_targets.contains(key) || world.local_targets.size()<256,"Too many retained local actor targets");
+    world.local_targets.emplace(key,target); // Retain before any partially completed ownership operation.
+    core::v1::Request request;request.set_protocol_version(1);
+    auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);*operation->mutable_identity()=identity;
+    operation->mutable_bind();
+    const auto bound=world_call(owner,request);
+    if (bound.has_error()) throw ActorSessionRejected(bound.error());
+    require(bound.has_actor_local_view() && bound.actor_local_view().bound() &&
+        bound.actor_local_view().identity().SerializeAsString()==key,"Local actor binding was not confirmed");
+    state.presentation->select_local_actor(target);
+    operation->mutable_present()->set_width(width);operation->mutable_present()->set_height(height);
+    const auto reply=world_call(owner,request);
+    if (reply.has_error()) throw ActorSessionRejected(reply.error());
+    require(reply.has_actor_local_view(),"Local actor presentation receipt is missing");
+    const auto& result=reply.actor_local_view();
+    validate_render_extent(result.viewport().width(),result.viewport().height());
+    require(result.bound() && result.presented() && result.identity().SerializeAsString()==key && result.frame_id()>0 &&
+        result.world_revision()>0 && (!width || (result.viewport().width()==width && result.viewport().height()==height)) &&
+        !result.room().empty() && result.room().size()<=256 && result.room().find('\0')==std::string::npos &&
+        result.presentation_generation()==world.presentation.presentation_generation() && result.camera().has_position() &&
+        result.camera().has_orientation(),"Local actor presentation receipt does not match its target");
+    const auto& p=result.camera().position();const auto& q=result.camera().orientation();
+    validate_pose({{p.x(),p.y(),p.z()},{q.x(),q.y(),q.z(),q.w()}});
+    return result;
+}
+void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& owner,
+        const core::v1::ActorLocalViewIdentity& identity) {
+    auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
+    const auto key=identity.SerializeAsString();const auto found=world.local_targets.find(key);
+    if (found==world.local_targets.end()) return;
+    require(bool(state.presentation),"Local actor retirement requires its retained compositor");
+    state.presentation->retire_local_actor(found->second);
+    core::v1::Request request;request.set_protocol_version(1);
+    auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);
+    *operation->mutable_identity()=identity;operation->mutable_release();
+    const auto reply=world_call(owner,request);
+    if (reply.has_error()) {
+        require(reply.error().code()==core::v1::FORBIDDEN || reply.error().code()==core::v1::UNAUTHORIZED,
+            "Local actor release was not confirmed");
+    }else require(reply.has_actor_local_view() && !reply.actor_local_view().bound() &&
+        reply.actor_local_view().identity().SerializeAsString()==key,"Local actor release receipt mismatch");
+    const auto controls=state.administrative(owner);
+    for (const auto& watch:controls.observation_watches())
+        require(watch.view().SerializeAsString()!=key,"Local actor observation release remains pending");
+    world.local_targets.erase(found);
 }
 void SessionCoordinator::clear_presentation(){
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
