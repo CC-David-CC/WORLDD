@@ -14,6 +14,7 @@ public:
     void administrative();
     void serve(const Dispatch&);
     void revoked(const std::string&, const ControlLeases::Lease&);
+    void observation_revoked(const std::string&, const ControlLeases::Observation&);
     bool pending_output() const;
 private:
     struct Impl;

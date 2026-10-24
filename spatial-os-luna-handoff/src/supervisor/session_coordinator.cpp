@@ -91,6 +91,13 @@ struct SessionCoordinator::Impl {
             *request.mutable_recover()->mutable_owner() = owner;
             *request.mutable_recover()->mutable_process_stopped() = cleanup->process_stopped();
             *request.mutable_recover()->mutable_native_stopped() = cleanup->native_stopped();
+            const auto& world=find_owned(owner);
+            if(world.presentation_attached) {
+                require(world.presentation_retired,"Recover broker observations only after checked presentation retirement");
+                auto* retired=request.mutable_recover()->mutable_retired_presentation();
+                retired->set_world_id(world.presentation.world_id());
+                retired->set_presentation_generation(world.presentation.presentation_generation());
+            }
         }
         else if (endpoint >= 3) *request.mutable_register_() = owner;
         else if (fence) *request.mutable_fence() = owner;

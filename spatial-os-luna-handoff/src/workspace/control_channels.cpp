@@ -247,6 +247,13 @@ void ControlChannels::revoked(const std::string& key, const ControlLeases::Lease
         owner.channel->send(event.SerializeAsString()); owner.channel->flush();
     } catch (const std::exception&) { impl_->fence(key, owner); }
 }
+void ControlChannels::observation_revoked(const std::string& key,const ControlLeases::Observation& watch) {
+    auto& owner=impl_->owners.at(key);if(!owner.channel)return;
+    try {
+        pb::Reply event;event.set_protocol_version(1);*event.mutable_observation_revoked()=watch;
+        owner.channel->send(event.SerializeAsString());owner.channel->flush();
+    }catch(const std::exception&){impl_->fence(key,owner);}
+}
 bool ControlChannels::pending_output() const {
     for (const auto& [key, owner] : impl_->owners) {
         (void)key;

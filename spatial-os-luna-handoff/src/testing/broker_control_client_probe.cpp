@@ -15,13 +15,19 @@ int main(int argc, char** argv) {
     try {
         if (argc != 3) throw std::invalid_argument("Expected inherited broker descriptor and process identity");
         spatial::BrokerClient client(std::stoi(argv[1]), std::stoi(argv[2]));
-        std::set<std::string> revoked_seen;
+        std::set<std::string> revoked_seen,observations_revoked_seen;
         const auto events = [&] {
             for (const auto& lease : client.poll_control()) {
                 if (client.control_active(lease)) throw std::runtime_error("Revoked lease remains active");
                 revoked_seen.insert(lease.id());
                 pb::Reply reply; reply.set_protocol_version(1); *reply.mutable_control_revoked() = lease;
                 spatial::write_frame(std::cout, reply); std::cout.flush();
+            }
+            for(const auto& watch:client.poll_observation()) {
+                if(client.observation_active(watch))throw std::runtime_error("Revoked observation remains active");
+                observations_revoked_seen.insert(watch.id());
+                pb::Reply reply;reply.set_protocol_version(1);*reply.mutable_observation_revoked()=watch;
+                spatial::write_frame(std::cout,reply);std::cout.flush();
             }
         };
         client.set_tick(events);
@@ -42,6 +48,10 @@ int main(int argc, char** argv) {
                         if (request.has_control_acquire()) *reply.mutable_control_lease() = client.control_acquire(request.control_acquire());
                         else if (request.has_control_release()) *reply.mutable_control_released() = client.control_release(request.control_release());
                         else if (request.has_application_access()) *reply.mutable_application_access() = client.application_access(request.application_access());
+                        else if(request.has_observation_acquire())*reply.mutable_observation_watch()=client.observation_acquire(request.observation_acquire());
+                        else if(request.has_observation_release())*reply.mutable_observation_released()=client.observation_release(request.observation_release());
+                        else if(request.has_observation_barrier())*reply.mutable_observation_barrier()=client.observation_barrier(request.observation_barrier());
+                        else if(request.has_authorization_fence())*reply.mutable_authorization_fence()=client.authorization_fence(request.authorization_fence());
                         else if (request.has_management()) {
                             *reply.mutable_management() = client.call(request.management());
                             reply.mutable_management()->set_request_id(request.management().request_id());
@@ -61,6 +71,9 @@ int main(int argc, char** argv) {
                     events();
                     if (reply.has_control_lease() && client.control_active(reply.control_lease()) == revoked_seen.contains(reply.control_lease().id()))
                         throw std::runtime_error("Control validity disagrees with received revocation");
+                    if(reply.has_observation_watch() && client.observation_active(reply.observation_watch()) ==
+                        observations_revoked_seen.contains(reply.observation_watch().id()))
+                        throw std::runtime_error("Observation validity disagrees with received revocation");
                     spatial::write_frame(std::cout,reply); std::cout.flush(); continue;
                 }
             }

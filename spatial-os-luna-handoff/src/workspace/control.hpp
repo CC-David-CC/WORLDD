@@ -10,7 +10,12 @@ class ExecutionStore;
 class ControlLeases {
 public:
     using Lease = workspace::v1::ApplicationControlLease;
-    ControlLeases(ExecutionStore& store, std::function<void(const std::string&, const Lease&)> revoked);
+    using Observation = workspace::v1::ObservationWatch;
+    ControlLeases(ExecutionStore& store, std::function<void(const std::string&, const Lease&)> revoked,
+        std::function<void(const std::string&, const Observation&)> observation_revoked = {});
+    Observation observe(const workspace::v1::ObservationWatchAcquire&, const std::string& owner = {});
+    workspace::v1::ObservationWatchReleased release_observation(const workspace::v1::ObservationWatchRelease&, const std::string& owner = {});
+    workspace::v1::ObservationBarrierReply observation_barrier(const workspace::v1::ObservationBarrierRequest&);
     Lease acquire(const workspace::v1::ApplicationControlRequest&, const std::string& owner = {});
     workspace::v1::ApplicationControlReleased release(const workspace::v1::ApplicationControlRelease&, const std::string& owner = {});
     void fence(const std::string& owner);
@@ -20,11 +25,15 @@ public:
     // Uses already prepared issuer state. Performs no issuer exchange or process reaping.
     void tick();
     bool cancellation_settled() const;
-    bool empty() const { return leases_.empty(); }
+    bool empty() const { return leases_.empty() && observations_.empty(); }
 private:
     struct Reservation { Lease lease; std::string owner; bool revoked = false; };
     ExecutionStore& store_;
     std::function<void(const std::string&, const Lease&)> revoked_;
+    struct ObservationReservation { Observation watch; std::string owner; bool revoked = false; };
+    std::function<void(const std::string&, const Observation&)> observation_revoked_;
+    std::map<std::string, ObservationReservation> observations_;
+    void check_snapshot_budget(const std::string& owner, std::size_t added_bytes) const;
     std::map<std::string, Reservation> leases_;
     std::map<std::string, std::string> groups_;
     std::set<std::string> fenced_;

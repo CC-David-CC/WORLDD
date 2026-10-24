@@ -1901,6 +1901,10 @@ workspace::v1::AuthorizationFence ExecutionStore::authorization_fence(const work
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Authorization fence requires authenticated actor authority");
     return impl_->authority->authorization_fence(request.principal());
 }
+workspace::v1::AuthorizationFence ExecutionStore::observation_fence_snapshot() const {
+    if(!impl_->authority)throw WorldError(wire::UNIMPLEMENTED,"Persistent workspace authority is not configured");
+    return impl_->authority->fence_snapshot();
+}
 workspace::v1::ApplicationAccessReply ExecutionStore::application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh) {
     if (!request.has_principal()) throw WorldError(wire::FORBIDDEN, "Application access requires authenticated actor authority");
     const auto& principal = request.principal();

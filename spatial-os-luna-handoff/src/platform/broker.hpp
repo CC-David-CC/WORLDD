@@ -60,6 +60,11 @@ public:
     std::vector<broker_wire::ApplicationControlLease> poll_control();
     // A local validity check, not a replacement for pumping the authority channel.
     bool control_active(const broker_wire::ApplicationControlLease&) const;
+    broker_wire::ObservationWatch observation_acquire(const broker_wire::ObservationWatchAcquire&);
+    broker_wire::ObservationWatchReleased observation_release(const broker_wire::ObservationWatchRelease&);
+    broker_wire::ObservationBarrierReply observation_barrier(const broker_wire::ObservationBarrierRequest&);
+    std::vector<broker_wire::ObservationWatch> poll_observation();
+    bool observation_active(const broker_wire::ObservationWatch&) const;
     bool busy() const { return pending_ != nullptr; }
     wire::ProcessLaunchReply launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                    const authority::v1::ActorRef* principal = nullptr);
@@ -79,6 +84,7 @@ private:
     void pump();
     void revoked(const broker_wire::ApplicationControlLease&);
     void fail_channel();
+    void observation_revoked(const broker_wire::ObservationWatch&);
     int channel_ = -1, pidfd_ = -1;
     pid_t pid_;
     std::uint64_t sequence_ = 0;
@@ -92,5 +98,9 @@ private:
     struct Reservation { broker_wire::ApplicationControlLease lease; bool revoked = false; };
     std::map<std::string, Reservation> controls_;
     std::vector<broker_wire::ApplicationControlLease> revocations_;
+    struct ObservationReservation {broker_wire::ObservationWatch watch;bool revoked=false;};
+    std::map<std::string,ObservationReservation> observations_;
+    std::vector<broker_wire::ObservationWatch> observation_revocations_;
+    std::optional<broker_wire::ObservationWatch> early_observation_revocation_;
 };
 }

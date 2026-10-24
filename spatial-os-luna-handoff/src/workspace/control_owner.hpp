@@ -23,6 +23,11 @@ inline void validate_control_owner(const workspace::v1::ControlOwner& owner) {
 inline void validate_control_recovery(const workspace::v1::ControlOwnerRecovery& recovery) {
     validate_message(recovery);
     validate_control_owner(recovery.owner());
+    if(recovery.has_retired_presentation()) {
+        const auto& retired=recovery.retired_presentation();
+        if(retired.world_id().empty() || retired.world_id().size()>256 || retired.world_id().find('\0')!=std::string::npos ||
+            !retired.presentation_generation())throw std::invalid_argument("Invalid retired presentation receipt");
+    }
     const auto& process = recovery.process_stopped().identity();
     std::string scope = "authority-";
     constexpr char hex[] = "0123456789abcdef";

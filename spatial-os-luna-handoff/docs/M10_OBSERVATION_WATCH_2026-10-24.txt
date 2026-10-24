@@ -1,0 +1,88 @@
+M10 private observation watch contract
+Date: 2026-10-24. Status: FOCUSED BROKER BOUNDARY PASS. UNQUALIFIED_M10.
+Base: 3fbf7f4c204d43f66f502757242134ebf4282bed.
+
+Persistent foreground observation must participate in revocation independently of application control.
+The private broker adds observation acquisition, exact release, asynchronous invalidation, and epoch barriers.
+Request fields 118, 119, and 120 carry acquire, release, and barrier operations.
+Reply fields 118, 119, 120, and 121 carry watch, released, revoked, and barrier outcomes.
+Unsolicited observation_revoked uses request_id zero.
+
+A watch binds its actor principal, exact authenticated view, presentation generation, and broker authorization fence.
+Acquisition requires the currently validated broker incarnation and epoch.
+A watch grants no workspace access, observation, application control, execution, or display selection.
+Many observers can coexist with an independently controlled application.
+Every broker authority epoch change conservatively invalidates existing watches.
+This can blank views after unrelated policy changes. A later fresh authorized frame may restore them.
+Notification occurs once. A revoked watch remains reserved until exact clear/release or checked recovery.
+A replacement cannot silently revive an invalidated watch.
+
+The world must clear the exact compositor view before releasing its watch.
+The epoch barrier remains pending while old or invalidated watches remain.
+Grant records describe policy commits. The observation barrier separately describes foreground cleanup.
+The future world wrapper must await that barrier before acknowledging completed foreground revocation.
+This increment supplies the broker mechanism. World rendering integration remains pending.
+
+Owner loss fences its watches without inferring that pixels were cleared.
+ControlOwnerState adds observation_watches at field 5.
+ControlRecoveryReceipt adds observation_released at field 3.
+ControlOwnerRecovery adds retired_presentation at field 4.
+That receipt contains world identity and presentation generation; the remaining authority context comes from ControlOwner.
+The retained coordinator supplies it only after checked compositor retirement.
+A missing or different retirement cannot release observations or partially release controls.
+Exact recovery retries retain their original receipt.
+The supervisor validates the complete combined control and observation snapshot.
+Independent control and observation limits remain bounded. Each owner snapshot is limited to 60000 bytes.
+
+These are private additive protobuf changes.
+No public actor operation, locked acceptance assertion, native witness, or lock entry changes.
+One generator owns each output. The broker Python target requires the existing core identity generator.
+Generated binding reproducibility remains required on the final frozen candidate.
+
+Selected checks are recorded before execution in external observation-watch-selected-checks-50.json.
+Run both Debug and ASan/UBSan on sb16 and sb16-2.
+Build only on middle-child with parallelism two and directory-specific locks.
+Managed-channel component fixtures attest to cleanup at their trusted coordinator boundary.
+They do not prove native compositor clearing. Combined world/host acceptance must prove that later.
+
+Remaining M10 work includes world/host foreground integration and combined revocation tests.
+It also includes held navigation, visible controls, native capture worker/watchdog, and three-actor workflows.
+The full frozen M10 qualification gate remains pending.
+
+Verified focused results
+Both hosts passed Debug and ASan/UBSan at frozen source-inputs-52.json.
+Each cell completed 145 methods across ten suites. Total: 580 accepted method completions.
+New suites per cell: observation-watch-client 23, observation-watch-reply 12,
+observation-watch 16, and observation-watch-live 10.
+Related suites per cell: broker-control-client 32, control-supervisor-reply 21,
+control-administrative-transport 11, six selected application-control-lease methods,
+six selected control-owner-channels methods, and session-coordinator-retirement 8.
+Failed tests: 0. Skipped: 0. Sanitizer diagnostics: 0.
+
+The original collector refused four suite records because unittest printed dots without names.
+Each refused subprocess returned zero and reported Ran 21 tests and OK.
+Original command.exit and wrapper.exit remain one. Their evidence is preserved unchanged.
+Corrective driver55 reran only that unchanged suite with verbose output on both hosts and profiles.
+All four named reruns passed. Corrective command.exit and wrapper.exit are zero.
+Accepted totals use the corrective records once. They exclude duplicate original executions.
+No test assertion, fixture, deadline, production source, or package changed for this correction.
+
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023
+Build receipts: build-observation-watch-run-50 and build-observation-watch-run-52.
+The source52 correction adds the reachable session-application helper and checks denied boolean presence.
+It occurred before runtime tests. Both corrected build profiles passed.
+Frozen package: observation-watch-53/payload.tar.gz.
+Archive SHA256: 74bcc1f6e9dbc2716b01bb1378d7c7cf22f145cb17f1350d89e9ee4618b6cf4c.
+Manifest SHA256: 59b0d8c4ebbaf9140bb3069b56022f19b53e1d9127e82813ffcdca47579eed82.
+Original collection: observation-watch-original-collection-55.json.
+Corrective collection: observation-watch-corrective-collection-55.json.
+Terminal audit: observation-watch-terminal-audit-55.json.
+Per-host outputs: evidence/HOST/observation-watch-results-53 and observation-watch-corrective-results-55.
+Both deployments verified full coverage, hashes, modes, executability, dependencies, and writeback completion.
+The exact duplicate transfer archive was retired only after extracted payload verification.
+Its immutable builder copy and the host payload remain available.
+All compiled and test inputs match source52. Later edits only update maintained summaries.
+All 151 locked acceptance IDs/assertions and unrelated lock pins remain unchanged.
+
+Combined foreground clearing, world/host wiring, and the complete M10 qualification remain UNRUN.
+The component recovery fixtures do not substitute for actual compositor retirement witnesses.

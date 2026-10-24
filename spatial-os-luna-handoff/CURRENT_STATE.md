@@ -1,3 +1,15 @@
+## 2026-10-24: M10 broker observation watches pass focused qualification
+
+Private broker watches bind an actor view, producer generation, and authorization fence.
+Invalidated watches remain reserved until exact release or checked presentation recovery.
+Both hosts passed 145 methods per profile in Debug and ASan/UBSan: 580 accepted completions.
+Four original collector refusals remain preserved. Named-output corrective reruns passed unchanged tests.
+No test failed or skipped. No sanitizer diagnostic appeared in the selected outputs.
+World/host foreground integration, visible controls, capture routing, and three-actor workflows remain pending.
+Read docs/M10_OBSERVATION_WATCH_2026-10-24.txt for source pins, evidence, and explicit component limits.
+M10 remains unqualified. M09 and its runtime remain preserved.
+Historical entries below retain their dated status.
+
 ## 2026-10-23: M10 host control ownership passes focused sequencing and handoff checks
 
 HostActorController privately owns shared controls, device state, and menu logic in an opt-in mode.

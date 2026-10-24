@@ -9,6 +9,7 @@ import "storage.proto";
 import "copy.proto";
 import "cabinet.proto";
 import "file_actions.proto";
+import "actor_local_view.proto";
 
 // Sealed, inherited supervisor input. Never store cookies in workspace state.
 message NativeLaunchConfig {
@@ -143,6 +144,33 @@ message ApplicationControlLease {
 // The trusted world releases native input before releasing this reservation.
 message ApplicationControlRelease { bytes id = 1; spatial.authority.v1.ActorRef principal = 2; }
 message ApplicationControlReleased { bytes id = 1; }
+// Retained foreground participation. A watch grants no actor rights.
+message ObservationWatchAcquire {
+  spatial.authority.v1.ActorRef principal = 1;
+  spatial.core.v1.ActorLocalViewIdentity view = 2;
+  uint64 presentation_generation = 3;
+  AuthorizationFence expected = 4;
+}
+message ObservationWatch {
+  bytes id = 1;
+  spatial.authority.v1.ActorRef principal = 2;
+  spatial.core.v1.ActorLocalViewIdentity view = 3;
+  uint64 presentation_generation = 4;
+  AuthorizationFence fence = 5;
+}
+// The trusted world submits this only after exact-view foreground clearing.
+message ObservationWatchRelease {
+  bytes id = 1;
+  spatial.authority.v1.ActorRef principal = 2;
+  spatial.core.v1.ActorLocalViewIdentity view = 3;
+  uint64 presentation_generation = 4;
+}
+message ObservationWatchReleased { bytes id = 1; }
+message ObservationBarrierRequest { AuthorizationFence fence = 1; }
+message ObservationBarrierReply { AuthorizationFence fence = 1; bool settled = 2; }
+// The remaining producer identity comes from ControlOwner.launch.
+// The trusted coordinator supplies this after checked compositor retirement.
+message RetiredLocalPresentation { string world_id = 1; uint64 presentation_generation = 2; }
 // Only a retained local supervisor assigns this binding to an inherited world channel.
 // The binding is an ownership key, not proof that fencing or cleanup occurred.
 message ControlOwner {
@@ -155,17 +183,20 @@ message ControlOwnerRecovery {
   ControlOwner owner = 1;
   spatial.supervisor.v1.ProcessScopeStopped process_stopped = 2;
   spatial.supervisor.v1.NativeScopeStopped native_stopped = 3;
+  RetiredLocalPresentation retired_presentation = 4;
 }
 // Retained for the broker lifetime. This is not a durable issuer retirement receipt.
 message ControlRecoveryReceipt {
   ControlOwnerRecovery cleanup = 1;
   repeated ApplicationControlLease released = 2;
+  repeated ObservationWatch observation_released = 3;
 }
 message ControlOwnerState {
   ControlOwner owner = 1;
   bool channel_fenced = 2;
   repeated ApplicationControlLease reservations = 3;
   ControlRecoveryReceipt recovery = 4;
+  repeated ObservationWatch observation_watches = 5;
 }
 // One protobuf per private SOCK_SEQPACKET packet. Register carries one SCM_RIGHTS fd.
 // This envelope is never accepted on world or actor channels.
@@ -256,6 +287,9 @@ message Request {
     WorkspaceCopyBeginRequest workspace_copy_begin = 115;
     WorkspaceCopyStatusQuery workspace_copy_status = 116;
     FileActionRequest file_action = 117;
+    ObservationWatchAcquire observation_acquire = 118;
+    ObservationWatchRelease observation_release = 119;
+    ObservationBarrierRequest observation_barrier = 120;
   }
 }
 message Reply {
@@ -279,5 +313,10 @@ message Reply {
     AuthorizationFence authorization_fence = 113;
     spatial.workspace.copy.v1.WorkspaceCopyStatus workspace_copy_status = 115;
     FileActionReply file_action = 116;
+    ObservationWatch observation_watch = 118;
+    ObservationWatchReleased observation_released = 119;
+    // Unsolicited, request_id zero. Retained until checked release or recovery.
+    ObservationWatch observation_revoked = 120;
+    ObservationBarrierReply observation_barrier = 121;
   }
 }

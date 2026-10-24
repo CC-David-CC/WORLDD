@@ -1,4 +1,5 @@
 #include "platform/broker.hpp"
+#include "workspace/observation_watch.hpp"
 #include "platform/process_handle.hpp"
 #include "world/store.hpp"
 #include "authority/store.hpp"
@@ -536,6 +537,27 @@ void BrokerClient::revoked(const broker_wire::ApplicationControlLease& lease) {
     if (revocations_.size() >= 256) throw std::runtime_error("Control notification queue exceeds limit");
     revocations_.push_back(lease);
 }
+void BrokerClient::observation_revoked(const broker_wire::ObservationWatch& watch) {
+    validate_observation_watch(watch);
+    const auto found=observations_.find(watch.id());
+    if(found!=observations_.end()) {
+        if(found->second.revoked || found->second.watch.SerializeAsString()!=watch.SerializeAsString())
+            throw std::runtime_error("Invalid or repeated observation revocation");
+        found->second.revoked=true;
+    }else{
+        if(!pending_ || !pending_->has_observation_acquire() || early_observation_revocation_ ||
+            controls_.contains(watch.id()))throw std::runtime_error("Observation revocation has no matching reservation");
+        const auto& expected=pending_->observation_acquire();
+        if(watch.principal().SerializeAsString()!=expected.principal().SerializeAsString() ||
+            watch.view().SerializeAsString()!=expected.view().SerializeAsString() ||
+            watch.presentation_generation()!=expected.presentation_generation() ||
+            watch.fence().SerializeAsString()!=expected.expected().SerializeAsString())
+            throw std::runtime_error("Early observation revocation changed its context");
+        early_observation_revocation_=watch;
+    }
+    if(observation_revocations_.size()>=256)throw std::runtime_error("Observation notification queue exceeds limit");
+    observation_revocations_.push_back(watch);
+}
 void BrokerClient::pump() {
     check_alive();
     if (!incoming_.empty() && std::chrono::steady_clock::now()-frame_started_ > std::chrono::seconds(10))
@@ -555,6 +577,9 @@ void BrokerClient::pump() {
             if (reply.has_control_revoked()) {
                 if (reply.request_id() != 0) throw std::runtime_error("Invalid revocation request identity");
                 revoked(reply.control_revoked());
+            } else if(reply.has_observation_revoked()) {
+                if(reply.request_id()!=0)throw std::runtime_error("Invalid observation notification request identity");
+                observation_revoked(reply.observation_revoked());
             } else {
                 if (!pending_ || response_ || reply.request_id() != pending_->request_id())
                     throw std::runtime_error("Unexpected broker reply identity");
@@ -582,10 +607,10 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request, bool* po
     const auto payload = request.SerializeAsString();
     if (payload.size() > max_frame_bytes) throw std::invalid_argument("Broker frame exceeds limit");
     broker_wire::Reply reply;
-    pending_ = &request; response_.reset(); early_revocation_.reset();
+    pending_ = &request; response_.reset(); early_revocation_.reset();early_observation_revocation_.reset();
     struct ClearPending {
         BrokerClient& client;
-        ~ClearPending() { client.pending_ = nullptr; client.response_.reset(); client.early_revocation_.reset(); }
+        ~ClearPending() { client.pending_ = nullptr; client.response_.reset(); client.early_revocation_.reset();client.early_observation_revocation_.reset(); }
     } clear{*this};
     try {
         const auto size = static_cast<std::uint32_t>(payload.size());
@@ -611,12 +636,13 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request, bool* po
         }
         while (!response_) { pump(); if (!response_) wait(POLLIN); }
         reply = std::move(*response_); response_.reset();
-        if (reply.has_error() && early_revocation_) throw std::runtime_error("Acquisition denial followed a new lease revocation");
+        if (reply.has_error() && (early_revocation_ || early_observation_revocation_))
+            throw std::runtime_error("Acquisition denial followed a new lease revocation");
         if (!reply.has_error()) {
             bool valid = (request.has_access() && reply.has_access()) || (request.has_launch() && reply.has_launched());
             if (request.has_control_acquire() && reply.has_control_lease()) {
                 const auto& lease = reply.control_lease(); const auto& expected = request.control_acquire();
-                valid = valid_control_lease(lease) &&
+                valid = valid_control_lease(lease) && !observations_.contains(lease.id()) &&
                     lease.principal().SerializeAsString() == expected.principal().SerializeAsString() &&
                     lease.application().SerializeAsString() == expected.application().SerializeAsString();
                 if (early_revocation_) valid = valid && early_revocation_->SerializeAsString() == lease.SerializeAsString();
@@ -629,6 +655,36 @@ broker_wire::Reply BrokerClient::exchange(broker_wire::Request request, bool* po
                     if (controls_.size() >= 256) throw std::runtime_error("Control reservation limit exceeded");
                     controls_.emplace(lease.id(),Reservation{lease,early_revocation_.has_value()});
                 }
+            }
+            if(request.has_observation_acquire() && reply.has_observation_watch()) {
+                const auto& watch=reply.observation_watch();const auto& expected=request.observation_acquire();
+                validate_observation_watch(watch);
+                valid=watch.principal().SerializeAsString()==expected.principal().SerializeAsString() &&
+                    watch.view().SerializeAsString()==expected.view().SerializeAsString() &&
+                    watch.presentation_generation()==expected.presentation_generation() &&
+                    watch.fence().SerializeAsString()==expected.expected().SerializeAsString() && !controls_.contains(watch.id());
+                if(early_observation_revocation_)valid=valid && early_observation_revocation_->SerializeAsString()==watch.SerializeAsString();
+                const auto previous=observations_.find(watch.id());
+                if(previous!=observations_.end())valid=valid && previous->second.watch.SerializeAsString()==watch.SerializeAsString();
+                for(const auto& [id,item]:observations_)if(id!=watch.id() &&
+                    item.watch.view().SerializeAsString()==watch.view().SerializeAsString() &&
+                    item.watch.presentation_generation()==watch.presentation_generation())valid=false;
+                if(valid && previous==observations_.end()) {
+                    if(observations_.size()>=256)throw std::runtime_error("Observation reservation limit exceeded");
+                    observations_.emplace(watch.id(),ObservationReservation{watch,early_observation_revocation_.has_value()});
+                }
+            }
+            if(request.has_observation_release() && reply.has_observation_released()) {
+                const auto& expected=request.observation_release();const auto found=observations_.find(expected.id());
+                valid=reply.observation_released().id()==expected.id() && found!=observations_.end() &&
+                    found->second.watch.principal().SerializeAsString()==expected.principal().SerializeAsString() &&
+                    found->second.watch.view().SerializeAsString()==expected.view().SerializeAsString() &&
+                    found->second.watch.presentation_generation()==expected.presentation_generation();
+                if(valid)observations_.erase(found);
+            }
+            if(request.has_observation_barrier() && reply.has_observation_barrier()) {
+                validate_observation_fence(reply.observation_barrier().fence());
+                valid=reply.observation_barrier().fence().SerializeAsString()==request.observation_barrier().fence().SerializeAsString();
             }
             if (request.has_control_release() && reply.has_control_released()) {
                 const auto& expected = request.control_release(); const auto found = controls_.find(expected.id());
@@ -876,6 +932,29 @@ bool BrokerClient::control_active(const broker_wire::ApplicationControlLease& le
     const auto found = controls_.find(lease.id());
     return channel_ >= 0 && found != controls_.end() && !found->second.revoked &&
         found->second.lease.SerializeAsString() == lease.SerializeAsString();
+}
+broker_wire::ObservationWatch BrokerClient::observation_acquire(const broker_wire::ObservationWatchAcquire& command) {
+    validate_message(command);validate_observation_view(command.principal(),command.view(),command.presentation_generation());
+    validate_observation_fence(command.expected());
+    broker_wire::Request request;*request.mutable_observation_acquire()=command;return exchange(request).observation_watch();
+}
+broker_wire::ObservationWatchReleased BrokerClient::observation_release(const broker_wire::ObservationWatchRelease& command) {
+    validate_message(command);validate_observation_view(command.principal(),command.view(),command.presentation_generation());
+    if(command.id().size()!=32)throw std::invalid_argument("Invalid observation release identity");
+    broker_wire::Request request;*request.mutable_observation_release()=command;return exchange(request).observation_released();
+}
+broker_wire::ObservationBarrierReply BrokerClient::observation_barrier(const broker_wire::ObservationBarrierRequest& command) {
+    validate_message(command);validate_observation_fence(command.fence());
+    broker_wire::Request request;*request.mutable_observation_barrier()=command;return exchange(request).observation_barrier();
+}
+std::vector<broker_wire::ObservationWatch> BrokerClient::poll_observation() {
+    try{pump();}catch(...){fail_channel();throw;}
+    auto result=std::move(observation_revocations_);observation_revocations_.clear();return result;
+}
+bool BrokerClient::observation_active(const broker_wire::ObservationWatch& watch) const {
+    const auto found=observations_.find(watch.id());
+    return channel_>=0 && found!=observations_.end() && !found->second.revoked &&
+        found->second.watch.SerializeAsString()==watch.SerializeAsString();
 }
 wire::ProcessLaunchReply BrokerClient::launch(const std::string& workspace, const std::string& actor, const wire::ProcessLaunchRequest& command,
                                             const authority::v1::ActorRef* principal) {

@@ -40,6 +40,8 @@ public:
     workspace::copy::v1::WorkspaceCopyStatus workspace_copy_status(
         const workspace::copy::v1::WorkspaceCopyStatusRequest&, const authority::v1::ActorRef&);
     workspace::v1::AuthorizationFence authorization_fence(const workspace::v1::AuthorizationFenceRequest& request);
+    // Cached only. Safe during issuer waits and lent execution transactions.
+    workspace::v1::AuthorizationFence observation_fence_snapshot() const;
     workspace::v1::ApplicationAccessReply application_access(const workspace::v1::ApplicationAccessRequest& request, bool refresh = true);
     void set_authority(WorkspaceAuthority* authority);
     void set_native_launch(NativeLaunch* native);

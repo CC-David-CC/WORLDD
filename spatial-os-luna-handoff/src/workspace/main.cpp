@@ -88,7 +88,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         }
         // Durability progress never enters a handler that can use execution SQLite.
         if (store.authority_durability_pending() && !request.has_authorization_fence() &&
-                !request.has_application_access() && !request.has_control_release() &&
+                !request.has_application_access() && !request.has_control_release() && !request.has_observation_release() && !request.has_observation_barrier() &&
                 !(request.has_management() && (request.management().has_hello() || request.management().has_runtime_identities()))) {
             if (request.has_management() && request.management().has_process_wait()) {
                 const auto& management_request = request.management();
@@ -127,6 +127,7 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
             throw spatial::WorldError(wire::FORBIDDEN, "Control owner native server mismatch");
         if (during_effect && !request.has_access() && !request.has_scoped_authority_check() && !request.has_authorization_fence() && !request.has_application_access() &&
                 !request.has_control_acquire() && !request.has_control_release() &&
+                !request.has_observation_release() && !request.has_observation_barrier() &&
                 !request.has_workspace_copy_status())
             throw spatial::WorldError(wire::BUSY, "Workspace effect is pending; retry execution after its checked result");
         if (request.has_management()) {
@@ -160,6 +161,9 @@ spatial::workspace::v1::Reply dispatch_broker(const spatial::workspace::v1::Requ
         }
         else if (request.has_control_acquire()) *reply.mutable_control_lease() = controls.acquire(request.control_acquire(), owner);
         else if (request.has_control_release()) *reply.mutable_control_released() = controls.release(request.control_release(), owner);
+        else if (request.has_observation_acquire()) *reply.mutable_observation_watch() = controls.observe(request.observation_acquire(),owner);
+        else if (request.has_observation_release()) *reply.mutable_observation_released() = controls.release_observation(request.observation_release(),owner);
+        else if (request.has_observation_barrier()) *reply.mutable_observation_barrier() = controls.observation_barrier(request.observation_barrier());
         else if (request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
             if (!authority) throw spatial::WorldError(wire::UNIMPLEMENTED, "Persistent workspace authority is not configured");
             if (request.has_bootstrap_bind()) *reply.mutable_binding() = authority->bind_bootstrap(request.bootstrap_bind());
@@ -187,7 +191,7 @@ spatial::workspace::v1::Reply revocation_result(const spatial::workspace::v1::Re
         spatial::workspace::v1::Reply reply, std::uint64_t cancellation,
         spatial::WorkspaceAuthority* authority) {
     if (!authority || reply.has_error() || cancellation == authority->cancellation_sequence() ||
-            request.has_management() || request.has_control_release() || request.has_file_action()) return reply;
+            request.has_management() || request.has_control_release() || request.has_observation_release() || request.has_observation_barrier() || request.has_file_action()) return reply;
     const spatial::authority::v1::ActorRef* requester = nullptr;
     if (request.has_access() && request.access().has_principal()) requester = &request.access().principal();
     else if (request.has_launch() && request.launch().has_principal()) requester = &request.launch().principal();
@@ -202,6 +206,8 @@ spatial::workspace::v1::Reply revocation_result(const spatial::workspace::v1::Re
         requester = &request.application_access().principal();
     else if (request.has_control_acquire() && request.control_acquire().has_principal())
         requester = &request.control_acquire().principal();
+    else if (request.has_observation_acquire() && request.observation_acquire().has_principal())
+        requester = &request.observation_acquire().principal();
     else if (request.has_workspace_copy_begin() && request.workspace_copy_begin().has_principal())
         requester = &request.workspace_copy_begin().principal();
     else if (request.has_workspace_copy_status() && request.workspace_copy_status().has_principal())
@@ -379,6 +385,10 @@ int main(int argc, char** argv) {
             if (!owner.empty()) { channels->revoked(owner, lease); return; }
             spatial::workspace::v1::Reply event; event.set_protocol_version(1);
             *event.mutable_control_revoked() = lease; enqueue(event);
+        },[&](const std::string& owner,const auto& watch) {
+            if(!owner.empty()){channels->observation_revoked(owner,watch);return;}
+            spatial::workspace::v1::Reply event;event.set_protocol_version(1);
+            *event.mutable_observation_revoked()=watch;enqueue(event);
         });
         if (control_fd >= 0) channels = std::make_unique<spatial::ControlChannels>(control_fd, control_peer, controls);
         struct ClearObserver {
@@ -499,7 +509,7 @@ int main(int argc, char** argv) {
                         if (during_copy && !request.has_workspace_copy_status() &&
                                 !request.has_access() && !request.has_scoped_authority_check() &&
                                 !request.has_authorization_fence() && !request.has_application_access() &&
-                                !request.has_control_release() && !request.has_file_action()) return;
+                                !request.has_control_release() && !request.has_observation_release() && !request.has_observation_barrier() && !request.has_file_action()) return;
                         reply = dispatch_broker(request, store, authority.get(), controls, {}, {}, during_copy);
                     }
                     enforce();

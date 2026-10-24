@@ -459,7 +459,7 @@ v1::AuthorityDependentCleanup AuthorityLaunch::record_control_recovery(const v1:
     *value.mutable_world() = expected_world; *value.mutable_broker() = retained_broker;
     *value.mutable_controls() = recovered.recovery();
     validate_dependent_cleanup(value);
-    require(recovered.channel_fenced() && recovered.reservations().empty() &&
+    require(recovered.channel_fenced() && recovered.reservations().empty() && recovered.observation_watches().empty() &&
         recovered.owner().SerializeAsString() == value.controls().cleanup().owner().SerializeAsString(),
         "Dependent cleanup requires checked fenced broker recovery");
     return persist_dependent_cleanup(value);

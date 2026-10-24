@@ -199,9 +199,10 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py"
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/authority/v1
         ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1/broker.proto
     DEPENDS proto/spatial/supervisor/v1/process_scope.proto proto/spatial/supervisor/v1/native_scope.proto proto/spatial/workspace/v1/storage.proto proto/spatial/workspace/v1/broker.proto proto/spatial/core/v1/core.proto proto/spatial/authority/v1/grants.proto
+        proto/spatial/core/v1/actor_local_view.proto
         proto/spatial/identity/v1/issuer.proto proto/spatial/identity/v1/key.proto proto/spatial/security/v1/security.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
 add_custom_target(broker-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/broker_pb2.py")
-add_dependencies(broker-python-protobuf file-actions-python-protobuf)
+add_dependencies(broker-python-protobuf file-actions-python-protobuf python-protobuf)
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/storage_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/supervisor/v1
@@ -1461,6 +1462,14 @@ if(BUILD_TESTING)
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_executable(spatial-broker-control-client-probe src/testing/broker_control_client_probe.cpp)
     target_link_libraries(spatial-broker-control-client-probe PRIVATE spatial-core)
+    add_test(NAME observation-watch-client COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_observation_watch_client.py" $<TARGET_FILE:spatial-broker-control-client-probe>)
+    set_tests_properties(observation-watch-client PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME observation-watch-reply COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_observation_watch_reply.py" $<TARGET_FILE:spatial-control-reply-probe>)
+    set_tests_properties(observation-watch-reply PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME broker-control-client COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_broker_control_client.py" $<TARGET_FILE:spatial-broker-control-client-probe>)
     set_tests_properties(broker-control-client PROPERTIES TIMEOUT 90
@@ -1795,6 +1804,23 @@ if(BUILD_TESTING)
     set_tests_properties(actor-collision PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     if(SPATIAL_INPUT_TESTS)
+        add_custom_target(observation-watch-fixtures DEPENDS identityd spatial-issuer-client worldd workspaced
+            spatial-security-auth spatial-confined-xprobe spatial-process-scope-probe spatial-app-init
+            spatial-storage-broker-launch-probe spatial-storage-owner-service spatial-broker-control-client-probe
+            spatial-control-reply-probe spatial-control-admin-probe spatial-authority-launch-probe spatial-session-application-probe
+            spatial-authority-supervisor spatial-participant-runtime-probe
+            python-protobuf broker-python-protobuf world-session-python-protobuf grants-python-protobuf
+            issuer-python-protobuf key-python-protobuf launch-python-protobuf scope-python-protobuf native-scope-python-protobuf)
+        foreach(observation_suite IN ITEMS observation-watch observation-watch-live)
+            string(REPLACE "-" "_" observation_file "${observation_suite}")
+            add_test(NAME ${observation_suite} COMMAND "${Python3_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_${observation_file}.py" $<TARGET_FILE:identityd>
+                $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
+            set_tests_properties(${observation_suite} PROPERTIES TIMEOUT 240
+                ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        endforeach()
         add_test(NAME broker-control-client-live COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
