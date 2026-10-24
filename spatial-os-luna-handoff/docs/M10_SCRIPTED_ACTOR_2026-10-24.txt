@@ -1,0 +1,171 @@
+M10 SCRIPTED ACTOR ADAPTER
+Status: IMPLEMENTING, UNQUALIFIED_M10.
+Base: 0716fdb94b7000a45365d537b97e25fc6767c516.
+
+Observed gap
+The production ActorControl library already owns shared semantic action sequencing.
+The native host connects human capture to that library.
+Existing standalone actor runners are test fixtures or transport probes.
+The three-actor workflow needs an ordinary scripted process using the same production action owner.
+
+Additive interface, recorded before schema edits
+Add control/v1/scripted_actor.proto outside the locked acceptance schema inventory.
+The process loads an explicit private configuration of world IDs and actor TLS configuration paths.
+It authenticates one actor through the existing ActorSessionClient.
+World transitions use the existing ActorTransitionCoordinator with the same independently authenticated actor.
+Configured destinations grant no admission or workspace authority.
+The adapter owns sequences. Requests cannot choose actor tokens or action sequences.
+Requests carry a context generation and exactly one inspect, proposal, or transition operation.
+Replies carry the resulting actor/world context, availability, and one typed outcome.
+Confirmed input cancellation is explicit. No rejected or uncertain operation is replayed.
+The process uses bounded length-prefixed Protobuf on its own stdin and stdout.
+It receives no host management channel, broker channel, X cookie, or filesystem shortcut.
+All cabinet operations, process launches, observation, and application input remain ordinary actor proposals.
+EOF or failed output closes the owned actor transport. World execution remains independent.
+
+Selected checks before implementation
+Build the production adapter in Debug and ASan/UBSan on middle-child.
+Run it only on sb16 and sb16-2.
+Use real issuer enrollment, TLS world sessions, and distinct actor keys.
+Check navigation, observation filtering, source sequencing, stale contexts, and token/sequence refusal.
+Check checked cancellation and context adoption across A-B-A and denied transitions.
+Check malformed framing and controller disconnect without affecting another actor or retained services.
+Then combine a continuously captured human and two scripted adapters with real cabinet and application witnesses.
+Preserve the inherited acceptance lock, assertions, oracles, and independent witnesses.
+Focused adapter tests do not replace the full frozen M10 gate.
+
+First combined run, preserved before corrections
+Source163 builds Debug, ASan/UBSan, and a clean production target with testing disabled.
+Run164 fails the Debug integration suite on both hosts. Sanitizer integration remains unrun.
+The inherited two-world fixture duplicates its secondary service identity when creating a third world.
+The new fixture now provisions a distinct third participant through the production issuer.
+The initial navigation witness sends one scripted motion pulse, then performs several synchronous queries.
+Its 250 ms expiry remains required. A sustained scripted motion witness must actually refresh its intent.
+Use independently running scripted action loops and retain every existing axis assertion.
+Record per-adapter RPC timing. Do not increase the production expiry or watchdog limits.
+Sb16 also loses human actor availability while another actor authenticates.
+The original host log records the human channel closing during a delayed authentication exchange.
+This failure still requires diagnosis. Do not label the combined runtime healthy from successful builds.
+Evidence: scripted-actor-collected-165 on middle-child under the external M10 evidence root.
+
+Second focused run and witness review
+Run166 passes all four methods on sb16 in Debug and ASan/UBSan.
+Sb16-2 Debug fails the first immediate human-axis assertion. Its sanitizer suite remains unrun.
+The human inspection precedes its first autonomous motion proposal in that failing trace.
+Processed capture progress acknowledges key handling and output. It does not acknowledge a later navigation tick.
+The read-only stronger helper reviewed the smallest correction under the nested test-integrity rule.
+Wait at most one second for the autonomous first tick through inspection only.
+Never inject controls_tick or repeat the key. Keep every later exact independence assertion.
+Pin the unchanged 250 ms runtime timeout explicitly in the new fixture.
+Add a separate held-human-motion-during-agent-authentication regression for the earlier availability failure.
+Do not infer its cause from the first-tick ordering failure.
+Source review finds possible synchronous authentication blocking and heartbeat-only watchdog urgency.
+The exact interruption decision remains unproven. Preserve all existing cancellation and source-loss deadlines.
+Evidence: scripted-actor-collected-167. Production adapter binaries remain the unchanged source163 build.
+
+Coexistence expiry after confirmed motion
+Run168 passes five methods on sb16 in Debug and ASan/UBSan.
+Sb16-2 Debug still loses human motion after the first autonomous tick was confirmed.
+The held-motion/authentication regression passes on both Debug hosts in this attempt.
+Keep the failing coexistence assertion. Do not substitute a longer input timeout.
+Evidence: scripted-actor-collected-169.
+
+Reviewed transport correction and diagnostics
+The actor client previously transfers a request header and body through separate TLS write operations.
+Assemble their identical bytes into one bounded frame before starting the existing absolute exchange deadline.
+Transfer that frame once. Keep partial-write handling and every reply validation unchanged.
+This removes a deliberate header-only TLS write. It does not guarantee one TLS record for large frames.
+Its effect on coexistence remains unproven until the corrected native regression runs.
+The read-only helper reviewed this correction and its required transport regressions.
+Add watchdog diagnostics without changing urgency or interruption decisions.
+Snapshot exact flight/generation/timing and all urgency causes under the existing locks.
+Request the same pinned handle under its publication lock. Emit diagnostics after releasing both locks.
+Keep every freshness, source-silence, cancellation, and watchdog bound unchanged.
+
+Configuration review
+Use the existing bounded TLS configuration loader for the adapter configuration too.
+It requires an absolute regular-file path, an owned private parent, safe ownership, and one filesystem link.
+Its nonblocking open rejects FIFOs before reading. The initial duplicate loader could block on FIFO open.
+Add FIFO, symlink, and public-parent regressions that reject before any actor authentication.
+
+Run171 and retained attestation review
+Both profiles pass all selected checks on sb16: 151 printed C++ groups and six native methods per profile.
+Sb16-2 Debug passes all 151 printed groups but still fails human motion coexistence.
+Its sanitizer suites remain unrun. These C++ groups are not the locked 151 acceptance cases.
+The FIFO predecessor failure is reproduced separately on both hosts. Corrected configuration cases pass in executed native suites.
+The failing human input-to-inspection interval is 301.190 ms, exceeding the unchanged 250 ms motion timeout.
+Both agents continue proposing fresh motion. No watchdog or capture retirement diagnostic appears.
+Coalesced request writes alone do not resolve this failure.
+Evidence: scripted-actor-collected-172 and scripted-fifo-reproduction-terminal-{sb16,sb16-2}-170.json.
+
+The host currently repeats local-view binding before every compositor selection and authorized presentation.
+Binding attests ownership of an exact authenticated view. Its successful receipt may be retained until invalidation.
+The stronger helper reviewed a per-target attestation marker with these limits:
+Record it only after a checked matching bound receipt. Retain attempted cleanup ownership before effects.
+Skip only redundant binding. Select the compositor target and request a freshly authorized presentation on every frame.
+Clear the marker before retirement, shutdown, recovery, or terminal world failure.
+Clear it after any failed bind, selection, or presentation. Never automatically replay uncertain effects.
+The marker cannot replace credential, admission, observation, projection, or current-session validation.
+Reassess coexistence and the related continuous-capture, controls, and projection regressions on both hosts.
+
+Run174 result and heartbeat-only interruption
+Sb16-2 passes all 29 selected native methods in each profile with the retained attestation marker.
+Sb16 Debug reproduces the earlier actor-availability failure while a second agent authenticates.
+Its diagnostic identifies flight36 at354ms: no urgent flight, no pending cancellation, queued heartbeat only.
+That heartbeat-only queue caused exact actor interruption before any human gesture in the failing case.
+Evidence: scripted-actor-collected-175. Sb16 later suites and sanitizer integration remain unrun in this attempt.
+Remove only heartbeat packets' ability to promote an unrelated flight to cancellation urgency.
+Keep bound FIFO delivery, validation, progress receipts, all other events, and independent source-failure cancellation.
+The stronger helper reviewed a gated-flight regression with live100ms heartbeats, then actual F12 or source failure.
+Fresh interaction and pending cancellation must still interrupt the same exact blocked context.
+Read M10_RETAINED_PRESENTATION_DIRECTION_2026-10-24.txt for David's retained-state direction beyond the binding marker.
+
+Interrupted cached-result regression
+Source177 builds both profiles. Run178 fails both Debug worker suites after the fifteen original groups.
+The new witness sampled retirement immediately after observing the separately published interruption request.
+The stronger helper reviewed waiting for both receipts under the same original 1500 ms deadline.
+Source180 changes only this witness and splits its final failure diagnostics.
+Run181 still fails both Debug worker suites. Exact interruption and retirement now pass.
+The failure is a healthy cached result published after interruption. Preserve both failed runs.
+Evidence: scripted-actor-collected-179 and scripted-actor-collected-182.
+All later selected suites remain unrun in those attempts.
+
+The production completion barrier checked only the current capture binding.
+Context refresh removes that binding when its interrupted actor client reports failure.
+Retain an interruption flag on the exact in-flight operation until its result is published.
+The watchdog and shutdown set this flag under the same publication lock.
+Reject successful publication after interruption. Continue publishing the operation's exception.
+Normal checked departure may close its old source without interrupting the adopted destination.
+Keep current-binding checks and the existing transition counterexamples.
+Add a blocked cached nonvoid operation during actual worker shutdown.
+These corrections remain unqualified until their selected runtime checks execute.
+
+Focused completion review and remaining starvation
+Source183 builds the production host and controller probe in Debug and ASan/UBSan.
+Run187 passes 19 worker groups, five shared-control groups, and eleven controller groups per host/profile.
+Both hosts and profiles pass all 140 C++ groups. No selected sanitizer diagnostic appears.
+These are transport and real capture-receiver fixtures, not complete native world qualification.
+The four added worker groups cover heartbeat-only waits and actual worker shutdown.
+The existing checked-transition, stale-context, and application-control sequencing checks remain intact.
+
+Run185 independently exercises source177 production host integration with source170 adapters and compositor.
+World, issuer, broker, and native fixtures remain the retained source116 Debug dependency profile.
+Sb16 passes all 29 selected native methods in each profile.
+Sb16-2 passes all 29 Debug methods. Its sanitizer scripted suite completes six methods with one failure.
+The human-and-two-scripted-actors navigation test loses held human movement after its autonomous first tick.
+The other five sanitizer scripted methods pass. The remaining 23 sanitizer native methods are unrun.
+Across the selected native matrix, 92 methods pass, one fails, and 23 remain unrun.
+Do not claim that the binding or heartbeat correction resolves movement starvation.
+The source183 production host still needs native integration after the scheduling correction.
+
+External evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Terminal audit: scripted-actor-terminal-audit-191.json.
+Native evidence: scripted-actor-collected-188. Component evidence: scripted-actor-collected-190.
+The first audit parser refusal remains scripted-actor-audit-refusal-190.json.
+Its corrected parser accepts intervening fixture diagnostics. No runtime result changes.
+Source183 manifest SHA256: 770cb405f57974dde9445345ec818a01261e9600817fe70ed784fae653b47e13.
+Source183 exact archive: m10-scripted-source183-exact-189.tar.gz.
+Archive SHA256: 0ab8786daff04aa99e8e5bf10fd1011a9800012f2de80d9ff3a633001cc4c766.
+Separate exact source170, 173, 177, and 180 archives preserve predecessor source and failed reports.
+All 151 locked acceptance assertions and their independent witnesses remain unchanged.
+Real cabinet files, confined editor/terminal workflows, and the complete frozen qualification gate remain pending.

@@ -289,10 +289,13 @@ struct ActorSessionClient::Impl {
         std::array<char, 4> header{
             static_cast<char>(frame_size >> 24), static_cast<char>(frame_size >> 16),
             static_cast<char>(frame_size >> 8), static_cast<char>(frame_size)};
+        // Keep a small request's header and body in the same outbound TLS write.
+        // Transfer still handles partial writes within the one exchange deadline.
+        std::string request_frame(header.data(), header.size());
+        request_frame += body;
         const auto deadline = Clock::now() + timeout;
         try {
-            transfer(header.data(), header.size(), true, deadline);
-            transfer(body.data(), body.size(), true, deadline);
+            transfer(request_frame.data(), request_frame.size(), true, deadline);
             transfer(header.data(), header.size(), false, deadline);
             frame_size = (std::uint32_t(static_cast<unsigned char>(header[0])) << 24) |
                          (std::uint32_t(static_cast<unsigned char>(header[1])) << 16) |

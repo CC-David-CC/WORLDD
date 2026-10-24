@@ -1,0 +1,47 @@
+syntax = "proto3";
+package spatial.control.v1;
+import "core.proto";
+import "actor_transition.proto";
+
+// Private actor-owned transport settings. These do not grant actor authority.
+message ScriptedActorWorld { string world_id = 1; string tls_config_path = 2; }
+message ScriptedActorConfig {
+  uint32 protocol_version = 1;
+  string initial_world_id = 2;
+  repeated ScriptedActorWorld worlds = 3;
+}
+message ScriptedActorTransition {
+  bytes transition_id = 1;
+  string destination_world_id = 2;
+  string destination_room = 3;
+  spatial.core.v1.Pose destination_pose = 4;
+}
+message ScriptedActorRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  uint64 generation = 3;
+  oneof operation {
+    bool inspect = 10;
+    spatial.core.v1.ActorActionRequest propose = 11;
+    ScriptedActorTransition transition = 12;
+  }
+}
+message ScriptedActorContext {
+  uint64 generation = 1;
+  string world_id = 2;
+  string actor_id = 3;
+  bool available = 4;
+}
+message ScriptedActorReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  ScriptedActorContext context = 3;
+  // True only for a checked ActorInputCancelled outcome. It does not imply rollback.
+  bool cancellation_confirmed = 4;
+  oneof outcome {
+    spatial.core.v1.ActorStateReply state = 10;
+    spatial.core.v1.ActorActionReply action = 11;
+    spatial.identity.v1.ActorTransitionResult transition = 12;
+    spatial.core.v1.Error error = 13;
+  }
+}

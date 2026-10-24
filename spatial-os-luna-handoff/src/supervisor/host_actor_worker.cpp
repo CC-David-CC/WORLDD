@@ -61,6 +61,7 @@ void HostActorWorker::stop() noexcept {
     std::shared_ptr<const ActorSessionInterrupt> interrupt;
     {
         std::lock_guard lock(watch_mutex_);
+        if(flight_)flight_->interrupted=true;
         const auto context = binding_ ? binding_ : flight_ ? flight_->binding : Binding{};
         if (context) { context->retired_.store(true); interrupt = context->interrupt.lock(); }
     }
@@ -78,8 +79,12 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
     if (packet.capture_generation() != binding->capture_generation) {
         (void)request_cancel(binding); return false;
     }
-    Work work; work.urgent_binding = binding;
+    Work work; work.capture_heartbeat = packet.event().has_heartbeat();
+    // Liveness traffic does not request an action or release. Independent source
+    // failure still publishes exact pending cancellation with watchdog urgency.
+    if(!work.capture_heartbeat)work.urgent_binding = binding;
     work.execute = [this, binding, packet = std::move(packet)] {
+        try {
         if (!current(binding) || !controller_.control_available()) return;
         try { (void)device_event(binding, packet); }
         catch (const std::exception&) {
@@ -93,6 +98,10 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
         if(!complete([&] {
             if(binding_==binding && !binding->retired())binding->processed_sequence_.store(packet.packet_sequence());
         },true))settle_context();
+        }catch(...) {
+            // Failure ownership remains bound even when liveness traffic is nonurgent.
+            (void)request_cancel(binding);throw;
+        }
     };
     if (enqueue(std::move(work))) return true;
     (void)request_cancel(binding);
@@ -199,10 +208,11 @@ void HostActorWorker::settle_context() {
 }
 bool HostActorWorker::complete(const std::function<void()>& publish, bool success) {
     std::lock_guard lock(watch_mutex_);
-    // A departed source can close normally during adoption. Inspect the actual
-    // current binding, then publish the result and retire this flight atomically.
-    bool interrupted=false;
-    if(success && binding_)if(const auto interrupt=binding_->interrupt.lock())interrupted=interrupt->requested();
+    // Refresh may remove an interrupted binding. Keep the exact flight's
+    // interruption until publication, without treating normal source departure
+    // as interruption of an adopted destination.
+    bool interrupted=success && flight_ && flight_->interrupted;
+    if(success && binding_)if(const auto interrupt=binding_->interrupt.lock())interrupted|=interrupt->requested();
     flight_.reset();
     if(interrupted)return false;
     publish();return true;
@@ -217,7 +227,15 @@ void HostActorWorker::end_exchange() noexcept {
     std::lock_guard lock(watch_mutex_); flight_.reset();
 }
 void HostActorWorker::watch() noexcept {
+    struct Decision {
+        std::uint64_t serial=0,actor=0,capture=0;
+        std::int64_t elapsed_ms=0;
+        bool flight=false,cancellation=false,heartbeat=false,event=false;
+    };
+    std::uint64_t logged_serial=0;
     while (!stopping_) {
+        Decision decision;
+        bool log_decision=false;
         {
             // Timestamp, context, and handle belong to one publication. Keep the
             // flight pinned through request(), so an old decision cannot select
@@ -226,20 +244,39 @@ void HostActorWorker::watch() noexcept {
             if (flight_ && !flight_->release_satisfied && flight_->binding && nanoseconds() - flight_->started >=
                 std::chrono::duration_cast<std::chrono::nanoseconds>(watchdog_limit).count()) {
                 const auto context = flight_->binding;
-                bool urgent = flight_->urgent || pending_cancel_ == context;
-                if (!urgent) {
+                bool queued_heartbeat=false,queued_event=false;
+                {
                     std::lock_guard queue_lock(queue_mutex_);
-                    urgent = std::any_of(queue_.begin(), queue_.end(), [&](const Work& work) {
-                        return work.urgent_binding == context && (work.cancellation || !context->retired());
-                    });
+                    for(const auto& work:queue_)if(work.urgent_binding==context &&
+                            (work.cancellation || !context->retired())) {
+                        if(work.capture_heartbeat)queued_heartbeat=true;else queued_event=true;
+                    }
                 }
+                const bool urgent=flight_->urgent || pending_cancel_==context || queued_heartbeat || queued_event;
                 if (urgent) if (const auto interrupt = context->interrupt.lock()) {
+                    if(!interrupt->requested() && logged_serial!=flight_->serial) {
+                        decision={flight_->serial,context->actor_generation,context->capture_generation,
+                            (nanoseconds()-flight_->started)/1000000,flight_->urgent,pending_cancel_==context,
+                            queued_heartbeat,queued_event};
+                        log_decision=true;logged_serial=flight_->serial;
+                    }
                     interrupt->request();
+                    if(interrupt->requested())flight_->interrupted=true;
                     if(interrupt->requested() && binding_==context && !context->retired()) {
                         pending_cancel_=context;cancel_pending_.store(true);context->retired_.store(true);changed_.notify_all();
                     }
                 }
             }
+        }
+        if(log_decision) {
+            // Slow diagnostic output cannot hold either operation/publication lock.
+            try {
+                std::cerr<<"Actor watchdog requested exact interruption flight="<<decision.serial
+                    <<" elapsed_ms="<<decision.elapsed_ms<<" actor_generation="<<decision.actor
+                    <<" capture_generation="<<decision.capture<<" flight_urgent="<<decision.flight
+                    <<" pending_cancel="<<decision.cancellation<<" queued_heartbeat="<<decision.heartbeat
+                    <<" queued_event="<<decision.event<<'\n';
+            }catch(...) {}
         }
         std::unique_lock lock(queue_mutex_);
         changed_.wait_for(lock, std::chrono::milliseconds(10), [this] { return stopping_.load(); });

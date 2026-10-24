@@ -205,3 +205,19 @@ Its seven renderer menu methods passed. Its separate serial F12 failure remains 
 The first cleanup preflight incorrectly required the combined run119 wrapper to pass.
 It stopped before deletion. Corrective139b checked the individual renderer result and retained the known failure explicitly.
 Evidence: foreground-retention-reverified-139.json and foreground-retirement-139.json under the external M10 root.
+
+Verified superseded capture-package cleanup: run176.
+Root process and mount scans found no selected package references or scan errors.
+Exact machine IDs, filesystem UUIDs, inodes, ownership, coverage, and retained builder bytes were checked.
+The replacement source157 capture checkpoint passed its focused review before this cleanup.
+Separate failed logs and exact predecessor source archives remain preserved outside removed paths.
+
+Removed on both test hosts:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/continuous-capture-source149-150
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/continuous-capture-source154-155
+Verified copies remain at these same absolute paths on middle-child.
+Sb16 measured recovered bytes: 1401765888.
+Sb16-2 measured recovered bytes: 1401724928.
+Plan: superseded-capture-cleanup-plan-176.json under the external evidence root.
+Results: superseded-capture-cleanup-{sb16,sb16-2}-176.json under that root.
+No M09 package, active dependency, failed run directory, or native fixture was removed.

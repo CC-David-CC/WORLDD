@@ -49,6 +49,10 @@ struct Pair {
     }
 };
 struct World {
+    struct LocalTarget {
+        render::v1::LocalActorPresentationTarget target;
+        bool attested=false;
+    };
     std::unique_ptr<SessionLaunch> supervisor;
     std::unique_ptr<identity::ParticipantStream> management;
     workspace::v1::ControlOwner owner;
@@ -59,7 +63,10 @@ struct World {
     std::filesystem::path journal_directory;
     std::vector<std::unique_ptr<File>> actors;
     render::v1::WorldPresentationBinding presentation;
-    std::map<std::string,render::v1::LocalActorPresentationTarget> local_targets;
+    std::map<std::string,LocalTarget> local_targets;
+    void invalidate_local_attestations() {
+        for(auto& [key,target]:local_targets){(void)key;target.attested=false;}
+    }
     bool presentation_attached=false,presentation_retired=false,world_identity_checked=false;
     bool registered = false, stopped = false, failed = false;
     std::uint64_t sequence = 0;
@@ -169,6 +176,7 @@ render::v1::GeometryPresentationState SessionCoordinator::retire_geometry(const 
 void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner& owner){
     auto& state=*impl_;auto& world=state.find_owned(owner);
     require(state.presentation && world.presentation_attached && world.stopped,"Presentation recovery requires stopped retained world ownership");
+    world.invalidate_local_attestations();
     if(world.presentation_retired)return;
     const auto checked=world.supervisor->stop();
     require(checked.SerializeAsString()==world.record.SerializeAsString() && checked.stage()==v1::OWNED_SCOPES_STOPPED &&
@@ -190,39 +198,47 @@ core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const work
     *target.mutable_binding()=world.presentation;*target.mutable_identity()=identity;
     const auto key=identity.SerializeAsString();
     require(world.local_targets.contains(key) || world.local_targets.size()<256,"Too many retained local actor targets");
-    world.local_targets.emplace(key,target); // Retain before any partially completed ownership operation.
-    core::v1::Request request;request.set_protocol_version(1);
-    auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);*operation->mutable_identity()=identity;
-    operation->mutable_bind();
-    const auto bound=world_call(owner,request);
-    if (bound.has_error()) throw ActorSessionRejected(bound.error());
-    require(bound.has_actor_local_view() && bound.actor_local_view().bound() &&
-        bound.actor_local_view().identity().SerializeAsString()==key,"Local actor binding was not confirmed");
-    state.presentation->select_local_actor(target);
-    operation->mutable_present()->set_width(width);operation->mutable_present()->set_height(height);
-    const auto reply=world_call(owner,request);
-    if (reply.has_error()) throw ActorSessionRejected(reply.error());
-    require(reply.has_actor_local_view(),"Local actor presentation receipt is missing");
-    const auto& result=reply.actor_local_view();
-    validate_render_extent(result.viewport().width(),result.viewport().height());
-    require(std::isfinite(result.vertical_fov()) && result.vertical_fov()>0 &&
-        result.vertical_fov()<std::acos(-1.0),"Invalid local actor projection field of view");
-    require(result.bound() && result.presented() && result.identity().SerializeAsString()==key && result.frame_id()>0 &&
-        result.world_revision()>0 && (!width || (result.viewport().width()==width && result.viewport().height()==height)) &&
-        !result.room().empty() && result.room().size()<=256 && result.room().find('\0')==std::string::npos &&
-        result.presentation_generation()==world.presentation.presentation_generation() && result.camera().has_position() &&
-        result.camera().has_orientation(),"Local actor presentation receipt does not match its target");
-    const auto& p=result.camera().position();const auto& q=result.camera().orientation();
-    validate_pose({{p.x(),p.y(),p.z()},{q.x(),q.y(),q.z(),q.w()}});
-    return result;
+    // Attempted ownership and confirmed attestation have distinct lifetimes.
+    auto& retained=world.local_targets.try_emplace(key,World::LocalTarget{target,false}).first->second;
+    try {
+        core::v1::Request request;request.set_protocol_version(1);
+        auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);*operation->mutable_identity()=identity;
+        if(!retained.attested) {
+            operation->mutable_bind();
+            const auto bound=world_call(owner,request);
+            if (bound.has_error()) throw ActorSessionRejected(bound.error());
+            require(bound.has_actor_local_view() && bound.actor_local_view().bound() &&
+                bound.actor_local_view().identity().SerializeAsString()==key,"Local actor binding was not confirmed");
+            retained.attested=true;
+        }
+        // Selection and presentation still run their current authority checks every frame.
+        state.presentation->select_local_actor(target);
+        operation->mutable_present()->set_width(width);operation->mutable_present()->set_height(height);
+        const auto reply=world_call(owner,request);
+        if (reply.has_error()) throw ActorSessionRejected(reply.error());
+        require(reply.has_actor_local_view(),"Local actor presentation receipt is missing");
+        const auto& result=reply.actor_local_view();
+        validate_render_extent(result.viewport().width(),result.viewport().height());
+        require(std::isfinite(result.vertical_fov()) && result.vertical_fov()>0 &&
+            result.vertical_fov()<std::acos(-1.0),"Invalid local actor projection field of view");
+        require(result.bound() && result.presented() && result.identity().SerializeAsString()==key && result.frame_id()>0 &&
+            result.world_revision()>0 && (!width || (result.viewport().width()==width && result.viewport().height()==height)) &&
+            !result.room().empty() && result.room().size()<=256 && result.room().find('\0')==std::string::npos &&
+            result.presentation_generation()==world.presentation.presentation_generation() && result.camera().has_position() &&
+            result.camera().has_orientation(),"Local actor presentation receipt does not match its target");
+        const auto& p=result.camera().position();const auto& q=result.camera().orientation();
+        validate_pose({{p.x(),p.y(),p.z()},{q.x(),q.y(),q.z(),q.w()}});
+        return result;
+    }catch(...) {retained.attested=false;throw;}
 }
 void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity) {
     auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
     const auto key=identity.SerializeAsString();const auto found=world.local_targets.find(key);
     if (found==world.local_targets.end()) return;
+    found->second.attested=false;
     require(bool(state.presentation),"Local actor retirement requires its retained compositor");
-    state.presentation->retire_local_actor(found->second);
+    state.presentation->retire_local_actor(found->second.target);
     core::v1::Request request;request.set_protocol_version(1);
     auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);
     *operation->mutable_identity()=identity;operation->mutable_release();
@@ -379,7 +395,7 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
         }
         return world.owner;
     } catch (...) {
-        world.failed = true;
+        world.failed = true; world.invalidate_local_attestations();
         // Preserve the exact launch entry. An uncertain registration must not be replaced with a new identity.
         if (world.owner.has_launch()) {
             try { state.administrative(world.owner, -1, true); }
@@ -426,7 +442,7 @@ core::v1::Reply SessionCoordinator::world_call(const workspace::v1::ControlOwner
             world.management->flush(); world.supervisor->live(); poll(nullptr, 0, 2);
         }
     } catch (...) {
-        world.failed = true;
+        world.failed = true; world.invalidate_local_attestations();
         try { state.administrative(world.owner, -1, true); }
         catch (const std::exception& error) { std::cerr << "Failed world fence unresolved: " << error.what() << '\n'; }
         throw;
@@ -435,6 +451,7 @@ core::v1::Reply SessionCoordinator::world_call(const workspace::v1::ControlOwner
 v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::ControlOwner& owner) {
     auto& state = *impl_; auto& world = state.find_owned(owner);
     require(!world.stopped, "Session world already stopped");
+    world.invalidate_local_attestations();
     // Stop its input path before native/process cleanup. Reservations remain pending separate selective recovery.
     try { state.administrative(owner, -1, true); }
     catch (const std::exception& error) {
@@ -497,6 +514,7 @@ std::vector<std::string> SessionCoordinator::stop_retained_worlds() {
             label.push_back(digits[byte >> 4]); label.push_back(digits[byte & 15]);
         }
         auto& world = *entry;
+        world.invalidate_local_attestations();
         std::string registered_stop_error;
         if (world.registered && world.supervisor && !world.stopped) {
             try { (void)stop_world(world.owner); }

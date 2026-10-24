@@ -1,0 +1,72 @@
+M10 RETAINED PRESENTATION AND AUTHORIZATION
+Status: IMPLEMENTATION DIRECTION, NOT QUALIFICATION EVIDENCE.
+David requested this direction after reviewing repeated per-frame binding and authorization work.
+The complete M10 human plus two scripted actor objective remains unchanged.
+
+Required steady state
+Bind an exact actor session and local view once.
+Retain the authorized scene and live application texture identities.
+Retain checked authorization snapshots with explicit revision and incarnation fences.
+Validate those fences locally before actions, frame commitment, and pixel export.
+Process invalidations independently of repaint cadence.
+Rebuild presentation state when its inputs change.
+Avoid synchronous issuer requests for every routine input renewal and frame.
+
+Authorization context
+Keep initial credential validation and checked status for every grant-chain subject.
+The initial revocation feed is a current baseline. It contains no historical proof of credential validity.
+Bind retained state to issuer identity/incarnation, participant incarnation/generation, actor identity, credential identity,
+channel token, view identity, snapshot revision floors, and grant-chain subject dependencies.
+Drain revocation updates before allowing effects.
+Require contiguous consumed progress covering snapshot floors and the known security head.
+Define an explicit feed-health watermark. The current ready boolean alone is insufficient.
+Unknown subjects and newly discovered grant parents require checked initialization before use.
+Actor revocation invalidates dependent grants. Credential revocation removes only affected sessions.
+Service loss, feed gaps, stale incarnations, and replaced sessions invalidate retained authorization.
+Do not replace immediate revocation with a time-based permission cache or grace period.
+Preserve native cancellation and concealment before acknowledging applied revocations.
+Document distributed ordering guarantees explicitly. An asynchronous notification cannot imply zero network propagation time.
+
+Input scheduling
+Rendering, another actor's authentication, and slow authority exchanges must not starve valid movement refreshes.
+This applies to the production human host and both scripted agents.
+The existing host worker performs synchronous foreground presentation while holding the actor-controller lock.
+World component-wait callbacks consume revocations and disconnects but do not dispatch pending movement.
+Both scheduling boundaries require correction. Optimizing binding alone cannot establish this invariant.
+Use the existing semantic actions, sequence owner, and Actors::act authority checks.
+Allow bounded work from already authenticated idle channels while another actor waits for authentication.
+Do not recursively run the complete session pump or start recursive issuer exchanges.
+Preserve request order, transport validation, and exact actor binding.
+Movement may use the retained authorization context once its freshness proof exists.
+Stop may require renderer IPC. Do not dispatch it recursively into a busy renderer or broker.
+Clear motion promptly. Publish checked cancellation only after required native input release settles.
+Heartbeats maintain liveness. They do not independently promote foreground work to cancellation urgency.
+Actual interaction, source failure, malformed input, and pending cancellation keep their existing bounds.
+
+Presentation scheduling
+Keep compositor selection and fresh authorization checks while establishing the retained-state invariant.
+Track changes to camera, actor population and poses, room geometry, placements, workspace visibility, viewport,
+surface identity/generation, and application pixel content.
+Current native surface metadata has no content revision. Equal geometry cannot prove equal pixels.
+Connect native damage to explicit dirty state before skipping application redraws.
+Retaining a framebuffer alone must not freeze real application output.
+Observation revocation must clear warm retained scenes even when nothing requests a repaint.
+
+Required regressions
+Continuous human and two-agent navigation during delayed authentication.
+Credential-only revocation, actor revocation, dependent grants, and independent valid grants.
+Revocation during authentication, rendering, queued movement, and blocked output.
+Feed gaps, stale snapshots, participant loss, issuer restart, and new grant-chain subjects.
+Native release and concealment before cancellation or revocation completion.
+Application damage with unchanged geometry.
+Warm retained scenes clearing after observation revocation.
+Unchanged 250 ms input/freshness and 350 ms source-loss/watchdog limits.
+Real cabinet files and confined application workflows remain required.
+The final frozen candidate still needs the complete qualification matrix on both test hosts.
+
+Current implementation boundary
+The host now records successful exact-view binding receipts separately from attempted cleanup ownership.
+This skips redundant binding only. Selection and authorized presentation still run every frame.
+Observation watches and authority participants provide existing invalidation mechanisms.
+Retained authorization snapshots, feed-health watermarks, cooperative input dispatch, and dirty rendering remain pending.
+Read M10_SCRIPTED_ACTOR_2026-10-24.txt for reproduced failures and current focused evidence.

@@ -733,6 +733,82 @@ control::v1::DeviceEvent receiver_event(std::uint64_t sequence,bool connect=fals
     if(connect)event.mutable_connected()->set_kind(control::v1::KEYBOARD);else event.mutable_heartbeat();
     return event;
 }
+void worker_heartbeat_only_wait_keeps_real_cancellation(unsigned cause) {
+    // Cause1 is a fresh F12 gesture;2 is actual source silence;3 is a malformed source heartbeat.
+    Fixture fixture;Endpoint source(fixture,3s);
+    source.start([&](int fd){handshake(fd,fixture);closed(fd);});
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
+        const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        std::atomic<unsigned> requested{0};std::atomic<bool> issued{false},premature_failure{false};
+        std::jthread emitter([&](std::stop_token stop) {
+            try {
+                std::uint64_t sequence=1;
+                producer->emit(receiver_event(sequence,true),std::chrono::steady_clock::now());
+                while(!stop.stop_requested()) {
+                    std::this_thread::sleep_for(100ms);if(stop.stop_requested())break;
+                    const auto failure=requested.load();
+                    if(failure==2){issued.store(true);break;} // Keep the endpoint open for real silence.
+                    auto event=receiver_event(++sequence);
+                    if(failure==1) {
+                        event.mutable_key()->set_keysym("F12");event.mutable_key()->set_pressed(true);
+                    } else if(failure==3)event.set_source_generation(2);
+                    producer->emit(event,std::chrono::steady_clock::now());
+                    if(failure){issued.store(true);break;}
+                }
+            }catch(...){if(!requested.load())premature_failure.store(true);}
+        });
+        const auto connected=std::chrono::steady_clock::now()+1s;
+        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected)
+            std::this_thread::sleep_for(5ms);
+        check(binding->processed_sequence()>=1,"Heartbeat watchdog test did not confirm its source connection");
+        worker.call([]{}); // Initial Connected work cannot supply urgency in the gated phase.
+        std::promise<void> entered,release;auto gate=release.get_future().share();
+        struct Release {std::promise<void>& value;~Release(){try{value.set_value();}catch(...){}}} recovery{release};
+        auto blocked=worker.submit([&]{entered.set_value();gate.wait();});
+        check(entered.get_future().wait_for(1s)==std::future_status::ready,"Heartbeat watchdog foreground did not start");
+        std::this_thread::sleep_for(450ms);
+        const bool heartbeat_healthy=!pin->requested() && !binding->retired() && !premature_failure.load();
+        requested.store(cause);
+        const auto cancelled=std::chrono::steady_clock::now()+1500ms;
+        while((!pin->requested() || !binding->retired() || !issued.load()) && std::chrono::steady_clock::now()<cancelled)
+            std::this_thread::sleep_for(5ms);
+        const bool exact_cancel=pin->requested() && binding->retired() && issued.load();
+        release.set_value();
+        bool healthy_result=false;try{blocked.get();healthy_result=true;}catch(const std::exception&){}
+        emitter.request_stop();emitter.join();
+        const bool clean=worker.shutdown();source.finish();
+        check(heartbeat_healthy,"Heartbeat-only traffic promoted unrelated foreground work to cancellation urgency");
+        check(exact_cancel,"Real input/source failure lost exact watchdog interruption and retirement");
+        check(!healthy_result,"Interrupted foreground work published a healthy result");
+        check(clean,"Heartbeat watchdog test left capture cleanup unresolved");
+        check(!host->control_available(),"Interrupted actor context remained available");
+    }
+    producer.reset();host.reset();
+}
+void worker_shutdown_cannot_publish_a_cached_nonvoid_result() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd){handshake(fd,fixture);closed(fd);});
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);
+        const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        std::promise<void> entered,release;auto gate=release.get_future().share();
+        struct Release {std::promise<void>& value;~Release(){try{value.set_value();}catch(...){}}} recovery{release};
+        auto blocked=worker.submit([&]{entered.set_value();gate.wait();return true;});
+        check(entered.get_future().wait_for(1s)==std::future_status::ready,"Shutdown test did not enter its cached operation");
+        auto stopping=std::async(std::launch::async,[&]{return worker.shutdown();});
+        const auto deadline=std::chrono::steady_clock::now()+1s;
+        while(!pin->requested() && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(5ms);
+        const bool interrupted=pin->requested();release.set_value();
+        bool healthy=false;try{healthy=blocked.get();}catch(const std::exception&){}
+        const bool clean=stopping.get();source.finish();
+        check(interrupted && !healthy && clean && !host->control_available(),
+            "Worker shutdown published a cached nonvoid result after interruption");
+    }
+    host.reset();
+}
 void worker_independent_capture_and_silence() {
     Fixture fixture;Endpoint source(fixture,2s);
     std::atomic<unsigned> checked_stops{0};
@@ -906,6 +982,10 @@ int main(int argc, char** argv) {
             worker_capture_without_sources_does_not_expire();std::cout<<"PASS worker-empty-capture-does-not-expire\n";
             worker_capture_eof_and_malformed_are_bound();std::cout<<"PASS worker-capture-eof-and-malformed-exact-binding\n";
             worker_capture_progress_waits_for_output_barrier();std::cout<<"PASS worker-capture-progress-output-interruption-barrier\n";
+            worker_heartbeat_only_wait_keeps_real_cancellation(1);std::cout<<"PASS worker-heartbeat-only-wait-then-fresh-key-watchdog\n";
+            worker_heartbeat_only_wait_keeps_real_cancellation(2);std::cout<<"PASS worker-heartbeat-only-wait-then-real-source-silence\n";
+            worker_heartbeat_only_wait_keeps_real_cancellation(3);std::cout<<"PASS worker-heartbeat-only-wait-then-malformed-source-heartbeat\n";
+            worker_shutdown_cannot_publish_a_cached_nonvoid_result();std::cout<<"PASS worker-shutdown-interrupted-cached-nonvoid-result\n";
             return 0;
         }
         if (argc == 2 && std::string(argv[1]) == "--shared-only") {

@@ -164,3 +164,10 @@ Both hosts import all 22 production generated modules and provision_storage from
 Read ../spatial-os-luna-handoff/docs/M10_CONTINUOUS_CAPTURE_2026-10-24.txt for exact source and evidence pins.
 Three-actor real-file/application workflows, remaining foreground witnesses, and the frozen full gate remain pending.
 M10 remains UNQUALIFIED. The full user goal remains active.
+
+2026-10-24 retained-state architecture direction
+David requested retained presentation and authorization with local validation, instead of repeated full per-frame setup.
+Read ../spatial-os-luna-handoff/docs/M10_RETAINED_PRESENTATION_DIRECTION_2026-10-24.txt for the implementation direction.
+Retained authorization needs explicit revision/incarnation fences and a reliable invalidation/health protocol.
+It cannot rely on a time-based permission cache or the absence of historical revocation events.
+Preserve the complete human/two-agent, real-file/application, and frozen two-host qualification objective.

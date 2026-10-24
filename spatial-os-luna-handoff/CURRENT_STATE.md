@@ -1,3 +1,20 @@
+## 2026-10-24: M10 scripted actors and interruption fixes remain unqualified
+
+A production Protobuf adapter authenticates distinct scripted actors through the shared ActorControl implementation.
+Human capture and two adapters execute native navigation, observation, and world-transition scenarios.
+The latest native matrix completes 93 methods: 92 pass and one fails. Another 23 remain unrun.
+Sb16-2 ASan/UBSan still loses held human motion during three-actor navigation.
+Retained binding and heartbeat urgency changes do not establish independent movement scheduling.
+Rendering, another actor's authentication, and slow authority exchanges must not starve valid movement refreshes.
+Both host presentation and world component waits still need scheduling corrections.
+
+Separate exact-flight interruption fixes pass 140 C++ groups across both hosts and profiles.
+Those checks cover healthy heartbeat waits, actual failure cancellation, shutdown, and checked transitions.
+The corrected source183 host builds but has not run the native integration matrix.
+Read docs/M10_SCRIPTED_ACTOR_2026-10-24.txt and docs/M10_RETAINED_PRESENTATION_DIRECTION_2026-10-24.txt.
+Real-file/application workflows, retained authorization freshness, and the complete frozen gate remain pending.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
 ## 2026-10-24: M10 continuous capture passes focused checks on both hosts
 
 Continuous native capture now feeds the serialized production actor worker through an independent receiver.

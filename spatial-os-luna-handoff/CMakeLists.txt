@@ -33,6 +33,7 @@ protobuf_generate_cpp(proto_sources proto_headers proto/spatial/core/v1/core.pro
     proto/spatial/core/v1/actor_local_view.proto proto/spatial/workspace/copy/v1/copy.proto)
 protobuf_generate_cpp(input_proto_sources input_proto_headers proto/spatial/input/v1/input.proto)
 protobuf_generate_cpp(control_profile_proto_sources control_profile_proto_headers proto/spatial/control/v1/control.proto)
+protobuf_generate_cpp(scripted_actor_proto_sources scripted_actor_proto_headers proto/spatial/control/v1/scripted_actor.proto)
 protobuf_generate_cpp(security_proto_sources security_proto_headers proto/spatial/security/v1/security.proto)
 protobuf_generate_cpp(selection_scope_proto_sources selection_scope_proto_headers proto/spatial/security/v1/selection_scope.proto)
 protobuf_generate_cpp(native_scope_proto_sources native_scope_proto_headers proto/spatial/supervisor/v1/native_scope.proto)
@@ -590,6 +591,28 @@ add_dependencies(presentation-python-protobuf control-python-protobuf)
 add_dependencies(spatial-control-native control-python-protobuf)
 add_library(spatial-actor-transition STATIC src/world/actor_transition_coordinator.cpp)
 target_link_libraries(spatial-actor-transition PUBLIC spatial-actor-session-client spatial-protobuf)
+add_library(spatial-scripted-actor-control STATIC src/control/scripted_actor.cpp
+    ${scripted_actor_proto_sources} ${scripted_actor_proto_headers})
+target_include_directories(spatial-scripted-actor-control PUBLIC src "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(spatial-scripted-actor-control PUBLIC spatial-actor-control spatial-actor-transition)
+add_executable(spatial-scripted-actor src/control/scripted_actor_main.cpp)
+target_link_libraries(spatial-scripted-actor PRIVATE spatial-scripted-actor-control)
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/scripted_actor_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/core/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/security/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/copy/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/control/v1/scripted_actor.proto
+    DEPENDS proto/spatial/control/v1/scripted_actor.proto proto/spatial/identity/v1/actor_transition.proto
+        proto/spatial/core/v1/core.proto proto/spatial/core/v1/actor_local_view.proto
+        proto/spatial/security/v1/security.proto proto/spatial/workspace/v1/file_actions.proto
+        proto/spatial/workspace/copy/v1/copy.proto protobuf::protoc VERBATIM)
+add_custom_target(scripted-actor-python-protobuf DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/scripted_actor_pb2.py")
+add_dependencies(scripted-actor-python-protobuf host-actor-python-protobuf python-protobuf security-python-protobuf)
+add_dependencies(spatial-scripted-actor scripted-actor-python-protobuf)
 add_library(spatial-input-witness-protobuf STATIC ${input_witness_proto_sources} ${input_witness_proto_headers})
 target_link_libraries(spatial-input-witness-protobuf PUBLIC protobuf::libprotobuf)
 target_include_directories(spatial-input-witness-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
@@ -2385,6 +2408,16 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>)
     set_tests_properties(host-continuous-capture-native PROPERTIES TIMEOUT 600
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME scripted-actor-native COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_scripted_actor.py"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:spatial-host-session>
+        $<TARGET_FILE:spatial-scripted-actor>)
+    set_tests_properties(scripted-actor-native PROPERTIES TIMEOUT 600
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME host-capture-start-failure-native COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"

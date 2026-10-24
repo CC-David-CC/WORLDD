@@ -95,13 +95,19 @@ public:
     void capture_failed(const Binding&) noexcept;
 
 private:
-    struct Work { std::function<void()> execute; Binding urgent_binding; bool cancellation = false; };
+    struct Work {
+        std::function<void()> execute;
+        Binding urgent_binding;
+        bool cancellation = false;
+        bool capture_heartbeat = false; // Diagnostic metadata. Never changes urgency.
+    };
     struct Flight {
         std::uint64_t serial;
         std::int64_t started;
         Binding binding;
         bool urgent;
         bool release_satisfied = false;
+        bool interrupted = false;
     };
     bool enqueue(Work);
     bool current(const Binding&) const;
