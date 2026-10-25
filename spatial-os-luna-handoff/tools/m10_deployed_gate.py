@@ -138,6 +138,7 @@ M10_HARNESS_TESTS = tuple(
         "test_every_required_suite_name_is_unique_and_m10_scoped",
         "test_named_case_suite_map_covers_every_module",
         "test_named_sources_resolve_exactly_once",
+        "test_deployment_inventory_preserves_m09_and_m10_case_sources",
         "test_named_method_log_requires_every_case_once",
         "test_named_method_log_rejects_skipped_case",
         "test_inventory_rejects_missing_m10_suite",
@@ -266,8 +267,8 @@ def validate_m10_method_log(output, inventory):
 
 def validate_m10_harness_output(output, exit_code):
     expected = tuple(sorted(M10_HARNESS_TESTS))
-    if len(expected) != 8 or len(set(expected)) != 8:
-        raise RuntimeError("M10 harness inventory must contain eight unique test IDs")
+    if len(expected) != 9 or len(set(expected)) != 9:
+        raise RuntimeError("M10 harness inventory must contain nine unique test IDs")
     pattern = re.compile(r"(?m)^(\S+) \(([^)]+)\) \.\.\. ([^\r\n]+)$")
     rows = [(match.group(2), match.group(1), match.group(3).strip())
             for match in pattern.finditer(output)]
