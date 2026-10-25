@@ -4,6 +4,8 @@
 #include "core/geometry.hpp"
 #include "world/control_action.hpp"
 #include <limits>
+#include <algorithm>
+#include <iostream>
 
 namespace spatial::supervisor {
 namespace {
@@ -253,6 +255,37 @@ bool HostActorController::retire_foreground_locked() noexcept {
         return false;
     }
 }
+void HostActorController::defer_foreground_locked(bool release_binding) {
+    geometry_status_.Clear();
+    if(presentation_continuations_ && local_target_) {
+        // The coordinator retains the frame, exchange, target, and cleanup proof.
+        // Cancel the exact view before returning to the host reply publisher.
+        session_->defer_retire_local_actor(local_target_->owner,local_target_->identity,
+            release_binding?SessionCoordinator::LocalRetirementKind::context:SessionCoordinator::LocalRetirementKind::presentation);
+        if(std::none_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& old){
+                return old.owner.SerializeAsString()==local_target_->owner.SerializeAsString() &&
+                    old.identity.SerializeAsString()==local_target_->identity.SerializeAsString();}))
+            retiring_targets_.push_back(*local_target_);
+        local_frame_.reset();
+        if(release_binding)local_target_.reset();
+        return;
+    }
+    if(!retiring_targets_.empty()) {
+        if(release_binding)for(const auto& target:retiring_targets_)
+            session_->defer_retire_local_actor(target.owner,target.identity);
+        return;
+    }
+    clear_foreground_locked();
+}
+bool HostActorController::pump_deferred_cleanup() {
+    std::unique_lock lock(mutex_,std::try_to_lock);
+    if(!lock.owns_lock() || !session_)return false;
+    const bool pending=session_->pump_deferred_cleanup();
+    std::erase_if(retiring_targets_,[&](const auto& target){
+        return !session_->local_retirement_pending(target.owner,target.identity);
+    });
+    return pending;
+}
 void HostActorController::clear_foreground_locked() {
     if(!retire_foreground_locked())throw std::runtime_error("Foreground geometry retirement unconfirmed");
     try { session_->clear_presentation(); }
@@ -260,6 +293,7 @@ void HostActorController::clear_foreground_locked() {
 }
 void HostActorController::publish_local_frame_locked(const core::v1::ActorLocalViewIdentity& identity,
     const core::v1::ActorLocalViewState& view) {
+    presentation_failure_.clear();
     if(adapters_ && controls_ && controls_->context().generation == generation_)
         adapters_->set_viewport(view.viewport().width(),view.viewport().height(),view.vertical_fov());
     geometry_status_.set_protocol_version(1);geometry_status_.set_available(true);
@@ -338,12 +372,15 @@ void HostActorController::enable_presentation_continuations() {
     presentation_continuations_=true;
 }
 bool HostActorController::pump_geometry_presentation() {
+    (void)pump_deferred_cleanup();
     std::unique_lock lock(mutex_, std::try_to_lock);
     if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return false;
     try {
         const auto destination=destinations_.find(current_world_);
         if(presentation_continuations_ && shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
             const auto identity=current_client_->local_view_identity();
+            if(std::any_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& target){
+                    return target.identity.SerializeAsString()==identity.SerializeAsString();}))return true;
             if(!local_target_ || local_target_->identity.SerializeAsString()!=identity.SerializeAsString()) {
                 if(!retire_foreground_locked())throw std::runtime_error("Previous foreground retirement is unconfirmed");
                 local_target_=LocalTarget{*destination->second.owner,identity};
@@ -373,8 +410,12 @@ bool HostActorController::pump_geometry_presentation() {
         }else refresh_foreground_locked();
     }
     catch (...) {
-        try { clear_foreground_locked(); } catch (...) { control_fenced_=true; }
-        if (current_client_->failed()) control_fenced_ = true;
+        const auto detail=exception_detail();
+        if(detail!=presentation_failure_)std::cerr<<"Local presentation failed: "<<detail<<'\n';
+        presentation_failure_=detail;
+        const bool context_lost=!current_client_ || current_client_->failed();
+        try { defer_foreground_locked(context_lost); } catch (...) { control_fenced_=true; }
+        if(context_lost)control_fenced_=true;
     }
     return false;
 }
@@ -386,6 +427,10 @@ void HostActorController::synchronize_controls_presentation_locked() {
     if(!present_controls_ || !shared_enabled_ || !capture_generation_)return;
     control::v1::ControlMenuView view;view.set_protocol_version(1);
     if(!control_fenced_ && current_client_ && !current_client_->failed() && controls_menu_)view=controls_menu_->view();
+    if(session_ && (control_fenced_ || !current_client_ || current_client_->failed())) {
+        // Uncertainty never waits for an output receipt or claims it was shown.
+        session_->defer_present_controls(capture_generation_,view);return;
+    }
     const auto bytes=view.SerializeAsString();
     if(presented_menu_generation_==capture_generation_ && presented_menu_==bytes)return;
     try { present_controls_(capture_generation_,view); }
@@ -428,10 +473,16 @@ void HostActorController::create_controls_locked(const control::v1::ControlProfi
             }, [this, generation] {
                 if (generation == generation_) {
                     control_fenced_ = true; current_client_.reset();
-                    if (session_) clear_foreground_locked();
+                    if (session_) defer_foreground_locked();
                 }
             }, initial_sequence);
         adapters_ = std::make_unique<control::DeviceAdapters>(*controls_, profiles);
+        std::weak_ptr<control::MotionIntent> motion = adapters_->motion_intent();
+        current_client_->set_motion_refresh([motion] {
+            const auto intent = motion.lock();
+            return intent ? intent->next(control::DeviceAdapters::Clock::now()) :
+                std::optional<core::v1::ActorInputRequest>{};
+        });
         controls_menu_ = std::make_unique<control::ControlsMenu>(*adapters_, persist_controls_);
         actor_sequence_ = initial_sequence; ++capture_generation_; capture_sequence_ = 0;
     } catch (...) {
@@ -481,6 +532,11 @@ control::v1::ControlMenuView HostActorController::controls_menu(std::uint64_t ge
         control::v1::ControlMenuView hidden; hidden.set_protocol_version(1); return hidden;
     }
     return controls_menu_->view();
+}
+std::shared_ptr<control::MotionIntent> HostActorController::motion_intent(std::uint64_t generation) const {
+    std::lock_guard lock(mutex_);
+    require_controls_locked(generation);
+    return adapters_->motion_intent();
 }
 control::v1::ControlStatus HostActorController::device_event(std::uint64_t generation,
     const control::v1::CapturedDeviceEvent& packet) {

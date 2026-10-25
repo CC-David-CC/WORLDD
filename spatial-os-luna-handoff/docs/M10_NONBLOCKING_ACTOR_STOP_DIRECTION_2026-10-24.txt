@@ -1,0 +1,148 @@
+M10 nonblocking actor Stop direction
+Date:2026-10-24. Updated2026-10-25. DRAFT BUILT; selected testing remains active.
+M10 and the complete human/two-agent goal remain active and unqualified.
+
+Measured behavior
+Source355 adds opt-in fixed-memory Stop phase records. It changes no authorization or deadline.
+Run358 passes66 worker/controller checks across both Debug hosts.
+Its unchanged application method passes on sb16 and fails on sb16-2 at the handoff Stop.
+The resource wrapper drops the outer diagnostic flag. Run358 supplies no phase evidence.
+Launcher361 sets the fixed flag inside the resource wrapper. It reuses the exact package356 bytes.
+The unchanged method passes on sb16. On sb16-2, it passes handoff and fails the later human Stop.
+Both hosts produce host, client, world, and fully-sent reply records without dropped events.
+Successful requests spend274-320ms between completed client write and world dispatch.
+Checked native cancellation takes about1.6-1.8ms. Host publication after checked receipt is brief.
+The failed later Stop has no matching world dispatch or send record before interruption.
+These observations identify delayed dispatch. They do not identify the exact enclosing component wait.
+Evidence:R/handoff-stop-collected-362, where R=/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Parsed records:R/handoff-stop-phase-groups-363.json.
+Analysis:R/handoff-stop-phase-analysis-363.json.
+Source manifest:R/handoff-stop-source-355.json.
+Exact source archive:R/handoff-stop-source355-exact-356.tar.gz.
+Archive SHA256:e6d345121811e54abddf35dc6bf85e5ddb41098557e62461b11aa3fe1a236821.
+Package manifest SHA256:d06335e70a2ffca8767e99570285989b0917a96e1c8003e686fdfb04cccb2aa9.
+sb16 evidence archive SHA256:455319abbf81eff24fb20acd275d8152615e48a84a4f7623a5a37207b433b76f.
+sb16-2 evidence archive SHA256:eac389c7d3f92002c5e92d16bb7c247b4dabf1c39837c74119886c66d636eb93.
+
+Diagnostic erratum
+The added watchdog timestamp field shifted a positional initializer's four Boolean diagnostic labels.
+It did not change urgency calculation, interruption behavior, scope timestamps, or elapsed timing.
+Do not infer urgency causes from those four labels in source355 logs.
+The source now assigns diagnostic fields by name. That logging correction remains unbuilt.
+Original source355 logs and provenance remain preserved.
+
+Required production correction
+The cooperative movement pump excludes Stop at channel selection and dispatch.
+Stop already skips fresh credential and permission acquisition in ordinary dispatch.
+Cancellation needs a separate cooperative gate. Movement keeps its checked progress fence.
+A renderer-idle check cannot justify synchronous cancellation inside an authority callback.
+The compositor can stall after submission and hold that callback until its transport deadline.
+Use an explicit pending Stop continuation and nonblocking native submission and polling.
+Keep the current350ms host interruption bound. Do not disarm it before a checked native receipt.
+Use the shared actor Stop backend. Validate token, channel context, and sequence before side effects.
+Consume each sequence once. Clear motion, aim, object control, and pending capture motion through that backend.
+Retain exact token/actor incarnation, channel cancellation generation, and renderer request identity.
+Do not invoke fresh authority or recursively dispatch another request on the same actor channel.
+Keep departure, authentication, and partial authority-batch safety guards.
+Do not reorder an earlier actor request to reach a later Stop.
+A component callback may submit or poll bounded progress. It must not wait for a native reply.
+Keep one renderer stream owner. Drain submitted frames with their original correlation and authorization checks.
+Give pending cancellation priority before the next ordinary render submission.
+Defer new frames explicitly while cancellation owns the renderer stream.
+Accept Stop only after checking its exact native cancellation receipt.
+Preserve the existing distinction between accepted input release and queued broker release.
+Never claim that queued broker release was acknowledged.
+Keep cleanup ownership after channel loss. Revocation and closure dominate a pending Stop.
+A late reply must never restore an old input snapshot or clear a newer actor context.
+Do not admit a new actor incarnation through unresolved native cleanup.
+
+Selected regression obligations before integration
+Hold another actor's authority exchange. Require checked native Stop while that exchange remains held.
+Hold broker observation acquisition. Require Stop progress without recursive broker calls or false broker acknowledgment.
+Pause the compositor after cancellation submission. Require other actors' movement to continue.
+Require no accepted Stop or cancellation_confirmed receipt while native cancellation remains unconfirmed.
+Submit Stop behind an existing frame. Require ordered draining and exact renderer response ownership.
+Revoke or disconnect during pending cancellation. Require retained cleanup and refusal of stale completion.
+Reject stale sequences, supplied tokens, malformed frames, and non-Stop actions through the cancellation gate.
+Preserve paused-world interruption, modifier-release, peer takeover, and native binding-lifetime assertions.
+Classify callback waits and record cancellation ingress, submission, and completion.
+Run deterministic delayed-component cases before the original application method on both hosts.
+Run focused sanitizer and related context/lifetime checks before integration.
+The complete frozen M10 candidate and inherited two-host gate remain separate requirements.
+
+First continuation implementation draft
+RenderWorker now retains one bounded native cancellation ticket and its absolute transport deadline.
+Its nonblocking poll rejects wrong correlation, foreign actors, held input, malformed replies, and descriptors.
+An ordinary renderer request drains prioritized cancellation before acquiring the stream.
+Actors retain Stop ownership by private token, actor instance, sequence, and native request ticket.
+The pending channel retains its original request, sequence, and cancellation generation.
+Motion clears at accepted ingress. Native state changes only after the exact checked receipt.
+Closure upgrades pending cancellation. Rebinding remains blocked until cleanup completes.
+Cooperative cancellation uses its own gate. Retained movement keeps its existing authority-progress fence.
+Earlier frames remain ordered. Component callbacks submit and poll without sleeping.
+No production schema or locked acceptance assertion changes in this draft.
+New checks cover native transport continuations and cancellation during held foreign authentication or issuer INFO.
+Compositor-pause, broker-hold, revocation/disconnect, and pending-frame native counters remain required before integration.
+Runtime execution and sanitizer evidence for this draft remain pending.
+
+2026-10-25 continuation implementation and selected results
+Source366 builds in Debug and ASan/UBSan. It includes the named-field logging correction.
+Both Debug hosts pass the nine renderer-observation, six Stop-liveness, and two native Stop methods.
+Both also pass all five real three-actor application scenarios, including the original human Stop failure.
+Original results and failures remain under R/nonblocking-stop-collected-369.
+
+The new native transport fixture initially measured destructor cleanup as timeout detection.
+Its independent peer drips one byte every three seconds against the fixed ten-second deadline.
+The probe now publishes a correlated error before its existing two-second child cleanup.
+The corrected assertion requires detection at10-11seconds and cleanup within three further seconds.
+Production deadlines remain unchanged. A separate missing-import launcher refusal remains preserved.
+All seventeen corrected methods pass on both hosts in both profiles:68 completions.
+Review plan:R/nonblocking-stop-fixture-correction-plan-370.json.
+Audit:R/nonblocking-stop-fixture-primary-audit-378.json.
+Collected evidence:R/nonblocking-stop-fixture-collected-378.
+
+Related source366 Debug checks pass five complete suites on each host.
+An unchanged issuer-progress method reproduces world exit2 after accepted Stop on both hosts.
+A queued capture-motion command can survive Stop completion and reach native input after button release.
+Source374 retains the last Stop sequence through final native submission.
+It also discards capture work invalidated while native state refresh or authority checking yields.
+Actor instance and token checks prevent submission through a changed session.
+Ordinary navigation sequence changes do not invalidate prepared input.
+Both profiles build. Both Debug hosts pass the original issuer regression and the new capture-motion regression.
+They also pass all six Stop-liveness, five application, and twenty-nine world-identity methods.
+The remaining selected application-control and sanitizer matrix is running as377.
+Source archive:R/nonblocking-stop-source374-exact-376.tar.gz.
+Archive SHA256:19fe768d30cfd4a437e95b162039d858812253151b3b8bf4a2c76a725dd16e28.
+Packages:R/nonblocking-stop-compiled374-{Debug,ASan-UBSan}-376.
+
+Three additional source379 tests pause the actual compositor through a pinned kernel process descriptor.
+They require other-actor movement during pending Stop, early-rebind refusal after disconnect, and revocation cleanup.
+They retain the existing independent native X input witness and ordinary signed actor authentication.
+These tests are deployed as380 and queued behind377. They have no accepted runtime result yet.
+Queue383 corrects a setup refusal that confused RUNNING receipt existence with COMPLETE contents.
+Runtime results will use nonblocking-stop-results-{Debug,ASan-UBSan}-381.
+The canonical lifetime runner is stop-lifetime-run-383 on each host.
+Source archive:R/nonblocking-stop-source379-exact-384.tar.gz.
+Archive SHA256:0ac6cec0c69e27404bf24c1550ce829a2ff863c1107ffb5eb5a0c1fbf12804a6.
+Typed Close denial, lost Close transport, broker-hold, and preceding-frame counters remain required.
+The complete frozen two-host M10 candidate and inherited gate remain pending.
+
+2026-10-25 selected continuation result and failure ownership
+Both hosts complete all six selected source374 suites in Debug and ASan/UBSan.
+Per cell:99 methods. Total:396 passed, with no accepted skips or sanitizer diagnostics.
+All three real-compositor lifetime methods pass in each cell:12 further completions.
+They prove other-actor movement during native cancellation, early-rebind refusal, and checked revocation cleanup.
+The independent native witness records actual key and button release.
+Five independent peer methods exercise the production Actors, RenderWorker, and WorldStore:20 further completions.
+They cover checked Close, abandoned Stop, typed Close denial, lost Close transport, and Cancel-denial upgrade.
+Failed Close retains its cleanup barrier. Uncertain transport retains its exact native stream owner.
+No failure case replays cancellation or admits a replacement actor incarnation.
+
+Accepted selected total:428 methods across explicitly pinned component lanes.
+Audit:R/stop-increment-primary-audit-393.json.
+Runtime evidence:R/stop-capture-collected-391 and R/stop-lifetime-owner-collected-392.
+Source374, source379 lifetime tests, and source386 peer tests retain separate provenance.
+The separate corrected renderer transport result remains68 completions under audit378.
+These results do not constitute one complete frozen M10 qualification candidate.
+Broker observation-hold and preceding-frame Stop counters remain required before integration.
+The real editor/terminal workflow, remaining context work, reproducible generation, and full gate remain pending.

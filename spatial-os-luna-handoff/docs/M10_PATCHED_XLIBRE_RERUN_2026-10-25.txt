@@ -1,0 +1,51 @@
+M10 patched XLibre application rerun
+Date: 2026-10-25. Status: FOCUSED RERUN COMPLETE. M10 UNQUALIFIED.
+
+Scope
+Run415 uses existing source390 application packages and patched XLibre package413.
+Both M10 profiles run on sb16 and sb16-2.
+Every cell uses the patched ASan/UBSan Xvfb server, including the Debug M10 cells.
+World/host components use their selected profile. Compositor and declared helpers retain Debug pins.
+These mixed component results do not replace the final frozen M10 qualification.
+The original candidate scope labels mention server315. Checked launch environments explicitly select server413.
+No acceptance test, expected output, authorization rule, or production input behavior changes.
+
+Results
+All 216 selected methods execute. 206 pass, ten fail, and none skip.
+Debug sb16 passes both real editor/terminal methods and fails one process error-classification method.
+Debug sb16-2 and both sanitizer cells each fail both application methods and the same process method.
+All four cells pass 28 application-access, three session-application, and three native dependency methods.
+Collected stdout, stderr, and component logs contain no ASan, LeakSanitizer, or UBSan diagnostic.
+
+Open findings
+Input integrity: sb16-2 Debug and both sanitizer cells save duplicated editor characters.
+Sb16-2 terminal typing does not produce the expected file.
+Debug sb16 successfully completes both human-plus-two-scripted-actor application methods with patched XLibre.
+The key-down lifetime and native auto-repeat relationship require correlated evidence.
+
+Process error contract: source390 reports UNAVAILABLE for a checked missing executable.
+The unchanged process method expects STORAGE_ERROR for that first failed launch.
+Source405 contains a separate correction. Its selected runtime validation remains required.
+No unauthorized launch was demonstrated by this classification failure.
+
+Resource/liveness: the kernel kills worldd during sb16 sanitizer terminal typing.
+The exact outer transient test service reaches MemoryMax1536M.
+The kernel reports worldd about591MiB RSS and workspaced about541MiB RSS before other processes.
+An OOM snapshot does not establish a leak, unbounded history, or a sufficient test budget.
+Run416 keeps the memory limit and records process/cgroup memory alongside native key events.
+
+Security result limits
+The selected authority and session suites show no new authorization bypass.
+These checks do not prove that every security requirement passes.
+The complete inherited security, native attack, harness, and acceptance gate remains required on one frozen candidate.
+M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
+Evidence
+External root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Audit: native-xlibre-fixed-audit-415.json.
+Collection: native-xlibre-fixed-collected-415.
+Kernel evidence: native-xlibre-fixed-sb16-asan-oom-415.log.
+Diagnostic plan: native-key-and-memory-diagnostic-plan-416.json.
+The collection verifies remote bytes, file coverage, and original archive mode metadata.
+The first collector incorrectly compared safe extraction modes with source modes.
+Original archives remain preserved. The corrective check verifies archive modes and extracted bytes separately.

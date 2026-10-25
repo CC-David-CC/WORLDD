@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <functional>
+#include <exception>
 
 namespace spatial {
 namespace broker_wire = workspace::v1;
@@ -32,6 +33,13 @@ public:
     wire::ActorCloseReply close(const std::string& token);
     std::string depart(const std::string& token);
     wire::ActorActionReply act(const wire::ActorActionRequest& request);
+    // Movement-lane refresh. The session transport checks its own monotonic sequence.
+    void refresh_motion(const std::string& token, const wire::ActorInputRequest& input);
+    // Same Stop backend, with an exact owner while native release is pending.
+    std::uint64_t begin_stop(const wire::ActorActionRequest&);
+    std::optional<wire::ActorActionReply> poll_stop(std::uint64_t);
+    void abandon_stop(std::uint64_t);
+    bool progress_stops();
     wire::RenderScene scene(const std::string& token, bool geometry_only = false, std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
     identity::v1::ActorGeometryView geometry_view(const std::string& token, const std::string& world_id,
         const std::string& actor_id, const std::string& view_id, std::uint64_t authority_generation,
@@ -86,6 +94,7 @@ private:
         wire::TranslationFrame translation_frame = wire::BODY_TRANSLATION;
         void clear_motion() noexcept { axes.fill(0); translation_frame = wire::BODY_TRANSLATION; }
         std::uint64_t sequence = 0, witness_instance_id = 0;
+        std::uint64_t last_stop_sequence = 0;
         double expires = 0;
         wire::AimReply aim;
         std::optional<workspace::v1::ApplicationRef> aim_application;
@@ -101,7 +110,9 @@ private:
         bool interaction_reset_pending = false;
         bool close_pending = false;
         bool departure_pending = false;
+        std::optional<std::uint64_t> pending_stop;
         std::vector<ObservedApplication> observed_applications;
+        std::map<std::string, ObservedApplication> application_discoveries;
         std::optional<ObjectHold> object;
         wire::ErrorCode object_error = wire::NO_TARGET;
     };
@@ -136,6 +147,7 @@ private:
     void queue_local_clear(const wire::ActorLocalViewIdentity&);
     void drain_foregrounds();
     Actor& authenticated(const std::string& token);
+    void apply_motion(Actor&, const wire::ActorInputRequest&);
     bool granted(const Actor&, const std::string& right, const std::vector<std::string>& components = {}) const;
     std::optional<broker_wire::ScopedAuthorityCheckReply> workspace_check(
         const Actor&, const std::string& workspace, authority::v1::Right right,
@@ -146,6 +158,10 @@ private:
     bool workspace_file_access(const Actor&, const std::string& workspace,
                                std::vector<broker_wire::AuthorizationFence>* fences = nullptr);
     void cabinet_action(Actor&, const workspace::v1::ActorCabinetRequest&, workspace::v1::ActorCabinetReply*);
+    wire::ActorApplicationSurfacesReply discover_application(Actor&, const wire::ActorApplicationSurfacesRequest&);
+    wire::ActorApplicationPlaceReply place_application(Actor&, const wire::ActorApplicationPlaceRequest&);
+    bool application_slot_authorized(const Actor&, const wire::SurfaceRecord&, bool use) const;
+    bool held_application_slot_authorized(const Actor&) const;
     void validate_presentation_placement(const std::string& room, const wire::Pose& pose, const std::string& exclude_id = {});
     std::set<std::string> observable_applications(const Actor&, const std::vector<ObservedApplication>&,
                                                   std::vector<broker_wire::AuthorizationFence>* fences);
@@ -156,7 +172,19 @@ private:
     void step(double target);
     void refresh_native();
     void release_input(Actor& actor, bool close = false, bool keep_reservation = false, bool force_native = false);
+    void finish_release_input(Actor&, bool close, bool keep_reservation = false);
+    void prepare_stop(Actor&);
     void stop_actor(Actor& actor, bool force_native = false);
+    struct PendingStop {
+        std::uint64_t serial=0,instance=0,sequence=0;
+        std::string actor,token;
+        std::optional<std::uint64_t> native;
+        bool submitted_close=false,needs_native=false,done=false,abandoned=false;
+        std::exception_ptr failure;
+    };
+    std::map<std::uint64_t,PendingStop> pending_stops_;
+    std::uint64_t next_stop_=0;
+    bool progressing_stops_=false;
     void poll_control();
     void drain_control_releases();
     void preflight_input_authority(Actor& actor, const workspace::v1::ApplicationRef& application);

@@ -103,6 +103,19 @@ struct World {
         bool cancelled = false;
     };
     std::optional<LocalFrame> local_frame;
+    struct LocalRetirement {
+        render::v1::LocalActorPresentationTarget target;
+        enum Stage { Selection, Native, WorldDrain, Release, Inspect } stage = Selection;
+        std::optional<std::uint64_t> native_token, release_token, inspect_token;
+        std::uint64_t serial = 0;
+        bool releases_binding = true;
+        std::string failure;
+    };
+    std::map<std::string,LocalRetirement> local_retirements;
+    std::string retirement_cursor;
+    bool fence_pending=false;
+    std::optional<std::uint64_t> fence_token;
+    std::string fence_failure;
 };
 }
 struct SessionCoordinator::Impl {
@@ -113,6 +126,20 @@ struct SessionCoordinator::Impl {
     std::map<std::uint64_t,render::v1::GeometryPresentationTarget> geometry_targets;
     std::uint64_t presentation_generation=0;
     std::uint64_t local_operation_sequence=0;
+    std::string cleanup_world_cursor;
+    struct ControlsOutput {
+        std::uint64_t generation;
+        control::v1::ControlMenuView view;
+        std::optional<std::uint64_t> token;
+    };
+    std::optional<ControlsOutput> queued_controls, controls_output, last_controls;
+    std::string controls_failure;
+    struct CaptureRetirement {
+        std::optional<std::uint64_t> token;
+        bool done=false;
+        std::string failure;
+    };
+    std::map<std::uint64_t,CaptureRetirement> capture_retirements;
     // Reverse destruction closes world scopes before broker root ownership.
     std::map<std::string, std::unique_ptr<World>> worlds;
     std::uint64_t sequence = 0;
@@ -129,12 +156,13 @@ struct SessionCoordinator::Impl {
         return *found->second;
     }
     World& find(const workspace::v1::ControlOwner& owner) const { live(); return find_owned(owner); }
-    void exchange_failed(World& world) {
+    void exchange_failed(World& world,bool deferred=false) {
         world.failed=true;world.invalidate_local_attestations();
+        if(deferred){world.fence_pending=true;return;}
         try {administrative(world.owner,-1,true);}
         catch(const std::exception& error){std::cerr<<"Failed world fence unresolved: "<<error.what()<<'\n';}
     }
-    std::uint64_t begin_world(World& world,const core::v1::Request& supplied,Clock::time_point deadline) {
+    std::uint64_t begin_world(World& world,const core::v1::Request& supplied,Clock::time_point deadline,bool deferred=false) {
         require(!world.failed && !world.stopped && world.management,"Session world is not available");
         require(!world.exchange,"World management exchange already in progress");
         validate_message(supplied);require(supplied.protocol_version()==1,"Unsupported world request version");
@@ -142,10 +170,10 @@ struct SessionCoordinator::Impl {
         auto request=supplied;request.set_request_id(++world.sequence);
         world.exchange=World::Exchange{request.request_id(),supplied.request_id(),deadline};
         try {world.supervisor->live();world.management->send(request.SerializeAsString());}
-        catch(...){exchange_failed(world);throw;}
+        catch(...){exchange_failed(world,deferred);throw;}
         return request.request_id();
     }
-    std::optional<core::v1::Reply> poll_world(World& world,std::uint64_t token) {
+    std::optional<core::v1::Reply> poll_world(World& world,std::uint64_t token,bool deferred=false) {
         require(world.exchange && world.exchange->token==token,"Stale world management operation");
         try {
             live();world.supervisor->live();
@@ -156,7 +184,7 @@ struct SessionCoordinator::Impl {
             core::v1::Reply reply;require(reply.ParseFromString(*bytes),"Malformed world reply");validate_message(reply);
             require(reply.protocol_version()==1 && reply.request_id()==token,"World reply correlation failed");
             reply.set_request_id(world.exchange->caller_id);world.exchange.reset();return reply;
-        }catch(...){exchange_failed(world);throw;}
+        }catch(...){exchange_failed(world,deferred);throw;}
     }
     World::LocalFrame& frame(World& world,const SessionCoordinator::LocalPresentationTicket& ticket) {
         require(world.local_frame && world.local_frame->ticket.serial==ticket.serial &&
@@ -284,6 +312,16 @@ render::v1::GeometryPresentationState SessionCoordinator::retire_geometry(const 
 }
 void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner& owner){
     auto& state=*impl_;auto& world=state.find_owned(owner);
+    require(world.stopped && world.record.stage()==v1::OWNED_SCOPES_STOPPED &&
+        world.record.has_process_stopped() && world.record.has_native_stopped(),
+        "Presentation recovery requires a stopped retained world");
+    try {state.drain_local_selection(world);}
+    catch(const WorldError& error) {
+        // A correlated denial consumed the stopped producer's selection.
+        // Exact supervisor and compositor retirement checks still follow.
+        std::cerr<<"Stopped-world selection denied before deferred cleanup: "<<error.what()<<'\n';
+    }
+    drain_deferred_native();
     state.retire_stopped_presentation(world);
 }
 core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const workspace::v1::ControlOwner& owner,
@@ -299,6 +337,7 @@ core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const work
     render::v1::LocalActorPresentationTarget target;
     *target.mutable_binding()=world.presentation;*target.mutable_identity()=identity;
     const auto key=identity.SerializeAsString();
+    require(!world.local_retirements.contains(key),"Local actor retirement remains pending");
     require(world.local_targets.contains(key) || world.local_targets.size()<256,"Too many retained local actor targets");
     // Attempted ownership and confirmed attestation have distinct lifetimes.
     auto& retained=world.local_targets.try_emplace(key,World::LocalTarget{target,false}).first->second;
@@ -339,6 +378,7 @@ SessionCoordinator::LocalPresentationTicket SessionCoordinator::begin_present_lo
     render::v1::LocalActorPresentationTarget target;
     *target.mutable_binding()=world.presentation;*target.mutable_identity()=identity;
     const auto key=identity.SerializeAsString();
+    require(!world.local_retirements.contains(key),"Local actor retirement remains pending");
     require(world.local_targets.contains(key) || world.local_targets.size()<256,"Too many retained local actor targets");
     auto& retained=world.local_targets.try_emplace(key,World::LocalTarget{target,false}).first->second;
     LocalPresentationTicket ticket{++state.local_operation_sequence,world.presentation.presentation_generation(),owner,identity};
@@ -377,9 +417,9 @@ std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_lo
                 *operation->mutable_identity()=frame.target.identity();
                 if(frame.stage==World::LocalFrame::Bind)operation->mutable_bind();
                 else {operation->mutable_present()->set_width(frame.width);operation->mutable_present()->set_height(frame.height);}
-                frame.world_token=state.begin_world(world,request,frame.deadline);
+                frame.world_token=state.begin_world(world,request,frame.deadline,true);
             }
-            auto reply=state.poll_world(world,*frame.world_token);if(!reply)return {};
+            auto reply=state.poll_world(world,*frame.world_token,true);if(!reply)return {};
             frame.world_token.reset();
             if(reply->has_error())throw ActorSessionRejected(reply->error());
             require(reply->has_actor_local_view(),"Local actor presentation receipt is missing");
@@ -396,7 +436,9 @@ std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_lo
         return {};
     }catch(...){
         if(world.local_frame)world.local_frame->cancelled=true;
-        world.invalidate_local_attestations();throw;
+        // Frame failure does not undo an already checked session binding.
+        // Transport failure invalidates it through exchange_failed().
+        throw;
     }
 }
 void SessionCoordinator::cancel_present_local_actor(const LocalPresentationTicket& ticket) {
@@ -412,6 +454,7 @@ void SessionCoordinator::cancel_present_local_actor(const LocalPresentationTicke
 void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity) {
     auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
+    require(!world.local_retirements.contains(identity.SerializeAsString()),"Local actor retirement already has a continuation owner");
     if(world.local_frame)cancel_present_local_actor(world.local_frame->ticket);
     const auto key=identity.SerializeAsString();const auto found=world.local_targets.find(key);
     if (found==world.local_targets.end()) return;
@@ -432,6 +475,228 @@ void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& o
         require(watch.view().SerializeAsString()!=key,"Local actor observation release remains pending");
     world.local_targets.erase(found);
 }
+void SessionCoordinator::defer_retire_local_actor(const workspace::v1::ControlOwner& owner,
+        const core::v1::ActorLocalViewIdentity& identity,LocalRetirementKind kind) {
+    auto& state=*impl_;auto& world=state.find_owned(owner);validate_local_view_identity(identity);
+    const auto key=identity.SerializeAsString();const auto target=world.local_targets.find(key);
+    if(target==world.local_targets.end())return;
+    const bool context=kind==LocalRetirementKind::context;
+    if(context)target->second.attested=false;
+    if(world.local_frame && world.local_frame->ticket.identity.SerializeAsString()==key)
+        world.local_frame->cancelled=true;
+    if(auto existing=world.local_retirements.find(key);existing!=world.local_retirements.end()) {
+        if(context && !existing->second.releases_binding) {
+            existing->second.releases_binding=true;
+            std::cerr<<"Local actor retirement queued serial="<<existing->second.serial<<" upgraded=1\n";
+        }
+        return; // A presentation request can never downgrade context cleanup.
+    }
+    require(state.local_operation_sequence!=UINT64_MAX,"Local cleanup sequence exhausted");
+    World::LocalRetirement retirement;retirement.target=target->second.target;
+    retirement.serial=++state.local_operation_sequence;retirement.releases_binding=context;
+    world.local_retirements.emplace(key,std::move(retirement));
+    std::cerr<<(context?"Local actor retirement queued serial=":"Local presentation retirement queued serial=")
+        <<state.local_operation_sequence<<'\n';
+}
+SessionCoordinator::LocalRetirementProgress SessionCoordinator::local_retirement_progress(
+        const workspace::v1::ControlOwner& owner,const core::v1::ActorLocalViewIdentity& identity) const {
+    validate_local_view_identity(identity);
+    const auto& world=impl_->find_owned(owner);const auto key=identity.SerializeAsString();
+    LocalRetirementProgress result;
+    if(auto target=world.local_targets.find(key);target!=world.local_targets.end())result.attested=target->second.attested;
+    if(auto pending=world.local_retirements.find(key);pending!=world.local_retirements.end()) {
+        result.pending=true;result.serial=pending->second.serial;result.releases_binding=pending->second.releases_binding;
+        result.stage=static_cast<unsigned>(pending->second.stage)+1;
+        result.native_retired=pending->second.stage>=World::LocalRetirement::WorldDrain;
+    }
+    return result;
+}
+bool SessionCoordinator::local_retirement_pending(const workspace::v1::ControlOwner& owner,
+        const core::v1::ActorLocalViewIdentity& identity) const {
+    const auto& world=impl_->find_owned(owner);
+    return world.local_retirements.contains(identity.SerializeAsString());
+}
+void SessionCoordinator::defer_present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view) {
+    auto& state=*impl_;state.owned();validate_message(view);
+    require(generation>0 && state.presentation,"Missing retained controls presentation");
+    const auto same=[&](const auto& item){return item && item->generation==generation &&
+        item->view.SerializeAsString()==view.SerializeAsString();};
+    if(same(state.last_controls) && !state.controls_output && !state.queued_controls)return;
+    if(same(state.queued_controls) || (same(state.controls_output) && !state.queued_controls))return;
+    state.queued_controls=Impl::ControlsOutput{generation,view,{}};
+}
+bool SessionCoordinator::stop_capture_progress(std::uint64_t generation) {
+    auto& state=*impl_;state.owned();require(generation>0 && state.presentation,"Missing capture retirement owner");
+    auto& pending=state.capture_retirements.try_emplace(generation).first->second;
+    if(!pending.failure.empty())throw std::runtime_error(pending.failure);
+    if(!pending.done)return false;
+    state.capture_retirements.erase(generation);return true;
+}
+bool SessionCoordinator::deferred_cleanup_pending() const {
+    auto& state=*impl_;state.owned();
+    if(state.queued_controls || state.controls_output || !state.capture_retirements.empty())return true;
+    for(const auto& [key,world]:state.worlds){(void)key;
+        if(!world->local_retirements.empty() || world->fence_pending || world->fence_token)return true;}
+    return false;
+}
+bool SessionCoordinator::pump_deferred_cleanup(unsigned maximum_steps) {
+    auto& state=*impl_;state.owned();require(maximum_steps>=1 && maximum_steps<=16,"Invalid cleanup poll budget");
+    // Complete our existing compositor exchanges before another owner can send.
+    if(state.controls_output && state.controls_failure.empty())try {
+        if(state.presentation->poll_present_controls(*state.controls_output->token)) {
+            state.last_controls=std::move(state.controls_output);state.controls_output.reset();
+        }
+    }catch(const std::exception& error){state.controls_failure=error.what();
+        std::cerr<<"Deferred controls output remains unconfirmed: "<<error.what()<<'\n';}
+    for(auto& [generation,capture]:state.capture_retirements){(void)generation;
+        if(capture.token && !capture.done && capture.failure.empty())try {
+            if(state.presentation->poll_stop_capture(*capture.token)){capture.token.reset();capture.done=true;}
+        }catch(const std::exception& error){capture.failure=error.what();
+            std::cerr<<"Deferred capture retirement remains unconfirmed: "<<error.what()<<'\n';}
+    }
+    // Round-robin worlds and targets. A paused producer cannot starve another owner.
+    for(unsigned step=0;step<maximum_steps && !state.worlds.empty();++step) {
+        auto selected=state.worlds.upper_bound(state.cleanup_world_cursor);
+        if(selected==state.worlds.end())selected=state.worlds.begin();
+        state.cleanup_world_cursor=selected->first;auto& world=*selected->second;
+        if((world.fence_pending || world.fence_token) && world.fence_failure.empty())try {
+            auto& admin=state.broker.administrative();
+            if(!world.fence_token && !admin.pending()) {
+                require(state.sequence!=UINT64_MAX,"Session administrative sequence exhausted");
+                workspace::v1::ControlSupervisorRequest request;request.set_protocol_version(1);
+                request.set_request_id(++state.sequence);*request.mutable_fence()=world.owner;
+                world.fence_token=admin.begin(request);
+            }
+            if(world.fence_token)if(auto reply=admin.poll(*world.fence_token)) {
+                require(reply->has_state(),"Deferred world fence was not confirmed");
+                world.fence_token.reset();world.fence_pending=false;
+            }
+        }catch(const std::exception& error){world.fence_failure=error.what();
+            std::cerr<<"Deferred world fence remains unconfirmed: "<<error.what()<<'\n';}
+        if(world.local_retirements.empty())continue;
+        auto found=world.local_retirements.upper_bound(world.retirement_cursor);
+        if(found==world.local_retirements.end())found=world.local_retirements.begin();
+        const auto key=found->first;world.retirement_cursor=key;auto& retirement=found->second;
+        if(!retirement.failure.empty())continue;
+        const auto frame_matches=[&]{return world.local_frame &&
+            world.local_frame->ticket.identity.SerializeAsString()==key;};
+        try {
+            require(bool(state.presentation),"Deferred retirement lost its compositor owner");
+            switch(retirement.stage) {
+            case World::LocalRetirement::Selection:
+                if(frame_matches() && world.local_frame->selection_token) {
+                    try {
+                        if(!state.presentation->poll_select_local_actor(*world.local_frame->selection_token))break;
+                    }catch(const WorldError& error){
+                        // A correlated denial consumed the selection response.
+                        std::cerr<<"Cancelled local selection denied: "<<error.what()<<'\n';
+                    }
+                    world.local_frame->selection_token.reset();
+                }
+                retirement.stage=World::LocalRetirement::Native;break;
+            case World::LocalRetirement::Native:
+                if(!retirement.native_token) {
+                    if(state.presentation->pending())break;
+                    retirement.native_token=state.presentation->begin_retire_local_actor(retirement.target);
+                }
+                if(!state.presentation->poll_retire_local_actor(*retirement.native_token))break;
+                retirement.native_token.reset();retirement.stage=World::LocalRetirement::WorldDrain;
+                std::cerr<<"Local actor retirement native-cleared serial="<<retirement.serial<<'\n';break;
+            case World::LocalRetirement::WorldDrain:
+                if(world.stopped)break; // Checked recovery owns stopped-producer cleanup.
+                if(frame_matches() && world.local_frame->world_token) {
+                    if(!state.poll_world(world,*world.local_frame->world_token,true))break;
+                    world.local_frame->world_token.reset();
+                }
+                if(world.exchange)break; // Another exact owner must consume its response.
+                if(frame_matches())world.local_frame.reset();
+                if(!retirement.releases_binding) {
+                    // Keep binding and any world/broker watch under this target.
+                    // The next Present still performs fresh authorization.
+                    std::cerr<<"Local presentation retirement complete serial="<<retirement.serial<<'\n';
+                    world.local_retirements.erase(found);break;
+                }
+                retirement.stage=World::LocalRetirement::Release;break;
+            case World::LocalRetirement::Release: {
+                if(world.stopped)break;
+                if(!retirement.release_token) {
+                    if(world.exchange)break;
+                    core::v1::Request request;request.set_protocol_version(1);
+                    auto* operation=request.mutable_actor_local_view();operation->set_protocol_version(1);
+                    *operation->mutable_identity()=retirement.target.identity();operation->mutable_release();
+                    retirement.release_token=state.begin_world(world,request,Clock::now()+std::chrono::seconds(10),true);
+                }
+                const auto reply=state.poll_world(world,*retirement.release_token,true);if(!reply)break;
+                retirement.release_token.reset();
+                if(reply->has_error())require(reply->error().code()==core::v1::FORBIDDEN ||
+                    reply->error().code()==core::v1::UNAUTHORIZED,"Local actor release was not confirmed");
+                else require(reply->has_actor_local_view() && !reply->actor_local_view().bound() &&
+                    reply->actor_local_view().identity().SerializeAsString()==key,"Local actor release receipt mismatch");
+                retirement.stage=World::LocalRetirement::Inspect;break;
+            }
+            case World::LocalRetirement::Inspect: {
+                auto& admin=state.broker.administrative();
+                if(!retirement.inspect_token) {
+                    if(admin.pending())break;
+                    require(state.sequence!=UINT64_MAX,"Session administrative sequence exhausted");
+                    workspace::v1::ControlSupervisorRequest request;request.set_protocol_version(1);
+                    request.set_request_id(++state.sequence);*request.mutable_inspect()=world.owner;
+                    retirement.inspect_token=admin.begin(request);
+                }
+                const auto reply=admin.poll(*retirement.inspect_token);if(!reply)break;
+                retirement.inspect_token.reset();require(reply->has_state(),"Local retirement inspection was not confirmed");
+                for(const auto& watch:reply->state().observation_watches())
+                    require(watch.view().SerializeAsString()!=key,"Local actor observation release remains pending");
+                std::cerr<<"Local actor retirement complete serial="<<retirement.serial<<'\n';
+                world.local_targets.erase(key);world.local_retirements.erase(found);break;
+            }
+            }
+        }catch(const std::exception& error){retirement.failure=error.what();
+            std::cerr<<"Local actor retirement remains unconfirmed serial="<<retirement.serial<<": "<<error.what()<<'\n';}
+    }
+    if(state.presentation && !state.presentation->pending()) {
+        if(state.queued_controls && state.controls_failure.empty())try {
+            auto output=*state.queued_controls;
+            output.token=state.presentation->begin_present_controls(output.generation,output.view);
+            state.controls_output=std::move(output);state.queued_controls.reset();
+        }catch(const std::exception& error){state.controls_failure=error.what();
+            std::cerr<<"Deferred controls output remains unconfirmed: "<<error.what()<<'\n';}
+        else for(auto& [generation,capture]:state.capture_retirements) {
+            if(capture.done || capture.token || !capture.failure.empty())continue;
+            try {capture.token=state.presentation->begin_stop_capture(generation);}
+            catch(const std::exception& error){capture.failure=error.what();
+                std::cerr<<"Deferred capture retirement remains unconfirmed: "<<error.what()<<'\n';}
+            break;
+        }
+    }
+    return deferred_cleanup_pending();
+}
+void SessionCoordinator::drain_deferred_native() {
+    auto& state=*impl_;const auto deadline=Clock::now()+std::chrono::seconds(10);
+    auto pending=[&]{
+        if(state.presentation->pending() || state.controls_output || state.queued_controls)return true;
+        for(const auto& [generation,capture]:state.capture_retirements){(void)generation;if(!capture.done)return true;}
+        return false;
+    };
+    while(pending()) {
+        require(Clock::now()<deadline,"Deferred native cleanup deadline exceeded");
+        require(state.controls_failure.empty(),"Deferred controls output remains unconfirmed");
+        for(const auto& [world_key,world]:state.worlds){(void)world_key;
+            for(const auto& [view,retirement]:world->local_retirements){(void)view;
+                require(retirement.failure.empty() || !retirement.native_token,
+                    "Deferred local retirement remains unconfirmed");}}
+        for(const auto& [generation,capture]:state.capture_retirements){(void)generation;
+            require(capture.failure.empty(),"Deferred capture retirement remains unconfirmed");}
+        pump_deferred_cleanup();::poll(nullptr,0,2);
+    }
+}
+void SessionCoordinator::drain_deferred_administration() {
+    auto& state=*impl_;const auto deadline=Clock::now()+std::chrono::seconds(5);
+    while(state.broker.administrative().pending()) {
+        require(Clock::now()<deadline,"Deferred administrative cleanup remains unconfirmed");
+        pump_deferred_cleanup();::poll(nullptr,0,2);
+    }
+}
 void SessionCoordinator::clear_presentation(){
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     state.presentation->clear_selection();
@@ -443,7 +708,9 @@ core::v1::PixelExtent SessionCoordinator::native_viewport() const {
 void SessionCoordinator::present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     for(auto& [key,world]:state.worlds){(void)key;state.drain_local_selection(*world);}
+    drain_deferred_native();
     state.presentation->present_controls(generation,view);
+    state.last_controls=Impl::ControlsOutput{generation,view,{}};
 }
 void SessionCoordinator::stop_presentation(){
     auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");
@@ -454,6 +721,7 @@ void SessionCoordinator::stop_presentation(){
         const auto target=state.geometry_targets.begin()->second;
         state.presentation->retire_geometry(target);state.geometry_targets.erase(state.geometry_targets.begin());
     }
+    drain_deferred_native();
     state.presentation->shutdown();state.presentation.reset();
 }
 void SessionCoordinator::start_capture(std::uint64_t generation,const control::v1::NativeCaptureConfig& config,int endpoint){
@@ -625,7 +893,7 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
     require(!world.stopped, "Session world already stopped");
     world.invalidate_local_attestations();
     // Stop its input path before native/process cleanup. Reservations remain pending separate selective recovery.
-    try { state.administrative(owner, -1, true); }
+    try { drain_deferred_administration();state.administrative(owner, -1, true); }
     catch (const std::exception& error) {
         std::cerr << "World broker fence unconfirmed; stopping owned scopes: " << error.what() << '\n';
     }
@@ -640,10 +908,15 @@ workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspa
     // Stopped state requires SessionLaunch to validate both owned cleanup receipts.
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
         "Control recovery requires checked world cleanup");
+    drain_deferred_administration();
     const auto recovered = state.administrative(owner, -1, false, &world.record);
     // Broker release can precede a persistence error. Exact retry uses its retained receipt.
     AuthorityLaunch journal(world.journal_directory);
     world.dependent = journal.record_control_recovery(world.record, state.broker.launch(), recovered);
+    if(world.presentation_retired) {
+        world.local_retirements.clear();world.local_targets.clear();
+        world.fence_pending=false;world.fence_token.reset();
+    }
     return recovered;
 }
 identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const workspace::v1::ControlOwner& owner) {

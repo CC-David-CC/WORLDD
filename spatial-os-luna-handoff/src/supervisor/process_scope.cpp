@@ -870,8 +870,9 @@ void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
     // its private diagnostic directory, and only in test builds.
     char path[] = "PATH=/usr/bin:/bin", lang[] = "LANG=C.UTF-8";
     std::string diagnostic_environment;
-    char* environment[]{path, lang, nullptr, nullptr};
+    char* environment[]{path, lang, nullptr, nullptr, nullptr};
 #ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+    unsigned environment_count=2;
     const bool direct_broker = std::filesystem::path(exe).filename() == "workspaced";
     const bool broker_test_bootstrap = exe == "/usr/bin/python3" &&
         request.arguments_size() == 2 && request.arguments(0) == "-c" &&
@@ -886,11 +887,13 @@ void ProcessScope::start(const v1::AuthorityProcessLaunch& request,
                 S_ISDIR(evidence_stat.st_mode) && evidence_stat.st_uid == geteuid() &&
                 !(evidence_stat.st_mode & 0077)) {
                 diagnostic_environment = std::string("SPATIAL_SECURITY_EVIDENCE=") + evidence;
-                environment[2] = diagnostic_environment.data();
-                environment[3] = nullptr;
+                environment[environment_count++] = diagnostic_environment.data();
             }
         }
     }
+    char stop_diagnostic_environment[]="SPATIAL_TRACE_STOP=1";
+    if(const auto* flag=std::getenv("SPATIAL_TRACE_STOP");flag && std::strcmp(flag,"1")==0)
+        environment[environment_count++] = stop_diagnostic_environment;
 #else
     (void)allow_test_security_evidence;
 #endif

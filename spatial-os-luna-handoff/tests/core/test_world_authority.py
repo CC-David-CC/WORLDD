@@ -1,6 +1,8 @@
 """Persistent policy controls the production world actor engine."""
 import os
 import sqlite3
+import json
+from pathlib import Path
 import socket
 import ssl
 import struct
@@ -8,6 +10,7 @@ import subprocess
 import threading
 import time
 import unittest
+import concurrent.futures
 from unittest.mock import patch
 from google.protobuf import text_format
 import core_pb2 as core
@@ -30,11 +33,16 @@ def m07_presentation_rights():
 
 class RelayingIssuer:
     """Forward real issuer requests. Delay one status request across real revocation."""
-    def __init__(self, fixture, revoke, wait_for_revocation_event=True):
+    def __init__(self, fixture, revoke, wait_for_revocation_event=True,
+                 delayed_credential_actor_id=None, credential_delay_seconds=0):
         self.fixture = fixture; self.revoke = revoke; self.wait_for_revocation_event = wait_for_revocation_event
         self.armed = threading.Event(); self.triggered = threading.Event()
         self.delivered = threading.Event(); self.stop = threading.Event(); self.errors = []
         self.status_lock = threading.Lock(); self.status_seen = 0; self.trigger_after_status = 1
+        self.delayed_credential_actor_id = delayed_credential_actor_id
+        self.credential_delay_seconds = credential_delay_seconds
+        self.credential_delay_armed = threading.Event(); self.credential_delay_entered = threading.Event()
+        self.credential_delay_finished = threading.Event(); self.credential_delay_records = []
         self.streams = []; self.workers = []; self.before_reply = None
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.minimum_version = ssl.TLSVersion.TLSv1_3
@@ -81,6 +89,18 @@ class RelayingIssuer:
                             # Keep the issuer call pending while worldd consumes the watcher event.
                             time.sleep(.08)
                 reply = upstream.request(request); reply.request_id = sequence
+                delay_credential = False
+                if self.delayed_credential_actor_id and request.HasField('credential_check'):
+                    claims = issuer.ActorCredential.FromString(request.credential_check.content.payload)
+                    if claims.actor_id == self.delayed_credential_actor_id:
+                        with self.status_lock:
+                            if self.credential_delay_armed.is_set():
+                                self.credential_delay_armed.clear(); delay_credential = True
+                if delay_credential:
+                    started = time.monotonic(); self.credential_delay_entered.set()
+                    time.sleep(self.credential_delay_seconds)
+                    self.credential_delay_records.append(dict(elapsed_seconds=time.monotonic()-started))
+                    self.credential_delay_finished.set()
                 if self.before_reply: self.before_reply(request, reply)
                 stream.sendall(frame(reply))
                 if reply.HasField('revocations') and reply.revocations.events: self.delivered.set()
@@ -121,7 +141,9 @@ class WorldAuthorityTests(WorldIdentityFixture):
     def authenticate_second(self, peer):
         return self.authenticate(peer, self.second_record, self.second_key, self.second_public)
 
-    def scoped_world(self, admission=session.EXPLICIT_ACTORS, native=False, roots=None, issuer_port=None, authenticate=True, broker=None, peer_count=2, input_witness_fd=None, presentation_factory=None):
+    def scoped_world(self, admission=session.EXPLICIT_ACTORS, native=False, roots=None, issuer_port=None,
+                     authenticate=True, broker=None, peer_count=2, input_witness_fd=None,
+                     presentation_factory=None, input_timeout=10):
         number = len(self.worlds); state = self.root/f'scoped-world-{number}'
         initial = self.world(state=state)
         self.world_info = initial.management('world.info'); initial.close()
@@ -136,7 +158,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
         self.configure_world_participant(config,state)
         config_path = self.root/f'scoped-{number}.textproto'; config_path.write_text(text_format.MessageToString(config)); config_path.chmod(0o600)
         runtime = core.RuntimeConfig(); text_format.Parse((WORLD.parent/'runtime.textproto').read_text(), runtime)
-        runtime.input_timeout = 10
+        runtime.input_timeout = input_timeout
         runtime_path = self.root/f'runtime-{number}.textproto'; runtime_path.write_text(text_format.MessageToString(runtime))
         presentation = presentation_factory(state,self.world_info) if presentation_factory else None
         private_channels = {}
@@ -263,6 +285,62 @@ class WorldAuthorityTests(WorldIdentityFixture):
         self.assertEqual(before, after)
         self.denied(self.navigation(second), core.FORBIDDEN)
         self.assertTrue(second.act(stop=core.ActorStopRequest()).HasField('action'))
+
+    def test_navigation_revocation_stops_motion_during_other_actor_authentication(self):
+        self.enroll_second()
+        third_key, third_public = self.key('third-slow-auth')
+        third_record = self.decide(self.owner_peer, self.enroll(self.owner_peer,
+            self.intent(public=third_public, label='M10 delayed-authentication actor'),
+            third_key, third_public)).enrollment
+        third = self.claims(third_record, self.info)
+        relay = RelayingIssuer(self, lambda: None, delayed_credential_actor_id=third.actor_id,
+            credential_delay_seconds=1)
+        world = self.scoped_world(session.REGISTERED_ACTORS, issuer_port=relay.port,
+            peer_count=3, input_timeout=.25)
+        child = self.grant_to_second(world, [grant.WORLD_NAVIGATE])
+        owner, moving, authenticating = world.peers
+        opened = self.authenticate_second(moving).opened
+        actor_id = opened.actor_id
+        before_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+        self.assertTrue(self.navigation(moving).action.accepted)
+        relay.credential_delay_armed.set()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            authentication = pool.submit(self.authenticate, authenticating, third_record, third_key, third_public)
+            self.assertTrue(relay.credential_delay_entered.wait(3), 'Third actor did not enter the delayed credential check')
+            started = time.monotonic()
+            refreshes = []
+            request = core.ActorInputRequest(axes=[1, 0, 0, 0, 0, 0])
+            while time.monotonic() - started < .4:
+                moving.motion_refresh(request)
+                refreshes.append(time.monotonic())
+                time.sleep(.08)
+            moving_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+            self.assertGreater(moving_pose-before_pose, .08, 'Actor did not move during unrelated authentication')
+            self.assertFalse(relay.credential_delay_finished.is_set(), 'Authentication delay ended before grant revocation')
+            revoked = self.revoke_grant(owner, child)
+            self.assertTrue(revoked.HasField('grant'), revoked)
+            self.denied(self.navigation(moving), core.FORBIDDEN)
+            stopped_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+            time.sleep(.12)
+            final_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+            gaps = [later-earlier for earlier, later in zip(refreshes, refreshes[1:])]
+            still_pending = not relay.credential_delay_finished.is_set()
+            self.assertTrue(still_pending, 'Authentication delay ended before revocation stopped movement')
+            self.assertTrue(all(gap < .25 for gap in gaps), gaps)
+            self.assertEqual(stopped_pose, final_pose, 'Revoked actor continued moving')
+            self.assertTrue(relay.credential_delay_finished.wait(3), 'Unrelated actor authentication did not recover')
+            authenticated = authentication.result(timeout=3)
+        self.assertTrue(authenticated.HasField('opened'), authenticated)
+        evidence = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if evidence:
+            target = Path(evidence); target.mkdir(parents=True, exist_ok=True)
+            (target/(self._testMethodName+'-progress.json')).write_text(json.dumps({
+                'input_expiry_seconds': .25, 'refresh_count': len(refreshes),
+                'maximum_refresh_gap_seconds': max(gaps), 'movement_during_authentication': moving_pose-before_pose,
+                'revoked_grant_id': child.id, 'motion_stopped': stopped_pose == final_pose,
+                'other_actor_authentication_pending_at_revocation': still_pending,
+                'unrelated_actor_authenticated': authenticated.opened.actor_id}, sort_keys=True, indent=2)+'\n')
+        world.close(); self.assertEqual(world.proc.returncode, 0)
 
     def test_private_admission_revocation_closes_only_affected_session(self):
         self.enroll_second(); world = self.scoped_world(); child = self.grant_to_second(world, [grant.WORLD_ENTER, grant.WORLD_NAVIGATE])

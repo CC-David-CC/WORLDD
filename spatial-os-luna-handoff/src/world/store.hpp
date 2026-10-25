@@ -45,6 +45,10 @@ public:
     wire::WorldSnapshotReply snapshot();
     wire::WorldInfoReply info();
     wire::Entity create_actor(const wire::Entity& entity);
+    wire::Entity create_application_slot(const wire::Entity& entity, std::uint64_t expected_world_revision,
+        const std::string& operation_id, const std::string& request_digest, const std::string& principal);
+    std::optional<wire::Entity> application_slot_operation(const wire::Entity& request,
+        const std::string& operation_id, const std::string& request_digest, const std::string& principal);
     std::vector<wire::Entity> actors();
     std::vector<wire::Entity> checkpoint_actors(const std::vector<wire::Entity>& entities);
     void workspace_available(const std::string& id, bool available);

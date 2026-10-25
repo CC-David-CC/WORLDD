@@ -1,0 +1,20 @@
+--- a/fb/fbbits.h
++++ b/fb/fbbits.h
+@@ -716,7 +716,7 @@
+                 }
+                 e = -len;
+                 e1 <<= 1;
+-                e3 = e << 1;
++                e3 = e * 2;
+                 FIXUP_ERROR(e, octant, bias);
+                 if (and == 0) {
+                     while (len--) {
+@@ -875,7 +875,7 @@
+                 }
+                 e = -len;
+                 e1 <<= 1;
+-                e3 = e << 1;
++                e3 = e * 2;
+                 FIXUP_ERROR(e, octant, bias);
+                 if (!capNotLast)
+                     len++;

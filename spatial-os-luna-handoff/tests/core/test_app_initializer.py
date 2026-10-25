@@ -42,6 +42,8 @@ try:
  for index in range(32):case('lifecycle-'+str(index),pb.AppStart(protocol_version=1,argv=['/usr/bin/true']),exit_code=0)
  for name,request in [('version',pb.AppStart(protocol_version=2,argv=['/usr/bin/true'])),('missing-argv',pb.AppStart(protocol_version=1)),('too-many-argv',pb.AppStart(protocol_version=1,argv=['/usr/bin/true']+['x']*256)),('nul-argv',pb.AppStart(protocol_version=1,argv=['/usr/bin/true','x\0y'])),('exec-failure',pb.AppStart(protocol_version=1,argv=['/nonexistent-spatial-test-executable']))]:
   case(name,request,expected=2)
+ exec_failure=events((root/'exec-failure/reply.pb').read_bytes())
+ assert exec_failure[0].error=='Application exec failed: No such file or directory',exec_failure
  case('malformed',payload=b'\xff',expected=2)
  case('unknown-field',payload=valid.SerializeToString()+b'\xf8\x07\x01',expected=2)
  case('truncated-prefix',payload=b'x',raw=b'\x00\x00',expected=2)

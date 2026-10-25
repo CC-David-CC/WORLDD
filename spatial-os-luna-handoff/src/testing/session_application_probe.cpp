@@ -79,6 +79,13 @@ int main(int argc, char** argv) {
             value->set_stage(state.stage==Stage::bind?Output::BIND:state.stage==Stage::select?Output::SELECT:Output::PRESENT);
             value->set_submitted(state.submitted);value->set_cancelled(state.cancelled);
         };
+        const auto cleanup_progress=[&](const auto& identity,auto& reply) {
+            const auto state=coordinator.local_retirement_progress(owner,identity);
+            auto* value=reply.mutable_local_cleanup();value->set_pending(state.pending);
+            value->set_attested(state.attested);value->set_native_retired(state.native_retired);
+            value->set_releases_binding(state.releases_binding);value->set_serial(state.serial);
+            value->set_stage(static_cast<spatial::testing::v1::LocalForegroundCleanup::Stage>(state.stage));
+        };
         std::string bytes;
         while (spatial::read_frame(std::cin, bytes)) {
             spatial::testing::v1::SessionProbeRequest request;
@@ -106,6 +113,17 @@ int main(int argc, char** argv) {
                     else progress(ticket,reply);
                 }else if (request.has_local_cancel()) {
                     coordinator.cancel_present_local_actor(local_tickets.at(request.local_cancel()));reply.set_local_cancelled(true);
+                }
+                else if(request.has_local_defer_retire()) {
+                    const auto& value=request.local_defer_retire();
+                    using Kind=spatial::supervisor::SessionCoordinator::LocalRetirementKind;
+                    coordinator.defer_retire_local_actor(owner,value.identity(),
+                        value.presentation_only()?Kind::presentation:Kind::context);
+                    cleanup_progress(value.identity(),reply);
+                }else if(request.has_local_cleanup_poll()) {
+                    const auto& value=request.local_cleanup_poll();
+                    coordinator.pump_deferred_cleanup(value.maximum_steps());
+                    cleanup_progress(value.identity(),reply);
                 }
                 else if (request.has_owned_world())
                     *reply.mutable_result() = coordinator.world_call(request.owned_world().owner(), request.owned_world().request());

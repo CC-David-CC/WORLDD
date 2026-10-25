@@ -3,6 +3,8 @@
 #include "world/store.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <set>
+#include <vector>
 namespace spatial {
 XInputRouter::XInputRouter(Display* display, NativeInput& input, XSurfaces& surfaces)
     : display_(display), input_(input), surfaces_(surfaces) {}
@@ -66,7 +68,8 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
     if (cancel && found == seats_.end()) {
         wire::NativeActorInput result; result.set_actor_id(command.actor_id()); return result;
     }
-    if (!cancel && !command.has_pointer() && !command.has_key() && !command.has_scroll() && !command.has_motion())
+    if (!cancel && !command.has_pointer() && !command.has_key() && !command.has_key_tap_batch() &&
+        !command.has_scroll() && !command.has_motion())
         throw std::invalid_argument("Missing renderer input operation");
     std::optional<wire::NativeSurface> target;
     if (command.has_pointer() || command.has_scroll() || command.has_motion()) {
@@ -82,6 +85,7 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
         command.scroll().steps_y() < -64 || command.scroll().steps_y() > 64))
         throw std::invalid_argument("Scroll exceeds action limit");
     unsigned keycode = 0;
+    std::vector<std::vector<unsigned>> key_taps;
     if (command.has_key()) {
         const auto& key = command.key();
         if (!key.has_pressed() || !key.has_keysym() || key.keysym().empty() || key.keysym().size() > 128 ||
@@ -89,10 +93,37 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
         const auto symbol = XStringToKeysym(key.keysym().c_str());
         keycode = symbol == NoSymbol ? 0 : XKeysymToKeycode(display_, symbol);
         if (!keycode) throw std::invalid_argument("Keysym is absent from the server keymap");
-        if (found == seats_.end() || !surfaces_.native(found->second.focus))
-            throw WorldError(wire::NO_FOCUS, "Actor has no current native focus");
+        if (found == seats_.end() || !surfaces_.native(found->second.focus) || !command.has_target() ||
+            command.target().id() != found->second.focus.id() ||
+            command.target().generation() != found->second.focus.generation())
+            throw WorldError(wire::NO_FOCUS, "Actor keyboard target is not its current native focus");
         if (!key.pressed() && (!found->second.keys.contains(keycode) || found->second.keys.at(keycode) != key.keysym()))
             throw std::invalid_argument("Key release does not match held keysym");
+    }
+    if (command.has_key_tap_batch()) {
+        const auto& batch=command.key_tap_batch();
+        if(batch.chords_size()<1 || batch.chords_size()>32 || found==seats_.end() ||
+           !surfaces_.native(found->second.focus) || !command.has_target() ||
+           command.target().id()!=found->second.focus.id() ||
+           command.target().generation()!=found->second.focus.generation())
+            throw std::invalid_argument("Invalid key tap batch or actor focus");
+        key_taps.reserve(static_cast<std::size_t>(batch.chords_size()));
+        for(const auto& chord:batch.chords()) {
+            if(chord.keysyms_size()<1 || chord.keysyms_size()>8)
+                throw std::invalid_argument("Invalid key tap chord");
+            std::vector<unsigned> codes;
+            std::set<unsigned> unique;
+            for(const auto& keysym:chord.keysyms()) {
+                if(keysym.empty() || keysym.size()>64 || keysym.find('\0')!=std::string::npos)
+                    throw std::invalid_argument("Invalid key tap keysym");
+                const auto symbol=XStringToKeysym(keysym.c_str());
+                const auto code=symbol==NoSymbol?0:XKeysymToKeycode(display_,symbol);
+                if(!code || found->second.keys.contains(code) || !unique.insert(code).second)
+                    throw std::invalid_argument("Key tap collides with held or unmapped key");
+                codes.push_back(code);
+            }
+            key_taps.push_back(std::move(codes));
+        }
     }
     if (command.has_motion() && found == seats_.end())
         throw WorldError(wire::NO_FOCUS, "Actor has no native capture");
@@ -104,6 +135,7 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
         Seat seat; seat.id = reply.seat(); found = seats_.emplace(command.actor_id(), std::move(seat)).first;
     }
     auto& seat = found->second;
+    bool tap_started=false;
     try {
         native_input::Request request;
         if (cancel) {
@@ -120,6 +152,19 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
             const auto reply = checked(request);
             if (key->pressed()) seat.keys[keycode] = command.key().keysym();
             return state(command.actor_id(), seat, reply);
+        }
+        if (command.has_key_tap_batch()) {
+            native_input::Request request; auto* batch=request.mutable_key_tap_batch();
+            batch->set_seat(seat.id);
+            for(const auto& chord:key_taps) {
+                auto* wire_chord=batch->add_chords();
+                for(const auto code:chord)wire_chord->add_keycodes(code);
+            }
+            tap_started=true;
+            auto reply=checked(request);
+            auto result=state(command.actor_id(),seat,reply);
+            tap_started=false;
+            return result;
         }
         if (command.has_motion()) {
             auto* motion = request.mutable_motion(); motion->set_seat(seat.id);
@@ -155,6 +200,15 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
             // A failed first action must not orphan the newly allocated devices.
             native_input::Request close; close.mutable_close()->set_id(seat.id);
             checked(close); seats_.erase(found);
+        } else if (tap_started && found!=seats_.end()) {
+            try {
+                native_input::Request cancel_request; cancel_request.mutable_cancel()->set_id(seat.id);
+                auto reply=checked(cancel_request); seat.focus.Clear(); seat.keys.clear();
+                (void)state(command.actor_id(),seat,reply);
+            } catch (...) {
+                try { native_input::Request close; close.mutable_close()->set_id(seat.id); checked(close); } catch (...) {}
+                seats_.erase(found);
+            }
         }
         throw;
     }

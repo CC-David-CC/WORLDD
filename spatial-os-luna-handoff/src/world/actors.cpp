@@ -1,4 +1,5 @@
 #include "world/actors.hpp"
+#include "core/stop_trace.hpp"
 #include "world/local_view_validation.hpp"
 #include "world/geometry_view_validation.hpp"
 #include "world/workspace_presentations.hpp"
@@ -199,6 +200,26 @@ void Actors::consume_sequence(const std::string& token, std::uint64_t sequence) 
     if (sequence <= actor.sequence) throw WorldError(wire::STALE_SEQUENCE, "Actor sequence already consumed");
     actor.sequence = sequence;
 }
+void Actors::apply_motion(Actor& actor, const wire::ActorInputRequest& input) {
+    if (!granted(actor, "navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
+    require(input.axes_size() == 6, "Expected six motion axes");
+    require(input.translation_frame() == wire::BODY_TRANSLATION ||
+            input.translation_frame() == wire::LEVEL_TRANSLATION, "Unknown translation frame");
+    std::array<double, 6> axes{};
+    for (std::size_t i = 0; i < axes.size(); ++i) {
+        const double value = input.axes(static_cast<int>(i));
+        require(std::isfinite(value) && std::abs(value) <= 1, "Axis must be finite and within [-1,1]");
+        axes[i] = std::abs(value) <= config_.deadzone() ? 0 :
+            std::copysign((std::abs(value) - config_.deadzone()) / (1 - config_.deadzone()), value);
+    }
+    actor.axes = axes; actor.translation_frame = input.translation_frame();
+    actor.expires = now_ + config_.input_timeout();
+}
+void Actors::refresh_motion(const std::string& token, const wire::ActorInputRequest& input) {
+    auto& actor = authenticated(token);
+    if (actor.pending_stop) throw WorldError(wire::IN_USE, "Actor cancellation remains pending");
+    apply_motion(actor, input);
+}
 void Actors::refresh_authority() {
     refresh_objects();
     for (auto& [key, foreground] : foregrounds_) {
@@ -218,7 +239,7 @@ void Actors::refresh_authority() {
         const bool application_input = actor.application_input || actor.application_control.has_value();
         const bool control_lost = application_input ?
             (!granted(actor, "observe") || !broker_ || !actor.application_control ||
-             !broker_->control_active(*actor.application_control)) : !granted(actor, "interact");
+             !broker_->control_active(*actor.application_control) || !held_application_slot_authorized(actor)) : !granted(actor, "interact");
         if (control_lost) {
             actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
         }
@@ -249,7 +270,8 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
         require(grants.insert(grant).second, "Duplicate actor grant");
     }
     auto found = actors_.find(request.id());
-    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending || found->second.departure_pending))
+    if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending ||
+            found->second.departure_pending || found->second.pending_stop))
         throw WorldError(wire::IN_USE, "Actor already has a controller");
     const auto token = random_token();
     if (sessions_.contains(token)) throw std::runtime_error("Session entropy collision");
@@ -270,6 +292,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.witness_instance_id = ++next_witness_instance_id_;
     actor.token = token; actor.grants = std::move(grants); actor.sequence = 0;
     actor.application_input = false; actor.keyboard_application.reset();
+    actor.application_discoveries.clear();
     actor.require_observation_grant = require_observation_grant;
     actor.local_application_output = local_application_output;
     actor.base_local_application_output = local_application_output;
@@ -454,15 +477,25 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     } else release_input(actor, true);
     actor.clear_motion(); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
     actor.aim.Clear(); actor.aim_application.reset(); actor.keyboard_application.reset();
+    actor.application_discoveries.clear();
     actor.local_view.reset(); actor.local_application_output = false; actor.base_local_application_output = false;
     sessions_.erase(token);
     wire::ActorCloseReply result; result.set_closed(true); return result;
 }
 wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
     auto& actor = authenticated(request.token());
+    if(actor.pending_stop)throw WorldError(wire::IN_USE,"Actor cancellation remains pending");
     require(request.has_seq(), "Missing actor sequence");
     consume_sequence(request.token(), request.seq());
     switch (request.action_case()) {
+    case wire::ActorActionRequest::kApplicationSurfaces: {
+        wire::ActorActionReply reply;reply.set_accepted(true);
+        *reply.mutable_application_surfaces()=discover_application(actor,request.application_surfaces());return reply;
+    }
+    case wire::ActorActionRequest::kApplicationPlace: {
+        wire::ActorActionReply reply;reply.set_accepted(true);
+        *reply.mutable_application_placement()=place_application(actor,request.application_place());return reply;
+    }
     case wire::ActorActionRequest::kGitWorktreeCreate: {
         if (!granted(actor, "git.write")) throw WorldError(wire::FORBIDDEN, "Git administration grant required");
         if (!broker_) throw WorldError(wire::UNIMPLEMENTED, "No workspace broker configured");
@@ -489,10 +522,10 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         const auto access = broker_->access(id, actor.entity.id(), actor.principal ? &*actor.principal : nullptr);
         if (std::find(access.rights().begin(), access.rights().end(), wire::WORKSPACE_SELECT) == access.rights().end())
             throw WorldError(wire::FORBIDDEN, "Workspace selection authority required");
-        store_.select_workspace(actor.entity.id(), id); break;
+        store_.select_workspace(actor.entity.id(), id); actor.application_discoveries.clear(); break;
     }
     case wire::ActorActionRequest::kWorkspaceClear:
-        store_.clear_workspace(actor.entity.id()); break;
+        store_.clear_workspace(actor.entity.id()); actor.application_discoveries.clear(); break;
     case wire::ActorActionRequest::kObjectGrab:
     case wire::ActorActionRequest::kObjectMove:
     case wire::ActorActionRequest::kObjectRelease:
@@ -506,19 +539,7 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         return result;
     }
     case wire::ActorActionRequest::kInput: {
-        if (!granted(actor, "navigate")) throw WorldError(wire::FORBIDDEN, "Navigation grant required");
-        require(request.input().axes_size() == 6, "Expected six motion axes");
-        require(request.input().translation_frame() == wire::BODY_TRANSLATION ||
-                request.input().translation_frame() == wire::LEVEL_TRANSLATION, "Unknown translation frame");
-        std::array<double, 6> axes{};
-        for (std::size_t i = 0; i < axes.size(); ++i) {
-            const double value = request.input().axes(static_cast<int>(i));
-            require(std::isfinite(value) && std::abs(value) <= 1, "Axis must be finite and within [-1,1]");
-            axes[i] = std::abs(value) <= config_.deadzone() ? 0 :
-                std::copysign((std::abs(value) - config_.deadzone()) / (1 - config_.deadzone()), value);
-        }
-        actor.axes = axes; actor.translation_frame = request.input().translation_frame();
-        actor.expires = now_ + config_.input_timeout();
+        apply_motion(actor, request.input());
         break;
     }
     case wire::ActorActionRequest::kRelativeLook: {
@@ -541,6 +562,7 @@ wire::ActorActionReply Actors::act(const wire::ActorActionRequest& request) {
         release_input(actor); actor.keyboard_application.reset(); break;
     case wire::ActorActionRequest::kPointer:
     case wire::ActorActionRequest::kKey:
+    case wire::ActorActionRequest::kKeyTapBatch:
     case wire::ActorActionRequest::kScroll:
         if (!actor.local_application_output) throw WorldError(wire::UNIMPLEMENTED, "Remote application input is not supported");
         if (!actor.principal && !granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
@@ -1051,9 +1073,105 @@ void Actors::cabinet_action(Actor& actor, const workspace::v1::ActorCabinetReque
     }
 }
 
-void Actors::stop_actor(Actor& actor, bool force_native) {
+void Actors::prepare_stop(Actor& actor) {
+    stop_trace::mark("actor_stop_begin");
+    actor.last_stop_sequence=actor.sequence;
     actor.clear_motion(); actor.expires = now_; actor.aim.Clear(); actor.aim_application.reset();
-    cancel_object(actor); release_input(actor, false, false, force_native); actor.keyboard_application.reset();
+    cancel_object(actor);actor.capture_motion_pending=false;actor.keyboard_application.reset();
+}
+void Actors::stop_actor(Actor& actor, bool force_native) {
+    prepare_stop(actor);release_input(actor,false,false,force_native);
+    stop_trace::mark("actor_stop_returned");
+}
+std::uint64_t Actors::begin_stop(const wire::ActorActionRequest& request) {
+    validate_message(request);
+    require(request.has_stop() && request.has_seq(),"Pending cancellation requires a sequenced Stop");
+    auto& actor=authenticated(request.token());
+    if(actor.pending_stop)throw WorldError(wire::IN_USE,"Actor cancellation remains pending");
+    if(next_stop_==UINT64_MAX)throw std::runtime_error("Actor cancellation sequence exhausted");
+    PendingStop stop;stop.serial=next_stop_+1;stop.actor=actor.entity.id();stop.token=actor.token;
+    stop.instance=actor.witness_instance_id;stop.sequence=request.seq();
+    stop.needs_native=renderer_ && !actor.native.actor_id().empty();
+    auto [found,inserted]=pending_stops_.emplace(stop.serial,std::move(stop));
+    require(inserted,"Duplicate actor cancellation owner");
+    try {consume_sequence(request.token(),request.seq());}
+    catch(...){pending_stops_.erase(found);throw;}
+    ++next_stop_;actor.pending_stop=next_stop_;
+    prepare_stop(actor);actor.interaction_reset_pending=true;
+    stop_trace::mark("stop_ingress",next_stop_);
+    return next_stop_;
+}
+std::optional<wire::ActorActionReply> Actors::poll_stop(std::uint64_t ticket) {
+    const auto found=pending_stops_.find(ticket);
+    if(found==pending_stops_.end())throw WorldError(wire::STALE_TARGET,"Stale actor cancellation ticket");
+    auto& stop=found->second;
+    if(stop.failure)std::rethrow_exception(stop.failure);
+    if(!stop.done)return {};
+    const auto actor=actors_.find(stop.actor);
+    const bool current=actor!=actors_.end() && actor->second.token==stop.token &&
+        actor->second.witness_instance_id==stop.instance && actor->second.sequence==stop.sequence;
+    pending_stops_.erase(found);
+    if(!current)throw WorldError(wire::UNAUTHORIZED,"Actor context changed during cancellation");
+    wire::ActorActionReply reply;reply.set_accepted(true);return reply;
+}
+void Actors::abandon_stop(std::uint64_t ticket) {
+    const auto found=pending_stops_.find(ticket);if(found==pending_stops_.end())return;
+    if(found->second.done)pending_stops_.erase(found);
+    else found->second.abandoned=true;
+}
+bool Actors::progress_stops() {
+    auto unfinished=[&]{return std::any_of(pending_stops_.begin(),pending_stops_.end(),[](const auto& item){
+        return !item.second.done && !item.second.failure;});};
+    if(progressing_stops_)return unfinished();
+    progressing_stops_=true;
+    struct Reset {bool& value;~Reset(){value=false;}} reset{progressing_stops_};
+    unsigned steps=0;
+    for(auto it=pending_stops_.begin();it!=pending_stops_.end() && steps<4;) {
+        auto& stop=it->second;
+        if(stop.done){if(stop.abandoned){it=pending_stops_.erase(it);continue;}++it;continue;}
+        auto found=actors_.find(stop.actor);
+        if(found==actors_.end() || found->second.witness_instance_id!=stop.instance) {
+            if(!stop.failure)stop.failure=std::make_exception_ptr(WorldError(wire::STALE_TARGET,"Actor cancellation instance changed"));
+            ++it;continue;
+        }
+        auto& actor=found->second;
+        const bool closing=actor.close_pending || actor.token!=stop.token;
+        if(stop.failure) {
+            // A checked denial permits a distinct closing operation. Uncertain
+            // transport retains its renderer owner and must never be replayed.
+            if(closing && !stop.submitted_close && renderer_ && !renderer_->cancellation_pending() && !renderer_->busy()) {
+                stop.failure={};stop.native.reset();stop.needs_native=true;
+            }else {++it;continue;}
+        }
+        ++steps;
+        try {
+            if(stop.needs_native) {
+                if(!stop.native) {
+                    if(renderer_->busy()){++it;continue;}
+                    wire::RendererInputCommand command;command.set_actor_id(stop.actor);
+                    stop.submitted_close=closing;
+                    if(closing)command.mutable_close();else command.mutable_cancel();
+                    stop.native=renderer_->begin_cancel_input(command);
+                    stop_trace::Scope trace("cancel_submit",stop.serial);
+                    stop_trace::mark("renderer_request",*stop.native);stop_trace::mark("actor_instance",stop.instance);
+                }
+                auto native=renderer_->poll_cancel_input(*stop.native);if(!native){++it;continue;}
+                stop.native.reset();
+                stop_trace::Scope trace("cancel_checked",stop.serial);stop_trace::mark("actor_instance",stop.instance);
+                if(!stop.submitted_close && (actor.close_pending || actor.token!=stop.token)) {
+                    // Revocation during the cancelled request requires a checked
+                    // close before a new actor incarnation can acquire this seat.
+                    ++it;continue;
+                }
+                if(stop.submitted_close)actor.native.Clear();else actor.native=std::move(*native);
+            }
+            finish_release_input(actor,closing);
+            if(actor.pending_stop==stop.serial)actor.pending_stop.reset();
+            stop.done=true;
+        }catch(...){stop.failure=std::current_exception();}
+        if(stop.done && stop.abandoned)it=pending_stops_.erase(it);else ++it;
+    }
+    return unfinished();
 }
 void Actors::cancel_control(const std::string& token) {
     // Require a fresh compositor cancellation even when the last action returned
@@ -1063,29 +1181,39 @@ void Actors::cancel_control(const std::string& token) {
     if (!control_releases_.empty()) throw std::runtime_error("Application control cancellation remains pending");
     // Native cancellation and broker IPC can yield to actor revocation.
     const auto& current = authenticated(token);
-    if (current.native.has_focus() || current.native.held_keys_size() || current.native.held_buttons_size() ||
+    if (current.pending_stop || current.native.has_focus() || current.native.held_keys_size() || current.native.held_buttons_size() ||
         current.application_control || !current.lease.empty() || current.object)
         throw std::runtime_error("Actor input cancellation is not settled");
 }
 void Actors::release_input(Actor& actor, bool close, bool keep_reservation, bool force_native) {
     close = close || actor.close_pending;
+    if(actor.pending_stop) {
+        actor.close_pending|=close;actor.interaction_reset_pending=true;actor.capture_motion_pending=false;
+        return;
+    }
     if (renderer_ && (force_native || !actor.native.actor_id().empty())) {
         wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
         if (close) command.mutable_close(); else command.mutable_cancel();
+        stop_trace::mark("native_cancel_submitted");
         actor.native = renderer_->input(command);
         if (actor.native.has_focus() || actor.native.held_keys_size() || actor.native.held_buttons_size())
             throw std::runtime_error("Native input cancellation was not confirmed");
+        stop_trace::mark("native_cancel_checked");
         if (close) actor.native.Clear();
     }
     // Revocation can request closure while the cancellation exchange is waiting.
     // Finish that closure before discarding the pending flag or broker reservation.
     if (!close && actor.close_pending) { release_input(actor, true); return; }
+    finish_release_input(actor,close,keep_reservation);
+}
+void Actors::finish_release_input(Actor& actor, bool close, bool keep_reservation) {
     actor.interaction_reset_pending = false;
     actor.close_pending = false;
     actor.capture.Clear(); actor.capture_motion_pending = false;
     if (keep_reservation && !close) return;
     if (actor.application_control) {
         control_releases_.push_back(*actor.application_control);
+        stop_trace::mark("broker_release_queued",control_releases_.size());
         actor.application_control.reset();
     }
     if (!actor.lease.empty()) leases_.erase(actor.lease);
@@ -1107,12 +1235,14 @@ void Actors::poll_control() {
     }
 }
 void Actors::drain_control_releases() {
+    stop_trace::mark("broker_release_busy",broker_ && broker_->busy());
     if (!broker_ || broker_->busy()) return;
     while (!control_releases_.empty()) {
         const auto lease = control_releases_.front();
         workspace::v1::ApplicationControlRelease request;
         request.set_id(lease.id()); *request.mutable_principal() = lease.principal();
-        broker_->control_release(request);
+        stop_trace::mark("broker_release_submitted");
+        broker_->control_release(request);stop_trace::mark("broker_release_checked");
         control_releases_.erase(control_releases_.begin());
     }
 }
@@ -1138,6 +1268,8 @@ void Actors::preflight_input_authority(Actor& actor, const workspace::v1::Applic
         throw WorldError(wire::FORBIDDEN, "Application control authority changed");
 }
 void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
+    if(!application_slot_authorized(actor,surfaces_->get(target.id()),true))
+        throw WorldError(wire::FORBIDDEN,"Application representation control authority required");
     const auto app = surfaces_->application(target);
     if (!actor.principal || !app) {
         if (!granted(actor, "interact")) throw WorldError(wire::FORBIDDEN, "Interaction grant required");
@@ -1148,13 +1280,22 @@ void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
     actor.application_input = true;
     if (!broker_ || !granted(actor, "observe"))
         throw WorldError(wire::FORBIDDEN, "Application control authority required");
+    if (actor.application_control &&
+        actor.application_control->application().SerializeAsString() == app->SerializeAsString()) {
+        // The lease and exact native seat remain bound to this actor. Poll the
+        // revocation state on every event, then validate the cached target.
+        finish_input(actor);
+        return;
+    }
     if (actor.application_control && actor.application_control->application().SerializeAsString() != app->SerializeAsString())
         release_input(actor);
     drain_control_releases();
     workspace::v1::ApplicationControlRequest request;
     *request.mutable_principal() = *actor.principal; *request.mutable_application() = *app;
     const auto token = actor.token;
+    stop_trace::mark("input_control_acquire_begin");
     const auto lease = broker_->control_acquire(request);
+    stop_trace::mark("input_control_acquire_done");
     // A wait callback may already have cancelled and queued this same reservation.
     if (std::any_of(control_releases_.begin(), control_releases_.end(), [&](const auto& item) { return item.id() == lease.id(); }))
         throw WorldError(wire::FORBIDDEN, "Application control was cancelled");
@@ -1164,7 +1305,9 @@ void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
         throw WorldError(wire::FORBIDDEN, "Application control authority changed");
     }
     // Refresh after the broker wait; never route to a replaced surface generation.
+    stop_trace::mark("input_post_acquire_sync_begin");
     refresh_native();
+    stop_trace::mark("input_post_acquire_sync_done");
     const auto current = surfaces_->application(target);
     const auto placement = surfaces_->get(target.id());
     if (!current || current->SerializeAsString() != app->SerializeAsString() || !placement.mapped() ||
@@ -1172,12 +1315,15 @@ void Actors::authorize_input(Actor& actor, const wire::SurfaceHandle& target) {
         release_input(actor); drain_control_releases();
         throw WorldError(wire::STALE_TARGET, "Application target changed during authorization");
     }
+    stop_trace::mark("input_authorize_finish_begin");
     finish_input(actor);
+    stop_trace::mark("input_authorize_finish_done");
 }
 void Actors::finish_input(Actor& actor) {
     poll_control();
     if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
-        (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe")))) {
+        (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe") ||
+         !held_application_slot_authorized(actor)))) {
         release_input(actor); drain_control_releases();
         throw WorldError(wire::FORBIDDEN, "Application control authority changed");
     }
@@ -1223,18 +1369,30 @@ bool Actors::input_witness_current(const InputWitnessBinding& binding) const {
         actor.local_application_output && granted(actor,"observe");
 }
 void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command) {
+    const auto stop_sequence=actor.last_stop_sequence;
+    const auto instance=actor.witness_instance_id;
+    const auto token=actor.token;
     try {
+        stop_trace::mark("native_input_submit_begin");
         actor.native = renderer_->input(command, [&] {
             poll_control();
+            if(actor.last_stop_sequence!=stop_sequence || actor.witness_instance_id!=instance ||
+                    actor.token!=token || actor.pending_stop)
+                throw WorldError(wire::STALE_TARGET,"Input preparation was superseded by actor cancellation");
+            if(command.has_target() && !application_slot_authorized(actor,surfaces_->get(command.target().id()),true))
+                throw WorldError(wire::FORBIDDEN,"Application representation control changed before native submission");
             if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
                 (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe"))))
                 throw WorldError(wire::FORBIDDEN, "Input authority changed before native submission");
         });
+        stop_trace::mark("native_input_submit_done");
     } catch (const WorldError& error) {
         if (error.code == wire::FORBIDDEN) { release_input(actor); drain_control_releases(); }
         throw;
     }
+    stop_trace::mark("native_input_finish_begin");
     finish_input(actor);
+    stop_trace::mark("native_input_finish_done");
     if (actor.native.has_focus()) {
         if (actor.application_control) actor.keyboard_application = actor.application_control->application();
         else actor.keyboard_application.reset();
@@ -1245,7 +1403,9 @@ std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
 }
 void Actors::refresh_native() {
     if (!renderer_ || !surfaces_) return;
+    stop_trace::mark("renderer_snapshot_begin");
     const auto snapshot = renderer_->synchronize();
+    stop_trace::mark("renderer_snapshot_done");
     surfaces_->refresh(snapshot);
     // Visibility filtering cannot distinguish revocation from application exit.
     // Index complete native groups once for all remembered keyboard contexts.
@@ -1309,9 +1469,12 @@ wire::AimHit Actors::input_target(Actor& actor, bool captured) {
 }
 void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
     actor.capture_motion_pending = false;
-    if (!actor.native.held_buttons_size()) return;
+    if (actor.pending_stop || actor.interaction_reset_pending || !actor.native.held_buttons_size()) return;
+    const auto stop_sequence=actor.last_stop_sequence;
     wire::SurfaceHandle captured; captured.set_id(actor.capture.id()); captured.set_generation(actor.capture.generation());
     authorize_input(actor, captured);
+    if(actor.last_stop_sequence!=stop_sequence || actor.pending_stop || actor.interaction_reset_pending ||
+            !actor.native.held_buttons_size())return;
     const auto surface = surfaces_->get(captured.id());
     const auto camera = scene_pose(actor.entity.pose());
     const auto plane = scene_pose(surface.pose());
@@ -1338,17 +1501,33 @@ void Actors::move_capture(Actor& actor, const wire::Vec3& input) {
     send_input(actor, command);
 }
 void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) {
+    stop_trace::Scope trace("world_input", request.seq());
     if (!renderer_ || !surfaces_) throw WorldError(wire::UNIMPLEMENTED, "Native actor input is unavailable");
     if (request.has_pointer()) require(request.pointer().has_button() && request.pointer().has_pressed() &&
         request.pointer().button() >= 1 && request.pointer().button() <= 3, "Expected button 1, 2, or 3 and pressed state");
     if (request.has_key()) require(request.key().has_keysym() && request.key().has_pressed() &&
         !request.key().keysym().empty() && request.key().keysym().size() <= 128 &&
         request.key().keysym().find('\0') == std::string::npos, "Expected keysym and pressed state");
+    if (request.has_key_tap_batch()) {
+        const auto& batch=request.key_tap_batch();
+        require(batch.chords_size()>=1 && batch.chords_size()<=32,"Key tap batch must contain 1..32 chords");
+        for(const auto& chord:batch.chords()) {
+            require(chord.keysyms_size()>=1 && chord.keysyms_size()<=8,"Key chord must contain 1..8 keysyms");
+            for(const auto& keysym:chord.keysyms())
+                require(!keysym.empty() && keysym.size()<=64 && keysym.find('\0')==std::string::npos,
+                        "Invalid key tap keysym");
+        }
+    }
     if (request.has_scroll()) require(request.scroll().has_steps_y() && request.scroll().steps_y() >= -64 &&
         request.scroll().steps_y() <= 64, "Expected scroll steps within [-64,64]");
-    refresh_native();
+    const bool cached_keyboard=request.has_key() || request.has_key_tap_batch();
+    if(!cached_keyboard || !actor.native.has_focus() || !actor.application_control || !actor.application_input) {
+        stop_trace::mark("input_route_sync_begin");
+        refresh_native();
+        stop_trace::mark("input_route_sync_done");
+    }
     wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
-    if (request.has_key()) {
+    if (request.has_key() || request.has_key_tap_batch()) {
         if (!actor.native.has_focus()) {
             // Cancellation removes focus, but cannot hide a missing application grant.
             // Copy the identity before broker waits can reenter session cleanup.
@@ -1356,8 +1535,14 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
             if (application) preflight_input_authority(actor, *application);
             throw WorldError(wire::NO_FOCUS, "Actor has no focus");
         }
-        const auto target = actor.native.focus(); authorize_input(actor, target);
-        *command.mutable_key() = request.key(); send_input(actor, command); return;
+        const auto target = actor.native.focus();
+        stop_trace::mark("input_route_authorize_begin");
+        authorize_input(actor, target);
+        stop_trace::mark("input_route_authorize_done");
+        *command.mutable_target()=target;
+        if(request.has_key())*command.mutable_key() = request.key();
+        else *command.mutable_key_tap_batch()=request.key_tap_batch();
+        send_input(actor, command); return;
     }
     // Check the accepted application's authority before exposing saved-target state.
     // This read-only check cannot reserve or transfer application control.
@@ -1413,7 +1598,7 @@ bool Actors::observed_application_current(const Actor& actor, const ObservedAppl
         const auto current=surfaces_->application(item.handle);
         const auto placement=surfaces_->get(item.handle.id());
         return current && current->SerializeAsString()==item.application.SerializeAsString() &&
-            placement.room()==actor.entity.room();
+            placement.room()==actor.entity.room() && application_slot_authorized(actor,placement,false);
     } catch (const WorldError& error) {
         if (error.code==wire::NOT_FOUND || error.code==wire::STALE_TARGET) return false;
         throw;
@@ -1450,7 +1635,8 @@ std::set<std::string> Actors::observable_applications(const Actor& actor,
         try {
             const auto current = surfaces_->application(item.handle);
             const auto placement = surfaces_->get(item.handle.id());
-            if (current && current->SerializeAsString() == item.application.SerializeAsString() && placement.room() == actor.entity.room())
+            if (current && current->SerializeAsString() == item.application.SerializeAsString() && placement.room() == actor.entity.room() &&
+                    application_slot_authorized(actor,placement,false))
                 allowed.insert(item.handle.id());
         } catch (const WorldError& error) {
             if (error.code != wire::NOT_FOUND && error.code != wire::STALE_TARGET) throw;
@@ -1774,6 +1960,7 @@ void Actors::step(double target) {
 }
 void Actors::tick(double monotonic_seconds) { if (!manual_clock_) step(monotonic_seconds); }
 bool Actors::cancellation_settled() const {
+    if(std::any_of(pending_stops_.begin(),pending_stops_.end(),[](const auto& item){return !item.second.done;}))return false;
     if (flushing_input_ || presenting_local_ || flushing_foregrounds_ || !control_releases_.empty() ||
         (renderer_ && renderer_->busy()) || (broker_ && broker_->busy())) return false;
     for (const auto& [key,foreground] : foregrounds_) {
@@ -1784,6 +1971,7 @@ bool Actors::cancellation_settled() const {
     });
 }
 void Actors::flush_input() {
+    progress_stops();
     poll_control();
     refresh_authority();
     if (flushing_input_ || (renderer_ && renderer_->busy())) return;
@@ -1804,6 +1992,7 @@ void Actors::flush_input() {
     refresh_native();
     for (const auto& id : pending) {
         auto& actor = actors_.at(id);
+        if(!actor.capture_motion_pending || actor.pending_stop || actor.interaction_reset_pending || actor.token.empty())continue;
         try {
             move_capture(actor, actor.direction);
         } catch (const std::invalid_argument& error) {

@@ -48,6 +48,8 @@ void validate_profiles(const v1::ControlProfiles& profiles) {
              "Unknown control movement style");
         need(profile.interaction() == v1::CLICK_TO_CONTROL || profile.interaction() == v1::TOGGLE_CONTROL ||
              profile.interaction() == v1::HOLD_TO_NAVIGATE, "Unknown control interaction style");
+        need(profile.key_delivery() == v1::KEY_TAP || profile.key_delivery() == v1::KEY_HOLD,
+             "Unknown application key delivery style");
         need(std::isfinite(profile.mouse_radians_per_count()) && profile.mouse_radians_per_count() > 0 &&
              profile.mouse_radians_per_count() <= .1, "Invalid mouse sensitivity");
         need(profile.bindings_size() <= 64, "Too many control bindings");
@@ -78,6 +80,7 @@ v1::ControlProfiles default_profiles() {
     for (const auto movement : {v1::FREE_FLIGHT, v1::LEVEL_MOVEMENT}) {
         for (const auto interaction : {v1::CLICK_TO_CONTROL, v1::TOGGLE_CONTROL, v1::HOLD_TO_NAVIGATE}) {
             auto* p = result.add_profiles(); p->set_movement(movement); p->set_interaction(interaction);
+            p->set_key_delivery(v1::KEY_TAP);
             const std::string movement_id = movement == v1::FREE_FLIGHT ? "flight" : "level";
             const std::string interaction_id = interaction == v1::CLICK_TO_CONTROL ? "click" :
                 interaction == v1::TOGGLE_CONTROL ? "toggle" : "hold";

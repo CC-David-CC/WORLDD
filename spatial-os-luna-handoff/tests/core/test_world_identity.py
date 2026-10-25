@@ -11,6 +11,7 @@ import socket
 import struct
 import subprocess
 import sys
+import threading
 import time
 import unittest
 from unittest.mock import patch
@@ -48,15 +49,26 @@ def receive(read, ready, message, *, deadline=None):
 
 
 class SessionPeer:
-    def __init__(self, stream): self.stream=stream; self.sequence=0; self.action_sequence=0
+    def __init__(self, stream):
+        self.stream=stream; self.sequence=0; self.action_sequence=0; self.motion_sequence=0
+        self.send_lock=threading.Lock()
     def close(self): self.stream.close()
     def request(self, request):
-        self.sequence+=1; request.request_id=self.sequence
-        self.stream.sendall(frame(request))
+        with self.send_lock:
+            self.sequence+=1; request_id=self.sequence; request.request_id=request_id
+            self.stream.sendall(frame(request))
         reply=receive(self.stream.recv,self.stream,session.WorldSessionReply)
-        if reply.protocol_version!=1 or reply.request_id!=self.sequence: raise AssertionError('Wrong session reply identity')
+        if reply.protocol_version!=1 or reply.request_id!=request_id: raise AssertionError('Wrong session reply identity')
         return reply
     def call(self, **operation): return self.request(session.WorldSessionRequest(protocol_version=1,**operation))
+    def motion_refresh(self, input):
+        with self.send_lock:
+            self.sequence+=1;self.motion_sequence+=1
+            request=session.WorldSessionRequest(protocol_version=1,request_id=self.sequence)
+            request.motion_refresh.refresh_sequence=self.motion_sequence
+            request.motion_refresh.input.CopyFrom(input)
+            self.stream.sendall(frame(request))
+            return self.sequence
     def act(self, **action):
         self.action_sequence+=1
         return self.call(action=core.ActorActionRequest(seq=self.action_sequence,**action))
@@ -338,7 +350,8 @@ class WorldIdentityFixture(ClientFixture):
         self.assertEqual(result.returncode,0,result.stderr)
         reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
-    def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None, count=2, fixture_faults=False):
+    def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None, count=2,
+              fixture_faults=False, additional_actor_profiles=()):
         client_path=self.config_file()
         client=text_format.Parse(client_path.read_text(),pb.IssuerTlsClientConfig())
         client.ClearField('io_timeout_ms')
@@ -346,6 +359,9 @@ class WorldIdentityFixture(ClientFixture):
         config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(client_path),admission=admission)
         if admitted:config.admitted_actor_ids.append(self.identity.actor_id)
         if grants:config.actor_grants.add(actor_id=self.identity.actor_id,grants=grants)
+        for actor_id, actor_grants in additional_actor_profiles:
+            config.admitted_actor_ids.append(actor_id)
+            config.actor_grants.add(actor_id=actor_id,grants=actor_grants)
         state=state or self.root/f'world-state-{len(self.worlds)}'
         self.configure_world_participant(config,state)
         path=self.root/f'world-{len(self.worlds)}.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
@@ -375,8 +391,8 @@ class WorldIdentityFixture(ClientFixture):
             if predicate(result):return result
             if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
             time.sleep(.01)
-    def held(self):
-        world=self.world(grants=['navigate','interact','observe'],native=True);peer=world.peers[0]
+    def held(self, fixture_faults=False):
+        world=self.world(grants=['navigate','interact','observe'],native=True,fixture_faults=fixture_faults);peer=world.peers[0]
         self.assertTrue(self.authenticate(peer).HasField('opened'))
         probe=Probe(self.root,xi2=True,display=os.environ['SPATIAL_TEST_DISPLAY']);self.addCleanup(probe.close)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']

@@ -1,6 +1,7 @@
 #pragma once
 #include "supervisor/host_actor_controller.hpp"
 #include "control/device_stream.hpp"
+#include "core/stop_trace.hpp"
 #include <atomic>
 #include <condition_variable>
 #include <deque>
@@ -13,6 +14,11 @@
 
 namespace spatial::supervisor {
 class HostCaptureReceiver;
+// An exact actor flight was interrupted. Its host and worlds remain owned.
+class HostActorContextInterrupted final : public std::runtime_error {
+public:
+    using std::runtime_error::runtime_error;
+};
 // One actor owner. Private host IO and capture must never perform actor exchanges.
 class HostActorWorker final {
 public:
@@ -28,14 +34,17 @@ public:
         friend class HostActorWorker;
         std::atomic<bool> retired_{false};
         std::atomic<std::uint64_t> processed_sequence_{0};
+        std::atomic<std::uint64_t> observed_sequence_{0};
         std::atomic<bool> capture_active_{false};
         std::atomic<std::uint32_t> source_slot_{0};
+        std::shared_ptr<control::MotionIntent> motion_intent_;
     };
     using Binding = std::shared_ptr<CaptureBinding>;
     struct CaptureEndpoint {std::unique_ptr<control::DeviceStream> stream;std::uint32_t source_slot=0;};
     using CaptureStart=std::function<CaptureEndpoint(const Binding&)>;
     using CaptureStop=std::function<void(const Binding&)>;
-    explicit HostActorWorker(HostActorController&,CaptureStart = {},CaptureStop = {});
+    using CaptureStopProgress=std::function<bool(const Binding&)>;
+    explicit HostActorWorker(HostActorController&,CaptureStart = {},CaptureStop = {},CaptureStopProgress = {});
     ~HostActorWorker();
     HostActorWorker(const HostActorWorker&) = delete;
     HostActorWorker& operator=(const HostActorWorker&) = delete;
@@ -58,29 +67,43 @@ public:
         auto owned = std::make_shared<std::decay_t<F>>(std::forward<F>(function));
         Work work;
         work.urgent_binding = urgent; work.cancellation = cancellation;
-        work.execute = [this, promise, owned] {
+        work.execute = [this, promise, owned, cancellation] {
+            stop_trace::Scope trace(cancellation?"host":"host_action",exchange_serial_);
+            if(cancellation && stop_trace::enabled()) {
+                std::lock_guard lock(watch_mutex_);
+                if(flight_) {stop_trace::mark("flight_started_ns",flight_->started);
+                    if(flight_->binding) {stop_trace::mark("actor_generation",flight_->binding->actor_generation);
+                        stop_trace::mark("capture_generation",flight_->binding->capture_generation);}}
+            }
             try {
                 if constexpr (std::is_void_v<Result>) {
                     (*owned)();
-                    settle_context();
-                    controller_.synchronize_controls_presentation();
-                    synchronize_capture();
+                    stop_trace::mark("operation_returned");
+                    settle_context();stop_trace::mark("settlement_returned");
+                    controller_.synchronize_controls_presentation();stop_trace::mark("controls_returned");
+                    synchronize_capture();stop_trace::mark("capture_returned");
                     if(!complete([&] {promise->set_value();},true)) {
-                        settle_context();throw std::runtime_error("Actor result lost its interruption barrier");
+                        stop_trace::mark("publication_interrupted");
+                        settle_context();throw HostActorContextInterrupted("Actor result lost its interruption barrier");
                     }
+                    stop_trace::mark("published");
                 } else {
                     auto result = (*owned)();
-                    settle_context();
-                    controller_.synchronize_controls_presentation();
-                    synchronize_capture();
+                    stop_trace::mark("operation_returned");
+                    settle_context();stop_trace::mark("settlement_returned");
+                    controller_.synchronize_controls_presentation();stop_trace::mark("controls_returned");
+                    synchronize_capture();stop_trace::mark("capture_returned");
                     if(!complete([&] {promise->set_value(std::move(result));},true)) {
-                        settle_context();throw std::runtime_error("Actor result lost its interruption barrier");
+                        stop_trace::mark("publication_interrupted");
+                        settle_context();throw HostActorContextInterrupted("Actor result lost its interruption barrier");
                     }
+                    stop_trace::mark("published");
                 }
             } catch (...) {
+                stop_trace::mark("failed");
                 const auto failure = std::current_exception();
                 try { settle_context(); controller_.synchronize_controls_presentation(); } catch (...) {}
-                (void)complete([&] {promise->set_exception(failure);},false);
+                complete_failure(failure,[&](std::exception_ptr error) {promise->set_exception(error);});
             }
         };
         if (!enqueue(std::move(work))) throw std::runtime_error("Host actor queue is full or stopped");
@@ -100,6 +123,11 @@ private:
         Binding urgent_binding;
         bool cancellation = false;
         bool capture_heartbeat = false; // Diagnostic metadata. Never changes urgency.
+        bool capture_motion = false;
+        bool capture_relative_motion = false;
+        std::string capture_source;
+        std::uint64_t source_generation = 0, packet_sequence = 0;
+        std::shared_ptr<control::v1::CapturedDeviceEvent> capture_packet;
     };
     struct Flight {
         std::uint64_t serial;
@@ -116,14 +144,16 @@ private:
     void refresh_context();
     void settle_context();
     void synchronize_capture();
-    void retire_capture();
+    bool retire_capture();
     bool complete(const std::function<void()>& publish, bool success);
+    void complete_failure(std::exception_ptr, const std::function<void(std::exception_ptr)>& publish);
     void begin_exchange(const Binding& urgent = {}, bool cancellation = false);
     void end_exchange() noexcept;
     void stop() noexcept;
     HostActorController& controller_;
     CaptureStart start_capture_;
     CaptureStop stop_capture_;
+    CaptureStopProgress poll_stop_capture_;
     Binding capture_owner_;
     std::unique_ptr<HostCaptureReceiver> receiver_;
     std::atomic<bool> capture_cleanup_complete_{true};

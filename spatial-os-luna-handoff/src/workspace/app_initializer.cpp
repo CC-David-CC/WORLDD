@@ -3,6 +3,7 @@
 #include "broker.pb.h"
 #include <cerrno>
 #include <csignal>
+#include <cstring>
 #include <fcntl.h>
 #include <iostream>
 #include <stdexcept>
@@ -98,7 +99,9 @@ int supervise_application(int state_directory) {
         close(errors[0]);
         if (read_count != 0) {
             while (waitpid(child, nullptr, 0) < 0 && errno == EINTR) {}
-            throw std::runtime_error("Application exec failed");
+            if (read_count != static_cast<ssize_t>(sizeof(failure)) || failure <= 0)
+                throw std::runtime_error("Application exec failure receipt was incomplete");
+            throw std::runtime_error(std::string("Application exec failed: ") + std::strerror(failure));
         }
         protocol::AppEvent event; event.set_protocol_version(1); event.set_started(true);
         spatial::write_frame(std::cout, event);

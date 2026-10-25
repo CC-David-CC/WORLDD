@@ -12,7 +12,8 @@ namespace spatial {
 // Owned production compositor; one bounded in-flight scene, scheduler serviced while waiting.
 class RenderWorker {
 public:
-    RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display, int native_fd = -1);
+    RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display,
+                 int native_fd = -1, bool fixture_faults = false);
     // Borrows descriptors. The world owns only its channel, never the compositor.
     RenderWorker(const std::filesystem::path& state, std::string display, int channel, int compositor_pidfd,
                  pid_t compositor_pid, pid_t channel_creator, int native_fd);
@@ -28,6 +29,11 @@ public:
     void clear_local_view(const wire::ActorLocalViewIdentity&);
     wire::NativeSnapshot synchronize();
     wire::NativeActorInput input(const wire::RendererInputCommand& command, const std::function<void()>& before_send = {});
+    // One exact cancellation owns the stream until its checked reply is consumed.
+    std::uint64_t begin_cancel_input(const wire::RendererInputCommand&);
+    std::optional<wire::NativeActorInput> poll_cancel_input(std::uint64_t);
+    bool cancellation_pending() const;
+    void set_input_priority(std::function<bool()> progress) { input_priority_=std::move(progress); }
     render::v1::NativeActorSeatIdentity native_actor_seat(const std::string& actor);
     void check_alive() const;
     bool busy() const { return busy_; }
@@ -43,6 +49,11 @@ private:
     wire::RenderResult receive();
     void retain_readiness(const wire::RendererReady&);
     wire::RenderResult exchange(wire::RenderCommand command, const std::function<void()>& before_send = {}, int capture_fd = -1);
+    void drain_input_priority();
+    struct PendingCancellation;
+    std::unique_ptr<PendingCancellation> cancellation_;
+    std::function<bool()> input_priority_=[] {return false;};
+    bool servicing_input_priority_=false;
     struct Shared;
     std::unique_ptr<Shared> shared_;
     std::unique_ptr<RenderProcess> process_;

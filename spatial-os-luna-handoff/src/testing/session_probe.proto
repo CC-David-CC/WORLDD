@@ -36,6 +36,24 @@ message LocalForegroundProgress {
   bool submitted = 3;
   bool cancelled = 4;
 }
+// Trusted test inspection only. It cannot grant actor authority.
+message LocalForegroundRetirement {
+  spatial.core.v1.ActorLocalViewIdentity identity = 1;
+  bool presentation_only = 2; // False preserves full context-retirement semantics.
+}
+message LocalForegroundCleanupPoll {
+  spatial.core.v1.ActorLocalViewIdentity identity = 1;
+  uint32 maximum_steps = 2;
+}
+message LocalForegroundCleanup {
+  enum Stage { NONE = 0; SELECTION = 1; NATIVE = 2; WORLD_DRAIN = 3; RELEASE = 4; INSPECT = 5; }
+  bool pending = 1;
+  bool attested = 2;
+  bool native_retired = 3;
+  bool releases_binding = 4;
+  Stage stage = 5;
+  uint64 serial = 6;
+}
 message SessionProbeRequest {
   uint32 protocol_version = 1;
   uint64 request_id = 2;
@@ -57,6 +75,8 @@ message SessionProbeRequest {
     LocalForegroundPresent local_begin = 24;
     LocalForegroundPoll local_poll = 25;
     uint64 local_cancel = 26;
+    LocalForegroundRetirement local_defer_retire = 27;
+    LocalForegroundCleanupPoll local_cleanup_poll = 28;
   }
 }
 message SessionProbeReply {
@@ -74,5 +94,6 @@ message SessionProbeReply {
     bool local_retired = 23;
     LocalForegroundProgress local_progress = 24;
     bool local_cancelled = 26;
+    LocalForegroundCleanup local_cleanup = 27;
   }
 }

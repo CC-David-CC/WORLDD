@@ -123,8 +123,47 @@ void click_keeps_only_fresh_application_focus() {
           f.actions[3].has_pointer() && f.actions[3].pointer().pressed() &&
           f.actions[4].has_pointer() && !f.actions[4].pointer().pressed(), "click/cancellation ordering changed");
     check(!f.adapter.status().navigating(), "completed click did not enter application mode");
-    f.key("a", true); check(f.actions.back().has_key(), "application key became navigation");
+    f.key("a", true); check(f.actions.back().has_key_tap_batch(), "application key was not an atomic tap");
+    check(f.actions.back().key_tap_batch().chords_size()==1 &&
+          f.actions.back().key_tap_batch().chords(0).keysyms_size()==1 &&
+          f.actions.back().key_tap_batch().chords(0).keysyms(0)=="a", "application tap changed its keysym");
     f.key("F12", true); check(f.actions.back().has_stop() && f.adapter.status().navigating(), "cancel failed");
+}
+void slow_application_action_is_one_atomic_tap_and_repeat_is_ignored() {
+    Fixture f; f.connect("mouse",p::MOUSE); f.connect("keyboard",p::KEYBOARD);
+    f.pointer(true); f.pointer(false); f.action_delay=std::chrono::milliseconds(800);
+    const auto before=f.actions.size();f.key("e",true);
+    check(f.actions.size()==before+1 && f.actions.back().has_key_tap_batch(),
+          "slow application action did not use one atomic key tap");
+    f.key("e",false);f.key("e",true,true);
+    check(f.actions.size()==before+1,"Long key delay or XKB repeat created another tap");
+}
+void tap_batches_preserve_modifier_chords_and_explicit_holds() {
+    Fixture f;f.connect("mouse",p::MOUSE);f.connect("keyboard",p::KEYBOARD);
+    f.pointer(true);f.pointer(false);const auto before=f.actions.size();
+    f.key("Control_L",true);check(f.actions.size()==before,"Modifier down escaped before its chord");
+    f.key("c",true);const auto& tap=f.actions.back();
+    check(tap.has_key_tap_batch()&&tap.key_tap_batch().chords(0).keysyms_size()==2&&
+          tap.key_tap_batch().chords(0).keysyms(0)=="Control_L"&&
+          tap.key_tap_batch().chords(0).keysyms(1)=="c","Control chord lost atomic ordering");
+    f.key("c",false);f.key("Control_L",false);
+    auto profiles=f.adapter.profiles();
+    for(auto& profile:*profiles.mutable_profiles())if(profile.id()==profiles.active_profile())profile.set_key_delivery(p::KEY_HOLD);
+    f.adapter.set_profiles(profiles);f.pointer(true);f.pointer(false);
+    f.key("a",true);check(f.actions.back().has_key()&&f.actions.back().key().pressed(),
+          "Explicit game key hold did not send its press edge");
+    f.key("a",false);check(f.actions.back().has_key()&&!f.actions.back().key().pressed(),
+          "Explicit game key hold did not send its release edge");
+}
+void cancellation_drops_modifiers_from_later_taps() {
+    Fixture f;f.connect("mouse",p::MOUSE);f.connect("keyboard",p::KEYBOARD);
+    f.pointer(true);f.pointer(false);f.key("Control_L",true);
+    f.adapter.cancel();f.pointer(true);f.pointer(false);f.key("c",true);
+    const auto& tap=f.actions.back();
+    check(tap.has_key_tap_batch()&&tap.key_tap_batch().chords_size()==1&&
+          tap.key_tap_batch().chords(0).keysyms_size()==1&&
+          tap.key_tap_batch().chords(0).keysyms(0)=="c",
+          "Modifier state crossed a cancellation and application focus boundary");
 }
 void hold_navigation_balances_both_edges() {
     Fixture f; f.adapter.select_profile("level-hold"); f.connect("keyboard", p::KEYBOARD);
@@ -287,6 +326,9 @@ int main() {
         presets_and_transactional_edits(); std::cout << "PASS six-presets-transactional-edits\n";
         movement_and_fresh_input_after_modes(); std::cout << "PASS fresh-input-after-mode-change\n";
         click_keeps_only_fresh_application_focus(); std::cout << "PASS click-acquisition-order\n";
+        slow_application_action_is_one_atomic_tap_and_repeat_is_ignored(); std::cout << "PASS slow-application-atomic-key-tap\n";
+        tap_batches_preserve_modifier_chords_and_explicit_holds(); std::cout << "PASS modifier-chords-and-game-holds\n";
+        cancellation_drops_modifiers_from_later_taps(); std::cout << "PASS cancellation-drops-stale-modifier\n";
         hold_navigation_balances_both_edges(); std::cout << "PASS hold-navigation-edges\n";
         empty_and_world_geometry_clicks_do_not_become_application_input(); std::cout << "PASS non-application-click-filtering\n";
         checked_cancellation_requires_fresh_device_input(); std::cout << "PASS checked-cancellation-fresh-device-input\n";

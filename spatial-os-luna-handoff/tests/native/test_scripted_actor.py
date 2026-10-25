@@ -60,15 +60,18 @@ class ScriptedPeer:
         self.fixture.assertEqual(reply.protocol_version, 1)
         return reply
 
-    def call(self, generation=0, request_id=None, **operation):
+    def call(self, generation=0, request_id=None, *, delay_client_completion_seconds=0.0, **operation):
         with self.lock:
             started = time.monotonic()
             try:
-                return self._call(generation, request_id, **operation)
+                return self._call(generation, request_id,
+                    delay_client_completion_seconds=delay_client_completion_seconds, **operation)
             finally:
                 self.timings.append((started, time.monotonic() - started, next(iter(operation), 'none')))
 
-    def _call(self, generation=0, request_id=None, **operation):
+    def _call(self, generation=0, request_id=None, *, delay_client_completion_seconds=0.0, **operation):
+        if not 0.0 <= delay_client_completion_seconds <= 5.0:
+            raise ValueError('Client completion delay must be within 0..5 seconds')
         if request_id is None:
             self.sequence += 1
             request_id = self.sequence
@@ -76,12 +79,17 @@ class ScriptedPeer:
             generation=generation, **operation)
         self.process.stdin.write(frame(request))
         self.process.stdin.flush()
+        if delay_client_completion_seconds:
+            # Hold the actor call open after submitting its request. This models
+            # a slow caller/reply path without blocking worldd or the renderer.
+            time.sleep(delay_client_completion_seconds)
         reply = self.receive()
         self.fixture.assertEqual(reply.request_id, request_id)
         return reply
 
-    def act(self, generation=0, **proposal):
-        return self.call(generation, propose=core.ActorActionRequest(**proposal))
+    def act(self, generation=0, *, delay_client_completion_seconds=0.0, **proposal):
+        return self.call(generation, delay_client_completion_seconds=delay_client_completion_seconds,
+            propose=core.ActorActionRequest(**proposal))
 
     def close(self):
         for motion in self.motions:

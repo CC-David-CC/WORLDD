@@ -61,7 +61,7 @@ void ControlAdmin::wait(short events, Clock::time_point deadline) {
         const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - Clock::now()).count();
         require(remaining > 0, "Administrative operation timed out; effects are uncertain");
         pollfd descriptors[]{{socket_, events, 0}, {pidfd_, POLLIN, 0}};
-        const int result = poll(descriptors, 2, static_cast<int>(remaining));
+        const int result = ::poll(descriptors, 2, static_cast<int>(remaining));
         if (result < 0 && errno == EINTR) continue;
         require(result >= 0 && descriptors[1].revents == 0,
             "Broker process exited; administrative effects are uncertain");
@@ -70,8 +70,75 @@ void ControlAdmin::wait(short events, Clock::time_point deadline) {
         if (descriptors[0].revents & events) return;
     }
 }
+std::optional<workspace::v1::ControlSupervisorReply> ControlAdmin::receive_reply(
+    const workspace::v1::ControlSupervisorRequest& request) {
+    std::array<char, 65536> bytes_in{};
+    alignas(cmsghdr) std::array<char, CMSG_SPACE(sizeof(int) * 16) + CMSG_SPACE(sizeof(ucred))> ancillary{};
+    iovec data{bytes_in.data(), bytes_in.size()}; msghdr message{};
+    message.msg_iov = &data; message.msg_iovlen = 1;
+    message.msg_control = ancillary.data(); message.msg_controllen = ancillary.size();
+    const auto count = recvmsg(socket_, &message, MSG_DONTWAIT | MSG_CMSG_CLOEXEC);
+    if (count < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) return {};
+    unsigned credentials = 0; ucred sender{}; bool unexpected = false;
+    for (auto* header = CMSG_FIRSTHDR(&message); header; header = CMSG_NXTHDR(&message, header)) {
+        if (header->cmsg_len < CMSG_LEN(0)) { unexpected = true; continue; }
+        if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_RIGHTS) {
+            const auto size = header->cmsg_len - CMSG_LEN(0);
+            for (std::size_t offset = 0; offset + sizeof(int) <= size; offset += sizeof(int)) {
+                int fd; std::memcpy(&fd, CMSG_DATA(header) + offset, sizeof(fd)); close(fd);
+            }
+            unexpected = true;
+        } else if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_CREDENTIALS &&
+            header->cmsg_len == CMSG_LEN(sizeof(ucred))) {
+            ++credentials; std::memcpy(&sender, CMSG_DATA(header), sizeof(sender));
+        } else unexpected = true;
+    }
+    require(count > 0 && !(message.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) && !unexpected &&
+        credentials == 1 && sender.pid == broker_ && sender.uid == geteuid(),
+        "Administrative reply authentication failed; effects are uncertain");
+    workspace::v1::ControlSupervisorReply reply;
+    require(reply.ParseFromArray(bytes_in.data(), static_cast<int>(count)), "Malformed administrative reply");
+    validate_control_reply(request, reply);
+    return reply; // Typed remote errors remain explicit errors.
+}
+std::uint64_t ControlAdmin::begin(const workspace::v1::ControlSupervisorRequest& request) {
+    require(!pending_, "Administrative operation already in progress");
+    require(getpid()==creator_ && socket_>=3 && pidfd_>=0,"Administrative transport ownership lost");
+    validate_message(request);
+    require(request.protocol_version()==1 && request.request_id()>0 && request.ByteSizeLong()<=65536 &&
+        (request.has_inspect() || request.has_fence()),"Invalid asynchronous administrative request");
+    validate_control_owner(request.has_inspect()?request.inspect():request.fence());
+    pending_=Pending{request,Clock::now()+std::chrono::seconds(5),false};
+    return request.request_id();
+}
+std::optional<workspace::v1::ControlSupervisorReply> ControlAdmin::poll(std::uint64_t token) {
+    require(pending_ && pending_->request.request_id()==token,"Stale administrative operation");
+    try {
+        require(getpid()==creator_ && socket_>=3 && pidfd_>=0,"Administrative transport ownership lost");
+        require(Clock::now()<pending_->deadline,"Administrative operation timed out; effects are uncertain");
+        pollfd descriptors[]{{socket_,static_cast<short>(pending_->sent?POLLIN:POLLOUT),0},{pidfd_,POLLIN,0}};
+        const auto result=::poll(descriptors,2,0);
+        if(result<0 && errno==EINTR)return {};
+        require(result>=0 && descriptors[1].revents==0,
+            "Broker process exited; administrative effects are uncertain");
+        require(!(descriptors[0].revents&(POLLERR|POLLNVAL|POLLHUP)),
+            "Administrative channel failed; effects are uncertain");
+        if(!result)return {};
+        if(!pending_->sent) {
+            const auto bytes=pending_->request.SerializeAsString();
+            const auto count=send(socket_,bytes.data(),bytes.size(),MSG_NOSIGNAL|MSG_DONTWAIT);
+            if(count<0 && (errno==EINTR || errno==EAGAIN || errno==EWOULDBLOCK))return {};
+            require(count==static_cast<ssize_t>(bytes.size()),"Administrative send failed; effects are uncertain");
+            pending_->sent=true;
+        }
+        auto reply=receive_reply(pending_->request);
+        if(reply)pending_.reset();
+        return reply;
+    }catch(...){close_all();throw;}
+}
 workspace::v1::ControlSupervisorReply ControlAdmin::exchange(
     const workspace::v1::ControlSupervisorRequest& request, int endpoint) {
+    require(!pending_, "Administrative operation already in progress");
     // Reject caller errors before sending anything.
     validate_message(request);
     require(request.protocol_version() == 1 && request.ByteSizeLong() <= 65536,
@@ -105,34 +172,7 @@ workspace::v1::ControlSupervisorReply ControlAdmin::exchange(
         }
         for (;;) {
             wait(POLLIN, deadline);
-            std::array<char, 65536> bytes_in{};
-            alignas(cmsghdr) std::array<char, CMSG_SPACE(sizeof(int) * 16) + CMSG_SPACE(sizeof(ucred))> ancillary{};
-            iovec data{bytes_in.data(), bytes_in.size()}; msghdr message{};
-            message.msg_iov = &data; message.msg_iovlen = 1;
-            message.msg_control = ancillary.data(); message.msg_controllen = ancillary.size();
-            const auto count = recvmsg(socket_, &message, MSG_DONTWAIT | MSG_CMSG_CLOEXEC);
-            if (count < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
-            unsigned credentials = 0; ucred sender{}; bool unexpected = false;
-            for (auto* header = CMSG_FIRSTHDR(&message); header; header = CMSG_NXTHDR(&message, header)) {
-                if (header->cmsg_len < CMSG_LEN(0)) { unexpected = true; continue; }
-                if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_RIGHTS) {
-                    const auto size = header->cmsg_len - CMSG_LEN(0);
-                    for (std::size_t offset = 0; offset + sizeof(int) <= size; offset += sizeof(int)) {
-                        int fd; std::memcpy(&fd, CMSG_DATA(header) + offset, sizeof(fd)); close(fd);
-                    }
-                    unexpected = true;
-                } else if (header->cmsg_level == SOL_SOCKET && header->cmsg_type == SCM_CREDENTIALS &&
-                    header->cmsg_len == CMSG_LEN(sizeof(ucred))) {
-                    ++credentials; std::memcpy(&sender, CMSG_DATA(header), sizeof(sender));
-                } else unexpected = true;
-            }
-            require(count > 0 && !(message.msg_flags & (MSG_TRUNC | MSG_CTRUNC)) && !unexpected &&
-                credentials == 1 && sender.pid == broker_ && sender.uid == geteuid(),
-                "Administrative reply authentication failed; effects are uncertain");
-            workspace::v1::ControlSupervisorReply reply;
-            require(reply.ParseFromArray(bytes_in.data(), static_cast<int>(count)), "Malformed administrative reply");
-            validate_control_reply(request, reply);
-            return reply; // Typed remote errors remain explicit errors.
+            if (auto reply = receive_reply(request)) return std::move(*reply);
         }
     } catch (...) { close_all(); throw; }
 }

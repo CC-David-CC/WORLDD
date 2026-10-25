@@ -7,10 +7,11 @@
 
 namespace spatial::control {
 namespace {
-constexpr unsigned first_binding = 4;
+constexpr unsigned first_binding = 5;
 constexpr unsigned calibration_row = first_binding + 11;
 constexpr unsigned copy_row = calibration_row + 1;
 constexpr unsigned close_row = copy_row + 1;
+constexpr std::size_t maximum_menu_held_keys = 256;
 const char* const names[]{"Forward", "Backward", "Left", "Right", "Up", "Down", "Roll left", "Roll right", "Switch mode", "Controls menu", "Cancel input"};
 const char* const directions[]{"Move right", "Move up", "Move backward", "Look up", "Turn left", "Roll left"};
 void need(bool b,const char* s){if(!b)throw std::invalid_argument(s);}
@@ -43,7 +44,11 @@ void ControlsMenu::event(const v1::DeviceEvent& e,DeviceAdapters::Clock::time_po
     bool fresh_key=false;
     if(e.has_key()){
         auto& keys=physical_keys_[e.source_id()];
-        if(e.key().pressed())fresh_key=!e.key().repeat()&&keys.insert(e.key().keysym()).second;
+        if(e.key().pressed()){
+            if(!e.key().repeat()&&!keys.contains(e.key().keysym())&&keys.size()>=maximum_menu_held_keys)
+                throw std::invalid_argument("Controls menu held-key limit reached");
+            fresh_key=!e.key().repeat()&&keys.insert(e.key().keysym()).second;
+        }
         else keys.erase(e.key().keysym());
     }
     const bool open=adapters_.status().menu_open();
@@ -109,6 +114,7 @@ void ControlsMenu::key(const std::string& key,DeviceAdapters::Clock::time_point 
     }else if(row_==1){profile->set_mouse_radians_per_count(std::clamp(profile->mouse_radians_per_count()*(direction<0?1/1.2:1.2),.00001,.1));apply(std::move(p));
     }else if(row_==2){profile->set_invert_mouse_y(!profile->invert_mouse_y());apply(std::move(p));
     }else if(row_==3){profile->set_movement(profile->movement()==v1::LEVEL_MOVEMENT?v1::FREE_FLIGHT:v1::LEVEL_MOVEMENT);apply(std::move(p));
+    }else if(row_==4){profile->set_key_delivery(profile->key_delivery()==v1::KEY_TAP?v1::KEY_HOLD:v1::KEY_TAP);apply(std::move(p));
     }else if(row_>=first_binding&&row_<calibration_row&&key=="Return"){rebinding_=row_-first_binding;message_.clear();
     }else if(row_==calibration_row&&key=="Return"){calibration_axis_=0;calibration_.clear();measuring_=false;sampled_=false;message_.clear();
     }else if(row_==copy_row&&key=="Return"){
@@ -128,6 +134,7 @@ v1::ControlMenuView ControlsMenu::view() const {
     auto add=[&](std::string label,std::string value){auto* row=result.add_entries();row->set_selected(static_cast<unsigned>(result.entries_size()-1)==row_);row->set_label(std::move(label));row->set_value(std::move(value));};
     add("Preset",profile.label());std::ostringstream sensitivity;sensitivity<<std::setprecision(3)<<profile.mouse_radians_per_count()/.0025<<"x";add("Mouse sensitivity",sensitivity.str());
     add("Invert mouse Y",profile.invert_mouse_y()?"Yes":"No");add("Keyboard movement",profile.movement()==v1::LEVEL_MOVEMENT?"Level":"Flight");
+    add("Application key delivery",profile.key_delivery()==v1::KEY_TAP?"Tap (typing)":"Hold (games)");
     for(unsigned action=1;action<=11;++action){std::string key="Unbound";for(const auto& b:profile.bindings())if(static_cast<unsigned>(b.action())==action)key=b.keysym();add(names[action-1],key);}
     add("SpaceMouse calibration",profile.spacemouse_calibrated()?"Calibrated: Enter to replace":"Uncalibrated: Enter to measure");add("Copy to editable variation","Enter");add("Close controls","Enter");
     for(const auto value:raw_)result.add_raw_axes(value);

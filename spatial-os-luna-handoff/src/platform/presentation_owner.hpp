@@ -30,11 +30,18 @@ public:
     std::uint64_t begin_select_local_actor(const render::v1::LocalActorPresentationTarget&);
     std::optional<render::v1::LocalActorPresentationState> poll_select_local_actor(std::uint64_t);
     render::v1::LocalActorPresentationState retire_local_actor(const render::v1::LocalActorPresentationTarget&);
+    std::uint64_t begin_retire_local_actor(const render::v1::LocalActorPresentationTarget&);
+    std::optional<render::v1::LocalActorPresentationState> poll_retire_local_actor(std::uint64_t);
+    bool pending() const noexcept;
     void clear_selection();
     core::v1::PixelExtent native_viewport() const;
     void present_controls(std::uint64_t capture_generation,const control::v1::ControlMenuView&);
+    std::uint64_t begin_present_controls(std::uint64_t,const control::v1::ControlMenuView&);
+    bool poll_present_controls(std::uint64_t);
     void start_capture(std::uint64_t,const control::v1::NativeCaptureConfig&,int borrowed_endpoint);
     void stop_capture(std::uint64_t);
+    std::uint64_t begin_stop_capture(std::uint64_t);
+    bool poll_stop_capture(std::uint64_t);
     void shutdown();
 private:
     struct Impl;std::unique_ptr<Impl> impl_;

@@ -251,6 +251,15 @@ Source116 Debug broker, issuer, client, and security helpers remain declared dep
 The scripted adapter remains source170 in its selected profile.
 World, host, compositor, participant supervisor, and changed C++ probes use source220 in the selected profile.
 Scripted scenarios select retained movement. Additional non-scripted projection fixtures preserve their original world policy and expiry.
+
+M10 contract revision, 2026-10-25
+
+The per-ingress `motion_progress_floor` described above is superseded by
+`docs/M10_INPUT_LIVENESS_AND_ACTOR_SEATS_2026-10-25.txt`. An authenticated actor's
+movement refresh now uses the checked live revocation feed and local retained grant
+state. It does not wait for a new participant progress exchange on every refresh.
+The feed, incarnation, token, sequence, navigation grant, and 250 ms motion expiry
+remain enforced. Feed failure or a consumed revocation cancels the actor immediately.
 Human capture uses fixture identities and an independent fixture producer. This is not physical input acceptance.
 
 Source and evidence pins

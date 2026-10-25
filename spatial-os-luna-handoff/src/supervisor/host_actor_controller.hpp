@@ -49,6 +49,7 @@ public:
     control::v1::ControlStatus tick_controls(std::uint64_t generation);
     control::v1::ControlStatus control_status(std::uint64_t generation) const;
     control::v1::ControlMenuView controls_menu(std::uint64_t generation) const;
+    std::shared_ptr<control::MotionIntent> motion_intent(std::uint64_t generation) const;
     void synchronize_controls_presentation();
     // Obtain on the owner thread before exchanges. The watchdog only requests socket shutdown.
     std::weak_ptr<const ActorSessionInterrupt> interrupt_handle(std::uint64_t generation);
@@ -59,6 +60,7 @@ public:
     void start_geometry_presentation();
     void enable_presentation_continuations();
     bool pump_geometry_presentation();
+    bool pump_deferred_cleanup();
     std::string current_world() const;
 
 private:
@@ -69,6 +71,7 @@ private:
     control::v1::ControlStatus control_status_locked() const;
     bool retire_foreground_locked() noexcept;
     void clear_foreground_locked();
+    void defer_foreground_locked(bool release_binding = true);
     void refresh_foreground_locked();
     void publish_local_frame_locked(const core::v1::ActorLocalViewIdentity&,const core::v1::ActorLocalViewState&);
     void synchronize_controls_presentation_locked();
@@ -77,6 +80,7 @@ private:
     std::optional<render::v1::GeometryPresentationTarget> geometry_target_;
     struct LocalTarget {workspace::v1::ControlOwner owner;core::v1::ActorLocalViewIdentity identity;};
     std::optional<LocalTarget> local_target_;
+    std::vector<LocalTarget> retiring_targets_;
     struct LocalFrame {
         SessionCoordinator::LocalPresentationTicket ticket;
         std::uint64_t actor_generation, capture_generation;
@@ -84,6 +88,7 @@ private:
     std::optional<LocalFrame> local_frame_;
     bool presentation_continuations_ = false;
     identity::v1::HostGeometryStatus geometry_status_;
+    std::string presentation_failure_;
     PresentationInspect inspect_;
     PresentationSelect select_;
     ControlsPresentation present_controls_;

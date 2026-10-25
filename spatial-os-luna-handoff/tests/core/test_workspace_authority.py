@@ -1,4 +1,5 @@
 """Authenticated actors use real workspace grants and confined POSIX processes."""
+import json
 import os
 from pathlib import Path
 import socket
@@ -54,7 +55,15 @@ class BrokerChannel:
                 if request.protocol_version != 1 or request.request_id <= 0:
                     raise AssertionError('Invalid world broker request identity')
                 self.broker.world_request_count += 1
-                self.send(self.broker.exchange(request))
+                reply=self.broker.exchange(request)
+                delay=self.broker.take_world_reply_delay(request)
+                if delay:
+                    delay['entered_at']=time.monotonic()
+                    delay['entered'].set()
+                    time.sleep(delay['seconds'])
+                    delay['finished_at']=time.monotonic()
+                    delay['finished'].set()
+                self.send(reply)
         except (EOFError, OSError):
             pass
         except BaseException as error:
@@ -373,8 +382,30 @@ class BrokerProcess:
         self.transport_error = None
         self.channels = []
         self.world_request_count = 0
+        self.world_reply_delay = None
+        self.world_reply_delay_lock = threading.Lock()
         self.world_channel_opt_in = bool(world_channel_opt_in)
         self.world_channel_factory = self.open_world_channel if self.world_channel_opt_in else None
+
+    def delay_world_reply_for(self, operation, seconds):
+        if operation not in broker.Request.DESCRIPTOR.oneofs_by_name['operation'].fields_by_name:
+            raise ValueError('Unknown broker request operation')
+        if not 0 < seconds <= 5:
+            raise ValueError('Broker reply delay must be within 0..5 seconds')
+        delay={'operation':operation,'seconds':seconds,'entered':threading.Event(),
+            'finished':threading.Event(),'entered_at':None,'finished_at':None}
+        with self.world_reply_delay_lock:
+            if self.world_reply_delay is not None:raise RuntimeError('A broker reply delay is already armed')
+            self.world_reply_delay=delay
+        return delay
+
+    def take_world_reply_delay(self, request):
+        with self.world_reply_delay_lock:
+            delay=self.world_reply_delay
+            if delay and request.HasField(delay['operation']):
+                self.world_reply_delay=None
+                return delay
+        return None
 
     def dispatch_control(self, reply):
         if not reply.HasField('control_revoked') or reply.request_id != 0:
@@ -781,6 +812,53 @@ class WorkspaceAuthorityTests(WorldIdentityFixture):
             remaining = deadline-time.monotonic()
             self.assertGreater(remaining, 0, f'Broker did not consume revision {revision} while status was pending: {text}')
             self.assertFalse(relay.stop.wait(min(.005, remaining)), 'Issuer relay stopped during consumption barrier')
+
+    def test_authenticated_motion_refresh_runs_during_delayed_broker_access_reply(self):
+        self.retained_movement_override=True
+        self.workspace(attach_world=False)
+        world=self.scoped_world(session.REGISTERED_ACTORS,broker=self.broker,input_timeout=.25)
+        world.management('workspace.available',id='one',available=True)
+        peer=world.peers[0]
+        before=peer.call(inspect=session.WorldSessionInspect()).state
+        config=text_format.Parse(world.runtime_path.read_text(),core.RuntimeConfig())
+        self.assertEqual(config.input_timeout,.25)
+        delay=self.broker.delay_world_reply_for('access',1.0)
+        outcome=[];failures=[]
+        def select_workspace():
+            try:outcome.append(peer.act(workspace_select=core.WorkspaceIdRequest(id='one')))
+            except BaseException as error:failures.append(error)
+        action=threading.Thread(target=select_workspace,name='m10-slow-broker-action')
+        action_started=time.monotonic();action.start()
+        self.assertTrue(delay['entered'].wait(5),'World did not enter its broker-backed workspace authorization call')
+        self.assertTrue(action.is_alive(),'Workspace authorization returned before the broker delay started')
+        started=time.monotonic();refreshes=[]
+        moving=core.ActorInputRequest(axes=[1,0,0,0,0,0])
+        while time.monotonic()-started<.78:
+            peer.motion_refresh(moving);refreshes.append(time.monotonic())
+            time.sleep(.08)
+        pending=not delay['finished'].is_set()
+        peer.motion_refresh(core.ActorInputRequest(axes=[0,0,0,0,0,0]))
+        action.join(timeout=5)
+        self.assertFalse(action.is_alive(),'Workspace actor action did not finish after its delayed broker reply')
+        if failures:raise failures[0]
+        self.assertEqual(len(outcome),1)
+        self.assertTrue(outcome[0].HasField('action'),outcome[0])
+        self.assertTrue(outcome[0].action.accepted,outcome[0])
+        after=peer.call(inspect=session.WorldSessionInspect()).state
+        displacement=after.pose.position.x-before.pose.position.x
+        gaps=[later-earlier for earlier,later in zip(refreshes,refreshes[1:])]
+        observations=dict(broker_operation='access',broker_reply_delay_seconds=delay['finished_at']-delay['entered_at'],
+            broker_delay_still_pending_during_movement=pending,movement_window_seconds=time.monotonic()-started,
+            movement_refresh_count=len(refreshes),maximum_refresh_gap_seconds=max(gaps),
+            displacement_x=displacement,actor_action_elapsed_seconds=time.monotonic()-action_started)
+        evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if evidence:
+            path=Path(evidence)/(self._testMethodName+'-progress.json')
+            path.write_text(json.dumps(observations,sort_keys=True,indent=2)+'\n');path.chmod(0o600)
+        self.assertTrue(pending,'Broker reply delay ended before the movement window completed')
+        self.assertGreaterEqual(len(refreshes),8,refreshes)
+        self.assertTrue(all(gap<.25 for gap in gaps),gaps)
+        self.assertGreater(displacement,.3,'World motion did not advance during the delayed broker authorization reply')
 
     def test_m07_actor_schema_tags_and_copy_status_privacy(self):
         action_fields = core.ActorActionRequest.DESCRIPTOR.oneofs_by_name['action'].fields

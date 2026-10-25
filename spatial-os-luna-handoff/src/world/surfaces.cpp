@@ -15,9 +15,25 @@ bool same_application(const wire::NativeSurface& a, const wire::NativeSurface& b
     return left.server_id() == right.server_id() && left.workspace() == right.workspace() &&
            left.application() == right.application();
 }
+bool matches_application_slot(const wire::NativeSurface& native,const wire::Entity& slot) {
+    if(!native.mapped() || native.parent_xid() || !native.has_application_identity() || !slot.has_application_slot())return false;
+    const auto& identity=native.application_identity();const auto& binding=slot.application_slot();
+    return binding.surface_id()==native.handle().id() && binding.server_id()==identity.server_id() &&
+        binding.workspace()==identity.workspace() && binding.application()==identity.application();
+}
 }
 void Surfaces::refresh(const wire::NativeSnapshot& snapshot) {
     validate_message(snapshot);
+    const auto revision=world_.info().world_revision();
+    if(application_slot_revision_!=revision) {
+        std::map<std::string,wire::Entity> slots;
+        const auto world=world_.snapshot();
+        for(const auto& entity:world.entities())if(entity.has_application_slot()) {
+            if(!slots.emplace(entity.application_slot().surface_id(),entity).second)
+                throw WorldError(wire::STORAGE_ERROR,"Duplicate durable application surface binding");
+        }
+        application_slots_=std::move(slots);application_slot_revision_=revision;
+    }
     std::set<std::string> present;
     for (const auto& native : snapshot.surfaces()) {
         const auto& id = native.handle().id();
@@ -31,6 +47,12 @@ void Surfaces::refresh(const wire::NativeSnapshot& snapshot) {
         it->second.native = native;
         // Native transients follow their parent. They cannot retain a separate slot attachment.
         if (native.parent_xid()) it->second.slot.clear();
+        const auto slot=application_slots_.find(id);
+        if(slot!=application_slots_.end() && matches_application_slot(native,slot->second)) {
+            it->second.slot=slot->second.id();it->second.application_slot=true;it->second.room.clear();
+        } else if(it->second.application_slot) {
+            it->second.slot.clear();it->second.application_slot=false;it->second.room.clear();
+        }
     }
     std::erase_if(surfaces_, [&](const auto& item) { return !present.contains(item.first); });
     resources_ = snapshot.resources();
@@ -46,6 +68,9 @@ wire::SurfaceRecord Surfaces::resolve(const std::string& id, std::set<std::strin
     result.set_room(surface.room); *result.mutable_pose() = surface.pose; *result.mutable_size() = surface.size;
     if (!surface.slot.empty()) {
         const auto slot = world_.get(surface.slot);
+        if(slot.has_application_slot() && !matches_application_slot(native,slot)) {
+            result.clear_room();result.set_mapped(false);return result;
+        }
         result.set_slot(slot.id()); result.set_room(slot.room());
         *result.mutable_pose() = slot.pose(); *result.mutable_size() = slot.size();
     }
@@ -149,9 +174,14 @@ wire::SurfaceRecord Surfaces::attach_slot(const wire::SurfaceAttachSlotRequest& 
     if (surface.native.parent_xid()) throw std::invalid_argument("Attach the application parent surface");
     const auto slot = world_.get(request.slot());
     if (slot.kind() != wire::SURFACE_SLOT) throw std::invalid_argument("Attachment target is not a surface slot");
+    if(slot.has_application_slot() && !matches_application_slot(surface.native,slot))
+        throw WorldError(wire::STALE_TARGET,"Application slot has a different native identity");
+    if(surface.application_slot && surface.slot!=slot.id())
+        throw WorldError(wire::BUSY,"Application surface already has a durable binding");
     for (const auto& [id, other] : surfaces_)
         if (id != request.id() && other.slot == slot.id()) throw WorldError(wire::BUSY, "Slot has another live attachment");
     surface.slot = slot.id();
+    surface.application_slot=slot.has_application_slot();
     // A later detach must not revive an earlier independent placement.
     surface.room.clear();
     return get(request.id());
@@ -159,8 +189,20 @@ wire::SurfaceRecord Surfaces::attach_slot(const wire::SurfaceAttachSlotRequest& 
 void Surfaces::forget_slot(const std::string& id) {
     for (auto& [surface_id, surface] : surfaces_) {
         (void)surface_id;
-        if (surface.slot == id) surface.slot.clear();
+        if (surface.slot == id) {surface.slot.clear();surface.application_slot=false;}
     }
+}
+std::vector<wire::SurfaceRecord> Surfaces::application_surfaces(const std::string& workspace,
+        const std::string& application) const {
+    std::vector<wire::SurfaceRecord> result;
+    for(const auto& [id,value]:surfaces_) {
+        const auto& native=value.native;
+        if(!native.mapped() || native.parent_xid() || !native.has_application_identity())continue;
+        const auto& identity=native.application_identity();
+        if(identity.workspace()!=workspace || identity.application()!=application)continue;
+        result.push_back(get(id));
+    }
+    return result;
 }
 wire::SurfaceValidationReply Surfaces::validate_handle(const wire::SurfaceValidateRequest& request) const {
     if (!request.has_handle()) throw std::invalid_argument("Missing surface handle");

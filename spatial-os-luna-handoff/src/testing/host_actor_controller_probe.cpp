@@ -455,6 +455,58 @@ control::v1::CapturedDeviceEvent worker_packet(const supervisor::HostActorWorker
     else event->mutable_heartbeat();
     return packet;
 }
+control::v1::CapturedDeviceEvent worker_mouse_motion_packet(
+        const supervisor::HostActorWorker::Binding& binding,std::uint64_t sequence,double dx,double dy,
+        bool connected=false) {
+    control::v1::CapturedDeviceEvent packet;
+    packet.set_protocol_version(1);packet.set_capture_generation(binding->capture_generation);
+    packet.set_packet_sequence(sequence);packet.set_monotonic_nanoseconds(static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()));
+    auto* event=packet.mutable_event();event->set_protocol_version(1);event->set_source_id("worker-mouse");
+    event->set_source_generation(1);event->set_event_sequence(sequence);
+    if(connected)event->mutable_connected()->set_kind(control::v1::MOUSE);
+    else {event->mutable_motion()->set_dx(dx);event->mutable_motion()->set_dy(dy);}
+    return packet;
+}
+void worker_relative_motion_coalesces_without_losing_counts() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        const auto action=controlled_accept(fd,3,1,core::v1::ActorActionRequest::kRelativeLook);
+        const auto& delta=action.relative_look().angular_delta();
+        check(std::abs(delta.x()+.005)<1e-9 && std::abs(delta.y()+.0025)<1e-9,
+              "Coalescing dropped or repeated relative mouse counts");
+        closed(fd);
+    });
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);
+        const auto binding=worker.capture_binding();
+        check(worker.post_device(binding,worker_mouse_motion_packet(binding,1,0,0,true)),"Mouse source did not connect");
+        const auto connected_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected_deadline)
+            std::this_thread::sleep_for(1ms);
+        check(binding->processed_sequence()==1,"Mouse source connection was not processed");
+        std::promise<void> entered,release;auto gate=release.get_future().share();
+        auto blocked=worker.submit([&] {entered.set_value();gate.wait();});entered.get_future().wait();
+        constexpr std::uint64_t samples=1000;
+        const auto started=std::chrono::steady_clock::now();
+        for(std::uint64_t index=0;index<samples;++index)
+            check(worker.post_device(binding,worker_mouse_motion_packet(binding,index+2,.001,.002)),
+                  "Coalesced motion queue applied backpressure below its bounded workload");
+        const auto elapsed=std::chrono::steady_clock::now()-started;
+        const double rate=samples/std::chrono::duration<double>(elapsed).count();
+        std::cout<<"M10 coalesced motion samples per second: "<<rate<<'\n';
+        release.set_value();blocked.get();
+        const auto processed_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->processed_sequence()<samples+1 && std::chrono::steady_clock::now()<processed_deadline)
+            std::this_thread::sleep_for(1ms);
+        check(binding->processed_sequence()==samples+1,"Coalesced motion lost the newest capture sequence");
+        check(rate>=1000,"Motion queue did not accept 1000 samples per second");
+        check(host->control_available(),"Motion coalescing retired healthy actor authority");
+    }
+    host.reset();source.finish();
+}
 void worker_serializes_concurrent_callers() {
     Fixture fixture; Endpoint source(fixture);
     source.start([&](int fd) {
@@ -470,6 +522,26 @@ void worker_serializes_concurrent_callers() {
             return worker.call([&] {return host->propose(0,shared_stop()).accepted();});
         }));
         for(auto& reply:replies)check(reply.get(),"Concurrent queued proposal was refused");
+    }
+    host.reset();source.finish();
+}
+void worker_ordinary_exception_preserves_type_and_context() {
+    Fixture fixture;Endpoint source(fixture);
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);
+        closed(fd);
+    });
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);bool original=false;
+        try {worker.call([] {throw std::invalid_argument("ordinary worker failure");});}
+        catch(const std::invalid_argument& error) {original=std::string(error.what())=="ordinary worker failure";}
+        catch(...) {}
+        check(original,"An ordinary exception was relabelled as actor interruption");
+        check(host->control_available(),"An ordinary exception retired healthy actor authority");
+        check(worker.call([&] {return host->propose(0,shared_stop()).accepted();}),
+              "Healthy actor did not remain usable after an ordinary exception");
     }
     host.reset();source.finish();
 }
@@ -706,7 +778,8 @@ void worker_watchdog_interrupts_without_actor_locks() {
         const auto start=std::chrono::steady_clock::now();
         auto result=std::async(std::launch::async,[&] {
             try {worker.call([&] {return host->propose(0,shared_stop());},worker.capture_binding(),true);return false;}
-            catch(const std::exception&) {return true;}
+            catch(const supervisor::HostActorContextInterrupted&) {return true;}
+            catch(...) {return false;}
         });
         waiting.get_future().wait();
         check(result.wait_for(2s)==std::future_status::ready && result.get(),"Watchdog did not interrupt blocked actor work");
@@ -784,6 +857,30 @@ void worker_heartbeat_only_wait_keeps_real_cancellation(unsigned cause) {
         check(!healthy_result,"Interrupted foreground work published a healthy result");
         check(clean,"Heartbeat watchdog test left capture cleanup unresolved");
         check(!host->control_available(),"Interrupted actor context remained available");
+    }
+    producer.reset();host.reset();
+}
+void worker_pending_capture_retirement_keeps_root_calls_available() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd){handshake(fd,fixture);
+        controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);});
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+    std::atomic<bool> release{false};std::atomic<unsigned> polls{0};
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),
+            [](const auto&){throw std::runtime_error("Pending capture used synchronous fallback");},
+            [&](const auto&){++polls;return release.load();});
+        const auto binding=worker.capture_binding();check(worker.request_cancel(binding),"Capture cancellation was not queued");
+        const auto deadline=std::chrono::steady_clock::now()+1s;
+        while(!polls.load() && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(2ms);
+        check(polls.load()>0,"Capture retirement did not enter its actual pending path");
+        auto status=worker.submit([&]{return host->control_available();});
+        check(status.wait_for(300ms)==std::future_status::ready && status.get(),
+            "Pending capture retirement blocked root calls or retired actor authority");
+        auto stopping=std::async(std::launch::async,[&]{return worker.shutdown();});
+        check(stopping.wait_for(50ms)==std::future_status::timeout,"Capture cleanup was reported before its receipt");
+        release.store(true);check(stopping.get(),"Checked capture completion did not settle retained cleanup");
+        source.finish();
     }
     producer.reset();host.reset();
 }
@@ -1018,7 +1115,9 @@ int main(int argc, char** argv) {
     try {
         if(argc==2 && std::string(argv[1])=="--worker-only") {
             worker_serializes_concurrent_callers();std::cout<<"PASS worker-serializes-concurrent-callers\n";
+            worker_ordinary_exception_preserves_type_and_context();std::cout<<"PASS worker-ordinary-exception-preserves-type-and-context\n";
             worker_queue_bound_and_overflow_cancellation();std::cout<<"PASS worker-bounded-queue-overflow-and-retired-input-urgency\n";
+            worker_relative_motion_coalesces_without_losing_counts();std::cout<<"PASS worker-relative-motion-coalescing-preserves-counts-at-1kHz\n";
             worker_retired_receiver_cannot_cancel_or_interrupt_adopted_context();std::cout<<"PASS worker-retired-receiver-cannot-affect-adopted-context\n";
             worker_malformed_current_capture_retires_before_more_delivery();std::cout<<"PASS worker-malformed-current-capture-retires-and-cancels\n";
             worker_queue_empty_cancellation_has_its_own_watchdog_urgency();std::cout<<"PASS worker-queue-empty-cancellation-watchdog\n";
@@ -1036,6 +1135,7 @@ int main(int argc, char** argv) {
             worker_heartbeat_only_wait_keeps_real_cancellation(1);std::cout<<"PASS worker-heartbeat-only-wait-then-fresh-key-watchdog\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(2);std::cout<<"PASS worker-heartbeat-only-wait-then-real-source-silence\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(3);std::cout<<"PASS worker-heartbeat-only-wait-then-malformed-source-heartbeat\n";
+            worker_pending_capture_retirement_keeps_root_calls_available();std::cout<<"PASS worker-pending-capture-retirement-keeps-root-calls-available\n";
             worker_shutdown_cannot_publish_a_cached_nonvoid_result();std::cout<<"PASS worker-shutdown-interrupted-cached-nonvoid-result\n";
             return 0;
         }

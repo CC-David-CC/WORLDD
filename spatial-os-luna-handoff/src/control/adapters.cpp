@@ -10,15 +10,168 @@ void need(bool value, const char* message) { if (!value) throw std::invalid_argu
 constexpr auto source_timeout = std::chrono::milliseconds(350);
 constexpr auto axis_timeout = std::chrono::milliseconds(250);
 constexpr auto event_max_age = std::chrono::milliseconds(250);
+constexpr std::size_t maximum_held_keys = 256;
 struct ExpiredGesture {};
 bool known_kind(v1::DeviceKind kind) { return kind == v1::KEYBOARD || kind == v1::MOUSE || kind == v1::SPACEMOUSE; }
+bool modifier_key(const std::string& key) {
+    static const std::set<std::string> modifiers{
+        "Shift_L", "Shift_R", "Control_L", "Control_R", "Alt_L", "Alt_R",
+        "Meta_L", "Meta_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R",
+        "ISO_Level3_Shift", "Mode_switch"};
+    return modifiers.contains(key);
 }
+}
+void MotionIntent::configure(const v1::ControlProfiles& profiles, bool enabled, Clock::time_point now) {
+    validate_profiles(profiles);
+    std::lock_guard lock(mutex_);
+    profiles_ = profiles;
+    if (enabled_ != enabled) {
+        for (auto& [id, source] : sources_) {
+            (void)id; source.keys.clear(); source.axes.fill(0); source.has_axes = false;
+        }
+        fresh_after_ = now;
+    }
+    enabled_ = enabled;
+    fresh_after_ = now;
+}
+void MotionIntent::clear() {
+    std::lock_guard lock(mutex_);
+    sources_.clear(); retired_generations_.clear(); last_active_ = false; enabled_ = false;
+    fresh_after_ = Clock::now(); last_refresh_ = Clock::time_point::min();
+}
+void MotionIntent::clear_motion(Clock::time_point now) {
+    std::lock_guard lock(mutex_);
+    for (auto& [id, source] : sources_) {
+        (void)id; source.keys.clear(); source.axes.fill(0); source.has_axes = false;
+    }
+    fresh_after_ = now;
+}
+bool MotionIntent::observe(const v1::DeviceEvent& event, Clock::time_point captured, Clock::time_point now) {
+    try {
+        validate_message(event);
+        if (event.protocol_version() != 1 || event.source_id().empty() || event.source_id().size() > 80 ||
+            event.source_id().find('\0') != std::string::npos || !event.source_generation() ||
+            !event.event_sequence() || event.event_case() == v1::DeviceEvent::EVENT_NOT_SET || captured > now)
+            return false;
+        std::lock_guard lock(mutex_);
+        auto found = sources_.find(event.source_id());
+        if (event.has_connected()) {
+            const auto retired = retired_generations_.find(event.source_id());
+            if (!known_kind(event.connected().kind()) || found != sources_.end() || sources_.size() >= 64 ||
+                (retired == retired_generations_.end() && sources_.size() + retired_generations_.size() >= 64) ||
+                (retired != retired_generations_.end() && event.source_generation() <= retired->second)) return false;
+            Source source; source.kind = event.connected().kind(); source.generation = event.source_generation();
+            source.sequence = event.event_sequence(); source.heartbeat = captured; source.axes_time = captured;
+            sources_.emplace(event.source_id(), std::move(source));
+            return true;
+        }
+        if (found == sources_.end() || found->second.generation != event.source_generation() ||
+            event.event_sequence() <= found->second.sequence || captured < found->second.heartbeat) return false;
+        auto& source = found->second;
+        source.sequence = event.event_sequence(); source.heartbeat = captured;
+        if (event.has_disconnected()) {
+            if (!retired_generations_.contains(event.source_id()) && retired_generations_.size() >= 64) return false;
+            retired_generations_[event.source_id()] = source.generation;
+            sources_.erase(found);
+            for (auto& [id, current] : sources_) {
+                (void)id; current.keys.clear(); current.axes.fill(0); current.has_axes = false;
+            }
+            fresh_after_ = now;
+            return true;
+        }
+        if (captured < fresh_after_ || now - captured >= event_max_age) {
+            source.keys.clear(); source.axes.fill(0); source.has_axes = false; fresh_after_ = now;
+            return true;
+        }
+        if (event.has_heartbeat()) return true;
+        if (event.has_key()) {
+            if (source.kind != v1::KEYBOARD || event.key().keysym().empty() ||
+                event.key().keysym().size() > 64 || event.key().keysym().find('\0') != std::string::npos) return false;
+            if (!event.key().repeat()) {
+                if (event.key().pressed()) {
+                    if (!source.keys.contains(event.key().keysym()) && source.keys.size() >= maximum_held_keys) return false;
+                    source.keys.insert(event.key().keysym());
+                }
+                else source.keys.erase(event.key().keysym());
+            }
+        } else if (event.has_axes()) {
+            if (source.kind != v1::SPACEMOUSE || event.axes().raw_size() != 6) return false;
+            const auto& profile = active_profile(profiles_);
+            source.axes.fill(0); source.has_axes = profile.spacemouse_calibrated();
+            if (source.has_axes) for (unsigned i = 0; i < 6; ++i) {
+                const auto& calibration = profile.spacemouse_axes(static_cast<int>(i));
+                const auto index = static_cast<unsigned>(std::abs(calibration.raw_axis()) - 1);
+                const double raw = event.axes().raw(static_cast<int>(index));
+                if (!std::isfinite(raw) || std::abs(raw) > 1e9) return false;
+                source.axes[i] = std::clamp((raw - calibration.center()) / calibration.full_scale() *
+                    (calibration.raw_axis() < 0 ? -1 : 1), -1., 1.);
+            }
+            source.axes_time = captured;
+        } else if (event.has_motion()) {
+            if (source.kind != v1::MOUSE) return false;
+        } else if (event.has_button()) {
+            if (source.kind != v1::MOUSE && source.kind != v1::SPACEMOUSE) return false;
+        } else if (event.has_scroll()) {
+            if (source.kind != v1::MOUSE || event.scroll().steps_y() < -64 || event.scroll().steps_y() > 64) return false;
+        }
+        return true;
+    } catch (...) { return false; }
+}
+std::optional<core::v1::ActorInputRequest> MotionIntent::next(Clock::time_point now) {
+    constexpr auto refresh_interval = std::chrono::milliseconds(80);
+    std::lock_guard lock(mutex_);
+    if (!enabled_ || (last_refresh_ != Clock::time_point::min() && now - last_refresh_ < refresh_interval))
+        return std::nullopt;
+    const bool source_lost = std::any_of(sources_.begin(), sources_.end(), [&](const auto& item) {
+        return now < item.second.heartbeat || now - item.second.heartbeat >= source_timeout;
+    });
+    if (source_lost) for (auto& [id, source] : sources_) {
+        (void)id; source.keys.clear(); source.axes.fill(0); source.has_axes = false;
+    }
+    std::array<double, 6> axes{};
+    const auto& profile = active_profile(profiles_);
+    for (const auto& [id, source] : sources_) {
+        (void)id;
+        for (const auto& key : source.keys) switch ([&] {
+            for (const auto& binding : profile.bindings()) if (binding.keysym() == key) return binding.action();
+            return v1::BINDING_UNSPECIFIED;
+        }()) {
+        case v1::FORWARD: axes[2] -= 1; break; case v1::BACKWARD: axes[2] += 1; break;
+        case v1::LEFT: axes[0] -= 1; break; case v1::RIGHT: axes[0] += 1; break;
+        case v1::UP: axes[1] += 1; break; case v1::DOWN: axes[1] -= 1; break;
+        case v1::ROLL_LEFT: if (profile.movement() == v1::FREE_FLIGHT) axes[5] += 1; break;
+        case v1::ROLL_RIGHT: if (profile.movement() == v1::FREE_FLIGHT) axes[5] -= 1; break;
+        default: break;
+        }
+    }
+    std::array<double, 6> spacemouse{};
+    for (const auto& [id, source] : sources_) {
+        (void)id;
+        if (source.has_axes && now >= source.axes_time && now - source.axes_time < axis_timeout)
+            for (unsigned i = 0; i < 6; ++i) spacemouse[i] += source.axes[i];
+    }
+    const bool level_keyboard = profile.movement() == v1::LEVEL_MOVEMENT &&
+        spacemouse[0] == 0 && spacemouse[1] == 0 && spacemouse[2] == 0;
+    if (profile.movement() == v1::LEVEL_MOVEMENT && !level_keyboard)
+        for (unsigned i = 0; i < 3; ++i) axes[i] = 0;
+    for (unsigned i = 0; i < 6; ++i) axes[i] = std::clamp(axes[i] + spacemouse[i], -1., 1.);
+    const bool active = std::any_of(axes.begin(), axes.end(), [](double value) { return value != 0; });
+    if (!active && !last_active_) return std::nullopt;
+    core::v1::ActorInputRequest result;
+    for (const auto value : axes) result.add_axes(value);
+    result.set_translation_frame(level_keyboard ? core::v1::LEVEL_TRANSLATION : core::v1::BODY_TRANSLATION);
+    last_active_ = active; last_refresh_ = now;
+    return result;
+}
+
 DeviceAdapters::DeviceAdapters(ActorControl& actor, v1::ControlProfiles profiles, ClockNow clock)
     : actor_(actor), clock_(std::move(clock)), profiles_(std::move(profiles)) {
     need(bool(clock_), "Device adapters require a monotonic clock");
     validate_profiles(profiles_);
     navigating_ = active_profile(profiles_).interaction() != v1::HOLD_TO_NAVIGATE;
+    motion_intent_->configure(profiles_, navigating_, clock_());
 }
+DeviceAdapters::~DeviceAdapters() { motion_intent_->clear(); }
 core::v1::ActorActionReply DeviceAdapters::send(core::v1::ActorActionRequest request) {
     if (event_capture_) {
         const auto now = clock_();
@@ -32,26 +185,32 @@ core::v1::ActorActionReply DeviceAdapters::send(core::v1::ActorActionRequest req
 }
 void DeviceAdapters::clear_state() {
     for (auto& [id, source] : sources_) {
-        (void)id; source.keys.clear(); source.buttons.clear(); source.axes.fill(0); source.has_axes = false;
+        (void)id; source.keys.clear(); source.buttons.clear(); source.fresh_modifiers.clear();
+        source.axes.fill(0); source.has_axes = false;
     }
     axes_sent_ = false; click_enters_ = false;
+    motion_intent_->clear_motion(clock_());
 }
 void DeviceAdapters::acknowledged_cancellation() {
     clear_state(); navigating_ = true; fresh_after_ = clock_();
+    motion_intent_->configure(profiles_, navigating_, fresh_after_);
 }
 void DeviceAdapters::cancel() {
     clear_state(); navigating_ = true;
     actor_.cancel(actor_.context().generation);
     fresh_after_ = clock_();
+    motion_intent_->configure(profiles_, navigating_, fresh_after_);
 }
 void DeviceAdapters::switch_mode(bool navigating) {
     if (navigating_ == navigating) return;
     cancel();
     navigating_ = navigating;
+    motion_intent_->configure(profiles_, navigating_ && !menu_, clock_());
 }
 void DeviceAdapters::set_menu(bool open) {
     if (menu_ == open) return;
     cancel(); menu_ = open;
+    motion_intent_->configure(profiles_, navigating_ && !menu_, clock_());
 }
 void DeviceAdapters::set_profiles(const v1::ControlProfiles& profiles) {
     validate_profiles(profiles); // Invalid edits leave both configuration and input untouched.
@@ -59,6 +218,7 @@ void DeviceAdapters::set_profiles(const v1::ControlProfiles& profiles) {
     cancel();
     profiles_.Swap(&replacement);
     navigating_ = active_profile(profiles_).interaction() != v1::HOLD_TO_NAVIGATE;
+    motion_intent_->configure(profiles_, navigating_ && !menu_, clock_());
 }
 void DeviceAdapters::select_profile(const std::string& id) {
     auto replacement = profiles_; replacement.set_active_profile(id); set_profiles(replacement);
@@ -86,8 +246,14 @@ void DeviceAdapters::key(Source& source, const v1::DeviceKey& event) {
          "Invalid physical keysym");
     if (event.repeat()) return;
     if (event.pressed()) {
+        need(source.physical_keys.contains(event.keysym()) || source.physical_keys.size() < maximum_held_keys,
+             "Keyboard held-key limit reached");
         if (!source.physical_keys.insert(event.keysym()).second) return;
-    } else if (!source.physical_keys.erase(event.keysym())) return;
+        if (modifier_key(event.keysym())) source.fresh_modifiers.insert(event.keysym());
+    } else {
+        if (!source.physical_keys.erase(event.keysym())) return;
+        source.fresh_modifiers.erase(event.keysym());
+    }
     const auto action = binding(event.keysym());
     const auto style = active_profile(profiles_).interaction();
     if (action == v1::CANCEL || action == v1::OPEN_CONTROLS || action == v1::SWITCH_MODE) {
@@ -109,6 +275,24 @@ void DeviceAdapters::key(Source& source, const v1::DeviceKey& event) {
     if (navigating_) return;
     if ((event.pressed() && globally_down) || (!event.pressed() && key_held(event.keysym()))) return;
     core::v1::ActorActionRequest request;
+    if (active_profile(profiles_).key_delivery() == v1::KEY_TAP) {
+        // XKB repeat is time based. Send a complete tap in one native request,
+        // so a slow world or renderer reply cannot leave a text key held.
+        if (!event.pressed() || modifier_key(event.keysym())) return;
+        std::vector<std::string> chord;
+        for (const auto& [id, candidate] : sources_) {
+            (void)id;
+            for (const auto& held : candidate.fresh_modifiers)
+                if (std::find(chord.begin(), chord.end(), held) == chord.end()) chord.push_back(held);
+        }
+        need(chord.size() < 8, "Too many simultaneous keyboard modifiers");
+        chord.push_back(event.keysym());
+        auto* batch = request.mutable_key_tap_batch();
+        auto* tap = batch->add_chords();
+        for (const auto& keysym : chord) tap->add_keysyms(keysym);
+        send(std::move(request));
+        return;
+    }
     request.mutable_key()->set_keysym(event.keysym()); request.mutable_key()->set_pressed(event.pressed());
     send(std::move(request));
 }
@@ -204,6 +388,7 @@ bool DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point captu
     auto found = sources_.find(event.source_id());
     if (event.has_connected()) {
         need(known_kind(event.connected().kind()) && found == sources_.end() && sources_.size() < 64 &&
+             (retired_generations_.contains(event.source_id()) || sources_.size() + retired_generations_.size() < 64) &&
              (!retired_generations_.contains(event.source_id()) || event.source_generation() > retired_generations_.at(event.source_id())),
              "Invalid, duplicate, or retired device connection");
         Source source{}; source.kind = event.connected().kind(); source.generation = event.source_generation();
@@ -216,6 +401,8 @@ bool DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point captu
     auto& source = found->second;
     source.sequence = event.event_sequence();
     if (event.has_disconnected()) {
+        need(retired_generations_.contains(event.source_id()) || retired_generations_.size() < 64,
+             "Device retirement history limit reached");
         retired_generations_[event.source_id()] = source.generation;
         sources_.erase(found); cancel(); return fresh;
     }
@@ -232,8 +419,15 @@ bool DeviceAdapters::event(const v1::DeviceEvent& event, Clock::time_point captu
             need(source.kind == v1::KEYBOARD && !event.key().keysym().empty() && event.key().keysym().size() <= 64 &&
                  event.key().keysym().find('\0') == std::string::npos, "Invalid stale key event");
             if (!event.key().repeat()) {
-                if (event.key().pressed()) source.physical_keys.insert(event.key().keysym());
-                else source.physical_keys.erase(event.key().keysym());
+                if (event.key().pressed()) {
+                    need(source.physical_keys.contains(event.key().keysym()) || source.physical_keys.size() < maximum_held_keys,
+                         "Stale keyboard held-key limit reached");
+                    source.physical_keys.insert(event.key().keysym());
+                }
+                else {
+                    source.physical_keys.erase(event.key().keysym());
+                    source.fresh_modifiers.erase(event.key().keysym());
+                }
             }
         } else if (event.has_button()) {
             need((source.kind == v1::MOUSE || source.kind == v1::SPACEMOUSE) &&
@@ -287,6 +481,10 @@ void DeviceAdapters::tick(Clock::time_point now) {
     if (std::any_of(sources_.begin(), sources_.end(), [&](const auto& item) {
         return now < item.second.heartbeat || now - item.second.heartbeat >= source_timeout;
     })) {
+        const auto newly_retired = std::count_if(sources_.begin(), sources_.end(), [&](const auto& item) {
+            return !retired_generations_.contains(item.first);
+        });
+        need(retired_generations_.size() + newly_retired <= 64, "Device retirement history limit reached");
         for (const auto& [id, source] : sources_) retired_generations_[id] = source.generation;
         cancel(); sources_.clear(); return;
     }

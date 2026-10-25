@@ -5,10 +5,39 @@
 #include <array>
 #include <chrono>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <optional>
 #include <set>
 
 namespace spatial::control {
+// Thread-safe latest movement state. Capture ingestion never performs actor I/O.
+class MotionIntent final {
+public:
+    using Clock = std::chrono::steady_clock;
+    void configure(const v1::ControlProfiles& profiles, bool enabled, Clock::time_point now);
+    bool observe(const v1::DeviceEvent& event, Clock::time_point captured, Clock::time_point now);
+    std::optional<core::v1::ActorInputRequest> next(Clock::time_point now);
+    void clear();
+    void clear_motion(Clock::time_point now);
+private:
+    struct Source {
+        v1::DeviceKind kind = v1::DEVICE_UNSPECIFIED;
+        std::uint64_t generation = 0, sequence = 0;
+        Clock::time_point heartbeat{}, axes_time{};
+        std::set<std::string> keys;
+        std::array<double, 6> axes{};
+        bool has_axes = false;
+    };
+    mutable std::mutex mutex_;
+    v1::ControlProfiles profiles_;
+    std::map<std::string, Source> sources_;
+    std::map<std::string, std::uint64_t> retired_generations_;
+    bool enabled_ = false, last_active_ = false;
+    Clock::time_point fresh_after_ = Clock::time_point::min();
+    Clock::time_point last_refresh_ = Clock::time_point::min();
+};
+
 // Human device adapters only translate gestures. Scripted agents call the same
 // ActorControl::propose boundary directly with existing semantic actions.
 class DeviceAdapters final {
@@ -16,6 +45,7 @@ public:
     using Clock = std::chrono::steady_clock;
     using ClockNow = std::function<Clock::time_point()>;
     explicit DeviceAdapters(ActorControl& actor, v1::ControlProfiles profiles = default_profiles(), ClockNow clock = Clock::now);
+    ~DeviceAdapters();
     bool event(const v1::DeviceEvent& event, Clock::time_point now);
     bool event(const v1::DeviceEvent& event, Clock::time_point captured, Clock::time_point now);
     void tick(Clock::time_point now);
@@ -29,6 +59,7 @@ public:
     const v1::ControlProfiles& profiles() const noexcept { return profiles_; }
     v1::ControlStatus status() const;
     std::array<double, 6> last_raw_axes() const noexcept { return last_raw_; }
+    std::shared_ptr<MotionIntent> motion_intent() const noexcept { return motion_intent_; }
 
 private:
     struct Source {
@@ -38,6 +69,8 @@ private:
         std::set<std::string> keys;
         std::set<unsigned> buttons;
         std::set<std::string> physical_keys;
+        // Only modifiers pressed after the latest cancellation may join a tap.
+        std::set<std::string> fresh_modifiers;
         std::set<unsigned> physical_buttons;
         std::array<double, 6> axes{};
         bool has_axes = false;
@@ -54,6 +87,7 @@ private:
     bool button_held(unsigned button) const;
     void switch_mode(bool navigating);
     ActorControl& actor_;
+    std::shared_ptr<MotionIntent> motion_intent_ = std::make_shared<MotionIntent>();
     ClockNow clock_;
     Clock::time_point fresh_after_ = Clock::time_point::min();
     std::optional<Clock::time_point> event_capture_;

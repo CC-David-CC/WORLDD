@@ -183,3 +183,152 @@ Read ../spatial-os-luna-handoff/docs/M10_LOCAL_ACTORS_AND_FILE_WORKFLOW_2026-10-
 This is a reviewed component increment, not one final frozen M10 candidate.
 Real editor/terminal placement and control, remaining context/scheduling checks, generation proof, and the full gate remain pending.
 The user goal remains active. M10, Spatial-M1, and LOCAL_READY remain unqualified.
+
+2026-10-24 public native font metadata correction
+Real Xterm startup exposed a public font atom that application atom privacy incorrectly concealed.
+Commit85d4ff05 permits only authorized font property names and explicitly string-valued metadata.
+Both hosts pass109 selected native methods in Debug and ASan/UBSan:436 completions.
+Private atoms, numeric collisions, foreign resources, atom budgets, and extension isolation retain their checks.
+Read ../spatial-os-luna-handoff/docs/M10_NATIVE_FONT_METADATA_2026-10-24.txt for exact source and evidence.
+The font-only checkpoint is reviewed and box-git verified. M10 remains UNQUALIFIED.
+Application discovery/placement code builds, but real editor/terminal workflows remain unfinished.
+A missing-program test reproduces misleading broker errors. A human Stop can still trigger whole-host teardown.
+Separate cancellation/error fixes and deterministic regressions are drafted but not built or tested.
+Sanitizer local application-output eligibility also has an unresolved failure.
+The frozen combined candidate, reproducible generation proof, and complete two-host gate remain pending.
+
+2026-10-24 graphics repair and cancellation diagnosis
+Commit329d1160 requires the DRI GLX backend and is box-git verified as an unqualified M10 component.
+The replacement server passes436 selected font/isolation methods and reaches real Debug compositor/application startup.
+Source308 passes117 checks in eight complete Debug suites on each host.
+The missing-program regression now reports its actual cause and proves other actors can continue moving.
+Paused-world Stop remains too slow because foreground cleanup waits synchronously for the stopped world.
+Source319 fixes worker exception classification and passes128 selected fixture groups across both hosts and profiles.
+Supplying Xedit's installed public resources confirms a missing sandbox dependency.
+Real typing exposes repeated characters on sb16-2. Correlated native timing must identify their cause.
+Read ../spatial-os-luna-handoff/docs/M10_NATIVE_APPLICATION_FAILURES_2026-10-24.txt for current evidence and limits.
+Nonblocking exact-target retirement, the production resource mount, input correctness, sanitizer workflows, and the full gate remain pending.
+The full M10 goal remains active and unqualified.
+
+2026-10-24 nonblocking retirement and retained binding correction
+Exact native and broker cleanup now retain nonblocking continuation owners and checked receipts.
+A failed frame clears its exact native target while preserving a still-valid local actor binding.
+Full context loss remains separate and upgrades pending cleanup without downgrades.
+Fresh presentation authorization and uncertain-transport fencing remain mandatory.
+Source341 passes332 selected core groups,32 new retention methods, and16 existing context methods.
+An unchanged stopped-world recovery regression exposes a pre-drain ordering defect in all four cells.
+Source349 corrects that ordering and passes80 selected native methods across both hosts and profiles.
+The corrective lane instruments its coordinator probe. Reused world/broker/compositor dependencies remain explicitly pinned Debug artifacts.
+Read ../spatial-os-luna-handoff/docs/M10_PRESENTATION_BINDING_LIFETIME_2026-10-24.txt for exact evidence and limits.
+The human handoff Stop still exceeds350ms on sb16-2 in both profiles.
+Correlated diagnostic timing is next. The deadline and regression assertions remain unchanged.
+The public Xedit resource mount, exact typing, remaining scheduling witnesses, and complete frozen gate remain pending.
+M10, Spatial-M1, and LOCAL_READY remain unqualified. The full user goal remains active.
+
+
+2026-10-24 measured Stop dispatch delay
+Source355 adds opt-in buffered timing without changing input authorization or deadlines.
+Both Debug hosts pass66 selected worker/controller groups with tracing disabled.
+The unchanged application method passes on sb16 and reproduces Stop failure on sb16-2.
+Launcher361 corrects a filtered diagnostic flag and reruns only that existing method with the same binaries.
+Successful Stops wait274-320ms before world dispatch. Checked native release then takes about1.7ms.
+A later sb16-2 Stop has no matching world dispatch before watchdog interruption.
+The cooperative progress pump excludes Stop. No evidence supports weakening the350ms watchdog.
+Read ../spatial-os-luna-handoff/docs/M10_NONBLOCKING_ACTOR_STOP_DIRECTION_2026-10-24.txt for evidence, erratum, and continuation obligations.
+A pending cancellation continuation with nonblocking native progress remains unimplemented.
+The logging-only Boolean-label correction remains unbuilt. Original355 timestamps and provenance remain preserved.
+All remaining real application, scheduling, generation, and full two-host gate requirements remain active.
+
+2026-10-25 nonblocking Stop implementation and capture ordering correction
+Source366 implements pending actor Stop ownership and nonblocking native cancellation.
+Both Debug hosts pass the original five real application scenarios, including human Stop and missing-program recovery.
+The corrected transport fixture passes all seventeen methods on both hosts and profiles:68 completions.
+It measures the fixed ten-second error detection separately from existing bounded child cleanup.
+Related testing reproduces a queued capture-motion command surviving Stop completion on both hosts.
+Source374 invalidates that prepared command through the actor's last Stop sequence and session identity.
+Both profiles build. Both Debug hosts pass the original failure and a new native capture-motion regression.
+The first five selected suites pass47 methods per Debug host. Application-control and sanitizer execution remain active.
+Three additional real-compositor pause, disconnect, and revocation tests are deployed and queued, without accepted results yet.
+Read ../spatial-os-luna-handoff/docs/M10_NONBLOCKING_ACTOR_STOP_DIRECTION_2026-10-24.txt for exact pins and evidence.
+Close-failure, broker-hold, and preceding-frame counters remain required before integration.
+Public Xedit resources, exact typing, remaining scheduling/context checks, generation proof, and the full gate remain pending.
+M10, Spatial-M1, and LOCAL_READY remain unqualified. The full user goal remains active.
+
+2026-10-25 selected Stop result and public X resources
+Both hosts pass99 selected source374 methods in each Debug and ASan/UBSan cell:396 completions.
+Real compositor pause, disconnect, and revocation tests add12 completions.
+Independent failing-peer Close ownership tests add20 completions.
+Audit stop-increment-primary-audit-393.json records the428 selected completions and instrumentation limits.
+Broker-hold and preceding-frame causal counters remain required. This is not the full M10 gate.
+
+Source390 adds a pinned read-only /etc/X11/app-defaults mount for native application launches.
+The new descriptor follows existing persistent-state descriptors and preserves their numbers.
+Both hosts provide Xedit resources only at /etc/X11/app-defaults/Xedit.
+Test overlay399 removes an invented alternate-path alias assertion before runtime.
+Both Debug hosts pass all three new resource, read-only, and headless-boundary methods.
+The unchanged exact-byte editor/terminal workflows and related checks are running as401.
+The selected lane uses font/GLX server315 with its actual host wrapper and selected instrumentation profile.
+A current comment-only correction describes the installed resource path; compiled payloads retain exact source390 pins.
+Runtime evidence and final qualification remain pending for the dependency change.
+The full frozen M10 candidate, generation proof, remaining workflows, and inherited two-host gate remain required.
+
+2026-10-25 actor seats, bounded input batches, and movement refresh
+The draft now gives each actor session an immutable native input seat and retains a checked application binding.
+Typing uses bounded atomic tap batches; explicit holds remain available for games and Stop releases them.
+One-way movement refresh continues during slow renderer, broker, and other-actor authentication waits.
+The 250 ms motion expiry and live revocation checks remain in force.
+New paired witnesses cover a delayed native renderer command, a delayed broker access reply, navigation-grant revocation, and native input release during another actor's delayed authentication.
+Eight selected local CTests pass on middle-child, including worker overload and renderer progress.
+The 43-file acceptance lock audit and source data guard pass after correcting the core.proto hash.
+The new host witnesses, editor/terminal typing, source-generation proof, full Debug and sanitizer builds, and complete two-host gate remain pending.
+This draft remains UNQUALIFIED_M10.
+
+2026-10-25 source review and schema compatibility audit
+The Protocol Buffers compatibility audit passes against base089d76bb: all45 prior schemas,636 messages,3,038 fields,60 enums, and360 enum values remain compatible.
+Primary review found a stale-modifier edge across a focus/cancellation boundary. Tap modifiers now require a fresh press after cancellation.
+The new cancellation-and-reacquisition regression passes after rebuilding the Debug adapter target:1/1 CTest.
+See spatial-os-luna-handoff/docs/M10_APPLICATION_ACTIONS_SCHEMA_MIGRATION_2026-10-24.txt and M10_INPUT_LIVENESS_AND_ACTOR_SEATS_2026-10-25.txt for exact commands and receipts.
+Both-host sanitizer and native reruns are required because the changed control source is not yet in a frozen candidate.
+M10 remains UNQUALIFIED.
+
+2026-10-25 patched XLibre application rerun
+Run415 completes216 selected methods across both hosts and both M10 profiles:206 pass,ten fail,zero skip.
+All cells use patched XLibre413 ASan/UBSan Xvfb. No collected sanitizer diagnostic remains.
+Debug sb16 passes both real editor/terminal workflows. Sb16-2 Debug and both sanitizer cells retain duplicated typing.
+Every cell passes28 application-access,three session-application,and three native dependency methods.
+The same missing-executable error-classification method fails in every source390 cell.
+The kernel kills worldd during sb16 sanitizer terminal typing at the outer1536M service limit.
+Run416 retains that limit and correlates raw native keys,RPC timing,and process/cgroup memory.
+Read ../spatial-os-luna-handoff/docs/M10_PATCHED_XLIBRE_RERUN_2026-10-25.txt for exact findings and limits.
+These mixed component results do not qualify M10 or establish absence of other security defects.
+
+2026-10-25 placement retry audit
+Primary source review found that Actors::place_application checked the live broker/native application before
+looking up an already committed operation. If the first success reply was lost and the app then exited, an
+exact retry returned STALE_TARGET even though its durable slot and receipt remained unchanged.
+The actor path now checks current world placement rights, workspace access/attachment rights, and application
+observation authority, then looks up
+the exact operation/principal/digest before requiring a live native app. It returns only the unchanged stored
+slot. Changed or removed slots still reject; mismatched operations conflict. It creates no geometry on replay.
+Selected regression: the original signed actor retries after a real X child exits; a separate actor refreshes
+native inventory without replacing the original actor's discovery receipt. The test checks one slot and one
+journal row. C++ store tests also cover exact receipt lookup, conflict, deletion, and rollback.
+The final Debug build of `spatial-application-slots-probe` and `spatial-control-adapters-check` returned0.
+The selected `application-slots` and `actor-control-adapters` CTests passed2/2 after the final authorization
+ordering change. Runner receipts are in
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/placement-replay-20261025-a/`.
+The native regression has not run. M10 remains UNQUALIFIED.
+
+2026-10-25 additive M10 host profile
+The M09 gate checked inherited requirements but did not make every M10 suite mandatory in the package inventory.
+`tools/m10_deployed_gate.py` now requires M09 plus50 M10 suites in both Debug and ASan/UBSan inventories.
+The M06 runner executes the complete local CTest inventory, all151 locked acceptance cases, and required harnesses.
+The M10 report also checks named movement, Stop, three-actor file, application, and editor/terminal witnesses.
+The gate self-check covers additive suite membership, exact source selectors, missing registrations, skip metadata,
+and exact named-method log coverage with skipped-case rejection.
+Selected before execution: `python3 -B -m unittest tests.m10_harness.test_m10_deployed_gate -v`.
+The revised8-case suite passed8/8 on middle-child. The current Debug CTest inventory has299 suites;
+the M10 profile validates all50 new required names and30 exact named witness methods.
+Runner receipts are in
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/placement-replay-20261025-a/`.
+This gate code is not yet reviewed against a deployed package. M10 remains UNQUALIFIED.

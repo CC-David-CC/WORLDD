@@ -12,9 +12,11 @@ inline bool reversible(const core::v1::ActorActionRequest& action) {
     case core::v1::ActorActionRequest::kAim:
     case core::v1::ActorActionRequest::kPointer:
     case core::v1::ActorActionRequest::kKey:
+    case core::v1::ActorActionRequest::kKeyTapBatch:
     case core::v1::ActorActionRequest::kScroll:
     case core::v1::ActorActionRequest::kUnfocus:
     case core::v1::ActorActionRequest::kObserve:
+    case core::v1::ActorActionRequest::kApplicationSurfaces:
         return true;
     default: return false;
     }

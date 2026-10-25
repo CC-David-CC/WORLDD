@@ -1,0 +1,104 @@
+M10 application discovery and placement schema migration
+Status: DRAFT, UNQUALIFIED_M10. New runtime checks remain unrun.
+Base:089d76bb7c69101c20691b11580c3efab1a995b7.
+
+David authorized the complete M10 shared-action implementation and qualification plan.
+This additive increment gives ordinary actors checked application discovery and durable placement.
+Existing fields, tags, enums, envelope versions, acceptance assertions, and independent witnesses remain unchanged.
+Only the core.proto pin and this explicit notice change in acceptance.lock.json.
+The predecessor lock is retained externally and identified by predecessor_sha256.
+Selected compatibility check: compare generated descriptor sets from the base commit and
+the current schema. Preserve every old file, package, message, enum, service, and extension.
+Preserve every old enum value and field number, name, type, label, referenced type,
+default, options, and oneof membership. Preserve service method request/response types
+and streaming flags. Additions are allowed. The audit fails on any removed or changed
+old declaration. It uses protoc 3.21.12 and Python protobuf 4.21.12.
+Audit setup attempts 1 through 4 did not produce a compatibility result. They exposed
+an extraction-depth error, missing flat import directories, an attempt to query Git
+inside the extracted archive, and duplicate virtual names when compiling the whole
+tree together. No compatibility result was inferred. The corrected audit compiles
+each source schema separately, reads archived inventory directly, and archives every
+base `.proto` file.
+Exact invocation, recorded before execution:
+`python3 /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/schema-compat-20261025-a/proto_descriptor_compat.py --checkout /home/dflanag3/src/m10-shared-actions-20261023 --base 089d76bb7c69101c20691b11580c3efab1a995b7 --result /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/schema-compat-20261025-a/descriptor-compatibility-r5.json`
+
+2026-10-25 result: PASS. The exact invocation above compiled all 45 base and current
+schema sources separately with protoc 3.21.12. The audit checked 45 files, 636
+messages, 3,038 old fields, 60 enums, and 360 old enum values. It found no removed or
+changed old declarations. Services and extensions were absent in this schema set.
+The descriptor-set summary is
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/schema-compat-20261025-a/descriptor-compatibility-r5.json`
+(SHA-256 `c90307c07417fc1bec8617a13d9b45d774ecd41f4c126da6b4bfc6dc3c97494c`).
+Canonical-runner receipts, including the earlier setup failures, are retained in
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/schema-compat-20261025-a/`.
+
+Wire additions
+Entity.application_slot uses field12 and is valid only for SURFACE_SLOT entities.
+ApplicationSlotBinding stores workspace, application, native server identity, and opaque surface identity.
+The surface identity includes the compositor incarnation and a monotonically assigned surface serial.
+It is not an XID, PID, filename, actor credential, or application-provided property.
+A server or compositor restart must not bind a replacement through a reused XID.
+
+ActorActionRequest.application_surfaces uses field32. Its result uses ActorActionReply.application_surfaces field9.
+ActorApplicationSurfacesRequest requires protocol_version1 and an application_id returned by the production broker.
+It searches only the actor's explicitly selected, available workspace.
+Remote application discovery remains unsupported. A local transport grants no additional actor rights.
+Require fresh workspace access, application observation, and world observation authority.
+Native application groups must pass the ordinary broker checks before any metadata leaves worldd.
+Return only mapped top-level surfaces that are unplaced or in the actor's current room.
+The reply excludes XIDs, window properties, names, commands, paths, and other application metadata.
+Return a fresh32-byte actor-session discovery receipt for each exact surface generation and application identity.
+Receipts identify checked metadata. They never cache permission or grant control.
+A successful discovery replaces that actor's prior receipts. Connection, workspace-selection, and closure barriers clear them.
+At most64 current receipts exist per actor. No receipt or authorization snapshot is persisted.
+Discovery uses the existing controlled read/input outcome. Checked denial cancels held input and permits a fresh proposal.
+Malformed or uncertain exchanges retain the existing strict fencing contract.
+
+ActorActionRequest.application_place uses field33. Its result uses ActorActionReply.application_placement field10.
+The request requires protocol_version1, operation_id16 bytes, discovery_id32 bytes, transform, size, and expected world revision.
+An omitted room means the actor's current room. An explicit room must equal that room.
+Require current world placement authority, workspace access, workspace attachment authority, and application observation.
+Validate the exact receipt, application attribution, actor context, surface generation, reach, facing, and room colliders.
+Recheck authorization fences and context immediately before the revision-checked durable commit.
+The new slot stores the requested transform and size. It does not launch, copy, select, or control an application.
+Actor movement during placement preparation invalidates the request instead of silently changing its target context.
+Placement uses strict mutating errors. An uncertain result must not be replayed as a new operation.
+
+Durable operation and attachment
+Use existing world entities for geometry and the existing workspace_presentation_ops journal for exact operation identity.
+Journal kind4 is application-slot creation. Its result starts with WAS1 followed by the committed Entity protobuf.
+The entity and receipt commit in one SQLite transaction. This is not a transaction over X, files, or processes.
+The same operation/principal/digest returns the existing unchanged slot. Different context conflicts.
+A removed or changed slot remains a stale receipt. Its operation cannot recreate or retarget it.
+An exact actor retry first checks current world placement rights, workspace access, workspace attachment rights, and application observation authority.
+It then returns the stored receipt before checking live native application state. This preserves recovery after a lost reply and app exit.
+The retry retains the actor session's exact discovery receipt and request digest. It neither restores the app nor changes geometry.
+Ordinary world.create cannot synthesize an application binding. Ordinary updates cannot change binding identity.
+No SQL table or schema-version change is required. The new typed entity payload requires this schema-aware runtime.
+Older binaries reject unknown entity fields. Never open an application-slot world with an older candidate.
+Slot attachment is reconstructed only from an exact live native identity match.
+A missing surface leaves durable geometry unbound. No guessed XID or old input is restored.
+Bindings are indexed by world revision. Do not rescan all durable bindings for every unchanged frame.
+Application observation and control retain separate broker checks.
+Bound-slot observation also checks world representation view. Input additionally requires representation use.
+World revocation must retire held input and foreground pixels through existing checked cancellation and clearing paths.
+
+Selected regression scope
+Prove durable commit, compare-and-swap, journal replay/conflict, deletion tombstones, immutable identity, and restart matching.
+Selected before execution: `test_exact_placement_retry_returns_receipt_after_native_application_exits` in
+`three-actor-applications-native`. It checks the original signed actor can retry its exact request after the
+real child window exits, and that SQLite still contains exactly one SURFACE_SLOT and one kind4 operation.
+The second actor refreshes native inventory so the owner retains its original per-session discovery receipt.
+Also rerun `application-slots` for receipt matching, principal/digest conflicts, deletion tombstones, and rollback.
+After the replay authorization ordering change, rerun `actor-control-adapters` for tap, hold, modifier, and cancellation edge regressions.
+2026-10-25 local Debug result: `cmake --build /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug --target spatial-application-slots-probe spatial-control-adapters-check -j2` returned0.
+Then `ctest --test-dir /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug -R '^(application-slots|actor-control-adapters)$' --output-on-failure` passed2/2 after the final authorization ordering change.
+Runner receipts and complete logs are in `/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/placement-replay-20261025-a/build-run-r2/` and `ctest-run-r2/`.
+This local result does not prove native app exit/replay or host qualification.
+Use real signed actors and native application windows on sb16 and sb16-2.
+Require an independent native witness for successful input through each actor adapter.
+Reject another actor's receipt, replaced generations, denied observation, and remote application transport.
+Prove that application observation and placement cannot amplify read-only execution authority into writable control.
+Preserve source and failing evidence before corrections. Run Debug and sanitizers for affected lifetimes and boundaries.
+The full objective still includes real editor and terminal workflows, remaining scheduling cases, and a frozen two-host gate.
+A discovery or placement component pass does not qualify M10, Spatial-M1, or LOCAL_READY.

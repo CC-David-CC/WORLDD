@@ -29,6 +29,13 @@ enum EntityKind {
 message Color { uint32 red = 1; uint32 green = 2; uint32 blue = 3; }
 message Bounds { Vec3 min = 1; Vec3 max = 2; }
 message Destination { string room = 1; Pose pose = 2; }
+// Durable placement identity. No XID, credential, input lease, or actor session is stored.
+message ApplicationSlotBinding {
+  string workspace = 1;
+  string application = 2;
+  bytes server_id = 3;
+  string surface_id = 4;
+}
 // Presence is retained for patch validation, including immutable fields.
 message Entity {
   optional string id = 1;
@@ -42,6 +49,7 @@ message Entity {
   Destination destination = 9;
   optional uint64 revision = 10;
   optional uint64 world_revision = 11;
+  ApplicationSlotBinding application_slot = 12; // Valid only for a SURFACE_SLOT; immutable after creation.
 }
 message WorldCreateRequest { Entity entity = 1; }
 message WorldListRequest {}
@@ -143,6 +151,7 @@ message RendererInputCommand {
     ActorStopRequest cancel = 13;
     ActorStopRequest close = 14;
     CapturedMotion motion = 15;
+    ActorKeyTapBatchRequest key_tap_batch = 16;
   }
 }
 message PlacedSurface { SurfaceHandle handle = 1; Entity panel = 2; PixelExtent pixels = 3; }
@@ -199,6 +208,8 @@ message ActorRelativeLookRequest { Vec3 angular_delta = 1; }
 message ActorStopRequest {}
 message ActorPointerRequest { optional uint32 button = 1; optional bool pressed = 2; }
 message ActorKeyRequest { optional string keysym = 1; optional bool pressed = 2; }
+message ActorKeyChord { repeated string keysyms = 1; }
+message ActorKeyTapBatchRequest { repeated ActorKeyChord chords = 1; }
 message ActorScrollRequest { optional sint32 steps_y = 1; }
 message ActorObserveRequest { optional uint32 width = 1; optional uint32 height = 2; bool include_pixels = 4; }
 message ObjectGrabRequest { string id = 1; }
@@ -278,6 +289,40 @@ message PresentationRemoveRequest {
   bytes representation_id = 3;
   uint64 expected_representation_generation = 4;
 }
+message ActorApplicationSurfacesRequest {
+  uint32 protocol_version = 1;
+  string application_id = 2; // Broker process identity within the actor's explicitly selected workspace.
+}
+message ActorApplicationSurface {
+  bytes discovery_id = 1; // Exact actor-session receipt; grants no authority and is never persisted.
+  SurfaceHandle surface = 2;
+  PixelExtent pixels = 3;
+  string slot_id = 4;
+  uint64 slot_revision = 5;
+}
+message ActorApplicationSurfacesReply {
+  string workspace_id = 1;
+  string application_id = 2;
+  repeated ActorApplicationSurface surfaces = 3;
+}
+message ActorApplicationPlaceRequest {
+  uint32 protocol_version = 1;
+  bytes operation_id = 2;
+  bytes discovery_id = 3;
+  optional string room_id = 4;
+  Pose transform = 5;
+  Vec2 size = 6;
+  uint64 expected_world_revision = 7;
+}
+message ActorApplicationPlaceReply {
+  string slot_id = 1;
+  uint64 slot_revision = 2;
+  string room_id = 3;
+  Pose transform = 4;
+  Vec2 size = 5;
+  SurfaceHandle surface = 6;
+  uint64 world_revision = 7;
+}
 message ActorActionRequest {
   string token = 1;
   optional uint64 seq = 2;
@@ -299,6 +344,9 @@ message ActorActionRequest {
     spatial.workspace.copy.v1.WorkspaceCopyStatusRequest workspace_copy_status = 29;
     spatial.workspace.v1.ActorCabinetRequest cabinet = 30;
     ActorRelativeLookRequest relative_look = 31;
+    ActorApplicationSurfacesRequest application_surfaces = 32;
+    ActorApplicationPlaceRequest application_place = 33;
+    ActorKeyTapBatchRequest key_tap_batch = 34;
   }
 }
 message WorldCheckpointRequest {}
@@ -484,6 +532,8 @@ message ActorActionReply {
   PresentationView presentation = 6;
   spatial.workspace.copy.v1.WorkspaceCopyStatus copy_status = 7;
   spatial.workspace.v1.ActorCabinetReply cabinet = 8;
+  ActorApplicationSurfacesReply application_surfaces = 9;
+  ActorApplicationPlaceReply application_placement = 10;
 }
 message ActorCloseReply { bool closed = 1; }
 message WorldCheckpointReply { uint64 world_revision = 1; }

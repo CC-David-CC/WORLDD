@@ -196,13 +196,24 @@ std::optional<protocol::LocalActorPresentationState> PresentationOwner::poll_sel
     return reply->local_actor_state();
 }
 protocol::LocalActorPresentationState PresentationOwner::retire_local_actor(const protocol::LocalActorPresentationTarget& target){
+    const auto token=begin_retire_local_actor(target);
+    for(;;){if(auto result=poll_retire_local_actor(token))return std::move(*result);::poll(nullptr,0,2);}
+}
+bool PresentationOwner::pending() const noexcept {return impl_->pending.has_value();}
+std::uint64_t PresentationOwner::begin_retire_local_actor(const protocol::LocalActorPresentationTarget& target){
     protocol::PresentationControlRequest request;*request.mutable_retire_local_actor()=target;
-    const auto reply=impl_->call(std::move(request));
-    if(!reply.has_local_actor_state() || reply.local_actor_state().selected() ||
-        reply.local_actor_state().target().SerializeAsString()!=target.SerializeAsString()){
+    return impl_->begin(std::move(request));
+}
+std::optional<protocol::LocalActorPresentationState> PresentationOwner::poll_retire_local_actor(std::uint64_t token){
+    require(impl_->pending && impl_->pending->request.request_id()==token &&
+        impl_->pending->request.has_retire_local_actor(),"Stale local actor retirement operation");
+    const auto target=impl_->pending->request.retire_local_actor();
+    const auto reply=impl_->poll_reply(token);if(!reply)return {};
+    if(!reply->has_local_actor_state() || reply->local_actor_state().selected() ||
+        reply->local_actor_state().target().SerializeAsString()!=target.SerializeAsString()){
         impl_->control.reset();throw std::runtime_error("Retired local actor view unconfirmed");
     }
-    return reply.local_actor_state();
+    return reply->local_actor_state();
 }
 void PresentationOwner::clear_selection(){
     protocol::PresentationControlRequest request;request.mutable_clear_selection();
@@ -216,15 +227,25 @@ core::v1::PixelExtent PresentationOwner::native_viewport() const {
     return impl_->viewport;
 }
 void PresentationOwner::present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
+    const auto token=begin_present_controls(generation,view);
+    while(!poll_present_controls(token))::poll(nullptr,0,2);
+}
+std::uint64_t PresentationOwner::begin_present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
     require(generation>0 && impl_->menu_sequence<UINT64_MAX,"Invalid host controls generation or exhausted sequence");
     protocol::PresentationControlRequest request;
     auto* value=request.mutable_controls();value->set_capture_generation(generation);
     value->set_menu_sequence(++impl_->menu_sequence);*value->mutable_view()=view;
-    const auto expected=value->SerializeAsString();
-    const auto reply=impl_->call(std::move(request));
-    if(!reply.has_controls() || reply.controls().SerializeAsString()!=expected){
+    return impl_->begin(std::move(request));
+}
+bool PresentationOwner::poll_present_controls(std::uint64_t token){
+    require(impl_->pending && impl_->pending->request.request_id()==token &&
+        impl_->pending->request.has_controls(),"Stale controls presentation operation");
+    const auto expected=impl_->pending->request.controls().SerializeAsString();
+    const auto reply=impl_->poll_reply(token);if(!reply)return false;
+    if(!reply->has_controls() || reply->controls().SerializeAsString()!=expected){
         impl_->control.reset();throw std::runtime_error("Native controls presentation unconfirmed");
     }
+    return true;
 }
 void PresentationOwner::shutdown(){
     protocol::PresentationControlRequest request;request.mutable_shutdown();auto reply=impl_->call(std::move(request));
@@ -239,10 +260,21 @@ void PresentationOwner::start_capture(std::uint64_t generation,const control::v1
     }
 }
 void PresentationOwner::stop_capture(std::uint64_t generation){
+    const auto token=begin_stop_capture(generation);
+    while(!poll_stop_capture(token))::poll(nullptr,0,2);
+}
+std::uint64_t PresentationOwner::begin_stop_capture(std::uint64_t generation){
     protocol::PresentationControlRequest request;request.mutable_stop_capture()->set_capture_generation(generation);
-    const auto reply=impl_->call(std::move(request));
-    if(!reply.has_capture() || reply.capture().capture_generation()!=generation || reply.capture().active()) {
+    return impl_->begin(std::move(request));
+}
+bool PresentationOwner::poll_stop_capture(std::uint64_t token){
+    require(impl_->pending && impl_->pending->request.request_id()==token &&
+        impl_->pending->request.has_stop_capture(),"Stale capture retirement operation");
+    const auto generation=impl_->pending->request.stop_capture().capture_generation();
+    const auto reply=impl_->poll_reply(token);if(!reply)return false;
+    if(!reply->has_capture() || reply->capture().capture_generation()!=generation || reply->capture().active()) {
         impl_->control.reset();throw std::runtime_error("Native capture retirement unconfirmed");
     }
+    return true;
 }
 }

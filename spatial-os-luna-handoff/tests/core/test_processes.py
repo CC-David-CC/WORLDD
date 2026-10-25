@@ -9,6 +9,7 @@ import subprocess
 import time
 import unittest
 from test_workspaces import WorkspaceTests, BROKER, RIGHTS
+from harness.rpc import RpcError
 
 
 class ProcessTests(WorkspaceTests):
@@ -116,6 +117,19 @@ assert lib.prctl(38,0,0,0,0)==-1
         self.actor_error('UNAVAILABLE', self.a, 'process.launch', argv=['/absent'], operation_id='missing', profile='development')
         with self.registry() as db: self.assertEqual(db.execute('SELECT state FROM processes').fetchone()[0], 'uncertain')
         self.wait_job(self.launch('pass', 'after-failure'))
+
+    def test_checked_permission_denied_exec_preserves_cause_and_uncertain_retry(self):
+        program=self.project/'not-executable';program.write_text('#!/bin/sh\nexit 0\n');program.chmod(0o600)
+        with self.assertRaises(RpcError) as error:
+            self.act(self.a,'process.launch',argv=['/project/not-executable'],operation_id='denied-exec',profile='development')
+        self.assertEqual(error.exception.code,'STORAGE_ERROR')
+        self.assertIn('Application exec failed',str(error.exception))
+        self.assertIn('Permission denied',str(error.exception))
+        self.actor_error('UNAVAILABLE',self.a,'process.launch',argv=['/project/not-executable'],
+            operation_id='denied-exec',profile='development')
+        with self.registry() as database:
+            self.assertEqual(database.execute('SELECT state FROM processes').fetchall(),[('uncertain',)])
+        self.wait_job(self.launch('pass','after-denied-exec'))
 
     def test_operation_identity_is_actor_scoped_and_binds_arguments_and_profile(self):
         code = "from pathlib import Path\nf=Path('count').open('a');f.write('once\\n');f.close()"

@@ -1,5 +1,6 @@
 #include "world/actor_session_client.hpp"
 #include "world/control_action.hpp"
+#include "core/stop_trace.hpp"
 #include "world/geometry_view_validation.hpp"
 #include "world/local_view_validation.hpp"
 #include "core/protocol.hpp"
@@ -14,6 +15,7 @@
 #include <array>
 #include <cerrno>
 #include <csignal>
+#include <cmath>
 #include <fcntl.h>
 #include <poll.h>
 #include <sys/socket.h>
@@ -79,6 +81,9 @@ struct ActorSessionClient::Impl {
     std::string audience;
     std::chrono::milliseconds timeout;
     std::uint64_t next_id = 1;
+    std::uint64_t motion_sequence = 0;
+    Clock::time_point next_motion_refresh = Clock::time_point::min();
+    std::function<std::optional<core::v1::ActorInputRequest>()> motion_refresh;
     Lifecycle state = Lifecycle::New;
     std::string prepared_transition;
     std::string geometry_view_id;
@@ -246,16 +251,46 @@ struct ActorSessionClient::Impl {
         require(state == expected && channel.get() >= 0 && (!interrupt || !interrupt->requested()), message);
     }
 
-    void transfer(void* buffer, std::size_t size, bool writing, Clock::time_point deadline) {
+    void send_motion_refresh(Clock::time_point deadline) {
+        if (state != Lifecycle::Active || !motion_refresh || Clock::now() < next_motion_refresh) return;
+        next_motion_refresh = Clock::now() + std::chrono::milliseconds(80);
+        const auto input = motion_refresh();
+        if (!input) return;
+        validate_message(*input);
+        require(input->axes_size() == 6 && (input->translation_frame() == core::v1::BODY_TRANSLATION ||
+                    input->translation_frame() == core::v1::LEVEL_TRANSLATION),
+                "Motion refresh is not a bounded six-axis intent");
+        for (const auto axis : input->axes())
+            require(std::isfinite(axis) && std::abs(axis) <= 1, "Motion refresh axis is out of range");
+        require(motion_sequence < UINT64_MAX && next_id < UINT64_MAX,
+                "Motion refresh sequence exhausted");
+        pb::WorldSessionRequest request;
+        request.set_protocol_version(1); request.set_request_id(next_id++);
+        auto* refresh = request.mutable_motion_refresh();
+        refresh->set_refresh_sequence(++motion_sequence); *refresh->mutable_input() = *input;
+        std::string body;
+        require(request.SerializeToString(&body) && !body.empty() && body.size() <= max_frame_bytes,
+                "Invalid motion refresh frame");
+        const auto frame_size = static_cast<std::uint32_t>(body.size());
+        std::array<char, 4> header{static_cast<char>(frame_size >> 24), static_cast<char>(frame_size >> 16),
+            static_cast<char>(frame_size >> 8), static_cast<char>(frame_size)};
+        std::string frame(header.data(), header.size()); frame += body;
+        transfer(frame.data(), frame.size(), true, deadline, false);
+    }
+
+    void transfer(void* buffer, std::size_t size, bool writing, Clock::time_point deadline,
+                  bool service_motion = false) {
         auto* bytes = static_cast<char*>(buffer);
         std::size_t offset = 0;
-        const auto wait = [&](short events) {
+        const auto wait = [&](short events, bool allow_motion) {
             for (;;) {
                 const auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - Clock::now()).count();
                 require(left > 0, "Actor channel deadline expired");
                 pollfd descriptor{channel.get(), events, 0};
-                const int ready = poll(&descriptor, 1, static_cast<int>(left));
+                const int slice = allow_motion ? static_cast<int>(std::min<std::int64_t>(left, 10)) : static_cast<int>(left);
+                const int ready = poll(&descriptor, 1, slice);
                 if (ready < 0 && errno == EINTR) continue;
+                if (!ready && allow_motion) { send_motion_refresh(deadline); continue; }
                 require(ready > 0 && !(descriptor.revents & POLLNVAL),
                         "Actor channel transport lost or timed out");
                 // Let I/O classify EOF/errors and drain queued or SSL-buffered bytes.
@@ -264,7 +299,7 @@ struct ActorSessionClient::Impl {
         };
         while (offset < size) {
             require(Clock::now() < deadline, "Actor channel deadline expired");
-            if (!tls) wait(static_cast<short>(writing ? POLLOUT : POLLIN));
+            if (!tls) wait(static_cast<short>(writing ? POLLOUT : POLLIN), !writing && service_motion);
             ssize_t count;
             if (tls) {
                 std::size_t transferred = 0;
@@ -274,7 +309,8 @@ struct ActorSessionClient::Impl {
                 if (result != 1) {
                     const int error = SSL_get_error(tls.get(), result);
                     if (error == SSL_ERROR_WANT_READ || error == SSL_ERROR_WANT_WRITE) {
-                        wait(static_cast<short>(error == SSL_ERROR_WANT_READ ? POLLIN : POLLOUT));
+                        wait(static_cast<short>(error == SSL_ERROR_WANT_READ ? POLLIN : POLLOUT),
+                             !writing && service_motion && error == SSL_ERROR_WANT_READ);
                         continue;
                     }
                     throw std::runtime_error("Actor TLS channel closed during exchange");
@@ -299,6 +335,11 @@ struct ActorSessionClient::Impl {
         const std::uint64_t request_id = next_id++;
         request.set_protocol_version(1);
         request.set_request_id(request_id);
+        const bool stopping=(request.has_action() && request.action().has_stop()) ||
+            (request.has_control_action() && request.control_action().has_stop());
+        stop_trace::Scope trace(stopping?"client":nullptr,request_id);
+        if(stopping){stop_trace::mark("tls",bool(tls));
+            stop_trace::mark("actor_sequence",request.has_action()?request.action().seq():request.control_action().seq());}
         std::string body;
         require(request.SerializeToString(&body) && body.size() <= max_frame_bytes,
                 "Invalid or excessive actor request");
@@ -313,20 +354,23 @@ struct ActorSessionClient::Impl {
         const auto deadline = Clock::now() + timeout;
         try {
             transfer(request_frame.data(), request_frame.size(), true, deadline);
-            transfer(header.data(), header.size(), false, deadline);
+            stop_trace::mark("request_written");
+            transfer(header.data(), header.size(), false, deadline, true);
             frame_size = (std::uint32_t(static_cast<unsigned char>(header[0])) << 24) |
                          (std::uint32_t(static_cast<unsigned char>(header[1])) << 16) |
                          (std::uint32_t(static_cast<unsigned char>(header[2])) << 8) |
                          std::uint32_t(static_cast<unsigned char>(header[3]));
             require(frame_size > 0 && frame_size <= max_frame_bytes,
                     "Invalid actor reply frame length");
+            stop_trace::mark("reply_header_received");
             body.resize(frame_size);
-            transfer(body.data(), body.size(), false, deadline);
+            transfer(body.data(), body.size(), false, deadline, true);
             pb::WorldSessionReply reply;
             require(reply.ParseFromString(body) && reply.protocol_version() == 1 &&
                         reply.request_id() == request_id,
                     "Invalid actor reply envelope");
             validate_message(reply);
+            stop_trace::mark("reply_validated");
             if (reply.has_error()) {
                 // A matching Error diagnoses a read without uncertain effects.
                 // Mutating request errors still fence because effects may be uncertain.
@@ -334,6 +378,7 @@ struct ActorSessionClient::Impl {
                 throw ActorSessionRejected(reply.error());
             }
             require(reply.outcome_case() == expected, "Unexpected actor session reply outcome");
+            stop_trace::mark("outcome_checked");
             return reply;
         } catch (const ActorSessionRejected&) {
             throw;
@@ -357,7 +402,7 @@ struct ActorSessionClient::Impl {
             geometry_view_id = opened.geometry_view_id();
             geometry_service_incarnation = opened.authority_service_incarnation();
             geometry_authority_generation = opened.authority_generation();
-            geometry_sequence = 0;
+            geometry_sequence = 0; motion_sequence = 0; next_motion_refresh = Clock::now();
         } else require(opened.geometry_view_id().empty() && opened.authority_service_incarnation().empty() &&
                        opened.authority_generation() == 0, "Prepared actor has active geometry identity");
     }
@@ -556,6 +601,12 @@ core::v1::ActorActionReply ActorSessionClient::controlled_action(const core::v1:
         impl_->fail();
         throw;
     }
+}
+
+void ActorSessionClient::set_motion_refresh(
+        std::function<std::optional<core::v1::ActorInputRequest>()> callback) {
+    require(bool(impl_), "Actor client is unavailable");
+    impl_->motion_refresh = std::move(callback);
 }
 
 core::v1::ActorLocalViewIdentity ActorSessionClient::local_view_identity() const {

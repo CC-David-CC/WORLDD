@@ -76,6 +76,12 @@ message WorldAuthenticationBegin {
 message WorldSessionPrepared { bytes transition_id = 1; WorldSessionOpened actor = 2; }
 message WorldSessionActivate { bytes transition_id = 1; }
 message WorldGeometryViewRequest {}
+// One-way refresh for an authenticated actor's current navigation intent.
+// It is accepted only while the retained local revocation feed is healthy.
+message WorldMotionRefresh {
+  optional uint64 refresh_sequence = 1;
+  spatial.core.v1.ActorInputRequest input = 2;
+}
 message WorldSessionInspect {}
 message WorldSessionClose {}
 // A rejected input may have delivered partial input before cancellation.
@@ -129,6 +135,8 @@ message WorldSessionRequest {
     WorldGeometryViewRequest geometry_view = 23;
     // Same actor actions and authority. Only reversible input primitives qualify.
     spatial.core.v1.ActorActionRequest control_action = 24;
+    // No reply. This can refresh movement while a normal action is waiting.
+    WorldMotionRefresh motion_refresh = 25;
   }
 }
 message WorldSessionReply {

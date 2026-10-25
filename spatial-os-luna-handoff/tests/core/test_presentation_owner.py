@@ -28,6 +28,46 @@ def exact(n):
 def receive():return p.PresentationControlRequest.FromString(exact(struct.unpack('!I',exact(4))[0]))
 send(p.PresentationControlReply(protocol_version=1,ready=c.RendererReady()))
 r=receive()
+if mode.startswith('local_retire_'):
+ if not r.HasField('select_local_actor'):raise RuntimeError('Missing initial selection')
+ target=r.select_local_actor
+ send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,
+  local_actor_state=p.LocalActorPresentationState(target=target,selected=True)))
+ r=receive()
+ if not r.HasField('retire_local_actor') or r.retire_local_actor!=target:raise RuntimeError('Wrong exact retirement')
+ time.sleep(.35)
+ if mode=='local_retire_lost':s.shutdown(socket.SHUT_RDWR);s.close();time.sleep(10);sys.exit(0)
+ reply=p.PresentationControlReply(protocol_version=1,request_id=r.request_id,
+  local_actor_state=p.LocalActorPresentationState(target=target,selected=False))
+ if mode=='local_retire_request':reply.request_id+=1
+ if mode=='local_retire_target':reply.local_actor_state.target.identity.view_id=b'x'*32
+ if mode=='local_retire_selected':reply.local_actor_state.selected=True
+ if mode=='local_retire_denied':
+  reply.ClearField('local_actor_state');reply.error.code=c.FORBIDDEN;reply.error.message='checked retirement denial'
+ fd=os.memfd_create('bad-retirement') if mode=='local_retire_descriptor' else None
+ send(reply,fd)
+ if fd is not None:os.close(fd)
+ if mode in ('local_retire_success','local_retire_controls','local_retire_capture_generation','local_retire_capture_active'):
+  r=receive()
+  if not r.HasField('controls'):raise RuntimeError('Missing exact hidden controls output')
+  time.sleep(.1);reply=p.PresentationControlReply(protocol_version=1,request_id=r.request_id,controls=r.controls)
+  if mode=='local_retire_controls':reply.controls.capture_generation+=1
+  send(reply)
+  if mode!='local_retire_controls':
+   r=receive()
+   if not r.HasField('stop_capture'):raise RuntimeError('Missing checked capture retirement')
+   time.sleep(.1);reply=p.PresentationControlReply(protocol_version=1,request_id=r.request_id,
+    capture=p.HostCaptureState(capture_generation=r.stop_capture.capture_generation,active=False))
+   if mode=='local_retire_capture_generation':reply.capture.capture_generation+=1
+   if mode=='local_retire_capture_active':reply.capture.active=True
+   send(reply)
+  if mode=='local_retire_success':
+   r=receive();send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,shutting_down=True))
+  else:receive()
+ elif mode=='local_retire_denied':
+  r=receive();send(p.PresentationControlReply(protocol_version=1,request_id=r.request_id,shutting_down=True))
+ else:receive()
+ sys.exit(0)
 if mode.startswith('local_async_'):
  if not r.HasField('select_local_actor'):raise RuntimeError('Missing exact asynchronous selection')
  target=r.select_local_actor
@@ -104,6 +144,27 @@ class PresentationOwnerTests(unittest.TestCase):
         self.attempt('local_async_target','Selected local actor view unconfirmed')
     def test_async_checked_denial_preserves_exact_retirement(self):
         self.attempt('local_async_denied','checked selection denial')
+
+    def test_async_retirement_controls_and_capture_keep_polling_bounded(self):
+        self.attempt('local_retire_success','retirement continuations confirmed')
+    def test_async_retirement_rejects_wrong_request(self):
+        self.attempt('local_retire_request','reply identity mismatch')
+    def test_async_retirement_rejects_wrong_exact_target(self):
+        self.attempt('local_retire_target','Retired local actor view unconfirmed')
+    def test_async_retirement_cannot_accept_still_selected_receipt(self):
+        self.attempt('local_retire_selected','Retired local actor view unconfirmed')
+    def test_async_retirement_rejects_unsolicited_descriptors(self):
+        self.attempt('local_retire_descriptor','Invalid host presentation reply')
+    def test_async_retirement_transport_loss_keeps_uncertainty(self):
+        self.attempt('local_retire_lost','Presentation input closed or truncated')
+    def test_async_retirement_typed_denial_does_not_invent_clearance(self):
+        self.attempt('local_retire_denied','checked retirement denial')
+    def test_async_controls_requires_exact_generation_receipt(self):
+        self.attempt('local_retire_controls','Native controls presentation unconfirmed')
+    def test_async_capture_retirement_requires_exact_generation(self):
+        self.attempt('local_retire_capture_generation','Native capture retirement unconfirmed')
+    def test_async_capture_retirement_cannot_accept_active_receipt(self):
+        self.attempt('local_retire_capture_active','Native capture retirement unconfirmed')
 
     def test_wrong_request_id(self):self.attempt('request_id','reply identity mismatch')
     def test_wrong_binding(self):self.attempt('binding','state mismatch')

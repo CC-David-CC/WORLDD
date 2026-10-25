@@ -9,11 +9,13 @@ import core_pb2 as core
 
 channel = socket.socket(fileno=int(sys.argv[1]))
 mode = sys.argv[2]
+if mode.startswith('async-'):mode=mode.removeprefix('async-')
 packet = channel.recv(65536)
 request = pb.ControlSupervisorRequest.FromString(packet)
 reply = pb.ControlSupervisorReply(protocol_version=1, request_id=request.request_id)
-reply.state.owner.CopyFrom(request.inspect)
-reply.state.channel_fenced = False
+reply.state.owner.CopyFrom(request.fence if request.HasField('fence') else request.inspect)
+reply.state.channel_fenced = request.HasField('fence')
+if mode=='delay':time.sleep(.4)
 if mode == 'error':
     reply.error.code = core.NOT_FOUND
     reply.error.message = 'Independent owner absence'

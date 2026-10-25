@@ -36,21 +36,22 @@ void serve(WorldStore& world, Actors& actors, RenderWorker* renderer, Surfaces* 
         BrokerClient* broker;
         IdentitySessions* sessions;
         ~ClearCallbacks() {
-            if (renderer) renderer->set_tick([] {});
+            if (renderer) {renderer->set_input_priority([] {return false;});renderer->set_tick([] {});}
             if (broker) broker->set_tick([] {});
             if (sessions) sessions->set_tick([] {});
         }
     } clear_callbacks{renderer, broker, sessions};
+    if(renderer)renderer->set_input_priority([&] {return actors.progress_stops();});
     if (sessions) sessions->set_tick([&] {
         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
     });
     if (renderer) renderer->set_tick([&] {
-        if (sessions) sessions->tick();
+        if(sessions)sessions->pump_motion();
         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
         if (sessions) sessions->pump_motion();
     });
     if (broker) broker->set_tick([&] {
-        if (sessions) sessions->tick();
+        if(sessions)sessions->pump_motion();
         actors.tick(std::chrono::duration<double>(Clock::now() - origin).count()); actors.flush_input();
         if (sessions) sessions->pump_motion();
     });

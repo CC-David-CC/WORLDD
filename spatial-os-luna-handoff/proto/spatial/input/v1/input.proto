@@ -28,6 +28,8 @@ message Motion {
   sint32 y = 4;
 }
 message Key { fixed64 seat = 1; uint32 keycode = 2; bool pressed = 3; }
+message KeyChord { repeated uint32 keycodes = 1; }
+message KeyTapBatch { fixed64 seat = 1; repeated KeyChord chords = 2; }
 message Request {
   uint32 protocol_version = 1;
   fixed64 request_id = 2;
@@ -40,6 +42,7 @@ message Request {
     Seat close = 8;
     Seat status = 9;
     Motion motion = 10;
+    KeyTapBatch key_tap_batch = 11;
   }
 }
 enum Code {

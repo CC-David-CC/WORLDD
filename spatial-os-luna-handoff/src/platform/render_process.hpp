@@ -10,7 +10,8 @@ class RenderProcess final {
 public:
     enum class Mode { OwnedWorld, Presentation };
     RenderProcess(const std::filesystem::path& executable, const std::filesystem::path& state,
-                  std::string display, int native_fd = -1, Mode mode = Mode::OwnedWorld);
+                  std::string display, int native_fd = -1, Mode mode = Mode::OwnedWorld,
+                  bool fixture_faults = false);
     ~RenderProcess();
     RenderProcess(const RenderProcess&) = delete;
     RenderProcess& operator=(const RenderProcess&) = delete;

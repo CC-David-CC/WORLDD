@@ -1,6 +1,8 @@
 #include "supervisor/control_admin.hpp"
 #include "core/protocol.hpp"
 #include <fcntl.h>
+#include <chrono>
+#include <poll.h>
 #include <filesystem>
 #include <iostream>
 #include <signal.h>
@@ -43,7 +45,34 @@ int main(int argc, char** argv) {
         const int owned_socket = sockets[0];
         sockets[0] = -1;
         spatial::supervisor::ControlAdmin client(owned_socket, child, pin);
-        const auto reply = client.exchange(request);
+        spatial::workspace::v1::ControlSupervisorReply reply;
+        if(std::string(argv[2]).starts_with("async-")) {
+            using Clock=std::chrono::steady_clock;
+            const auto started=Clock::now();const auto token=client.begin(request);
+            if(Clock::now()-started>std::chrono::milliseconds(100))throw std::runtime_error("Administrative begin blocked");
+            bool busy=false,sync_busy=false,stale=false;
+            try{client.begin(request);}catch(const std::exception& error){busy=std::string(error.what())=="Administrative operation already in progress";}
+            try{client.exchange(request);}catch(const std::exception& error){sync_busy=std::string(error.what())=="Administrative operation already in progress";}
+            try{client.poll(token+1);}catch(const std::exception& error){stale=std::string(error.what())=="Stale administrative operation";}
+            if(!busy || !sync_busy || !stale || !client.pending())throw std::runtime_error("Administrative pending ownership escaped");
+            try {
+                for(;;) {
+                    const auto before=Clock::now();auto result=client.poll(token);
+                    if(Clock::now()-before>std::chrono::milliseconds(100))throw std::runtime_error("Administrative poll blocked");
+                    if(result){reply=std::move(*result);break;}
+                    ::poll(nullptr,0,2);
+                }
+            }catch(...) {
+                if(!client.pending())throw std::runtime_error("Uncertain administrative operation lost ownership");
+                if(std::string(argv[2])=="async-timeout" &&
+                    (Clock::now()-started<std::chrono::milliseconds(4800) || Clock::now()-started>std::chrono::milliseconds(6200)))
+                    throw std::runtime_error("Administrative polling reset its original deadline");
+                throw;
+            }
+            if(client.pending())throw std::runtime_error("Completed administrative operation kept its stream busy");
+            if(std::string(argv[2])=="async-delay" && Clock::now()-started<std::chrono::milliseconds(300))
+                throw std::runtime_error("Independent administrative delay was not exercised");
+        }else reply=client.exchange(request);
         spatial::write_frame(std::cout, reply);
         result = 0;
     } catch (const std::exception& error) {

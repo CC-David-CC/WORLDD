@@ -1,0 +1,148 @@
+M10 native application failures and focused correction
+Date: 2026-10-24. Status: DRAFT, UNQUALIFIED, FULL GATE UNRUN.
+
+Current result update, superseding historical pending statements below
+The font correction is committed as85d4ff05. Its required GLX build repair is committed as329d1160.
+Both checkpoints are box-git verified. M10 remains unqualified.
+Server315 passes436 selected font/isolation methods across both hosts and both profiles.
+Both Debug hosts reach compositor startup and real Xterm windows. See M10_NATIVE_FONT_METADATA_2026-10-24.txt.
+
+Source308 cancellation/error candidate builds and packages successfully in both profiles.
+Run316 executes its selected matrix on both Debug hosts. Both jobs finish1/1.
+Each host passes117 checks in eight complete suites:
+ Stop liveness2, controller11, initializer42, process termination9, world identity29,
+ application slots9, scripted actors8, and real-file workflows7.
+The worker suite fails its typed-watchdog case after8 passing groups. Eleven later groups remain unrun.
+The five native application methods run on each host. Sb16 has one failure. Sb16-2 has two failures.
+The missing-program method succeeds on both hosts, including the actual errno and other actors' movement.
+Paused-world Stop still misses its two-second rejection bound on both hosts.
+Sb16-2 also rejects ordinary final Stop after its exact watchdog fires.
+Evidence:cancellation-errors-collected-322. Preserve all failures.
+
+Source319 corrects interrupted worker exception publication under its existing lock.
+Ordinary failures keep their original type and leave healthy actor authority usable.
+Run321 passes21 worker and11 controller groups in every host/profile cell:128 accepted groups.
+Audit:worker-completion-primary-audit-329.json. Evidence:worker-completion-collected-324.
+This is fixture coverage. Native bounded cleanup remains unresolved.
+Source308 Stop, initializer, termination, and native-workflow sanitizer checks remain unrun.
+
+A bounded read-only review confirms the remaining synchronous cleanup chain:
+ ActorControl uncertainty invokes controller foreground retirement before failure publication.
+Cancellation drains outstanding world management work, then releases the view and checks broker observations.
+Paused worldd cannot answer those operations. Typed worker classification occurs too late to prevent that wait.
+The next increment must retain exact pending cleanup and poll it independently of actor availability.
+Retire only the exact compositor target before waiting for worldd. Never let old cleanup blank an adopted view.
+Keep350ms watchdog, checked release, stale-frame fences, and uncertain cleanup reporting.
+
+Resource diagnostic328 supplies the exact installed public Xedit resource through XENVIRONMENT.
+Both hosts now map real Xedit windows. The missing /etc/X11/app-defaults dependency is confirmed.
+The production sandbox dependency fix remains unimplemented.
+Sb16-2 saves repeated characters instead of the expected text. The terminal output file remains absent.
+Repeated input is reproduced. Delayed release and native auto-repeat are hypotheses requiring correlated event timing.
+Do not disable auto-repeat or weaken the byte-for-byte file assertions to obtain a pass.
+Sb16 reaches three editor typing stages and two terminal typing stages, then its service times out.
+Its suite lacks a terminal unittest summary. No method pass is inferred from partial progress.
+The native resource wrapper allows240 seconds while this new registration allows600 seconds.
+Reconcile that launcher budget before the next combined workflow. Preserve the input and Stop deadline contracts.
+Evidence:application-resource-diagnostic-collected-330. Actual authorized observation pixels are retained there.
+Setup failures323 and327 remain separate evidence. Neither executed application behavior.
+Corrective328 verifies the exact composed remote programs before launch.
+
+The complete human/two-agent frozen candidate, generation proof, and full two-host gate remain pending.
+
+Historical attempts and retained provenance follow
+Authoritative checkout: /home/dflanag3/src/m10-shared-actions-20261023.
+Base commit: 089d76bb7c69101c20691b11580c3efab1a995b7.
+Evidence root: /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+
+Source270 builds completed in Debug and ASan/UBSan. Build run270 exited0/0.
+Exact source archive: application-actions-source270-exact-275.tar.gz.
+SHA256: 9e9e1974960153332b9b7ae51b238fe58d8fee667f2497a20843e7b04b2c3486.
+Debug package275 manifest: 67d83d2fed8d7addb4fbdb37f31272ab4fa54690e7af7ddda7a7534a7736f608.
+ASan package275 manifest: 9593616429b5365ebfb165ab6ebe8c284cdb093902f1a8eae66fc1d36d092c04.
+The sanitizer native package instruments worldd, spatialwm, host, scripted actors, and slot probe.
+Broker, identity, and other helpers use source270 Debug. This is not full instrumentation.
+Nine slot-store checks pass on both Debug hosts. Sanitizer slot runtime remains unrun.
+
+New unlocked native fixture correction
+Run276 failed all three native methods before application readiness on both hosts.
+Diagnostic279 reports XI2 unavailable in the confined independent C application.
+The locked extension-isolation contract deliberately hides XI2 from ordinary applications.
+Do not enable it to satisfy a new test. Preserve the independent C witness unchanged.
+A separate supervisor-authenticated observer can inspect exact application windows.
+A bounded helper review confirmed this correction and the required identity checks.
+Run283 proves foreign actor receipt rejection and resize rejection on both Debug hosts.
+It also exposed XI2-first delivery suppressing the simultaneous core witness phase.
+Existing M09 tests already separate those phases. The new fixture now does too.
+First require core C delivery. Then require fresh nonsynthetic XI2 device/source events.
+Check enabled paired master devices and their enabled attached slave sources.
+Deselect with a checked fence before later core delivery and control transfer checks.
+The new correction remains unrun. It does not modify locked tests or the C witness.
+
+Preserved failure archives
+application-actions-failure-collected-278:
+ sb16 936daf2d2f588162245c370febb05e6ffc8f7e73982bb7e8f2d64df5de082bff.
+ sb16-2 ca75d05501f888ff7a3bc46a649e4dc63045716d286d258d3d43645f073ee4dd.
+application-startup-failure-collected-282:
+ sb16 6fce9cb54b215e571a9bb3904875b17cea7325e43c7b97d1aad746a02871fbd9.
+ sb16-2 258067c9c2d5366686b35d208132f987c247fc7af62eadf9d85e69a2d75054f0.
+application-input-failure-collected-286:
+ sb16 7777304932bfdb3880e669f871fdfc49fccaa7a5eaea1a02975de82b0509d746.
+ sb16-2 8fef12e78bef5290c7b0ec3ad45fa07e0348b27d5299142421dd5b94656aaf73.
+
+Actual installed application failures
+Xterm390-1ubuntu3 and Xedit are installed on both hosts. They are not missing programs.
+Run280 fails both real application methods on both Debug hosts before usable mapping.
+Xedit reports a fileMenu shell with zero width or height.
+Its installed resources are under /etc/X11/app-defaults, outside the present sandbox mounts.
+Missing resources remain the leading hypothesis. A confirming check remains required.
+Run281 independently resolves Xterm's rejected atom0x70 using a trusted supervisor query.
+Both hosts report the standard font name:
+ -Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1.
+The server returns this authorized font metadata but denies its subsequent name lookup.
+Run288 reproduces four failing normal/swapped QueryFont/ListFontsWithInfo methods per host.
+The fifth method passes: a foreign font query remains denied.
+
+Explicit font metadata policy correction
+Public font definitions are already permitted. Font paths remain private.
+Declare only property-name atoms and values marked isStringProp in an authorized font reply.
+Do not treat numeric font values as atom identifiers.
+Keep declarations application-local and within the existing65536 atom budget.
+Prepare the entire declaration set before publication. Allocation failure grants nothing.
+QueryFont checks resource access before declaration and publishes only after successful construction.
+ListFontsWithInfo checks each actual asynchronous record before swapping or writing it.
+On failure, retire the enumeration, return BadAlloc, and publish no affected record.
+No global atom allowlist, private atom access, font-path grant, or XI2 application grant is added.
+The XACE baseline remains active. CallbackList migration remains deferred.
+Patch0017 and the server source lock explicitly record this draft change.
+Required checks include normal/swapped replies, foreign denial, numeric collisions, and atom budget failure.
+Only the first five baseline methods have run. Corrected-server checks remain unrun.
+
+Other reproduced blockers
+Sb16-2 run283 reaches terminal host cleanup during human Stop.
+The exact watchdog flight1717 exceeds350ms at359ms. No queued source event caused it.
+The host reports Actor result lost its interruption barrier and tears down retained services.
+This is unresolved. Preserve exact interruption guards and350ms watchdog while repairing isolation.
+Do not classify the failure as a presentation timeout without evidence.
+David's missing-program edge case is now a separate native test.
+Run287 reports Broker authority lookup failed on both hosts instead of the actual launch cause.
+The test fails before proving continued movement. Other-actor liveness remains unproven for this case.
+Do not replace the misleading error with a hardcoded test result.
+
+Build-host prerequisites
+Pinned upstream sources were cloned on middle-child in font-server-sources-284.
+XLibre commit: f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+Xorgproto commit: 67469711055522b8adb2d795b01e7ba98cb8816c.
+Dependency job285 installs meson1.3.2-1ubuntu1, libxfont-dev1:2.0.6-1+deb13u1build0.24.04.2,
+libxkbfile-dev1:1.1.0-1build4, libepoxy-dev1.5.10-1build1, and libfontenc-dev.
+The package preview and actual transaction upgrade zero packages.
+Record any additional build dependencies separately. Do not run server runtime tests on middle-child.
+Recovery for these added build dependencies is apt-get remove of the five exact added package names.
+No login configuration, normal display, or recovery route changed.
+
+Capacity correction274
+Verified duplicate payload copies were removed only from both test hosts:
+ host-startup-native-26 and focused-core-asan-01 under the evidence root.
+Full original payloads, manifests, and archives remain verified on middle-child.
+Reclaimed bytes: sb16=3059113984; sb16-2=3059027968.
+Current packages, accepted M09, required dependencies, and failed evidence remain preserved.

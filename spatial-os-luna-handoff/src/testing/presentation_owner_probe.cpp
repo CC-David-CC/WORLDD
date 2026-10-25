@@ -28,6 +28,42 @@ int main(int argc,char** argv){
             auto* view=target.mutable_identity();view->set_protocol_version(1);view->set_world_id(binding.world_id());
             view->set_actor_id("human");view->set_view_id(std::string(32,'v'));
             view->set_authority_service_incarnation(binding.service_incarnation());view->set_authority_generation(1);
+            if(mode.starts_with("local_retire_")) {
+                using Clock=std::chrono::steady_clock;owner.select_local_actor(target);
+                auto wait=[&](auto poll,std::uint64_t token) {
+                    const auto deadline=Clock::now()+std::chrono::seconds(3);unsigned ticks=0;
+                    while(Clock::now()<deadline) {
+                        const auto before=Clock::now();const bool done=poll(token);
+                        if(Clock::now()-before>std::chrono::milliseconds(25))throw std::runtime_error("Retirement poll blocked");
+                        ++ticks;if(done)return ticks;::poll(nullptr,0,1);
+                    }
+                    throw std::runtime_error("Retirement polling did not finish");
+                };
+                bool rejected=false;
+                try {
+                    const auto token=owner.begin_retire_local_actor(target);
+                    if(!owner.pending())return 30;
+                    bool busy=false,stale=false;
+                    try{owner.inspect(binding);}catch(const std::exception& error){busy=std::string(error.what())=="Host presentation exchange already in progress";}
+                    try{owner.poll_retire_local_actor(token+1);}catch(const std::exception& error){stale=std::string(error.what())=="Stale local actor retirement operation";}
+                    if(!busy || !stale)return 31;
+                    const auto ticks=wait([&](auto id){return owner.poll_retire_local_actor(id).has_value();},token);
+                    if(ticks<50 || owner.pending())return 32;
+                    spatial::control::v1::ControlMenuView menu;menu.set_protocol_version(1);
+                    auto output=owner.begin_present_controls(7,menu);
+                    wait([&](auto id){return owner.poll_present_controls(id);},output);
+                    auto capture=owner.begin_stop_capture(7);
+                    wait([&](auto id){return owner.poll_stop_capture(id);},capture);
+                    if(mode!="local_retire_success")return 33;
+                    owner.shutdown();std::cout<<"retirement continuations confirmed\n";
+                }catch(const std::exception& error){rejected=true;std::cout<<error.what()<<'\n';}
+                if(mode=="local_retire_success" && rejected)return 34;
+                if(mode!="local_retire_success" && !rejected)return 35;
+                if(mode=="local_retire_denied")owner.shutdown();
+                try{owner.inspect(binding);return 36;}
+                catch(const std::exception& error){std::cout<<error.what()<<'\n';}
+                return 0;
+            }
             if(mode.starts_with("local_async_")) {
                 using Clock=std::chrono::steady_clock;
                 const auto token=owner.begin_select_local_actor(target);

@@ -48,7 +48,8 @@
     "server/patches/0014-native-observer-xvfb-link-whole.patch",
     "server/patches/0015-native-observer-endpoint-argument.patch",
     "server/patches/0016-native-observer-output-argument.patch",
-    "server/patches/0017-authorized-font-atom-metadata.patch"
+    "server/patches/0017-authorized-font-atom-metadata.patch",
+    "server/patches/0018-fb-line-defined-error-arithmetic.patch"
   ],
   "overlays": {
     "server/xlibre/spatialinput.c": "Xext/spatial/spatialinput.c",
@@ -123,6 +124,7 @@
     "proto/spatial/testing/v3/native_input_lifecycle_v3.proto": "aab3d719eef1721402f8abdc76cca4786f03d7f4784ed9275fd27a666da60f64",
     "server/xlibre/spatialinputobserver_lifecycle_v3.c": "ca151b8f69647cb108db5e2b1bea3839fd50bb53f7e6ede8a3284aaecf4c3645",
     "server/xlibre/spatialinputobserver_lifecycle_v3.h": "c19487a152f39a3a4d5e046af5e714d14279b5779faef0704030cd3191eeb151",
-    "server/patches/0017-authorized-font-atom-metadata.patch": "6bef20d9d6470eafa1a83bb1f3446cecfc980a65fd71ded3d57465de8c67c5cc"
+    "server/patches/0017-authorized-font-atom-metadata.patch": "6bef20d9d6470eafa1a83bb1f3446cecfc980a65fd71ded3d57465de8c67c5cc",
+    "server/patches/0018-fb-line-defined-error-arithmetic.patch": "36001b9b4c15c9b5d7b2e236647e99342985ee339a809460abd4bc1509bbd754"
   }
 }

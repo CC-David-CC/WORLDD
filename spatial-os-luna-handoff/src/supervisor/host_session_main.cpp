@@ -277,6 +277,7 @@ int main(int argc,char** argv) {
         if(config.shared_actor_controls()) {
             HostActorWorker::CaptureStart start;
             HostActorWorker::CaptureStop stop;
+            HostActorWorker::CaptureStopProgress progress;
             if(config.has_native_capture()) {
                 start=[&session,native=config.native_capture()](const auto& binding) {
                     int pair[2];need(socketpair(AF_UNIX,SOCK_SEQPACKET|SOCK_CLOEXEC,0,pair)==0,"Cannot create private native capture pair");
@@ -287,6 +288,7 @@ int main(int argc,char** argv) {
                     return HostActorWorker::CaptureEndpoint{std::move(stream),0};
                 };
                 stop=[&session](const auto& binding){session->stop_capture(binding->capture_generation);};
+                progress=[&session](const auto& binding){return session->stop_capture_progress(binding->capture_generation);};
             } else if(!capture_pool.empty()) {
                 start=[&capture_pool,parent,index=std::size_t{0}](const auto& binding) mutable {
                     need(index<capture_pool.size(),"Trusted capture endpoint pool exhausted");
@@ -297,7 +299,7 @@ int main(int argc,char** argv) {
                 };
                 stop=[](const auto&){}; // No physical grab; closing the exact receiver retires this slot.
             }
-            actor_worker=std::make_unique<HostActorWorker>(*controller,std::move(start),std::move(stop));
+            actor_worker=std::make_unique<HostActorWorker>(*controller,std::move(start),std::move(stop),std::move(progress));
         }
         std::uint64_t last_id=0;
         while(!stopped) {
@@ -322,7 +324,9 @@ int main(int argc,char** argv) {
                         if(request.has_inspect()) { auto result=controller->inspect(request.generation()); *reply.mutable_inspection()=result; reply.set_accepted(true); }
                         else if(request.has_geometry_status()) { *reply.mutable_geometry_status()=controller->geometry_status(request.generation()); reply.set_accepted(true); }
                         else if(request.has_action()) { auto result=controller->action(request.generation(),request.action()); *reply.mutable_action()=result; reply.set_accepted(true); }
-                        else if(request.has_propose()) { *reply.mutable_proposed()=controller->propose(request.generation(),request.propose()); reply.set_accepted(true); }
+                        else if(request.has_propose()) { stop_trace::mark("root_request",request.request_id());
+                            *reply.mutable_proposed()=controller->propose(request.generation(),request.propose());
+                            stop_trace::mark("controller_returned");reply.set_accepted(true); }
                         else if(request.has_controls_status()) { *reply.mutable_controls()=actor_worker ? actor_worker->control_status(request.generation()) : controller->control_status(request.generation()); reply.set_accepted(true); }
                         else if(request.has_captured_device()) {
                             if(actor_worker) {
@@ -355,7 +359,17 @@ int main(int argc,char** argv) {
                 (!request.has_captured_device() && !cancellation) ||
                 (request.has_captured_device() && urgency->capture_generation!=request.captured_device().capture_generation()))
                 urgency.reset();
-            auto reply=actor_worker ? actor_worker->call(dispatch,urgency,cancellation) : dispatch();
+            spatial::supervisor::v1::HostControlReply reply;
+            try { reply=actor_worker ? actor_worker->call(dispatch,urgency,cancellation) : dispatch(); }
+            catch (const HostActorContextInterrupted& error) {
+                // Never publish a result computed before the exact interruption.
+                // A fresh rejection owns this request, without claiming release
+                // or destroying the host's retained worlds and applications.
+                reply.set_protocol_version(1);
+                reply.set_request_id(request.request_id());
+                reply.set_generation(request.generation());
+                reply.set_detail(error.what());
+            }
             write_reply(control,reply,deadline);
         }
         operation_ok=true;

@@ -2,7 +2,9 @@
 #include "supervisor/host_capture_receiver.hpp"
 #include <chrono>
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <limits>
 
 namespace spatial::supervisor {
 namespace {
@@ -15,8 +17,10 @@ std::int64_t nanoseconds() {
     return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now().time_since_epoch()).count();
 }
 }
-HostActorWorker::HostActorWorker(HostActorController& controller,CaptureStart start,CaptureStop stop_callback)
-    : controller_(controller),start_capture_(std::move(start)),stop_capture_(std::move(stop_callback)) {
+HostActorWorker::HostActorWorker(HostActorController& controller,CaptureStart start,CaptureStop stop_callback,
+        CaptureStopProgress progress)
+    : controller_(controller),start_capture_(std::move(start)),stop_capture_(std::move(stop_callback)),
+      poll_stop_capture_(std::move(progress)) {
     if(bool(start_capture_)!=bool(stop_capture_))throw std::invalid_argument("Capture requires checked start and stop callbacks");
     std::promise<void> ready;
     auto future = ready.get_future();
@@ -71,7 +75,34 @@ void HostActorWorker::stop() noexcept {
 }
 bool HostActorWorker::enqueue(Work work) {
     std::lock_guard lock(queue_mutex_);
-    if (stopping_ || queue_.size() >= queue_limit) return false;
+    if (stopping_) return false;
+    if (work.capture_motion && !queue_.empty()) {
+        auto& previous = queue_.back();
+        if (previous.capture_motion && previous.urgent_binding == work.urgent_binding &&
+            previous.capture_source == work.capture_source && previous.source_generation == work.source_generation) {
+            if (!work.capture_relative_motion) {
+                // Axes are state samples. The newest sample is authoritative.
+                previous = std::move(work);
+                changed_.notify_one();
+                return true;
+            }
+            if (previous.capture_relative_motion && previous.capture_packet && work.capture_packet) {
+                const auto& old_motion=previous.capture_packet->event().motion();
+                const auto& new_motion=work.capture_packet->event().motion();
+                const double dx=old_motion.dx()+new_motion.dx();
+                const double dy=old_motion.dy()+new_motion.dy();
+                if (std::isfinite(dx) && std::isfinite(dy) && std::abs(dx)<=100000 && std::abs(dy)<=100000) {
+                    *previous.capture_packet=*work.capture_packet;
+                    previous.capture_packet->mutable_event()->mutable_motion()->set_dx(dx);
+                    previous.capture_packet->mutable_event()->mutable_motion()->set_dy(dy);
+                    previous.packet_sequence=work.packet_sequence;
+                    changed_.notify_one();
+                    return true;
+                }
+            }
+        }
+    }
+    if (queue_.size() >= queue_limit) return false;
     queue_.push_back(std::move(work));
     changed_.notify_one();
     return true;
@@ -81,11 +112,38 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
     if (packet.capture_generation() != binding->capture_generation) {
         (void)request_cancel(binding); return false;
     }
+    if (packet.protocol_version() != 1 || !packet.has_event() || !packet.packet_sequence() || !packet.monotonic_nanoseconds() ||
+        packet.monotonic_nanoseconds() > static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max())) {
+        (void)request_cancel(binding); return false;
+    }
+    auto observed = binding->observed_sequence_.load(std::memory_order_acquire);
+    if (packet.packet_sequence() <= observed || !binding->observed_sequence_.compare_exchange_strong(
+            observed, packet.packet_sequence(), std::memory_order_acq_rel)) {
+        (void)request_cancel(binding); return false;
+    }
+    if (binding->motion_intent_) {
+        const auto captured = control::DeviceAdapters::Clock::time_point(std::chrono::duration_cast<
+            control::DeviceAdapters::Clock::duration>(std::chrono::nanoseconds(
+                static_cast<std::int64_t>(packet.monotonic_nanoseconds()))));
+        if (!binding->motion_intent_->observe(packet.event(), captured, control::DeviceAdapters::Clock::now())) {
+            (void)request_cancel(binding); return false;
+        }
+    }
     Work work; work.capture_heartbeat = packet.event().has_heartbeat();
+    work.capture_motion = packet.event().has_motion() || packet.event().has_axes();
+    work.capture_relative_motion = packet.event().has_motion();
+    if (work.capture_motion) {
+        work.capture_source = packet.event().source_id();
+        work.source_generation = packet.event().source_generation();
+        work.packet_sequence = packet.packet_sequence();
+    }
     // Liveness traffic does not request an action or release. Independent source
     // failure still publishes exact pending cancellation with watchdog urgency.
     if(!work.capture_heartbeat)work.urgent_binding = binding;
-    work.execute = [this, binding, packet = std::move(packet)] {
+    work.capture_packet=std::make_shared<control::v1::CapturedDeviceEvent>(std::move(packet));
+    auto captured_packet=work.capture_packet;
+    work.execute = [this, binding, captured_packet] {
+        const auto& packet=*captured_packet;
         try {
         if (!current(binding) || !controller_.control_available()) return;
         try { (void)device_event(binding, packet); }
@@ -117,13 +175,16 @@ control::v1::ControlStatus HostActorWorker::device_event(const Binding& binding,
     return controller_.device_event(binding->actor_generation,packet);
 }
 bool HostActorWorker::request_cancel(const Binding& binding) noexcept {
-    std::lock_guard lock(watch_mutex_);
-    if (!binding || binding_ != binding) return false;
-    if (binding->retired()) return true;
-    pending_cancel_ = binding;
-    cancel_pending_.store(true);
-    binding->retired_.store(true); // Observed retirement implies cancellation is already pending.
-    changed_.notify_all();
+    {
+        std::lock_guard lock(watch_mutex_);
+        if (!binding || binding_ != binding) return false;
+        if (binding->retired()) return true;
+        pending_cancel_ = binding;
+        cancel_pending_.store(true);
+        binding->retired_.store(true); // Observed retirement implies cancellation is already pending.
+        changed_.notify_all();
+    }
+    if (binding->motion_intent_) binding->motion_intent_->clear();
     return true;
 }
 void HostActorWorker::capture_failed(const Binding& binding) noexcept {
@@ -131,20 +192,23 @@ void HostActorWorker::capture_failed(const Binding& binding) noexcept {
     // interrupt its exact flight without taking controller or actor locks.
     (void)request_cancel(binding);
 }
-void HostActorWorker::retire_capture() {
-    if(!capture_owner_)return;
+bool HostActorWorker::retire_capture() {
+    if(!capture_owner_)return true;
     capture_owner_->capture_active_.store(false);
     receiver_.reset();
-    stop_capture_(capture_owner_); // Keep the owner if the receipt is uncertain.
-    capture_owner_.reset();capture_cleanup_complete_.store(true);
+    if(poll_stop_capture_) {
+        if(!poll_stop_capture_(capture_owner_))return false;
+    }else stop_capture_(capture_owner_);
+    capture_owner_.reset();capture_cleanup_complete_.store(true);return true;
 }
 void HostActorWorker::synchronize_capture() {
     if(!start_capture_)return;
     const auto binding=capture_binding();
     try {
-        if(capture_owner_ && (capture_owner_!=binding || capture_owner_->retired()))retire_capture();
+        if(capture_owner_ && (capture_owner_!=binding || capture_owner_->retired()) && !retire_capture())return;
         if(!binding || binding->retired() || capture_owner_)return;
         capture_owner_=binding;capture_cleanup_complete_.store(false);
+        binding->motion_intent_ = controller_.motion_intent(binding->actor_generation);
         auto endpoint=start_capture_(binding);
         if(!endpoint.stream)throw std::runtime_error("Capture startup returned no private endpoint");
         binding->source_slot_=endpoint.source_slot;
@@ -204,8 +268,11 @@ void HostActorWorker::settle_context() {
         // A socket-shutdown request may precede the next actor exchange. Do not
         // publish a healthy result from cached status after that interruption.
         core::v1::ActorActionRequest stop;stop.mutable_stop();
-        (void)controller_.propose(binding->actor_generation,stop);
-        throw std::runtime_error("Interrupted actor context requires checked recovery");
+        try { (void)controller_.propose(binding->actor_generation,stop); }
+        catch (...) {
+            throw HostActorContextInterrupted("Interrupted actor context has no confirmed input release");
+        }
+        throw HostActorContextInterrupted("Interrupted actor context requires checked recovery");
     }
 }
 bool HostActorWorker::complete(const std::function<void()>& publish, bool success) {
@@ -218,6 +285,18 @@ bool HostActorWorker::complete(const std::function<void()>& publish, bool succes
     flight_.reset();
     if(interrupted)return false;
     publish();return true;
+}
+void HostActorWorker::complete_failure(std::exception_ptr failure,
+                                      const std::function<void(std::exception_ptr)>& publish) {
+    std::lock_guard lock(watch_mutex_);
+    // A transport exception can retire binding_ before settlement. Preserve the
+    // exact interrupted flight through the same publication barrier as success.
+    bool interrupted=flight_ && flight_->interrupted;
+    if(binding_)if(const auto interrupt=binding_->interrupt.lock())interrupted|=interrupt->requested();
+    if(interrupted)failure=std::make_exception_ptr(
+        HostActorContextInterrupted("Interrupted actor context has no confirmed input release"));
+    flight_.reset();
+    publish(std::move(failure));
 }
 void HostActorWorker::begin_exchange(const Binding& urgent, bool cancellation) {
     refresh_context();
@@ -232,6 +311,7 @@ void HostActorWorker::watch() noexcept {
     struct Decision {
         std::uint64_t serial=0,actor=0,capture=0;
         std::int64_t elapsed_ms=0;
+        std::uint64_t diagnostic_time=0;
         bool flight=false,cancellation=false,heartbeat=false,event=false;
     };
     std::uint64_t logged_serial=0;
@@ -257,9 +337,12 @@ void HostActorWorker::watch() noexcept {
                 const bool urgent=flight_->urgent || pending_cancel_==context || queued_heartbeat || queued_event;
                 if (urgent) if (const auto interrupt = context->interrupt.lock()) {
                     if(!interrupt->requested() && logged_serial!=flight_->serial) {
-                        decision={flight_->serial,context->actor_generation,context->capture_generation,
-                            (nanoseconds()-flight_->started)/1000000,flight_->urgent,pending_cancel_==context,
-                            queued_heartbeat,queued_event};
+                        decision.serial=flight_->serial;
+                        decision.actor=context->actor_generation;decision.capture=context->capture_generation;
+                        decision.elapsed_ms=(nanoseconds()-flight_->started)/1000000;
+                        decision.flight=flight_->urgent;decision.cancellation=pending_cancel_==context;
+                        decision.heartbeat=queued_heartbeat;decision.event=queued_event;
+                        decision.diagnostic_time=nanoseconds();
                         log_decision=true;logged_serial=flight_->serial;
                     }
                     interrupt->request();
@@ -274,7 +357,7 @@ void HostActorWorker::watch() noexcept {
             // Slow diagnostic output cannot hold either operation/publication lock.
             try {
                 std::cerr<<"Actor watchdog requested exact interruption flight="<<decision.serial
-                    <<" elapsed_ms="<<decision.elapsed_ms<<" actor_generation="<<decision.actor
+                    <<" monotonic_ns="<<decision.diagnostic_time<<" elapsed_ms="<<decision.elapsed_ms<<" actor_generation="<<decision.actor
                     <<" capture_generation="<<decision.capture<<" flight_urgent="<<decision.flight
                     <<" pending_cancel="<<decision.cancellation<<" queued_heartbeat="<<decision.heartbeat
                     <<" queued_event="<<decision.event<<'\n';
@@ -325,6 +408,7 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
             }
             begin_exchange(cancelled,true);
             try {
+                (void)controller_.pump_deferred_cleanup();
                 // Compare the actual adopted context, after refresh_context().
                 if (cancelled && cancelled == capture_binding() && controller_.control_available()) {
                     core::v1::ActorActionRequest stop; stop.mutable_stop();
@@ -356,7 +440,13 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
         try { refresh_context(); } catch (...) {}
         stop(); // Close the exact actor transport before notifying an idle root reader.
     }
-    try {retire_capture();}catch(...) {capture_cleanup_complete_.store(false);std::cerr<<"Capture cleanup remains unconfirmed\n";}
+    try {
+        const auto deadline=Clock::now()+std::chrono::seconds(10);
+        while(!retire_capture() && Clock::now()<deadline) {
+            (void)controller_.pump_deferred_cleanup();std::this_thread::sleep_for(interval);
+        }
+        if(capture_owner_)std::cerr<<"Capture cleanup remains unconfirmed\n";
+    }catch(...) {capture_cleanup_complete_.store(false);std::cerr<<"Capture cleanup remains unconfirmed\n";}
     end_exchange(); stopping_.store(true); changed_.notify_all();
     std::lock_guard lock(queue_mutex_); queue_.clear();
 }

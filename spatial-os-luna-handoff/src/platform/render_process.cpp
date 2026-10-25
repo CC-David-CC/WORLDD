@@ -13,8 +13,10 @@
 
 namespace spatial {
 RenderProcess::RenderProcess(const std::filesystem::path& executable, const std::filesystem::path& state,
-                             std::string display, int native_fd, Mode mode)
+                             std::string display, int native_fd, Mode mode, bool fixture_faults)
     : creator_(getpid()), display_(std::move(display)) {
+    if (mode == Mode::Presentation && fixture_faults)
+        throw std::invalid_argument("Presentation service cannot enable compositor fixture faults");
     if(mode==Mode::Presentation && native_fd<3)throw std::invalid_argument("Presentation process requires sealed native configuration");
     int pair[2];
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, pair) != 0)
@@ -45,10 +47,16 @@ RenderProcess::RenderProcess(const std::filesystem::path& executable, const std:
                     "--native-security-fd",native_argument.c_str(),"--presentation-owner-pid",owner_argument.c_str(),static_cast<char*>(nullptr));
                 _exit(127);
             }
+            if (fixture_faults)
+                execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
+                      "--native-security-fd", native_argument.c_str(), "--fixture-faults", static_cast<char*>(nullptr));
             execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
                   "--native-security-fd", native_argument.c_str(), static_cast<char*>(nullptr));
             _exit(127);
         }
+        if (fixture_faults)
+            execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
+                  "--fixture-faults", static_cast<char*>(nullptr));
         execl(executable.c_str(), executable.c_str(), "--state-dir", state.c_str(), "--display", display_.c_str(),
               static_cast<char*>(nullptr));
         _exit(127);

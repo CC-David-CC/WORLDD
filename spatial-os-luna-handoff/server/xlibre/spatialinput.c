@@ -559,6 +559,9 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
     case OP(OPEN): seat = open_seat(client); break;
     case OP(BUTTON): id = request->button->seat; break;
     case OP(KEY): id = request->key->seat; break;
+    case OP(KEY_TAP_BATCH):
+        if (!request->key_tap_batch) { reply->code = CODE(INVALID_ARGUMENT); return; }
+        id = request->key_tap_batch->seat; break;
     case OP(MOTION): id = request->motion->seat; break;
     case OP(CANCEL): id = request->cancel->id; break;
     case OP(CLOSE): id = request->close->id; break;
@@ -624,6 +627,45 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         send_input(seat, key->pressed ? KeyPress : KeyRelease, key->keycode);
         if (key->pressed) seat->keys[key->keycode / 8] |= 1u << (key->keycode % 8);
         else seat->keys[key->keycode / 8] &= ~(1u << (key->keycode % 8));
+    }
+    if (request->operation_case == OP(KEY_TAP_BATCH)) {
+        const Spatial__Input__V1__KeyTapBatch *batch = request->key_tap_batch;
+        if (!batch || !batch->n_chords || batch->n_chords > 32) {
+            reply->code = CODE(INVALID_ARGUMENT); return;
+        }
+        if (!live_window(seat->focus, seat->focus_generation)) {
+            reply->code = CODE(NO_FOCUS); return;
+        }
+        /* Validate the full batch before injecting its first edge. */
+        for (size_t i = 0; i < batch->n_chords; ++i) {
+            const Spatial__Input__V1__KeyChord *chord = batch->chords[i];
+            if (!chord || !chord->n_keycodes || chord->n_keycodes > 8) {
+                reply->code = CODE(INVALID_ARGUMENT); return;
+            }
+            for (size_t j = 0; j < chord->n_keycodes; ++j) {
+                const uint32_t code = chord->keycodes[j];
+                if (code < 8 || code >= 256 ||
+                    (seat->keys[code / 8] & (1u << (code % 8)))) {
+                    reply->code = CODE(INVALID_ARGUMENT); return;
+                }
+                for (size_t k = 0; k < j; ++k) if (chord->keycodes[k] == code) {
+                    reply->code = CODE(INVALID_ARGUMENT); return;
+                }
+            }
+        }
+        for (size_t i = 0; i < batch->n_chords; ++i) {
+            const Spatial__Input__V1__KeyChord *chord = batch->chords[i];
+            for (size_t j = 0; j < chord->n_keycodes; ++j) {
+                const uint32_t code = chord->keycodes[j];
+                send_input(seat, KeyPress, code);
+                seat->keys[code / 8] |= 1u << (code % 8);
+            }
+            for (size_t j = chord->n_keycodes; j > 0; --j) {
+                const uint32_t code = chord->keycodes[j - 1];
+                send_input(seat, KeyRelease, code);
+                seat->keys[code / 8] &= ~(1u << (code % 8));
+            }
+        }
     }
     reply->seat = seat->id;
     reply->pointer_device = seat->pointer->id; reply->keyboard_device = seat->keyboard->id;

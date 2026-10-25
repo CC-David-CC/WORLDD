@@ -153,7 +153,8 @@ int main(int argc, char** argv) {
             close(presentation_fd);close(presentation_pidfd);
         }
         else if (!display.empty()) renderer = std::make_unique<spatial::RenderWorker>(
-            std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display, native ? native->descriptor() : -1);
+            std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display,
+            native ? native->descriptor() : -1, fixture_faults);
         if (native) native->consume();
         spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;

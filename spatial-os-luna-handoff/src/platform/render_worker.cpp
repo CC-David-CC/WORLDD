@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/random.h>
+#include <exception>
+#include <cstring>
 namespace spatial {
 using Clock = std::chrono::steady_clock;
 struct RenderWorker::Shared {
@@ -39,9 +41,20 @@ struct RenderWorker::Shared {
         capture_path=state/"captures";
     }
 };
+struct RenderWorker::PendingCancellation {
+    std::uint64_t token=0;
+    wire::RendererInputCommand command;
+    std::string output,input;
+    std::size_t sent=0;
+    std::optional<std::uint32_t> size;
+    Clock::time_point deadline;
+    std::exception_ptr failure;
+};
 
-RenderWorker::RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display, int native_fd)
-    : process_(std::make_unique<RenderProcess>(executable, state, std::move(display), native_fd)),
+RenderWorker::RenderWorker(const std::filesystem::path& executable, const std::filesystem::path& state, std::string display,
+                           int native_fd, bool fixture_faults)
+    : process_(std::make_unique<RenderProcess>(executable, state, std::move(display), native_fd,
+                                               RenderProcess::Mode::OwnedWorld, fixture_faults)),
       socket_(process_->socket()), pidfd_(process_->pidfd()) {
     try {
         const auto flags = fcntl(socket_, F_GETFL);
@@ -311,7 +324,118 @@ wire::NativeActorInput RenderWorker::input(const wire::RendererInputCommand& inp
         throw std::runtime_error("Invalid compositor actor input reply");
     return reply.input();
 }
+bool RenderWorker::cancellation_pending() const {return bool(cancellation_);}
+std::uint64_t RenderWorker::begin_cancel_input(const wire::RendererInputCommand& input) {
+    validate_message(input);
+    if(input.actor_id().empty() || (!input.has_cancel() && !input.has_close()))
+        throw std::invalid_argument("Native continuation requires exact actor cancellation");
+    if(busy_ || cancellation_)throw std::runtime_error("Compositor stream already has an owner");
+    if(sequence_==UINT64_MAX)throw std::runtime_error("Compositor request sequence exhausted");
+    check_alive();
+    auto pending=std::make_unique<PendingCancellation>();
+    pending->token=sequence_+1;pending->command=input;
+    pending->deadline=Clock::now()+std::chrono::seconds(10);
+    wire::RenderCommand command;command.set_protocol_version(1);command.set_request_id(pending->token);
+    *command.mutable_input()=input;
+    if(!shared_) {
+        auto bytes=command.SerializeAsString();
+        if(bytes.size()>max_frame_bytes)throw std::invalid_argument("Excessive native cancellation");
+        const auto size=static_cast<std::uint32_t>(bytes.size());
+        const std::array<char,4> header{char(size>>24),char(size>>16),char(size>>8),char(size)};
+        pending->output.assign(header.data(),header.size());pending->output+=bytes;
+    }
+    sequence_=pending->token;cancellation_=std::move(pending);busy_=true;
+    if(shared_)try {
+        render::v1::PresentationWorldRequest request;request.set_protocol_version(1);request.set_request_id(sequence_);
+        *request.mutable_command()=command;shared_->stream->send(request.SerializeAsString());
+    }catch(...) {
+        cancellation_->failure=std::current_exception();shared_->stream.reset();
+    }
+    return sequence_;
+}
+std::optional<wire::NativeActorInput> RenderWorker::poll_cancel_input(std::uint64_t token) {
+    if(!cancellation_ || token!=cancellation_->token)throw std::runtime_error("Stale native cancellation ticket");
+    auto& pending=*cancellation_;
+    if(pending.failure)std::rethrow_exception(pending.failure);
+    wire::RenderResult reply;
+    try {
+        check_alive();
+        if(Clock::now()>=pending.deadline)throw std::runtime_error("Native cancellation deadline exceeded");
+        std::optional<std::string> bytes;
+        if(shared_) {
+            shared_->stream->flush();auto frame=shared_->stream->receive();
+            if(!frame)return {};
+            if(!frame->descriptors.empty())throw std::runtime_error("Native cancellation returned descriptors");
+            bytes=std::move(frame->bytes);
+        }else {
+            if(pending.sent<pending.output.size()) {
+                const auto sent=send(socket_,pending.output.data()+pending.sent,pending.output.size()-pending.sent,MSG_DONTWAIT|MSG_NOSIGNAL);
+                if(sent<0 && errno!=EAGAIN && errno!=EWOULDBLOCK && errno!=EINTR)
+                    throw std::runtime_error("Cannot submit native cancellation");
+                if(sent==0)throw std::runtime_error("Native cancellation channel closed");
+                if(sent>0)pending.sent+=std::size_t(sent);
+                if(pending.sent<pending.output.size())return {};
+            }
+            char data[65536];iovec vector{data,sizeof(data)};
+            alignas(cmsghdr) char ancillary[CMSG_SPACE(sizeof(int)*16)]{};
+            msghdr message{};message.msg_iov=&vector;message.msg_iovlen=1;
+            message.msg_control=ancillary;message.msg_controllen=sizeof(ancillary);
+            const auto received=recvmsg(socket_,&message,MSG_DONTWAIT|MSG_CMSG_CLOEXEC);
+            if(received<0 && (errno==EAGAIN || errno==EWOULDBLOCK || errno==EINTR))return {};
+            if(received<=0)throw std::runtime_error("Native cancellation response was truncated");
+            bool descriptors=false;
+            for(auto* header=CMSG_FIRSTHDR(&message);header;header=CMSG_NXTHDR(&message,header)) {
+                descriptors=true;
+                if(header->cmsg_level==SOL_SOCKET && header->cmsg_type==SCM_RIGHTS && header->cmsg_len>=CMSG_LEN(0)) {
+                    const auto count=(header->cmsg_len-CMSG_LEN(0))/sizeof(int);
+                    for(std::size_t n=0;n<count;++n) {
+                        int fd=-1;std::memcpy(&fd,CMSG_DATA(header)+n*sizeof(int),sizeof(fd));if(fd>=0)::close(fd);
+                    }
+                }
+            }
+            if(descriptors || (message.msg_flags&(MSG_CTRUNC|MSG_TRUNC)))
+                throw std::runtime_error("Native cancellation returned ancillary data");
+            pending.input.append(data,std::size_t(received));
+            if(pending.input.size()>=4 && !pending.size) {
+                const auto* header=reinterpret_cast<const unsigned char*>(pending.input.data());
+                pending.size=(std::uint32_t(header[0])<<24)|(std::uint32_t(header[1])<<16)|(std::uint32_t(header[2])<<8)|header[3];
+                if(!*pending.size || *pending.size>max_frame_bytes)throw std::runtime_error("Excessive native cancellation reply");
+            }
+            if(!pending.size || pending.input.size()<4+*pending.size)return {};
+            if(pending.input.size()!=4+*pending.size)throw std::runtime_error("Unexpected extra native cancellation bytes");
+            bytes=pending.input.substr(4);
+        }
+        if(!reply.ParseFromString(*bytes) || reply.protocol_version()!=1 || reply.request_id()!=token)
+            throw std::runtime_error("Native cancellation response identity mismatch");
+        validate_message(reply);
+        if(!reply.has_error() && (!reply.has_input() || reply.input().actor_id()!=pending.command.actor_id() ||
+                reply.input().has_focus() || reply.input().held_keys_size() || reply.input().held_buttons_size()))
+            throw std::runtime_error("Native input cancellation was not confirmed");
+    }catch(...) {
+        pending.failure=std::current_exception();
+        if(shared_)shared_->stream.reset();else (void)::shutdown(socket_,SHUT_RDWR);
+        throw;
+    }
+    // A correlated denial consumes the exchange but confirms no cancellation.
+    cancellation_.reset();busy_=false;
+    if(reply.has_error())throw WorldError(reply.error().code(),reply.error().message().c_str());
+    return reply.input();
+}
+void RenderWorker::drain_input_priority() {
+    if(servicing_input_priority_)throw std::runtime_error("Recursive native cancellation scheduling");
+    servicing_input_priority_=true;
+    struct Reset {bool& value;~Reset(){value=false;}} reset{servicing_input_priority_};
+    while(input_priority_()) {
+        if(cancellation_ && cancellation_->failure)std::rethrow_exception(cancellation_->failure);
+        tick_();::poll(nullptr,0,1);
+    }
+    if(cancellation_) {
+        if(cancellation_->failure)std::rethrow_exception(cancellation_->failure);
+        throw std::runtime_error("Native cancellation retains its stream owner");
+    }
+}
 wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std::function<void()>& before_send,int capture_fd) {
+    if(!busy_ || cancellation_)drain_input_priority();
     if (busy_) throw std::runtime_error("Recursive compositor exchange");
     busy_ = true;
     struct Reset { bool& value; ~Reset() { value = false; } } reset{busy_};

@@ -115,6 +115,12 @@ void valid_entity(const wire::Entity& entity) {
         valid_id(entity.destination().room());
         require(entity.destination().has_pose(), "Missing destination pose"); valid_pose(entity.destination().pose());
     }
+    if (entity.has_application_slot()) {
+        require(entity.kind() == wire::SURFACE_SLOT, "Application bindings require a surface slot");
+        const auto& binding = entity.application_slot();
+        valid_id(binding.workspace()); valid_id(binding.application()); valid_id(binding.surface_id());
+        require(binding.server_id().size() == 32, "Application slot requires an exact native server identity");
+    }
 }
 }
 
@@ -315,6 +321,7 @@ wire::Entity WorldStore::create_actor(const wire::Entity& input) {
 }
 wire::Entity WorldStore::insert_entity(const wire::Entity& input) {
     valid_entity(input);
+    require(!input.has_application_slot(), "Application slots require the checked placement boundary");
     if (is_reserved_presentation_geometry_id(input.id()))
         throw WorldError(wire::INVALID_ARGUMENT, "Entity ID uses a reserved presentation geometry namespace");
     require(!input.has_revision() && !input.has_world_revision(), "Revisions are assigned by the world");
@@ -330,6 +337,7 @@ wire::Entity WorldStore::update(const wire::WorldUpdateRequest& request) {
     require(request.has_expected_revision() && request.expected_revision() > 0 && request.has_patch(), "Missing revision or patch");
     const auto& patch = request.patch();
     require(!patch.has_id() && !patch.has_kind() && !patch.has_revision() && !patch.has_world_revision(), "Identity, kind, and revisions are immutable");
+    require(!patch.has_application_slot(), "Application slot identity is immutable");
     require(patch.ByteSizeLong() != 0, "Empty patch");
     Transaction transaction(impl_->db.get(), true, &impl_->fault);
     auto result = impl_->get(request.id());
@@ -458,6 +466,7 @@ void WorldStore::revoke_workspace_selection(const std::string& workspace, const 
     if (sqlite3_changes(impl_->db.get())) impl_->advance();
     transaction.commit();
 }
+
 } // namespace spatial
 
 namespace spatial {
@@ -798,5 +807,97 @@ void WorldStore::remove_presentation(const std::string& id, std::uint64_t expect
     journal.step();
     impl_->advance();
     transaction.commit();
+}
+wire::Entity WorldStore::create_application_slot(const wire::Entity& input,
+        std::uint64_t expected_world_revision, const std::string& operation,
+        const std::string& digest, const std::string& principal) {
+    valid_entity(input); validate_operation(operation,digest,principal);
+    require(input.kind()==wire::SURFACE_SLOT && input.has_application_slot() &&
+        !input.has_revision() && !input.has_world_revision(), "Invalid application placement entity");
+    require(!is_reserved_presentation_geometry_id(input.id()), "Reserved application slot identity");
+    constexpr int application_slot_create_op=4;
+    Transaction transaction(impl_->db.get(),true,&impl_->fault);
+    Statement old(impl_->db.get(),"SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    old.text(1,presentation_hex(operation));
+    if(old.step()==SQLITE_ROW) {
+        if(old.text(0)!=presentation_hex(principal) || old.text(1)!=presentation_hex(digest) ||
+                sqlite3_column_int(old.value,2)!=application_slot_create_op)
+            throw WorldError(wire::REVISION_CONFLICT,"Application placement operation conflicts");
+        const auto bytes=old.blob(3);wire::Entity receipt;
+        if(bytes.compare(0,4,"WAS1")!=0 || !receipt.ParseFromString(bytes.substr(4)))
+            throw WorldError(wire::STORAGE_ERROR,"Invalid application placement receipt");
+        try {valid_entity(receipt);}
+        catch(const std::exception&) {throw WorldError(wire::STORAGE_ERROR,"Invalid application placement receipt entity");}
+        if(receipt.kind()!=wire::SURFACE_SLOT || !receipt.has_application_slot() ||
+                !receipt.revision() || !receipt.world_revision())
+            throw WorldError(wire::STORAGE_ERROR,"Incomplete application placement receipt");
+        if(receipt.application_slot().SerializeAsString()!=input.application_slot().SerializeAsString() ||
+                receipt.room()!=input.room() || receipt.pose().SerializeAsString()!=input.pose().SerializeAsString() ||
+                receipt.size().SerializeAsString()!=input.size().SerializeAsString())
+            throw WorldError(wire::REVISION_CONFLICT,"Application placement replay context changed");
+        try {
+            const auto current=impl_->get(receipt.id());
+            if(current.SerializeAsString()!=receipt.SerializeAsString())
+                throw WorldError(wire::STALE_TARGET,"Application placement changed after its operation");
+        }catch(const WorldError& error) {
+            if(error.code==wire::NOT_FOUND)throw WorldError(wire::STALE_TARGET,"Application placement was removed");
+            throw;
+        }
+        return receipt;
+    }
+    if(impl_->info().world_revision()!=expected_world_revision)
+        throw WorldError(wire::REVISION_CONFLICT,"World changed before application placement");
+    impl_->references(input);
+    if(!workspace_available(input.application_slot().workspace()))
+        throw WorldError(wire::FORBIDDEN,"Application workspace is not available in this world");
+    Statement slots(impl_->db.get(),"SELECT id FROM entities WHERE kind=?");slots.integer(1,wire::SURFACE_SLOT);
+    unsigned count=0;
+    while(slots.step()==SQLITE_ROW) {
+        const auto other=impl_->get(slots.text(0));
+        if(!other.has_application_slot())continue;
+        if(++count>=4096)throw WorldError(wire::RESOURCE_EXHAUSTED,"Application placement budget exhausted");
+        if(other.application_slot().surface_id()==input.application_slot().surface_id())
+            throw WorldError(wire::BUSY,"Application surface already has a world placement");
+    }
+    wire::Entity result=input;result.set_revision(1);result.set_world_revision(impl_->advance());
+    impl_->insert(result);
+    Statement journal(impl_->db.get(),"INSERT INTO workspace_presentation_ops VALUES(?,?,?,?,?)");
+    journal.text(1,presentation_hex(operation));journal.text(2,presentation_hex(principal));
+    journal.text(3,presentation_hex(digest));journal.integer(4,application_slot_create_op);
+    journal.blob(5,"WAS1"+result.SerializeAsString());journal.step();transaction.commit();return result;
+}
+std::optional<wire::Entity> WorldStore::application_slot_operation(const wire::Entity& input,
+        const std::string& operation, const std::string& digest, const std::string& principal) {
+    valid_entity(input); validate_operation(operation,digest,principal);
+    require(input.kind()==wire::SURFACE_SLOT && input.has_application_slot() &&
+        !input.has_revision() && !input.has_world_revision(), "Invalid application placement replay request");
+    Statement old(impl_->db.get(),"SELECT principal,request_digest,kind,result FROM workspace_presentation_ops WHERE operation_id=?");
+    old.text(1,presentation_hex(operation));
+    if(old.step()!=SQLITE_ROW)return std::nullopt;
+    constexpr int application_slot_create_op=4;
+    if(old.text(0)!=presentation_hex(principal) || old.text(1)!=presentation_hex(digest) ||
+            sqlite3_column_int(old.value,2)!=application_slot_create_op)
+        throw WorldError(wire::REVISION_CONFLICT,"Application placement operation conflicts");
+    const auto bytes=old.blob(3);wire::Entity receipt;
+    if(bytes.compare(0,4,"WAS1")!=0 || !receipt.ParseFromString(bytes.substr(4)))
+        throw WorldError(wire::STORAGE_ERROR,"Invalid application placement receipt");
+    try {valid_entity(receipt);}
+    catch(const std::exception&) {throw WorldError(wire::STORAGE_ERROR,"Invalid application placement receipt entity");}
+    if(receipt.kind()!=wire::SURFACE_SLOT || !receipt.has_application_slot() ||
+            !receipt.revision() || !receipt.world_revision())
+        throw WorldError(wire::STORAGE_ERROR,"Incomplete application placement receipt");
+    if(receipt.application_slot().SerializeAsString()!=input.application_slot().SerializeAsString() ||
+            receipt.room()!=input.room() || receipt.pose().SerializeAsString()!=input.pose().SerializeAsString() ||
+            receipt.size().SerializeAsString()!=input.size().SerializeAsString())
+        throw WorldError(wire::REVISION_CONFLICT,"Application placement replay context changed");
+    try {
+        const auto current=impl_->get(receipt.id());
+        if(current.SerializeAsString()!=receipt.SerializeAsString())
+            throw WorldError(wire::STALE_TARGET,"Application placement changed after its operation");
+    }catch(const WorldError& error) {
+        if(error.code==wire::NOT_FOUND)throw WorldError(wire::STALE_TARGET,"Application placement was removed");
+        throw;
+    }
+    return receipt;
 }
 } // namespace spatial

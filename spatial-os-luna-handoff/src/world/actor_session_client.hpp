@@ -3,8 +3,10 @@
 #include <chrono>
 #include <atomic>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -63,6 +65,9 @@ public:
     identity::v1::WorldSessionReply inspect();
     identity::v1::WorldSessionReply action(const core::v1::ActorActionRequest& action);
     core::v1::ActorActionReply controlled_action(const core::v1::ActorActionRequest& action);
+    // The callback returns only current movement intent. Exchanges send it as a
+    // bounded one-way refresh while waiting for their matching reply.
+    void set_motion_refresh(std::function<std::optional<core::v1::ActorInputRequest>()> callback);
     std::weak_ptr<const ActorSessionInterrupt> interrupt_handle();
     // Revoke old watchdog handles when retaining this channel in a new host context.
     // This sends no actor action and never reconnects or replays.

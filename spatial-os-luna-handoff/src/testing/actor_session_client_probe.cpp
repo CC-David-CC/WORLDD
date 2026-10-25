@@ -757,6 +757,45 @@ void interrupt_handle_lifetime(Fixture& f) {
     close(sockets[0]); close(sockets[1]);
 }
 
+void motion_refresh_during_slow_action(Fixture& f) {
+    std::atomic<unsigned> refresh_count{0};
+    std::vector<std::chrono::steady_clock::time_point> received;
+    std::chrono::steady_clock::duration elapsed{};
+    session(f, [&](auto& client, int) {
+        client.authenticate();
+        client.set_motion_refresh([&]() -> std::optional<core::v1::ActorInputRequest> {
+            core::v1::ActorInputRequest input;
+            input.set_translation_frame(core::v1::BODY_TRANSLATION);
+            input.add_axes(.5); for (int axis=1; axis<6; ++axis) input.add_axes(0);
+            ++refresh_count;
+            return input;
+        });
+        core::v1::ActorActionRequest stop; stop.set_seq(1); stop.mutable_stop();
+        const auto started=std::chrono::steady_clock::now();
+        const auto reply=client.action(stop);
+        elapsed=std::chrono::steady_clock::now()-started;
+        check(reply.has_action() && reply.action().accepted(), "slow action reply changed");
+    }, [&](int fd) {
+        handshake(fd,f);
+        const auto action=receive(fd,pb::WorldSessionRequest::kAction,3);
+        check(action.action().seq()==1 && action.action().has_stop(), "slow action request changed");
+        for (std::uint64_t index=1; index<=5; ++index) {
+            const auto refresh=receive(fd,pb::WorldSessionRequest::kMotionRefresh,3+index);
+            check(refresh.motion_refresh().refresh_sequence()==index &&
+                refresh.motion_refresh().has_input() && refresh.motion_refresh().input().axes_size()==6 &&
+                refresh.motion_refresh().input().axes(0)==.5,
+                "one-way motion refresh changed sequence or movement intent");
+            received.push_back(std::chrono::steady_clock::now());
+        }
+        auto response=reply_for(3);response.mutable_action()->set_accepted(true);send_reply(fd,response);
+    });
+    check(refresh_count.load()>=5, "motion callback stopped during a slow actor reply");
+    check(elapsed>=300ms && elapsed<500ms, "slow action did not span the bounded refresh interval");
+    check(received.size()==5, "slow action did not carry five one-way motion frames");
+    for (std::size_t index=1; index<received.size(); ++index)
+        check(received[index]-received[index-1]<250ms, "authenticated movement refresh gap exceeded input expiry");
+}
+
 void interrupt_rotation_revokes_old_handle(Fixture& f) {
     session(f, [&](auto& client, int peer) {
         client.authenticate();
@@ -930,6 +969,10 @@ int main(int argc, char** argv) {
             for (const std::string fault : {"valid", "unconfirmed", "sequence", "outcome", "unknown",
                     "unsafe-code", "false-acceptance", "legacy-error", "missing-outcome"})
                 run("controlled-input-" + fault, [&] { controlled_input_reply(fixture, fault); });
+            return 0;
+        }
+        if (argc == 2 && std::string(argv[1]) == "--motion-refresh-only") {
+            run("motion-refresh-during-slow-action", [&] { motion_refresh_during_slow_action(fixture); });
             return 0;
         }
         if (argc == 2 && std::string(argv[1]) == "--geometry-only") {

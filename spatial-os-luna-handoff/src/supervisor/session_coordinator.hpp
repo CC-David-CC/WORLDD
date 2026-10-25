@@ -51,6 +51,22 @@ public:
     // Drain only the existing request. Never advance a cancelled frame to another effect.
     void cancel_present_local_actor(const LocalPresentationTicket&);
     void retire_local_actor(const workspace::v1::ControlOwner&, const core::v1::ActorLocalViewIdentity&);
+    // Queue exact cleanup without waiting for producer or compositor replies.
+    enum class LocalRetirementKind { context, presentation };
+    struct LocalRetirementProgress {
+        bool pending=false, attested=false, native_retired=false, releases_binding=false;
+        unsigned stage=0;
+        std::uint64_t serial=0;
+    };
+    void defer_retire_local_actor(const workspace::v1::ControlOwner&,const core::v1::ActorLocalViewIdentity&,
+        LocalRetirementKind = LocalRetirementKind::context);
+    LocalRetirementProgress local_retirement_progress(const workspace::v1::ControlOwner&,
+        const core::v1::ActorLocalViewIdentity&) const;
+    bool local_retirement_pending(const workspace::v1::ControlOwner&,const core::v1::ActorLocalViewIdentity&) const;
+    bool pump_deferred_cleanup(unsigned maximum_steps = 3);
+    bool deferred_cleanup_pending() const;
+    void defer_present_controls(std::uint64_t,const control::v1::ControlMenuView&);
+    bool stop_capture_progress(std::uint64_t);
     void clear_presentation();
     core::v1::PixelExtent native_viewport() const;
     void present_controls(std::uint64_t capture_generation,const control::v1::ControlMenuView&);
@@ -77,6 +93,8 @@ public:
     // Empty means every world has checked stop receipts and no retained presentation.
     std::vector<std::string> stop_retained_worlds();
 private:
+    void drain_deferred_native();
+    void drain_deferred_administration();
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

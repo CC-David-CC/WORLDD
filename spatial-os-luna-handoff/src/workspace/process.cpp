@@ -232,7 +232,10 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         "--remount-ro", "/project/.spatial-copy-staging",
         "--symlink", "/project", project.string(), bind, "4", repository.string(),
         "--ro-bind", executable.string(), "/spatial-app-init", "--chdir", "/project"};
+    File native_defaults;
     if (native_) {
+        // Native X Toolkit programs require installed public application defaults.
+        native_defaults.fd=directory("/etc/X11/app-defaults");
         const std::vector<std::string> display{
             "--dir", "/run/spatial", "--perms", "0400", "--ro-bind-data", "8", "/run/spatial/Xauthority",
             "--dir", "/tmp/.X11-unix", "--ro-bind-fd", "9", "/tmp/.X11-unix/X"+native_->display_number(),
@@ -253,6 +256,11 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
         };
         mount(persistent->data,"data",persistent_data);mount(persistent->config,"config",persistent_config);
     }
+    if(native_) {
+        const std::vector<std::string> defaults{"--dir","/etc/X11","--ro-bind-fd",
+            std::to_string(persistent_fd),"/etc/X11/app-defaults"};
+        strings.insert(strings.end(),defaults.begin(),defaults.end());
+    }
     const std::vector<std::string> tail{"--block-fd", "7", "--seccomp", "6", "--remount-ro", "/", "--", "/spatial-app-init"};
     strings.insert(strings.end(), tail.begin(), tail.end());
     File input_read, input_write, output_read, output_write;
@@ -270,6 +278,7 @@ ApplicationProcess::ApplicationProcess(const std::filesystem::path& project, con
     if (native_) { selected.push_back(native_->authority_fd()); selected.push_back(native_->socket_fd()); }
     if(persistent_data.fd>=0)selected.push_back(persistent_data.fd);
     if(persistent_config.fd>=0)selected.push_back(persistent_config.fd);
+    if(native_)selected.push_back(native_defaults.fd);
     for (unsigned i = 0; i < selected.size(); ++i) launch.add_inherited_fds(3+i);
     resources_->scope().start(launch, {input_read.fd, output_write.fd, diagnostic.fd}, selected);
     pid_ = resources_->scope().direct_child_pid();
@@ -573,7 +582,9 @@ workspace::v1::AppEvent ApplicationProcess::event(Clock::time_point deadline) {
     workspace::v1::AppEvent reply;
     if (!reply.ParseFromString(bytes) || reply.protocol_version() != 1) throw std::runtime_error("Invalid application event");
     validate_message(reply);
-    if (reply.has_error()) throw std::runtime_error(reply.error());
+    // This bounded, validated event comes from the trusted confined supervisor.
+    // Preserve its launch cause instead of misreporting an authority lookup.
+    if (reply.has_error()) throw WorldError(wire::STORAGE_ERROR, reply.error().c_str());
     return reply;
 }
 std::optional<int> ApplicationProcess::wait(double seconds) {

@@ -1,0 +1,147 @@
+M10 actor seats, input liveness, and overload contract
+Status: implementation in progress. M10 remains unqualified.
+
+This contract change combines the M10 movement-liveness and native-input fixes.
+It preserves the actor authorization boundary and the existing 250 ms motion expiry.
+It does not change any locked acceptance assertion.
+
+Actor seat and application lease
+
+Each authenticated actor session owns one server-created native input seat.
+The seat identity never comes from an application or actor request.
+The seat is retired on session closure, transition, revocation, or confirmed cancellation.
+The world, native router, and XLibre each compare the focused surface generation
+before accepting an actor keyboard command.
+
+One actor controls an application surface group at a time.
+The actor acquires one broker control lease for that application.
+The world retains a checked binding to that lease, the actor session, the application,
+the compositor incarnation, the native server generation, and the focused surface generation.
+The binding identifies a target. It is not permission and is never persisted.
+
+Before each native input effect, the world checks the active actor session, the actor's
+current grants, the broker's observed revocation state, the live lease, and the exact
+cached target generation. The renderer and XLibre input extension check the native seat
+owner, focus, and server generation again. A new key edge in the same application does
+not acquire another lease or synchronize every surface. An app change, stale target,
+revocation, cancellation, or uncertain result retires the seat and releases held input.
+
+Key taps and key holds
+
+One-shot typing uses an atomic bounded key-tap batch. The batch validates every keysym,
+seat, target, and lease before injecting any edge. Each tap emits one press and one release
+without waiting for another actor round trip. A batch contains at most 32 taps. A chord
+contains at most eight keysyms. Invalid input rejects the whole batch with no key effect.
+
+Gaming and modifier controls retain explicit press and release edges. Their held-key ledger
+remains actor-local. A tap cannot release a held key. A release cannot introduce a new key.
+Stop, source loss, cancellation, controller loss, and revocation release every held key.
+Adapters choose tap or hold semantics explicitly; they never infer a long hold from a
+delayed response.
+
+Movement refresh and revocation
+
+An already authenticated actor may refresh only its current six-axis movement intent.
+The refresh carries the actor sequence and passes through the same local ActorControl,
+Actors::act, token, and navigation-grant checks as other actor actions. It has no reply
+and cannot invoke a renderer, broker acquisition, workspace operation, or durable action.
+
+The world accepts a refresh only while the retained actor session, authority participant,
+service incarnation, acknowledged revocation feed, and actor navigation grant remain
+valid. It consumes revocation updates before applying queued refreshes. The world cancels
+movement and input immediately when it consumes a matching revocation. A lost participant,
+feed gap, stale incarnation, malformed refresh, or sequence failure invalidates the channel
+and cancels the actor. There is no wall-clock permission grace period.
+
+The old draft required a new participant progress receipt after every motion ingress.
+This update removes that per-ingress barrier. The live, checked revocation feed remains
+the authority boundary. A remote issuer or broker round trip cannot gate an already
+authenticated movement refresh. The 250 ms motion-intent expiry remains unchanged.
+
+Bounded overload behavior
+
+The host coalesces only adjacent, not-yet-processed motion samples for the same actor,
+device source, and source generation. The newest absolute axis state wins. Relative mouse
+deltas are summed and carry the newest sequence and capture time. Key, button, scroll,
+tap, and cancellation edges remain ordered and are never coalesced.
+
+All actor queues and frames stay bounded. A full queue reports backpressure, retires that
+capture binding, and requests checked cancellation. The implementation may not drop a
+discrete edge silently. Agent text entry uses the bounded tap batch; motion uses latest
+intent. High-rate proposals do not create an unbounded history.
+
+Required focused evidence
+
+Use the real native server and independent XI2 event witness. Delay action completion by
+at least 750 ms and prove that an atomic tap creates exactly one press and one release.
+Prove an explicit held key remains held until release or cancellation. Measure movement
+refresh gaps during a slow native renderer command, a delayed broker authorization reply,
+and another actor's authentication.
+Require every observed gap to remain below 250 ms while the actor source and revocation
+feed remain healthy. Revoke a navigation grant during another actor's delayed credential
+check and prove movement stops. Revoke an active actor identity during that delay and
+prove the independent XI2 witness sees key and button release before the 250 ms expiry.
+Send at least 1000 motion samples per second and verify bounded memory, fair actor progress,
+ordered discrete edges, and explicit backpressure under saturation. Repeat the combined
+regressions on sb16 and sb16-2 in Debug and sanitizer builds.
+
+Focused checks selected for this implementation increment
+
+- `actor-control-menu`: preset navigation, binding changes, Stop behavior, and cancellation.
+- `actor-session-client`: one-way refresh sequencing and motion pumping during checked waits.
+- `actor-control-adapters`: all presets, explicit taps and holds, stale generations, and loss.
+- `application-slots`: immutable durable binding identity and checked placement replay.
+- `render-input-progress`: native renderer waits continue actor-channel polling without replies.
+- `actor-stop-owner`: exact cancellation ownership, failure fencing, and no replay.
+- `actor-control-adapters` (target `spatial-control-adapters-check`): atomic typing, repeat suppression, modifier chords,
+  explicit holds, and a simulated 800 ms actor reply.
+- New focused regression in `actor-control-adapters`: cancel while Control is held,
+  reacquire the application, and prove the next atomic tap does not inherit stale Control.
+Exact local rebuild and regression commands, recorded before execution:
+`cmake --build /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug --target spatial-control-adapters-check -j2`
+`ctest --test-dir /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug -R '^actor-control-adapters$' --output-on-failure`
+Canonical-runner receipts are retained under
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/modifier-review-20261025-a/`.
+The Debug adapter target rebuilt successfully. The updated CTest passed 1/1; this is a
+local deterministic regression and does not replace host-native typing acceptance.
+- `actor-motion-refresh-client`: five authenticated one-way refreshes during a delayed
+  actor reply, with sequence checks and sub-250 ms spacing.
+- `host-actor-worker --worker-only`: 1000 relative mouse samples per second while the
+  worker is occupied, exact aggregate delta, newest capture sequence, and existing queue
+  saturation/cancellation regressions.
+- `test_authenticated_motion_refresh_completes_while_info_reply_is_pending`: live world
+  position change from a one-way refresh while the issuer INFO response remains delayed.
+- `test_motion_refresh_progresses_while_native_renderer_is_slow`: an explicit fixture-only
+  delay in production `spatialwm` holds a real native input command for one second. The actor
+  keeps moving through the same authenticated world channel with the 250 ms expiry active.
+- `test_authenticated_motion_refresh_runs_during_delayed_broker_access_reply`: the real
+  broker authorizes workspace selection, then its test relay delays the checked reply for one
+  second. One-way motion refresh continues through the pending world actor action.
+- `test_navigation_revocation_stops_motion_during_other_actor_authentication`: an independent
+  actor's checked credential reply remains delayed while movement refreshes continue. Revoking
+  the moving actor's navigation grant denies the next action and stops its pose.
+- `test_actor_revocation_releases_native_input_during_other_actor_authentication`: an independent
+  native XI2 witness records key and button release before ordinary motion expiry while another
+  actor's credential check remains pending.
+- `three-actor-applications-native`: real X11 seat and independent XI2 witness, exact
+  press/release pairs, 332 agent taps in bounded batches at a 250 tap/s floor, a delayed
+  client completion beyond the XKB repeat delay (`test_atomic_key_tap_survives_delayed_client_completion_without_repeat`),
+  and an explicit long hold released by Stop (`test_explicit_key_hold_survives_long_turn_and_stop_releases_it`).
+- `three-actor-editor-terminal-native`: scripted actors enter and save text in real
+  editors and terminals through atomic taps and real workspace files.
+
+These focused checks run before the full Debug and sanitizer phase gate. They do not
+replace the frozen cross-host, native-session, recovery, physical-device, and performance
+acceptance matrix.
+
+Local component run, 2026-10-25: the eight registered CTests above for the actor adapters,
+session refresh, Stop ownership, renderer progress, worker overload, and application slots
+passed on middle-child. Receipts and logs are at
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/local-focused-ctest-20261025-a`.
+This local result does not qualify either test host or M10.
+
+The renderer delay is enabled only when `worldd --fixture-faults` passes that flag to
+its owned `spatialwm`. The broker delay belongs to the test-only Python broker relay.
+Neither delay hook is active in a normal Spatial Desktop session.
+
+These checks are a component gate. They do not qualify M10 by themselves.

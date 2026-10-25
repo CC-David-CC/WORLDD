@@ -163,8 +163,10 @@ struct SessionLaunch::Impl {
         argv.push_back(nullptr);
         char env_path[] = "PATH=/usr/bin:/bin", env_lang[] = "LANG=C.UTF-8";
         std::string diagnostic_environment;
-        char* environment[]{env_path, env_lang, nullptr, nullptr};
+        char* environment[]{env_path, env_lang, nullptr, nullptr, nullptr};
+
 #ifdef SPATIAL_TEST_SECURITY_EVIDENCE_FORWARD
+        unsigned environment_count=2;
         if (config.has_broker_native_target_fd() && config.has_broker_storage_owner()) {
             const char* evidence = std::getenv("SPATIAL_SECURITY_EVIDENCE");
             if (evidence && evidence[0] == '/' && strnlen(evidence, 4097) <= 4096) {
@@ -174,11 +176,13 @@ struct SessionLaunch::Impl {
                     S_ISDIR(evidence_stat.st_mode) && evidence_stat.st_uid == geteuid() &&
                     !(evidence_stat.st_mode & 0077)) {
                     diagnostic_environment = std::string("SPATIAL_SECURITY_EVIDENCE=") + evidence;
-                    environment[2] = diagnostic_environment.data();
-                    environment[3] = nullptr;
+                    environment[environment_count++] = diagnostic_environment.data();
                 }
             }
         }
+        char stop_diagnostic_environment[]="SPATIAL_TRACE_STOP=1";
+        if(const auto* flag=std::getenv("SPATIAL_TRACE_STOP");flag && std::strcmp(flag,"1")==0)
+            environment[environment_count++] = stop_diagnostic_environment;
 #endif
         std::vector<int> inherited{sealed.value, mgmt.child.value};
         if (transfer) inherited.push_back(transfer->child.value);

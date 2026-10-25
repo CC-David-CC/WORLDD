@@ -4,6 +4,8 @@ package spatial.control.v1;
 // Host-local preferences. These fields never grant actor authority.
 enum MovementStyle { MOVEMENT_UNSPECIFIED = 0; FREE_FLIGHT = 1; LEVEL_MOVEMENT = 2; }
 enum InteractionStyle { INTERACTION_UNSPECIFIED = 0; CLICK_TO_CONTROL = 1; TOGGLE_CONTROL = 2; HOLD_TO_NAVIGATE = 3; }
+// Physical application keys default to atomic taps. Games can select KEY_HOLD.
+enum KeyDeliveryStyle { KEY_TAP = 0; KEY_HOLD = 1; }
 enum BindingAction {
   BINDING_UNSPECIFIED = 0;
   FORWARD = 1; BACKWARD = 2; LEFT = 3; RIGHT = 4; UP = 5; DOWN = 6;
@@ -26,6 +28,7 @@ message ControlProfile {
   bool invert_mouse_y = 7;
   bool spacemouse_calibrated = 8;
   repeated AxisCalibration spacemouse_axes = 9;
+  KeyDeliveryStyle key_delivery = 10;
 }
 message ControlProfiles {
   uint32 protocol_version = 1;

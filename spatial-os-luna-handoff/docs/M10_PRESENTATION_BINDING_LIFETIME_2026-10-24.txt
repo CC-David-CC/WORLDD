@@ -1,0 +1,77 @@
+M10 presentation and actor binding lifetime correction
+Date:2026-10-24. FOCUSED-PASS component. M10 remains UNQUALIFIED.
+
+A checked local binding attests host/session identity. It grants no actor authority.
+A failed frame must clear its exact native target and drain its existing request.
+It must preserve the still-authenticated local binding and its retained watch ownership.
+The next Present still checks current credentials, admission, observation, and workspace authority.
+Transport failure still invalidates attestation and prevents reuse of its uncertain world channel.
+A failed or mismatched Bind never creates an attested receipt.
+
+Context retirement remains the default. It releases the binding and verifies observation cleanup.
+Context loss upgrades pending presentation cleanup monotonically. No caller can downgrade it.
+A context loss after presentation cleanup completes creates full cleanup against the retained target.
+No same-identity reselection occurs until the old world reply has drained.
+Native target retirement cannot clear another selected target.
+
+The trusted session test transport receives additive request fields27 and28 and reply field27.
+New messages express deferred retirement, bounded cleanup polls, and read-only cleanup progress.
+Existing field numbers and request meanings remain unchanged.
+Actors never receive this coordinator interface. The probe forwards the production API.
+No production actor action, admission rule, permission, locked acceptance assertion, or independent witness changes.
+The test schema stays versioned in Git. Generated bindings remain build products.
+Old test schema SHA256:17013458bb28faa4acb1bcfd584c0046e67e76318c26d736125bce31df598b07
+New test schema SHA256:1aba5e91620f86b242c794d0d4855a8ff8adb133ab77368c3434e3dfc16735e4
+
+Nonblocking ownership and recovery
+Exact native selection, target retirement, controls output, and capture cleanup retain continuation owners.
+Broker inspection and fencing retain authenticated child credentials and correlated request receipts.
+Unconfirmed cleanup retains its records. A paused world cannot block native target retirement.
+The actor is fenced immediately when its own authenticated context becomes uncertain.
+A failed drawing frame keeps a valid binding while exact native cleanup drains.
+No same-identity frame begins before that cleanup completes.
+
+Selected execution and preserved failures
+Evidence root R=/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Source335 passes332 selected administrative, presentation-owner, worker, and controller groups across both hosts and profiles.
+Source341 repeats those332 groups and passes32 new native binding-lifetime methods.
+All16 selected native context methods pass on source341.
+Its existing pending-selection recovery method fails in each host/profile cell.
+An added pre-drain propagated a correlated denial before the established stopped-world recovery handler.
+Source349 consumes that denial only after requiring stopped process/native receipts.
+Exact supervisor receipt comparison, compositor recovery, and checked detachment remain mandatory.
+Transport and validation failures still propagate without claiming observation release.
+Existing regression assertions remain unchanged.
+
+Source349 passes all20 selected native methods per host/profile cell:80 total.
+The matrix covers eight retention cases, eight existing continuation cases, and four context cases.
+There are0 failures,0 skips, and0 observed sanitizer diagnostics in this corrective matrix.
+Build349, package350, and runtime351 use the canonical runner with independent terminal receipts.
+The primary reviews named methods, terminal summaries, manifest pins, and sanitizer output.
+Audit:R/stopped-selection-primary-audit-354.json.
+Compiled source manifest SHA256:f43f13c8df0aefe60604cd9afcc61f276db43fd09805f870bbd90497da406ccc.
+Exact source archive:R/presentation-binding-source349-exact-350.tar.gz.
+Archive SHA256:524fbbcb8095851e5680b4167d5c32dfb32c383504451489d90b1bfbb742cf38.
+Debug package manifest SHA256:9486de91fa574f9a35ff6531784bfde80dec38bee52771bf4b998c9290ab223b.
+ASan/UBSan package manifest SHA256:93bb67504a2378dd3913c703353fea22488db3d142b0d249588b639ae5be55df.
+Collected evidence:R/stopped-selection-collected-353.
+sb16 archive SHA256:a7bd1adb1f03693fe7c4d120916b1636ef3914368ad6611f6d78070c49e44aa0.
+sb16-2 archive SHA256:e6338b794526b942766de95e18006903c960c0d722ba02f84a4b686f6107945e.
+Original source341 failures remain separately preserved in R/presentation-binding-collected-347.
+The first build341 launch used a missing runner path. No compilation or runtime occurred there.
+Corrective build342 uses the installed runner and passes both profiles.
+
+Scope and remaining work
+Source349 freshly instruments the coordinator and its local-foreground probe in the selected profile.
+World, broker, compositor, and other runtime dependencies retain explicitly pinned Debug artifacts.
+These results do not establish full sanitizer coverage of those reused components.
+Source341 native application tests pass all five methods on sb16 in both profiles.
+On sb16-2, the human handoff Stop exceeds the350ms watchdog in both profiles.
+It follows held Shift and a peer BUSY denial. It precedes takeover and final cleanup.
+Other application methods pass. The paused-world Stop regression passes in all four cells.
+The Stop delay still needs correlated phase timing. Its cause remains unproven.
+The public Xedit resource mount and exact editor/terminal typing remain unfinished.
+Geometry-only cleanup, remaining scheduling/context witnesses, and combined source review remain required.
+The frozen combined candidate, two-clean-generation proof, and complete inherited two-host gate remain pending.
+Older frozen milestone candidates and their original evidence remain unchanged.
+These documentation results follow the compiled source freeze. They do not alter its recorded provenance.
