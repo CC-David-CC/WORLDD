@@ -1,7 +1,9 @@
 """Fail-closed checks for the additive M10 deployed qualification profile."""
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location("m10_deployed_gate", ROOT / "tools/m10_deployed_gate.py")
@@ -26,6 +28,28 @@ class M10DeployedGateTests(unittest.TestCase):
     def test_named_sources_resolve_exactly_once(self):
         cases = m10.validate_case_source(ROOT)
         self.assertEqual(set(cases), set(m10.M10_SELECTORS))
+
+    def test_deployment_inventory_preserves_m09_and_m10_case_sources(self):
+        m09_sources = {"m09-case": {"suite": "m09"}}
+        m10_sources = {"m10-case": {"suite": "m10"}}
+        with tempfile.TemporaryDirectory() as temporary:
+            deployment = Path(temporary)
+            checked = {
+                "provenance": {
+                    "profiles": {profile: {"inventory": []} for profile in m10.m06.PROFILES}
+                },
+                "receipt": {},
+                "source": deployment / "source",
+                "case_sources": m09_sources,
+            }
+            with patch.object(m10.m09, "require_deployment_inventory", return_value=checked), \
+                 patch.object(m10.m08, "require_deployment_inventory"), \
+                 patch.object(m10, "require_m10_inventory") as inventory_check, \
+                 patch.object(m10, "validate_case_source", return_value=m10_sources):
+                result = m10.require_deployment_inventory(deployment, "a" * 40)
+        self.assertEqual(result["case_sources"], m09_sources)
+        self.assertEqual(result["m10_case_sources"], m10_sources)
+        self.assertEqual(inventory_check.call_count, len(m10.m06.PROFILES))
 
     def test_named_method_log_requires_every_case_once(self):
         inventory = [{"name": name, "properties": []} for name in m10.REQUIRED]

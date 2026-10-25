@@ -204,8 +204,8 @@ def require_deployment_inventory(deployment, candidate):
     m08.require_deployment_inventory(deployment)
     for profile in m06.PROFILES:
         require_m10_inventory(checked["provenance"]["profiles"][profile]["inventory"])
-    case_sources = validate_case_source(checked["source"])
-    return dict(**checked, case_sources=case_sources)
+    m10_case_sources = validate_case_source(checked["source"])
+    return dict(checked, m10_case_sources=m10_case_sources)
 
 
 def validate_m10_method_log(output, inventory):
@@ -385,7 +385,7 @@ def require_m10_runtime_evidence(deployment, attempt, candidate):
 
 def run_local(a):
     checked = require_deployment_inventory(a.deployment, a.candidate)
-    print("M10 named case sources checked: " + str(len(checked["case_sources"])))
+    print("M10 named case sources checked: " + str(len(checked["m10_case_sources"])))
     m09_harness = m09.run_m09_harness(checked["source"], a.deployment, a.candidate)
     m10_harness = run_m10_harness(checked["source"], a.deployment, a.candidate)
     print("M09 harness: " + m09_harness["receipt_path"])
