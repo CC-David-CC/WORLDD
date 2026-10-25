@@ -48,7 +48,24 @@ REVIEWED_TOOLCHAINS = {
                 "sha256": "5965527e09fe2b3787772aa4f711d6a36b393e7f2fcaa744a7a96c5a4ddf59cb",
                 "closure_sha256": "a89a3aa1a104c52b32551ed0e1d5c98eab76d1acab1d74d2aee1598d86742810"
         }
-},
+    },
+    "ubuntu-noble-20261025": {
+        "protoc": {
+            "version": "libprotoc 3.21.12",
+            "sha256": "95bb3996d5b48f94929ee510cfddb57fb543ae4d8d335909972cfb32347203fc",
+            "closure_sha256": "44853f1735e8be88241f7379798c6c7aaae67998da32674a8fe83c743b457d8f"
+        },
+        "cmake": {
+            "version": "cmake version 3.28.3",
+            "sha256": "1c5227af4edd22d8d689def545e18ee458260c0fd579eba2187967f38817e638",
+            "closure_sha256": "722b92b35359cc3b27ccbfbc90d571ca48e6b5c84eea494c00f0b69fec546021"
+        },
+        "ninja": {
+            "version": "1.11.1",
+            "sha256": "5965527e09fe2b3787772aa4f711d6a36b393e7f2fcaa744a7a96c5a4ddf59cb",
+            "closure_sha256": "a89a3aa1a104c52b32551ed0e1d5c98eab76d1acab1d74d2aee1598d86742810"
+        }
+    },
 }
 
 DEFAULT_CONTRACT = {

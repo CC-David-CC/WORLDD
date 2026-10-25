@@ -53,3 +53,9 @@ Checkpoint this reviewed correction as UNQUALIFIED. Fast-forward the clean M09 i
 Freeze the resulting commit. Prepare a fresh candidate with Ninja and the selected exact toolchain.
 Run both full local gates, then required cross-host matrices and primary qualification review.
 Publish the completed qualification record through box-git after every required gate passes.
+2026-10-25 M10 preparation follow-up, profile update required:
+A clean M10 package preparation refused before compilation. The installed Protobuf and CMake dependency hashes no longer matched either reviewed profile. Their executable versions and hashes remained unchanged. The Ninja profile still matched.
+The new measured closures contain 51 executable and dependency files across 44 owning Debian packages. All 44 packages passed dpkg -V with no output. Exact measurements and package versions are retained at:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/candidate-cb8b9bd/protobuf-toolchain-environment-r1.json
+Add ubuntu-noble-20261025 as a third complete reviewed profile. Keep both previous profiles and the legacy default contract unchanged. Add measured inputs to the deterministic regression fixture.
+Before preparation, run the toolchain profile, tool-change, and output-binding tests. Run the M06 deployed-gate static suite. Then prepare the candidate and verify both independent Protobuf generation rounds. Qualification remains UNQUALIFIED.

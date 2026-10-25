@@ -155,8 +155,8 @@ class ReproTests(unittest.TestCase):
                 with self.assertRaises(v.Refusal):v.verify_toolchain(TOOL_FIXTURES['m08-20261021'],contract)
 
     def test_current_measurements_do_not_satisfy_a_legacy_contract(self):
-        current=copy.deepcopy(TOOL_FIXTURES['ubuntu-noble-20261022'])
-        v.verify_toolchain(current,{'toolchain':v.REVIEWED_TOOLCHAINS['ubuntu-noble-20261022']})
+        current=copy.deepcopy(TOOL_FIXTURES['ubuntu-noble-20261025'])
+        v.verify_toolchain(current,{'toolchain':v.REVIEWED_TOOLCHAINS['ubuntu-noble-20261025']})
         with self.assertRaises(v.Refusal):v.verify_toolchain(current,v.DEFAULT_CONTRACT)
 
     def test_each_profile_rejects_changed_or_missing_tool_dependencies(self):
