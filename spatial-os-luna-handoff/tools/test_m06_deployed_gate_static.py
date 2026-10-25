@@ -430,6 +430,47 @@ class GateStaticTests(unittest.TestCase):
         self.assertEqual(selected['SPATIAL_TEST_XSERVER_SHA256'],'b'*64)
         self.assertEqual(selected['SPATIAL_TEST_OBSERVER_XSERVER_SHA256'],'a'*64)
 
+    def test_gate_rebinds_only_the_verified_runtime_xserver_path(self):
+        wrapper = '/verified/runtime/sb16/Debug/xace-wrapper'
+        launcher = str(self.root / 'attempt' / 'runtime' / 'production' / 'Xvfb')
+        runtime = {'xace_wrapper': {'path': wrapper}}
+        evidence_source = '/prepared/ctest-evidence/Debug'
+        evidence_target = str(self.root / 'attempt' / 'ctest')
+        server_mapping = gate.checked_runtime_xserver_mapping(runtime, launcher)
+        metadata_mapping = gate.deployed_ctest_metadata_mapping(
+            runtime, launcher, evidence_source, evidence_target)
+        inventory = [dict(name='native', command=['/verified/bin/probe'], properties=[
+            dict(name='ENVIRONMENT', value=[
+                'SPATIAL_TEST_XSERVER=' + '/prepared/ctest-runtime/Debug/xace-wrapper',
+                'SPATIAL_SECURITY_EVIDENCE=' + evidence_source])])]
+        prepared_mapping = [
+            ('/prepared/ctest-runtime/Debug/xace-wrapper', launcher),
+            *server_mapping,
+            (evidence_source, evidence_target)]
+        relocated = gate.map_inventory(inventory, prepared_mapping)
+        self.assertEqual(relocated[0]['properties'][0]['value'], [
+            'SPATIAL_TEST_XSERVER=' + launcher,
+            'SPATIAL_SECURITY_EVIDENCE=' + evidence_target])
+        gate.require_inventory_equal(relocated, inventory, prepared_mapping)
+
+        build = self.root / 'build'
+        metadata = self.put('build/CTestTestfile.cmake',
+                            'set(SPATIAL_TEST_XSERVER=' + wrapper
+                            + ';SPATIAL_SECURITY_EVIDENCE=' + evidence_source + ')\n')
+        edits = gate.replace_metadata(build, metadata_mapping)
+        self.assertTrue(edits)
+        self.assertEqual(metadata.read_text(encoding='utf-8'),
+                         'set(SPATIAL_TEST_XSERVER=' + launcher
+                         + ';SPATIAL_SECURITY_EVIDENCE=' + evidence_target + ')\n')
+
+        unexpected = copy.deepcopy(inventory)
+        unexpected[0]['properties'][0]['value'] = ['SPATIAL_TEST_XSERVER=/other/Xvfb']
+        with self.assertRaisesRegex(RuntimeError, 'commands/properties'):
+            gate.require_inventory_equal(unexpected, inventory, prepared_mapping)
+        with self.assertRaisesRegex(RuntimeError, 'absolute paths'):
+            gate.checked_runtime_xserver_mapping(
+                {'xace_wrapper': {'path': 'relative/Xvfb'}}, launcher)
+
     def test_materialized_xserver_launcher_has_required_name_and_checked_wrapper_bytes(self):
         _,runtime,row,_=self.runtime_fixture(builder='middle-child')
         wrapper=Path(row['xace_wrapper']['path'])

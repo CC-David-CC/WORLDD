@@ -1602,6 +1602,27 @@ def runtime_environment(environment, runtime, server_path=None, observer_server_
     return env
 
 
+def checked_runtime_xserver_mapping(runtime, server_path):
+    """Map only the verified runtime wrapper to this attempt's checked launcher."""
+    wrapper_row = runtime.get("xace_wrapper") if isinstance(runtime, dict) else None
+    wrapper = wrapper_row.get("path") if isinstance(wrapper_row, dict) else None
+    launcher = str(server_path)
+    if (not isinstance(wrapper, str) or not Path(wrapper).is_absolute()
+            or not Path(launcher).is_absolute()):
+        raise RuntimeError("checked runtime X server relocation requires absolute paths")
+    return [(wrapper, launcher)]
+
+
+def deployed_ctest_metadata_mapping(
+        runtime, server_path, evidence_source, evidence_target):
+    """Relocate the checked X server and evidence paths in saved CTest metadata."""
+    source = str(evidence_source)
+    target = str(evidence_target)
+    if not Path(source).is_absolute() or not Path(target).is_absolute():
+        raise RuntimeError("deployed CTest evidence relocation requires absolute paths")
+    return [(source, target), *checked_runtime_xserver_mapping(runtime, server_path)]
+
+
 def retained_files(build):
     keep = set()
     for path in build.rglob('*'):
@@ -2280,13 +2301,18 @@ def gate(a):
                 if sha(original) != expected:
                     raise RuntimeError('preserved CTest metadata changed')
                 shutil.copy2(original, build / rel)
+            runtime_xserver_mapping = checked_runtime_xserver_mapping(profile_runtime, server_path)
             deployment_mapping = [(prepared['build'], str(build)), (rec['source_root'], str(source)),
-                                  (prepared['xserver_placeholder'], server_path)]
+                                  (prepared['xserver_placeholder'], server_path),
+                                  *runtime_xserver_mapping]
             deployed_evidence = replace_text(prepared['evidence_root'], deployment_mapping)
             mapping = [(prepared["build"], str(build)), (rec["source_root"], str(source)),
                        (prepared["xserver_placeholder"], server_path),
+                       *runtime_xserver_mapping,
                        (prepared["evidence_root"], str(target / "ctest"))]
-            evidence_edits = replace_metadata(build, [(deployed_evidence, str(target / "ctest"))])
+            evidence_mapping = deployed_ctest_metadata_mapping(
+                profile_runtime, server_path, deployed_evidence, target / "ctest")
+            evidence_edits = replace_metadata(build, evidence_mapping)
             expected_inventory, startup_edits = add_startup_bindings(build,
                 map_inventory(prepared['inventory'], mapping), production / 'python')
             storage_source = storage_evidence_source(expected_inventory, target / 'ctest')

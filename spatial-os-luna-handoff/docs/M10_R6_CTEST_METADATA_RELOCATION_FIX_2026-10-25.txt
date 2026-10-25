@@ -1,0 +1,44 @@
+M10 R6 CTest metadata relocation defect
+Date: 2026-10-25
+Candidate: faf1f100be1cb15ddfe9b7e4ecb8204ef22dda44
+Status: repair in progress; M10 remains unqualified.
+
+Both R6 host runs stopped before any CTest profile executed. The gate reported
+`relocated CTest commands/properties differ from prepared inventory`. The
+failure is preserved at
+`/mnt/data10tb/spatial-desktop/failures/unresolved/m10-r6-ctest-metadata-20261025/`.
+
+Cause
+-----
+
+Preparation records the test inventory with a temporary X server placeholder.
+Bundle verification replaces that placeholder with the pinned host/profile
+XLibre wrapper and saves the resulting CTest metadata as its baseline.
+The deployed gate restores that baseline, then edits only the evidence path.
+It maps the temporary placeholder for the expected inventory, but the checked
+wrapper path remains in CTest metadata. Exact inventory comparison rejects the
+difference before CTest.
+
+Invariant
+---------
+
+The expected inventory must translate the preparation placeholder to the
+current attempt's materialized launcher. Saved CTest metadata must translate
+the exact X server wrapper path returned by runtime verification to that same
+launcher. The gate must retain exact inventory comparison and reject other
+X server paths.
+
+Checks selected before execution
+--------------------------------
+
+1. Add a static regression proving that the verified wrapper path maps to the
+   current attempt launcher and that an unexpected path still fails exact
+   inventory comparison.
+2. Run the complete deployed-gate static fixture suite on both qualification
+   hosts. This checks surrounding metadata, runtime, and inventory guards.
+3. Before starting a CTest profile, run the read-only CTest inventory command
+   for Debug and ASan-UBSan on each host. Compare the full inventory with the
+   prepared registration set and confirm the current launcher appears in the
+   expected X server property.
+4. Preserve receipts and logs. A successful inventory preflight is setup
+   evidence, not a product test pass.
