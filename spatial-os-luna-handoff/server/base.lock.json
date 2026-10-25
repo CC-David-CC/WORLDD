@@ -27,7 +27,9 @@
     "-Dseatd_libseat=false",
     "-Dxkb_dir=/usr/share/X11/xkb",
     "-Dxkb_bin_dir=/usr/bin",
-    "-Dfontrootdir=/usr/share/fonts/X11"
+    "-Dfontrootdir=/usr/share/fonts/X11",
+    "-Dglx=true",
+    "-Dglx_dri=true"
   ],
   "patches": [
     "server/patches/0001-spatial-input.patch",

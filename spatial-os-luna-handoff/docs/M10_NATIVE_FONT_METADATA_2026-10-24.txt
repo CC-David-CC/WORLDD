@@ -89,3 +89,46 @@ Source270 application workflows still have sanitizer local-output eligibility fa
 Native Xorg execution, generated-code reproducibility, full combined M10 gate, and later M1 gates remain pending.
 No login path or normal display configuration changed. Existing SSH recovery remains available.
 The full human/two-agent, real-file/application, frozen two-host objective remains active.
+
+Graphics integration reassessment after the focused font checkpoint
+Run309 starts real host sessions with server294 and fails before editor/terminal launch.
+Both hosts report No GLX window configuration and Host presentation ownership unavailable.
+The build found GLX headers but lacked dri.pc. Meson silently omitted its DRI GLX backend.
+This does not invalidate the font/isolation matrix or older frozen milestone candidates.
+It prevents using server294 as native compositor integration evidence.
+The server lock now requires glx=true and glx_dri=true explicitly.
+Build-host mesa-common-dev supplies the missing metadata. Its package transaction is recorded separately.
+The replacement must pass graphics integration and affected native checks before M10 qualification.
+
+Required graphics backend repair: focused result
+The build lock now requires -Dglx=true and -Dglx_dri=true.
+Missing DRI development metadata must fail configuration instead of silently omitting the backend.
+Middle-child received mesa-common-dev25.2.8-0ubuntu0.24.04.4 without upgrades.
+Dependency transaction312 and build313 retain exact commands and recovery information under R.
+Build313 compiles Debug and ASan/UBSan Xvfb and Xorg from the same effective patched server source.
+No production font or isolation behavior changes in this build-profile repair.
+Source313 archive:native-glx-source313-exact-315.tar.gz.
+Archive SHA256:20e882d343f85c1b71db427e452fa8e42c771638b7afd3a4f6a0fb40e3cc6d5b.
+Package:native-glx-server-compiled313-315.
+Manifest SHA256:fd684ecb967950536dddfc962be35877ff442f85e4bcd18dcdadccf5c86ca130.
+Debug Xvfb SHA256:7f1c9ddc07d53f00e4ff709b6000f3fa75dc195642a3f071c11ceef7378010e6.
+ASan/UBSan Xvfb SHA256:e7adb0346cba12175d0a9ea761a7cc617219936c39fe1c79d4a7f4e34f392ba4.
+The checked host wrappers preserve the qualified Mesa environment.
+
+Run317 repeats all five selected font/isolation suites on both hosts and profiles.
+Its selected matrix passes436 methods, with0 failures and0 skipped cases.
+The primary checked exact named methods, terminal summaries, dependency pins, and sanitizer output.
+Audit:native-glx-primary-audit-324.json. Collected evidence:native-glx-collected-318.
+ sb16 archive SHA256:2994aef7dfd756b6bb1b53d7b6975bdf48c82bef4a1d817c4e53598e471e8722.
+ sb16-2 archive SHA256:22c46804b40fefdce048d876b3c9a39bb73e1829693e82cc1655ef09f5daf674.
+All four Debug application sessions now reach the Mesa compositor startup.
+Both hosts reach a mapped real Xterm window. The missing GLX configuration failure is corrected.
+
+The separate editor/terminal integration still fails all four methods across the two hosts.
+Xedit still reports a zero-sized fileMenu. Its resource dependency remains under investigation.
+On sb16, all three terminal file assertions succeed before the old source270 host fails during final Stop.
+On sb16-2, the first terminal output file is missing. Its input path still needs diagnosis.
+Run317 therefore exits1 on both hosts. These integration failures are preserved, not counted as passes.
+Native Xorg execution and sanitizer compositor integration remain unrun in this focused repair.
+The older frozen candidates and their qualification evidence remain unchanged.
+The complete frozen two-host M10 gate remains pending.
