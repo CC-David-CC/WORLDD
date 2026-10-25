@@ -332,3 +332,12 @@ the M10 profile validates all50 new required names and30 exact named witness met
 Runner receipts are in
 `/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/placement-replay-20261025-a/`.
 This gate code is not yet reviewed against a deployed package. M10 remains UNQUALIFIED.
+
+2026-10-25 test-only memory headroom for the frozen gate
+The previous patched-XLibre sanitizer run hit the transient native test service's 1536 MiB cap.
+The native resource delegate now accepts an explicit 4096M test cap through
+SPATIAL_TEST_NATIVE_MEMORY_MAX. Its default remains 1536M. Non-native services keep 512M.
+This changes only the outer test-service limit. Workspace and application budgets stay unchanged.
+The bounded override regression is in storage-owner-fixture-tooling. The full M10 candidate
+must carry this source and explicitly set the override for Debug and ASan/UBSan qualification.
+This test-harness correction is unqualified until reviewed and run on both hosts.

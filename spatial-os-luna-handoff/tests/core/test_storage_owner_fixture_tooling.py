@@ -248,6 +248,29 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         self.assertIn('MemorySwapMax=0', bounded)
         self.assertIn('TasksMax=256', bounded)
 
+    def test_delegate_native_memory_override_is_explicit_and_bounded(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_memory_override', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        base = dict(unit='fixture', username='fixture', native=True, copy_engine_v2=False,
+                    working_directory=self.root, argv=['true'])
+        default = module.build_service_command(**base, environment={})
+        expanded = module.build_service_command(**base,
+            environment={'SPATIAL_TEST_NATIVE_MEMORY_MAX':'4096M'})
+        self.assertEqual([item for item in expanded if not item.startswith('MemoryMax=')],
+                         [item for item in default if not item.startswith('MemoryMax=')])
+        self.assertIn('MemoryMax=4096M', expanded)
+        self.assertIn('MemoryMax=1536M', default)
+        invalid = (
+            ({'SPATIAL_TEST_NATIVE_MEMORY_MAX':'4G'}, 'must be 1536M or 4096M'),
+            ({'SPATIAL_TEST_NATIVE_MEMORY_MAX':'8192M'}, 'must be 1536M or 4096M'),
+            ({'SPATIAL_TEST_NATIVE_MEMORY_MAX':'4096M'}, 'only for native'),
+        )
+        for environment, message in invalid:
+            options = dict(base, native=(False if message == 'only for native' else True))
+            with self.subTest(environment=environment), self.assertRaisesRegex(ValueError, message):
+                module.build_service_command(**options, environment=environment)
+
     def test_delegate_runtime_override_rejects_invalid_profile_type_and_range(self):
         path = SOURCE/'tools/with_resource_delegate.py'
         spec = importlib.util.spec_from_file_location('fixture_delegate_invalid', path)

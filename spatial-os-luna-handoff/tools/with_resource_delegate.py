@@ -20,6 +20,8 @@ ENVIRONMENT_ALLOWLIST = (
     'SPATIAL_TEST_STORAGE_VOLUME', 'SPATIAL_TEST_STORAGE_LAUNCH_CONFIG',
     'SPATIAL_TEST_STORAGE_COPY_QUOTA_BYTES',
 )
+NATIVE_MEMORY_MAX_ENV = 'SPATIAL_TEST_NATIVE_MEMORY_MAX'
+NATIVE_MEMORY_MAX_VALUES = ('1536M', '4096M')
 
 
 def build_service_command(*, unit, username, native, copy_engine_v2,
@@ -31,10 +33,18 @@ def build_service_command(*, unit, username, native, copy_engine_v2,
             raise ValueError('runtime_seconds is allowed only for the native non-copy profile')
     runtime_limit = (runtime_seconds if runtime_seconds is not None else
                      900 if copy_engine_v2 else 240 if native else 120)
+    if NATIVE_MEMORY_MAX_ENV in environment:
+        if native is not True:
+            raise ValueError(NATIVE_MEMORY_MAX_ENV + ' is allowed only for native test services')
+        native_memory_max = environment[NATIVE_MEMORY_MAX_ENV]
+        if native_memory_max not in NATIVE_MEMORY_MAX_VALUES:
+            raise ValueError(NATIVE_MEMORY_MAX_ENV + ' must be 1536M or 4096M')
+    else:
+        native_memory_max = '1536M'
     command = ['sudo', '-n', 'systemd-run', '--unit='+unit, '--wait', '--pipe', '--collect',
                '--service-type=exec', '--uid='+username,
                '--working-directory='+str(working_directory), '-p', 'Delegate=cpu memory pids io',
-               '-p', 'DelegateSubgroup=manager', '-p', 'MemoryMax='+('1536M' if native else '512M'), '-p', 'MemorySwapMax=0',
+               '-p', 'DelegateSubgroup=manager', '-p', 'MemoryMax='+(native_memory_max if native else '512M'), '-p', 'MemorySwapMax=0',
                '-p', 'TasksMax='+('256' if native else '128'), '-p', 'CPUQuota='+('400%' if native else '200%'),
                '-p', 'RuntimeMaxSec='+str(runtime_limit),
                '-p', 'TimeoutStopSec=5s']
