@@ -26,6 +26,9 @@ Bool SpatialSecuritySelectionNamespace(ClientPtr client, SpatialSelectionNamespa
 Bool SpatialSecurityAtomVisible(ClientPtr client, Atom atom);
 Atom SpatialSecurityInternAtom(ClientPtr client, const char *name,
                               unsigned length, Bool create);
+struct _FontInfo;
+/* Call only after authorizing the font reply, before publishing its atoms. */
+Bool SpatialSecurityAuthorizeFontAtoms(ClientPtr client, const struct _FontInfo *info);
 Bool SpatialSecurityVisibleResource(ClientPtr client, XID id);
 struct Spatial__Security__V1__ApplicationIdentity;
 Bool SpatialSecurityApplicationIdentity(ClientPtr client, XID id,

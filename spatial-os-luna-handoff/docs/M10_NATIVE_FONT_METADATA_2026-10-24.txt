@@ -1,0 +1,91 @@
+M10 public native font metadata: focused result
+Date: 2026-10-24. FOCUSED-PASS component. M10 remains UNQUALIFIED.
+
+Problem and resulting behavior
+An ordinary confined Xterm failed before mapping a usable window.
+The native X server returned a public font atom, then denied its name lookup.
+Both hosts independently resolved rejected atom0x70 to:
+ -Misc-Fixed-Medium-R-SemiCondensed--13-120-75-75-C-60-ISO8859-1.
+Authorized font replies now declare their property-name atoms for that application.
+Only values marked isStringProp become additional declarations. Numeric values never do.
+This resolves the reproduced font metadata mismatch without a global atom allowlist.
+Applications still cannot inspect foreign font resources, private atoms, or font paths.
+The XACE implementation remains active. CallbackList migration remains deferred.
+
+Source and primary review
+Base commit:089d76bb7c69101c20691b11580c3efab1a995b7.
+The primary reviewed every changed font source, patch, test, lock, and registration.
+A bounded read-only helper reviewed the public-font/atom-policy contradiction and counterexamples.
+The declaration helper validates existing atoms, sorts and deduplicates the complete pending set.
+It checks the existing65536-entry application budget before allocating replacement storage.
+Only the complete merged set replaces the live declarations. Allocation failure grants nothing.
+Existing same-application sharing and final-disconnection cleanup remain active.
+QueryFont authorizes the font before constructing its reply and declaring metadata.
+Each asynchronous ListFontsWithInfo record checks metadata before byte swapping or publication.
+Failure retires the enumeration and reports BadAlloc. No affected record is written.
+The source lock records patch0017 and updated overlay hashes explicitly.
+No locked acceptance assertion, witness, schema, or acceptance.lock entry changes in this checkpoint.
+
+Build and provenance
+Evidence root R=/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023.
+Pristine upstream XLibre commit:f844d7a86c10fd5cc89083e7daf97b862b8ca1fd.
+Pristine xorgproto commit:67469711055522b8adb2d795b01e7ba98cb8816c.
+Run289 first refused configuration because pixman development metadata was missing.
+Its failed configuration and source remain preserved. No runtime test ran there.
+Pinned dependency jobs285 and291 added build prerequisites on middle-child without package upgrades.
+Plans, apt transactions, package versions, and recovery commands remain under R.
+Run292 reused the verified patched source and completed Debug and ASan/UBSan builds.
+Both Xvfb and Xorg were compiled with-j2. Runtime tests ran only on sb16 and sb16-2.
+Source289 contains other unqualified M10 work. This checkpoint stages only the reviewed font increment.
+Archive:native-application-source289-exact-294.tar.gz.
+Archive SHA256:5279d08c0542c2075e7d8c59d015754d0680cb547db16a3406d36b0e5fd25923.
+Package:font-compatibility-server-compiled289-294.
+Manifest SHA256:ba16fa912a8023c8405f1464f12a84c261124e6e2ea5abf7786d5232442327cc.
+Debug Xvfb SHA256:42fd2bfd38dbca8fe456a65e5f8dab6206df33866068dce6eec0f5064029898f.
+ASan/UBSan Xvfb SHA256:ac0bd2ee2b226ccb8265c26e653678382e423b5442b2b55304980e28e341c35d.
+Host-specific wrappers preserve the exact qualified Mesa environments.
+Runtime checks verify the actual wrapper, server, and complete resolved library closure.
+Original M09 provenance and deployments remain unchanged.
+
+Causal regressions and fixture correction
+Run281 reproduces the Xterm failure and independently identifies the font name on both hosts.
+Run288 reproduces four font metadata failures on each original server.
+Its normal and swapped QueryFont/ListFontsWithInfo cases fail on BadAtom.
+Its denied foreign font query passes. Original failures remain archived externally.
+Run295 passes six new methods per host and fails one new fixture precondition.
+That fixture assumed a point-size integer was an unallocated atom ID.
+The actual server had already allocated that identifier. Production source did not change.
+Corrective test overlay298 declares the existing unrelated dynamic name only for another application.
+The querying application must still reject that identifier after receiving it as a numeric font value.
+This preserves the intended collision counterexample and removes the invalid allocation assumption.
+The corrected test source is included in this checkpoint. No binary rebuild was required.
+Original295 reports and separate corrective298 evidence remain preserved.
+Patch encoding correction303 removes single-space blank context lines before check-in.
+Git accepts the corrected patch. Independent application of both encodings produces identical file bytes.
+The original compiled provenance remains preserved. See font-patch-format-proof-303.json under R.
+
+Selected test matrix and outcomes
+Every cell runs seven new font methods and four unchanged native isolation suites.
+New font methods cover normal/swapped queries and lists, foreign-font denial,
+unrelated dynamic-atom numeric collision, and atomic font declaration budget failure.
+The budget case also proves the last unused declaration remains available after failure.
+Existing suites cover atom privacy15, global isolation19, resource isolation36, extension isolation32.
+Per cell:109 methods. Cells:sb16 Debug, sb16 sanitizer, sb16-2 Debug, sb16-2 sanitizer.
+Final selected result:436 passed,0 failed,0 skipped,0 blocked,0 unrun in this selected matrix.
+All command/wrapper receipts are0/0. Both canonical jobs are terminal.
+No AddressSanitizer, LeakSanitizer, or UBSan diagnostic was accepted.
+Primary audit:font-compatibility-primary-audit-301.json under R.
+Collected archives:font-compatibility-collected-301.
+ sb16 SHA256:93e1f2f93ce07668f226a296619ee049a48c5018d9fff9d285da9f18d06bc2ec.
+ sb16-2 SHA256:e67fd957aaa4e7d29f2690eafc4c378e4938a0ff9a6e710fbbff8c7778462863.
+
+Limits and remaining work
+These checks qualify the focused font correction only.
+Real Xedit/Xterm actor workflows still require execution with this corrected server.
+Xedit's missing-resource hypothesis remains unproven.
+A missing program currently receives a misleading broker error. Its separate draft fix is unqualified.
+Human Stop interruption has reproduced whole-host teardown. Its separate draft fix is unqualified.
+Source270 application workflows still have sanitizer local-output eligibility failure evidence.
+Native Xorg execution, generated-code reproducibility, full combined M10 gate, and later M1 gates remain pending.
+No login path or normal display configuration changed. Existing SSH recovery remains available.
+The full human/two-agent, real-file/application, frozen two-host objective remains active.

@@ -5,7 +5,8 @@ Full M04 qualification remains pending.
 
 Core-X atoms retain their normal numeric representation.
 Predefined atoms remain public application protocol definitions.
-An application must explicitly intern a dynamic name before it can inspect that name.
+An application must declare a dynamic name before inspecting it.
+Explicit InternAtom requests and authorized font replies can declare names.
 Live connections with the same workspace and application identity share declarations.
 Connections with different credentials can share the same application identity.
 Matching application names in different workspaces do not share declarations.
@@ -30,3 +31,13 @@ It does not change existing owned-selection authorization.
 Independent selection namespaces remain pending.
 Asynchronous event metadata qualification remains pending.
 Global numeric atom allocation and timing side channels remain outside this increment.
+
+2026-10-24 public font metadata correction
+An authorized QueryFont or ListFontsWithInfo reply declares its property-name atoms.
+It also declares property values explicitly marked as strings by the font backend.
+Numeric property values never become atom declarations.
+The complete declaration set respects the existing application-local65536-entry budget.
+Allocation or budget failure publishes no partial declarations or affected font reply.
+Foreign font resources, unrelated atom names, and font paths remain unauthorized.
+Both hosts pass109 focused native methods in Debug and ASan/UBSan:436 completions.
+See M10_NATIVE_FONT_METADATA_2026-10-24.txt for source, evidence, and qualification limits.

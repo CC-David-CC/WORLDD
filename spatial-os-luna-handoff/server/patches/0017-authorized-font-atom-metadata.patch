@@ -1,0 +1,40 @@
+--- a/dix/dispatch.c
++++ b/dix/dispatch.c
+@@ -1390,6 +1390,10 @@
+         reply->length = bytes_to_int32(rlength - sizeof(xGenericReply));
+         reply->sequenceNumber = client->sequence;
+         QueryFont(pFont, reply, nprotoxcistructs);
++        if (!SpatialSecurityAuthorizeFontAtoms(client, &pFont->info)) {
++            free(reply);
++            return BadAlloc;
++        }
+
+         if (client->swapped) {
+             SwapFont(reply, TRUE);
+--- a/dix/dixfonts.c
++++ b/dix/dixfonts.c
+@@ -78,6 +78,7 @@
+ #include "closestr.h"
+ #include "dixfont.h"
+ #include "xace.h"
++#include "spatialsecurity.h"
+
+ #ifdef XF86BIGFONT
+ #include "xf86bigfontsrv.h"
+@@ -988,6 +989,16 @@
+                 pFP->name = pFontInfo->props[i].name;
+                 pFP->value = pFontInfo->props[i].value;
+                 pFP++;
++            }
++            if (!SpatialSecurityAuthorizeFontAtoms(client, pFontInfo)) {
++                if (pFontInfo == &fontInfo) {
++                    free(fontInfo.props);
++                    free(fontInfo.isStringProp);
++                }
++                if (c->current.list_started)
++                    (*fpe_functions[fpe->type]->client_died) ((void *) client, fpe);
++                SendErrorToClient(client, X_ListFontsWithInfo, 0, 0, BadAlloc);
++                goto bail;
+             }
+             if (client->swapped) {
+                 swaps(&reply->sequenceNumber);

@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <X11/Xatom.h>
+#include <X11/fonts/fontstruct.h>
 #include "dix/dix_priv.h"
 #include "dix/request_priv.h"
 #include "extnsionst.h"
@@ -276,6 +277,7 @@ Atom SpatialSecurityInternAtom(ClientPtr client, const char *name,
     if (!atoms || atoms->count == MAX_APPLICATION_ATOMS) return BAD_RESOURCE;
     if (atoms->count == atoms->capacity) {
         size_t capacity = atoms->capacity ? atoms->capacity * 2 : 32;
+        if (capacity > MAX_APPLICATION_ATOMS) capacity = MAX_APPLICATION_ATOMS;
         Atom *values = realloc(atoms->values, capacity * sizeof(*values));
         if (!values) return BAD_RESOURCE;
         atoms->values = values;
@@ -289,6 +291,90 @@ Atom SpatialSecurityInternAtom(ClientPtr client, const char *name,
     atoms->values[position] = atom;
     ++atoms->count;
     return atom;
+}
+
+static int compare_atoms(const void *first, const void *second)
+{
+    Atom a = *(const Atom *)first, b = *(const Atom *)second;
+    return (a > b) - (a < b);
+}
+
+Bool SpatialSecurityAuthorizeFontAtoms(ClientPtr client, const struct _FontInfo *info)
+{
+    if (SpatialSecurityPrivileged(client)) return TRUE;
+    if (!SpatialSecuritySameApplication(client, client) || !info ||
+        info->nprops < 0 || info->nprops > MAX_APPLICATION_ATOMS ||
+        (info->nprops && (!info->props || !info->isStringProp))) return FALSE;
+    if (!info->nprops) return TRUE;
+
+    /* Only names and explicitly string-valued properties are atoms. A numeric
+     * font property may coincide with another application's private atom ID.
+     * Prepare the entire bounded declaration set before publishing any entry.
+     */
+    Atom *pending = calloc((size_t)info->nprops * 2, sizeof(*pending));
+    if (!pending) return FALSE;
+    size_t count = 0;
+    for (int i = 0; i < info->nprops; ++i) {
+        Atom values[2] = {info->props[i].name, info->props[i].value};
+        unsigned length = info->isStringProp[i] ? 2 : 1;
+        for (unsigned j = 0; j < length; ++j) {
+            if (!values[j] || !NameForAtom(values[j])) {
+                free(pending);
+                return FALSE;
+            }
+            if (values[j] > XA_LAST_PREDEFINED) pending[count++] = values[j];
+        }
+    }
+    qsort(pending, count, sizeof(*pending), compare_atoms);
+    size_t unique = 0;
+    for (size_t i = 0; i < count; ++i)
+        if (!unique || pending[i] != pending[unique - 1])
+            pending[unique++] = pending[i];
+
+    ApplicationAtoms *atoms = application_atoms(client, FALSE);
+    size_t missing = 0;
+    for (size_t i = 0; i < unique; ++i) {
+        size_t position = atoms ? atom_position(atoms, pending[i]) : 0;
+        if (!atoms || position == atoms->count || atoms->values[position] != pending[i])
+            ++missing;
+    }
+    if (!missing) {
+        free(pending);
+        return TRUE;
+    }
+    if (missing > MAX_APPLICATION_ATOMS - (atoms ? atoms->count : 0)) {
+        free(pending);
+        return FALSE;
+    }
+    atoms = application_atoms(client, TRUE);
+    if (!atoms) {
+        free(pending);
+        return FALSE;
+    }
+    size_t total = atoms->count + missing;
+    Atom *merged = malloc(total * sizeof(*merged));
+    if (!merged) {
+        free(pending);
+        return FALSE;
+    }
+    size_t old = 0, added = 0, used = 0;
+    while (old < atoms->count || added < unique) {
+        if (added == unique ||
+            (old < atoms->count && atoms->values[old] < pending[added]))
+            merged[used++] = atoms->values[old++];
+        else if (old == atoms->count || pending[added] < atoms->values[old])
+            merged[used++] = pending[added++];
+        else {
+            merged[used++] = atoms->values[old++];
+            ++added;
+        }
+    }
+    free(pending);
+    free(atoms->values);
+    atoms->values = merged;
+    atoms->count = total;
+    atoms->capacity = total;
+    return TRUE;
 }
 
 Bool SpatialSecurityVisibleResource(ClientPtr client, XID id)
