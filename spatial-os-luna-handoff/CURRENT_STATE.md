@@ -1,3 +1,15 @@
+## 2026-10-25: M10 gate setup correction is in progress
+
+Candidate 9bac4d3 built and verified on sb16 and sb16-2. It did not pass the static gate.
+The sb16 failure exposed a fixture that passed the full runtime manifest to a host/profile-row helper.
+The fixture now passes the row returned by the runtime setup. Its focused regression passes on middle-child.
+The full static suite also requires a qualification host. Middle-child correctly rejects that host-only case.
+Both deployment receipts and the failing static output remain preserved with the candidate artifacts.
+The corrected source must rebuild and pass M06 static and local Debug and ASan gates on both hosts.
+Cross-host, native, recovery, performance, and frozen M10 checks remain pending.
+Physical SpaceMouse evidence remains pending because neither host currently exposes that device.
+M10 remains unqualified. Accepted M09 remains unchanged.
+
 ## 2026-10-24: Local three-actor real-file workflows pass focused checks
 
 A private local actor endpoint preserves signed authentication and pins the exact live world process.

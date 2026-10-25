@@ -434,8 +434,8 @@ class GateStaticTests(unittest.TestCase):
         _,runtime,row,_=self.runtime_fixture(builder='middle-child')
         wrapper=Path(row['xace_wrapper']['path'])
         binary=Path(json.loads(Path(row['server_receipt']['path']).read_text())['binaries']['Xvfb']['path'])
-        runtime['deployed_binary']={'path':str(binary),'sha256':gate.sha(binary)}
-        launcher=Path(gate.materialize_xserver_launcher(runtime,self.root/'attempt'/'production'))
+        row['deployed_binary']={'path':str(binary),'sha256':gate.sha(binary)}
+        launcher=Path(gate.materialize_xserver_launcher(row,self.root/'attempt'/'production'))
         self.assertEqual(launcher.name,'Xvfb')
         self.assertTrue(launcher.is_symlink())
         self.assertEqual(launcher.resolve(strict=True),wrapper.resolve(strict=True))
