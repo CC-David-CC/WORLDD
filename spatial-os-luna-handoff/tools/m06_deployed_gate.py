@@ -1559,19 +1559,45 @@ def verify_runtime(runtime, host, profile, source):
     return row
 
 
-def runtime_environment(environment, runtime):
-    """Use the production server by default; expose the checked private observer separately."""
+def materialize_xserver_launcher(runtime, directory):
+    """Expose a checked wrapper under the Xvfb name required by native tests."""
+    wrapper = runtime.get("xace_wrapper", {})
+    wrapper_path = Path(wrapper.get("path", ""))
+    expected = wrapper.get("sha256")
+    if (not wrapper_path.is_absolute() or not wrapper_path.is_file()
+            or not os.access(wrapper_path, os.X_OK) or not expected
+            or sha(wrapper_path) != expected):
+        raise RuntimeError("checked X server wrapper is missing or changed")
+    binary = runtime.get("deployed_binary", {})
+    binary_path = Path(binary.get("path", ""))
+    if (not binary_path.is_absolute() or not binary_path.is_file()
+            or not os.access(binary_path, os.X_OK)
+            or sha(binary_path) != binary.get("sha256")):
+        raise RuntimeError("checked X server binary is missing or changed")
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=False)
+    launcher = directory / "Xvfb"
+    launcher.symlink_to(wrapper_path)
+    if (not launcher.is_symlink() or launcher.name != "Xvfb"
+            or launcher.resolve(strict=True) != wrapper_path.resolve(strict=True)
+            or sha(launcher) != expected):
+        raise RuntimeError("X server test launcher does not resolve to the checked wrapper")
+    return str(launcher)
+
+
+def runtime_environment(environment, runtime, server_path=None, observer_server_path=None):
+    """Use checked launchers named Xvfb; expose the private observer separately."""
     env = environment.copy()
     for key in ("SPATIAL_TEST_XSERVER_SHA256", "SPATIAL_TEST_OBSERVER_XSERVER", "SPATIAL_TEST_OBSERVER_XSERVER_SHA256"):
         env.pop(key, None)
     wrapper = runtime["xace_wrapper"]["path"]
-    env["SPATIAL_TEST_XSERVER"] = wrapper
-    env["SPATIAL_TEST_DEFAULT_XSERVER"] = wrapper
+    env["SPATIAL_TEST_XSERVER"] = server_path or wrapper
+    env["SPATIAL_TEST_DEFAULT_XSERVER"] = server_path or wrapper
     if "deployed_binary" in runtime:
         env["SPATIAL_TEST_XSERVER_SHA256"] = runtime["deployed_binary"]["sha256"]
     if "qualification_observer" in runtime:
         observer = runtime["qualification_observer"]
-        env["SPATIAL_TEST_OBSERVER_XSERVER"] = observer["xace_wrapper"]["path"]
+        env["SPATIAL_TEST_OBSERVER_XSERVER"] = observer_server_path or observer["xace_wrapper"]["path"]
         env["SPATIAL_TEST_OBSERVER_XSERVER_SHA256"] = observer["deployed_binary"]["sha256"]
     return env
 
@@ -2233,8 +2259,13 @@ def gate(a):
             env = apply_profile_storage_environment(
                 env, profile, getattr(a, "storage_lane_by_profile", {}))
             profile_runtime = verify_runtime(manifest, host, profile, source)
-            wrapper_path = Path(profile_runtime["xace_wrapper"]["path"])
-            env = runtime_environment(env, profile_runtime)
+            server_path = materialize_xserver_launcher(profile_runtime, target / "runtime" / "production")
+            observer_path = None
+            if "qualification_observer" in profile_runtime:
+                observer_runtime = profile_runtime["qualification_observer"]
+                observer_path = materialize_xserver_launcher(
+                    observer_runtime, target / "runtime" / "observer")
+            env = runtime_environment(env, profile_runtime, server_path, observer_path)
             for rel, expected in rec["profiles"][profile]["executables"].items():
                 if is_runtime_bytecode(rel):
                     continue
@@ -2250,10 +2281,10 @@ def gate(a):
                     raise RuntimeError('preserved CTest metadata changed')
                 shutil.copy2(original, build / rel)
             deployment_mapping = [(prepared['build'], str(build)), (rec['source_root'], str(source)),
-                                  (prepared['xserver_placeholder'], str(wrapper_path))]
+                                  (prepared['xserver_placeholder'], server_path)]
             deployed_evidence = replace_text(prepared['evidence_root'], deployment_mapping)
             mapping = [(prepared["build"], str(build)), (rec["source_root"], str(source)),
-                       (prepared["xserver_placeholder"], str(wrapper_path)),
+                       (prepared["xserver_placeholder"], server_path),
                        (prepared["evidence_root"], str(target / "ctest"))]
             evidence_edits = replace_metadata(build, [(deployed_evidence, str(target / "ctest"))])
             expected_inventory, startup_edits = add_startup_bindings(build,

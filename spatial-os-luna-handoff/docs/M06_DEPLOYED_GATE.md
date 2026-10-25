@@ -43,6 +43,12 @@ An unchanged compatible server may be reused across project commits. A source mi
 The wrapper must match the reviewed Python exec template and execute the exact receipt Xvfb binary.
 A wrapper hash alone is insufficient.
 
+The local gate creates a per-attempt launcher named `Xvfb` for each checked wrapper.
+CTest and direct native tests require that basename. The launcher is a symlink to the
+hash-verified wrapper, which applies the pinned EGL environment before executing the
+receipt-pinned server binary. The private observer receives its own launcher.
+The launcher never changes the server binary or its hash.
+
 The M04 server lacks the M06 scoped input admission change. Do not use it for this gate.
 Known compatible receipt locations on each host are:
 /home/dflanag3/src/spacial_desktop-m06-20261012/spatial-os-luna-handoff/local/m06-scoped-input-05/Debug/server-build/run.json

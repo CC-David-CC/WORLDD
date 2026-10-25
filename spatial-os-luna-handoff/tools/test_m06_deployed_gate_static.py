@@ -57,6 +57,7 @@ class GateStaticTests(unittest.TestCase):
             # Fixture sources may be frozen read-only. Copy bytes into fresh writable temp files.
             shutil.copyfile(source_input / name, target)
         server = self.put('runtime/Xvfb', 'fixture binary, never executed')
+        server.chmod(0o755)
         receipt['binaries']['Xvfb'] = dict(path=str(server), sha256=gate.sha(server))
         library = self.put('runtime/libEGL.so', 'fixture EGL, never loaded')
         vendor = self.put('runtime/vendor.json', json.dumps({'ICD': {'library_path': str(library)}}))
@@ -64,6 +65,7 @@ class GateStaticTests(unittest.TestCase):
         wrapper = self.put('runtime/wrapper', 'import os, sys\nenv = dict(os.environ)\nenv.update('
                            + repr(env) + ')\nserver = ' + repr(str(server))
                            + '\nos.execve(server, [server, *sys.argv[1:]], env)\n')
+        wrapper.chmod(0o755)
         helpers = [self.put('runtime/' + name, 'fixture helper')
                    for name in ('spatial-bwrap', 'spatial-storage-owner')]
         receipt_path = self.put('runtime/receipt.json', json.dumps(receipt))
@@ -413,6 +415,32 @@ class GateStaticTests(unittest.TestCase):
         self.assertEqual(observed['SPATIAL_TEST_XSERVER_SHA256'],'b'*64)
         self.assertEqual(observed['SPATIAL_TEST_OBSERVER_XSERVER'],'/observer/Xvfb')
         self.assertEqual(observed['SPATIAL_TEST_OBSERVER_XSERVER_SHA256'],'a'*64)
+
+    def test_runtime_environment_accepts_named_checked_launchers(self):
+        row={'xace_wrapper':{'path':'/checked/xace-wrapper'},
+             'deployed_binary':{'sha256':'b'*64},
+             'qualification_observer':{
+                 'xace_wrapper':{'path':'/observer/xace-wrapper'},
+                 'deployed_binary':{'sha256':'a'*64}}}
+        selected=gate.runtime_environment(
+            {},row,'/attempt/runtime/production/Xvfb','/attempt/runtime/observer/Xvfb')
+        self.assertEqual(selected['SPATIAL_TEST_XSERVER'],'/attempt/runtime/production/Xvfb')
+        self.assertEqual(selected['SPATIAL_TEST_DEFAULT_XSERVER'],'/attempt/runtime/production/Xvfb')
+        self.assertEqual(selected['SPATIAL_TEST_OBSERVER_XSERVER'],'/attempt/runtime/observer/Xvfb')
+        self.assertEqual(selected['SPATIAL_TEST_XSERVER_SHA256'],'b'*64)
+        self.assertEqual(selected['SPATIAL_TEST_OBSERVER_XSERVER_SHA256'],'a'*64)
+
+    def test_materialized_xserver_launcher_has_required_name_and_checked_wrapper_bytes(self):
+        _,runtime,row,_=self.runtime_fixture(builder='middle-child')
+        wrapper=Path(row['xace_wrapper']['path'])
+        binary=Path(json.loads(Path(row['server_receipt']['path']).read_text())['binaries']['Xvfb']['path'])
+        runtime['deployed_binary']={'path':str(binary),'sha256':gate.sha(binary)}
+        launcher=Path(gate.materialize_xserver_launcher(runtime,self.root/'attempt'/'production'))
+        self.assertEqual(launcher.name,'Xvfb')
+        self.assertTrue(launcher.is_symlink())
+        self.assertEqual(launcher.resolve(strict=True),wrapper.resolve(strict=True))
+        self.assertEqual(gate.sha(launcher),gate.sha(wrapper))
+        self.assertTrue(os.access(launcher,os.X_OK))
 
     def test_full_inventory_relocation_is_single_pass(self):
         inventory = [dict(name='native', command=['/old/source/build/probe',

@@ -73,11 +73,13 @@ class RevisionInterleaveTests(existing.WorldAuthorityTests):
         world = self.scoped_world(issuer_port=relay.port)
         peer = world.peers[0]
         relay.armed.set()
-        first = peer.act(stop=core.ActorStopRequest())
+        # A safety stop bypasses issuer round trips by contract. Inspect still
+        # exercises the in-flight identity and actor-status reads without motion.
+        first = peer.call(inspect=session.WorldSessionInspect())
         self.assertTrue(relay.delivered.is_set(), 'The real revocation must precede the held status reply')
         self.assertEqual(relay.remaining, 0)
-        # A stale in-flight action may fail. The independent identity remains usable.
-        self.assertTrue(first.HasField('action') or first.HasField('error'), first)
+        # A stale read may fail. The independent identity remains usable.
+        self.assertTrue(first.HasField('state') or first.HasField('error'), first)
         retry = peer.call(inspect=session.WorldSessionInspect())
         self.assertTrue(retry.HasField('state'), retry)
         world.close(); self.assertEqual(world.proc.returncode, 0)
@@ -94,7 +96,9 @@ class RevisionInterleaveTests(existing.WorldAuthorityTests):
         self.revoke_second()
         self.assertTrue(peer.call(inspect=session.WorldSessionInspect()).HasField('state'))
         relay.armed.set()
-        denied = peer.act(stop=core.ActorStopRequest())
+        # Inspect must perform the checked authority read. A safety stop is
+        # deliberately allowed to bypass it so held input can always be released.
+        denied = peer.call(inspect=session.WorldSessionInspect())
         self.assertTrue(denied.HasField('error'), denied)
         self.assertTrue(relay.delivered.is_set())
         retry = peer.call(inspect=session.WorldSessionInspect())
