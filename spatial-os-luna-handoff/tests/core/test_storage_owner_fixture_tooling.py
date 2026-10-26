@@ -248,6 +248,19 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         self.assertIn('MemorySwapMax=0', bounded)
         self.assertIn('TasksMax=256', bounded)
 
+    def test_delegate_forwards_explicit_m10_test_settings_without_unlisted_environment(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_m10_settings', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        command = module.build_service_command(unit='fixture', username='fixture', native=True,
+            copy_engine_v2=False, working_directory=self.root,
+            environment={'SPATIAL_TEST_RETAINED_MOVEMENT':'1',
+                         'SPATIAL_TEST_PRESENTATION_CONTINUATIONS':'1', 'UNLISTED_SECRET':'value'},
+            argv=['true'])
+        self.assertIn('--setenv=SPATIAL_TEST_RETAINED_MOVEMENT=1', command)
+        self.assertIn('--setenv=SPATIAL_TEST_PRESENTATION_CONTINUATIONS=1', command)
+        self.assertFalse(any('UNLISTED_SECRET' in item for item in command))
+
     def test_delegate_native_memory_override_is_explicit_and_bounded(self):
         path = SOURCE/'tools/with_resource_delegate.py'
         spec = importlib.util.spec_from_file_location('fixture_delegate_memory_override', path)
