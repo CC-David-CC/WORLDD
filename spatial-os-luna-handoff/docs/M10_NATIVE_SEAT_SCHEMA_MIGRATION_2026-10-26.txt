@@ -1,0 +1,32 @@
+M10 native-seat and retained-motion schema migration
+Date: 2026-10-26. Status: IMPLEMENTING, UNQUALIFIED_M10.
+
+Candidate before this metadata correction: 99a27259f1dd034ad22b8f49e2072c4901174c73.
+Predecessor acceptance.lock.json SHA-256: 1be0bdf8592bbb904ce52e19ae853108def94be438433512910273fecfd662eb.
+
+The gate correctly refused preparation because the candidate changed the locked
+`proto/spatial/core/v1/core.proto` hash without recording the schema migration.
+This update pins the reviewed additive schema and leaves every locked test ID intact.
+
+The native input ledger adds `NativeActorInput.native_seat_id` at field 5. Worldd
+assigns this seat identity after actor authentication. Client input cannot choose it.
+The identity connects the actor's trusted session to the native compositor seat used
+for immediate held-key and button revocation.
+
+`WorldSessionOpened.retained_movement_enabled` at field 7 reports the trusted,
+default-off server policy. An older reader sees false and sends no one-way motion
+refresh. This field does not create a grant or change the 250 ms input expiry.
+
+The private compositor input request adds `revoke` at field 12. A second channel
+can revoke the seat only with the same live compositor credential that created it.
+XLibre releases held input and fences the seat before acknowledging revocation.
+A different compositor credential receives `FORBIDDEN` and cannot affect the seat.
+
+All fields are additive. Existing field numbers and encodings remain unchanged.
+The 151 locked acceptance IDs, assertions, oracles, codecs, and native witnesses are
+unchanged. Only the existing `core.proto` lock hash and this explicit migration notice
+change in the acceptance lock. The full candidate source pin records every other file.
+
+This schema migration is not qualification evidence. M10 remains unqualified until
+both required hosts pass the frozen Debug, ASan-UBSan, native, cross-host, recovery,
+observer, and physical-input gates.
