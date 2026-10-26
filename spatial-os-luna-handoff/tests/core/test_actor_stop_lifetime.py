@@ -35,7 +35,7 @@ class ActorStopLifetimeTests(WorldIdentityFixture):
         spawn=core.Pose();spawn.position.x=1;spawn.orientation.w=1
         self.assertTrue(self.authenticate(other,record,key,public,pose=spawn).HasField('opened'))
         self.other_x=other.call(inspect=session.WorldSessionInspect()).state.pose.position.x
-        probe=self.native_probe(self.root,xi2=True)
+        probe=self.native_probe(self.root,xi2=False)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda value:value['surface'] is not None)['surface']
         world.management('surface.place',id=found['id'],room=world.management('world.info')['entry_room'],pose=pose((0,0,-2)),size=[2,2])
         self.assertTrue(first.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1))).action.accepted)

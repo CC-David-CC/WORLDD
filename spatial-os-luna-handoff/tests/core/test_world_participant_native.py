@@ -13,10 +13,11 @@ from harness.wire import frame
 
 
 class WorldParticipantNativeTests(WorldParticipantFixture):
-    def world(self, grants=(), native=False, fixture_faults=False):
+    def world(self, grants=(), native=False, fixture_faults=False, native_fd=None):
         self.assertTrue(native)
         self.assertEqual(set(grants), {'navigate','interact','observe'})
-        native_fd=self.native_compositor_authority()
+        if native_fd is None:
+            native_fd=self.native_compositor_authority()
         world=self.start_world(native=True,fixture_faults=fixture_faults,native_fd=native_fd)
         world.management('system.hello')
         return world

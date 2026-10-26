@@ -66,14 +66,14 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             self.second_key,self.second_public)).enrollment
         self.second=self.claims(self.second_record,self.info)
         self._info_relay=DelayedInfoIssuer(self,delayed_operation='credential_check',actor_id=self.second.actor_id)
-        world=self.world(grants=['navigate','interact','observe'],native=True,native_fd=native_fd,
+        world=self.world(grants=['navigate','interact','observe'],native=True,native_fd=native_fd,fixture_faults=True,
             additional_actor_profiles=[(self.second.actor_id,['navigate'])])
         self._progress_observations=dict(stage='other_actor_credential_check_pending',input_timeout_seconds=.25)
         peer,other_peer=world.peers
         opened=self.authenticate(peer)
         self.assertTrue(opened.HasField('opened'))
         self._native_actor_id=opened.opened.actor_id
-        probe=self.native_probe(self.root,xi2=True)
+        probe=self.native_probe(self.root,xi2=False)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda result:result['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])

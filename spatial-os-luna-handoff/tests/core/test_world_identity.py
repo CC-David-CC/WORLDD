@@ -472,7 +472,9 @@ class WorldIdentityFixture(ClientFixture):
         world=self.world(grants=['navigate','interact','observe'],native=True,fixture_faults=fixture_faults,
             native_fd=native_fd);peer=world.peers[0]
         self.assertTrue(self.authenticate(peer).HasField('opened'))
-        probe=self.native_probe(self.root,xi2=True)
+        # This probe has the APPLICATION identity. XACE denies XI2 to apps,
+        # so the input witness must use ordinary core X events.
+        probe=self.native_probe(self.root,xi2=False)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])

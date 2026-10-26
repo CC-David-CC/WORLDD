@@ -1,6 +1,7 @@
 """Remote world geometry must not export live applications, even with observation grants."""
 import os
 import fcntl
+from pathlib import Path
 import socket
 import ssl
 import struct

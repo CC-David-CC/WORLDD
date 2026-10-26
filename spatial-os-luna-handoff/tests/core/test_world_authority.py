@@ -443,7 +443,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
 
     def test_world_observation_omits_native_application_surfaces(self):
         world = self.scoped_world(native=True); peer = world.peers[0]; self.object(world)
-        probe = self.native_probe(self.root,xi2=True)
+        probe = self.native_probe(self.root,xi2=False)
         found = self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']
         world.management('surface.place',id=found['id'],room=self.world_info['entry_room'],pose=pose((0,0,-1)),size=[2,2])
         reply = peer.act(observe=core.ActorObserveRequest()); self.assertTrue(reply.HasField('action'), reply)
