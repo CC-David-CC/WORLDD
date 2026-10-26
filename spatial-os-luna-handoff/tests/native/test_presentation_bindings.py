@@ -166,7 +166,8 @@ class PresentationBindingTests(unittest.TestCase):
 
     def test_retirement_releases_native_events_and_rejects_stale_input(self):
         self.launch();self.bind(0);self.pointer(self.bindings[0])
-        command=core.RendererInputCommand(actor_id='same-actor',key=core.ActorKeyRequest(keysym='a',pressed=True))
+        command=core.RendererInputCommand(actor_id='same-actor',target=self.target,
+            key=core.ActorKeyRequest(keysym='a',pressed=True))
         self.assertTrue(self.call(self.bindings[0],input=command).result.HasField('input'))
         self.assertTrue(self.call(self.bindings[0],retire=True).result.HasField('ready'))
         self.owner.operation(43,reply=True)
@@ -210,7 +211,8 @@ class PresentationBindingTests(unittest.TestCase):
         self.launch()
         pointer=core.RendererInputCommand(actor_id='legacy',target=self.target,pixel=core.Pixel(x=1,y=1),
             pointer=core.ActorPointerRequest(button=1,pressed=True))
-        key=core.RendererInputCommand(actor_id='legacy',key=core.ActorKeyRequest(keysym='a',pressed=True))
+        key=core.RendererInputCommand(actor_id='legacy',target=self.target,
+            key=core.ActorKeyRequest(keysym='a',pressed=True))
         self.assertTrue(self.call(unbound_input=pointer).result.HasField('input'))
         self.assertTrue(self.call(unbound_input=key).result.HasField('input'))
         self.bind(0)

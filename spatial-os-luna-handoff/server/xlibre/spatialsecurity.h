@@ -21,6 +21,7 @@ const char *SpatialSecurityAuthorize(ClientPtr client, unsigned name_size,
 void SpatialSecurityExtensionInit(void);
 Bool SpatialSecurityPrivileged(ClientPtr client);
 Bool SpatialSecurityInputController(ClientPtr client);
+Bool SpatialSecuritySameInputController(ClientPtr client, ClientPtr owner);
 Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner);
 Bool SpatialSecuritySelectionNamespace(ClientPtr client, SpatialSelectionNamespace *label);
 Bool SpatialSecurityAtomVisible(ClientPtr client, Atom atom);

@@ -388,7 +388,8 @@ class BrokerProcess:
         self.world_channel_factory = self.open_world_channel if self.world_channel_opt_in else None
 
     def delay_world_reply_for(self, operation, seconds):
-        if operation not in broker.Request.DESCRIPTOR.oneofs_by_name['operation'].fields_by_name:
+        operations = broker.Request.DESCRIPTOR.oneofs_by_name['operation'].fields
+        if operation not in {field.name for field in operations}:
             raise ValueError('Unknown broker request operation')
         if not 0 < seconds <= 5:
             raise ValueError('Broker reply delay must be within 0..5 seconds')
@@ -481,6 +482,36 @@ class BrokerProcess:
 
 
 class BrokerTransportCompatibilityTests(unittest.TestCase):
+    def test_world_reply_delay_targets_one_matching_operation(self):
+        fixture = BrokerProcess.__new__(BrokerProcess)
+        fixture.initialize_transport(world_channel_opt_in=True)
+        delay = fixture.delay_world_reply_for('access', 1.0)
+        unrelated = broker.Request(protocol_version=1, request_id=1,
+                                   management=core.Request())
+        self.assertIsNone(fixture.take_world_reply_delay(unrelated))
+        with self.assertRaisesRegex(RuntimeError, 'already armed'):
+            fixture.delay_world_reply_for('access', 1.0)
+        matching = broker.Request(protocol_version=1, request_id=2)
+        matching.access.SetInParent()
+        self.assertIs(fixture.take_world_reply_delay(matching), delay)
+        self.assertIsNone(fixture.take_world_reply_delay(matching))
+        self.assertFalse(delay['entered'].is_set())
+        self.assertFalse(delay['finished'].is_set())
+
+    def test_world_reply_delay_rejects_invalid_fault_without_arming(self):
+        fixture = BrokerProcess.__new__(BrokerProcess)
+        fixture.initialize_transport(world_channel_opt_in=True)
+        for operation in ('unknown_operation', 'protocol_version', 'request_id'):
+            with self.subTest(operation=operation):
+                with self.assertRaisesRegex(ValueError, 'Unknown broker request operation'):
+                    fixture.delay_world_reply_for(operation, 1.0)
+                self.assertIsNone(fixture.world_reply_delay)
+        for seconds in (0, -1, 6, float('nan')):
+            with self.subTest(seconds=seconds):
+                with self.assertRaisesRegex(ValueError, 'within 0..5 seconds'):
+                    fixture.delay_world_reply_for('access', seconds)
+                self.assertIsNone(fixture.world_reply_delay)
+
     def timed_exchange(self, method, *, notifications=(), reply_at=6.0, request_id=1,
                        split_reply=False):
         """Exercise actual protobuf framing with a controlled readiness clock."""

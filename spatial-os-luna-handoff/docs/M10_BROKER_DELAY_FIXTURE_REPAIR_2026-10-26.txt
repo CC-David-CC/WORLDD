@@ -1,0 +1,58 @@
+M10 broker delay fixture repair
+Status: draft; focused verification pending; M10 remains unqualified.
+
+Base candidate: 260cc91edc013cdd18689b6128aab80f47f6926b.
+Branch: m10/gate-fixture-repairs-20261026.
+Owner: primary agent on middle-child.
+Checkout: /home/dflanag3/src/m10-gate-fixture-repairs-20261026.
+
+Observed failure
+
+The R12 Debug workspace-authority suite failed identically on sb16 and sb16-2.
+Its delayed-broker movement case raised AttributeError while arming the fault.
+OneofDescriptor provides fields, but does not provide fields_by_name.
+The error happened before the delayed broker reply or movement assertions ran.
+The original evidence remains under the deployed R12 candidate:
+/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/deployments/m10-candidate-260cc91-r12/deployed-01/evidence/m10-r12-sb16-20261026-01/Debug/core.log
+The sb16-2 evidence uses attempt m10-r12-sb16-2-20261026-01.
+Completed failure excerpts and checksums are also retained under candidate-260cc91/diagnostics on each host.
+
+Correction and invariant
+
+Read the operation names from the oneof's field descriptors.
+Keep the operation membership check and the existing delay bounds.
+Reject a second armed delay. Consume a delay only for its matching operation.
+The helper must never confuse ordinary request metadata with an operation.
+New focused cases cover these fault-injection boundaries using real Protobuf messages.
+
+The existing real-world regression remains unchanged.
+It requires movement during a one-second broker reply delay.
+It requires at least eight refreshes, each gap below 250 ms, and measured displacement.
+No production source, schema, acceptance assertion, or lock changes.
+
+Checks selected before execution
+
+Run BrokerTransportCompatibilityTests on both test hosts.
+This checks fault setup, operation selection, and the existing framed transport deadlines.
+Run the full workspace-authority suite in Debug and ASan-UBSan on both hosts.
+This exercises the delayed-broker movement case and the surrounding authority boundaries.
+Use the R12 binaries with an explicitly recorded source-only fixture overlay.
+Record source hashes and binary provenance for that focused evidence.
+Wait for each current local gate to exit before starting another runtime suite on that host.
+
+The unchanged R12 gates continue to collect failures under their original source pin.
+Their results cannot qualify the corrected candidate.
+Freeze and package the reviewed correction before the next complete M10 gate.
+Use the mandatory M10 profile and its inherited M09 requirements on both hosts.
+Physical hardware acceptance and performance soak retain their M14 and M15 milestones.
+
+Pre-package compile check, 2026-10-26
+
+The Debug CMake configuration succeeded on middle-child.
+The first focused build found an undeclared WorldError in the new native seat-revoke helper.
+The helper now reports an unconfirmed server response with std::runtime_error.
+The retry built scoped-native-input-fixture, application-observation-fixture,
+world-participant-native-fixture, and world-issuer-progress-fixture successfully.
+The build also compiled worldd and spatialwm.
+This verifies compilation and fixture target closure only.
+Host execution, sanitizer builds, and M10 qualification remain pending.

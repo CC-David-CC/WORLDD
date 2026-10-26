@@ -16,6 +16,7 @@ public:
     NativeInput& operator=(const NativeInput&) = delete;
     native_input::Reply exchange(const native_input::Request& request);
     native_input::Reply call(native_input::Request request);
+    void revoke_seat(std::uint64_t seat_id);
     const std::string& server_id() const;
     const std::string& credential_id() const;
 private:

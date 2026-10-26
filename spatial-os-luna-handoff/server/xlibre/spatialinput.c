@@ -18,6 +18,7 @@
 #include "scrnintstr.h"
 #include "extnsionst.h"
 #include "privates.h"
+#include "os.h"
 #include "mipointer.h"
 #include "mipointrst.h"
 #include "exevents.h"
@@ -55,6 +56,7 @@ typedef struct SeatRec {
     int x, y;
     uint32_t buttons;
     uint8_t keys[32];
+    Bool revoked;
     InternalEvent *events;
     ApplicationInput *application;
 } SeatRec;
@@ -530,18 +532,57 @@ static Bool checked(const ProtobufCMessage *message)
     return TRUE;
 }
 
+static void invalid_input_diagnostic(ClientPtr client,const Request *request,const char *reason)
+{
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    ErrorF("Spatial native input rejected: client=%d request=%llu operation=%u reason=%s\n",
+        client->index,(unsigned long long)request->request_id,(unsigned)request->operation_case,reason);
+#else
+    (void)client;(void)request;(void)reason;
+#endif
+}
+
+static void input_rejection_diagnostic(ClientPtr client,const Request *request,unsigned code)
+{
+#ifdef SPATIAL_NATIVE_INPUT_OBSERVER
+    ErrorF("Spatial native input result: client=%d request=%llu operation=%u code=%u\n",
+        client->index,(unsigned long long)request->request_id,(unsigned)request->operation_case,code);
+#else
+    (void)client;(void)request;(void)code;
+#endif
+}
+
 static void operate(ClientPtr client, const Request *request, Reply *reply, Target *target, Target *focus,
                     Spatial__Security__V1__ApplicationIdentity *identity)
 {
     SeatRec *seat = NULL;
     uint64_t id = 0;
     if (!checked(&request->base) || request->protocol_version != 1 || !request->request_id) {
+        invalid_input_diagnostic(client,request,"malformed envelope");
         reply->code = CODE(INVALID_ARGUMENT); return;
     }
     if (!controller(client)) { reply->code = CODE(FORBIDDEN); return; }
     uint64_t *last = dixLookupPrivate(&client->devPrivates, &client_key);
-    if (request->request_id <= *last) { reply->code = CODE(INVALID_ARGUMENT); return; }
+    if (request->request_id <= *last) {
+        invalid_input_diagnostic(client,request,"request id did not increase");
+        reply->code = CODE(INVALID_ARGUMENT); return;
+    }
     *last = request->request_id;
+    if (request->operation_case == OP(REVOKE)) {
+        if (!request->revoke || !request->revoke->id) {
+            invalid_input_diagnostic(client,request,"missing revoke seat id");
+            reply->code = CODE(INVALID_ARGUMENT); return;
+        }
+        for (seat = seats; seat; seat = seat->next)
+            if (seat->id == request->revoke->id) break;
+        if (!seat) { reply->code = CODE(NO_SEAT); return; }
+        if (!SpatialSecuritySameInputController(client, seat->owner)) {
+            reply->code = CODE(FORBIDDEN); return;
+        }
+        cancel(seat);
+        seat->revoked = TRUE;
+        return;
+    }
     if (request->operation_case == OP(INSPECT)) {
         WindowPtr win;
         if (!request->inspect || dixLookupWindow(&win, request->inspect->xid, client, DixReadAccess) != Success ||
@@ -560,16 +601,25 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
     case OP(BUTTON): id = request->button->seat; break;
     case OP(KEY): id = request->key->seat; break;
     case OP(KEY_TAP_BATCH):
-        if (!request->key_tap_batch) { reply->code = CODE(INVALID_ARGUMENT); return; }
+        if (!request->key_tap_batch) {
+            invalid_input_diagnostic(client,request,"missing key tap batch");
+            reply->code = CODE(INVALID_ARGUMENT); return;
+        }
         id = request->key_tap_batch->seat; break;
     case OP(MOTION): id = request->motion->seat; break;
     case OP(CANCEL): id = request->cancel->id; break;
     case OP(CLOSE): id = request->close->id; break;
     case OP(STATUS): id = request->status->id; break;
-    default: reply->code = CODE(INVALID_ARGUMENT); return;
+    default:
+        invalid_input_diagnostic(client,request,"unsupported operation");
+        reply->code = CODE(INVALID_ARGUMENT); return;
     }
     if (!seat) for (seat = seats; seat; seat = seat->next) if (seat->id == id && seat->owner == client) break;
     if (!seat) { reply->code = request->operation_case == OP(OPEN) ? CODE(RESOURCE_LIMIT) : CODE(NO_SEAT); return; }
+    if (seat->revoked && request->operation_case != OP(CANCEL) &&
+        request->operation_case != OP(CLOSE) && request->operation_case != OP(STATUS)) {
+        reply->code = CODE(FORBIDDEN); return;
+    }
     if (request->operation_case == OP(CLOSE)) { close_seat(seat); return; }
     if (request->operation_case == OP(CANCEL)) cancel(seat);
     if (request->operation_case == OP(BUTTON)) {
@@ -579,6 +629,7 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         if (!button->button || button->button >= 32 || button->button > seat->pointer_slave->button->numButtons || (!button->keep_capture_position && (button->x >= win->drawable.width || button->y >= win->drawable.height)) ||
             (button->keep_capture_position && !seat->buttons) ||
             !!(seat->buttons & (1u << button->button)) == !!button->pressed) {
+            invalid_input_diagnostic(client,request,"button bounds or held-state conflict");
             reply->code = CODE(INVALID_ARGUMENT); return;
         }
         if (seat->buttons && (seat->target != button->target->xid || seat->target_generation != button->target->generation)) {
@@ -604,7 +655,10 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         const Spatial__Input__V1__Motion *motion = request->motion;
         WindowPtr win = motion->target ? live_window(motion->target->xid, motion->target->generation) : NULL;
         if (!win) { reply->code = CODE(STALE_TARGET); return; }
-        if (!seat->buttons) { reply->code = CODE(INVALID_ARGUMENT); return; }
+        if (!seat->buttons) {
+            invalid_input_diagnostic(client,request,"motion without a held button");
+            reply->code = CODE(INVALID_ARGUMENT); return;
+        }
         if (seat->target != motion->target->xid || seat->target_generation != motion->target->generation) {
             reply->code = CODE(BUSY); return;
         }
@@ -612,6 +666,7 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         if (motion->x < INT16_MIN || motion->x > INT16_MAX || motion->y < INT16_MIN || motion->y > INT16_MAX ||
             (int64_t)win->drawable.x + motion->x < INT16_MIN || (int64_t)win->drawable.x + motion->x > INT16_MAX ||
             (int64_t)win->drawable.y + motion->y < INT16_MIN || (int64_t)win->drawable.y + motion->y > INT16_MAX) {
+            invalid_input_diagnostic(client,request,"motion coordinate outside event range");
             reply->code = CODE(INVALID_ARGUMENT); return;
         }
         seat->x = motion->x; seat->y = motion->y;
@@ -622,6 +677,7 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         if (!live_window(seat->focus, seat->focus_generation)) { reply->code = CODE(NO_FOCUS); return; }
         if (key->keycode < 8 || key->keycode >= 256 ||
             !!(seat->keys[key->keycode / 8] & (1u << (key->keycode % 8))) == !!key->pressed) {
+            invalid_input_diagnostic(client,request,"key bounds or held-state conflict");
             reply->code = CODE(INVALID_ARGUMENT); return;
         }
         send_input(seat, key->pressed ? KeyPress : KeyRelease, key->keycode);
@@ -631,6 +687,7 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
     if (request->operation_case == OP(KEY_TAP_BATCH)) {
         const Spatial__Input__V1__KeyTapBatch *batch = request->key_tap_batch;
         if (!batch || !batch->n_chords || batch->n_chords > 32) {
+            invalid_input_diagnostic(client,request,"invalid batch size");
             reply->code = CODE(INVALID_ARGUMENT); return;
         }
         if (!live_window(seat->focus, seat->focus_generation)) {
@@ -640,15 +697,18 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         for (size_t i = 0; i < batch->n_chords; ++i) {
             const Spatial__Input__V1__KeyChord *chord = batch->chords[i];
             if (!chord || !chord->n_keycodes || chord->n_keycodes > 8) {
+                invalid_input_diagnostic(client,request,"invalid chord size");
                 reply->code = CODE(INVALID_ARGUMENT); return;
             }
             for (size_t j = 0; j < chord->n_keycodes; ++j) {
                 const uint32_t code = chord->keycodes[j];
                 if (code < 8 || code >= 256 ||
                     (seat->keys[code / 8] & (1u << (code % 8)))) {
+                    invalid_input_diagnostic(client,request,"key tap bounds or held-state conflict");
                     reply->code = CODE(INVALID_ARGUMENT); return;
                 }
                 for (size_t k = 0; k < j; ++k) if (chord->keycodes[k] == code) {
+                    invalid_input_diagnostic(client,request,"duplicate key in chord");
                     reply->code = CODE(INVALID_ARGUMENT); return;
                 }
             }
@@ -688,8 +748,11 @@ static int dispatch(ClientPtr client)
     Target target = SPATIAL__INPUT__V1__TARGET__INIT, focus = SPATIAL__INPUT__V1__TARGET__INIT;
     Spatial__Security__V1__ApplicationIdentity identity = SPATIAL__SECURITY__V1__APPLICATION_IDENTITY__INIT;
     reply.protocol_version = 1;
-    if (request) { reply.request_id = request->request_id; operate(client, request, &reply, &target, &focus, &identity); }
-    else reply.code = CODE(INVALID_ARGUMENT);
+    if (request) {
+        reply.request_id = request->request_id;
+        operate(client, request, &reply, &target, &focus, &identity);
+        if (reply.code != CODE(OK)) input_rejection_diagnostic(client,request,reply.code);
+    } else reply.code = CODE(INVALID_ARGUMENT);
     uint8_t payload[MAX_PAYLOAD] = {0};
     size_t bytes = spatial__input__v1__reply__get_packed_size(&reply);
     if (bytes > sizeof(payload)) FatalError("Spatial input reply exceeds its bound\n");

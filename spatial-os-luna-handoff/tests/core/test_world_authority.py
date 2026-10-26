@@ -143,7 +143,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
 
     def scoped_world(self, admission=session.EXPLICIT_ACTORS, native=False, roots=None, issuer_port=None,
                      authenticate=True, broker=None, peer_count=2, input_witness_fd=None,
-                     presentation_factory=None, input_timeout=10):
+                     presentation_factory=None, input_timeout=10, native_fd=None):
         number = len(self.worlds); state = self.root/f'scoped-world-{number}'
         initial = self.world(state=state)
         self.world_info = initial.management('world.info'); initial.close()
@@ -166,6 +166,8 @@ class WorldAuthorityTests(WorldIdentityFixture):
             private_channels['input_witness_fd'] = input_witness_fd
         if presentation is not None:
             private_channels['presentation'] = presentation
+        if native_fd is not None:
+            private_channels['native_fd'] = native_fd
         world = WorldProcess(self, config_path, state, native=native, count=peer_count,
             runtime_config=runtime_path, broker=broker, **private_channels)
         self.worlds.append(world); world.management('system.hello')
@@ -287,6 +289,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
         self.assertTrue(second.act(stop=core.ActorStopRequest()).HasField('action'))
 
     def test_navigation_revocation_stops_motion_during_other_actor_authentication(self):
+        self.retained_movement_override=True
         self.enroll_second()
         third_key, third_public = self.key('third-slow-auth')
         third_record = self.decide(self.owner_peer, self.enroll(self.owner_peer,

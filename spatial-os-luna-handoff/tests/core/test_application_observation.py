@@ -1,5 +1,6 @@
 """Authenticated world actors observe real confined C clients through broker grants."""
 import json
+import fcntl
 import os
 import shutil
 import sqlite3
@@ -18,6 +19,7 @@ import grants_pb2 as grant
 import broker_pb2 as pb
 import world_session_pb2 as session
 import security_pb2 as security
+import compositor_native_pb2 as compositor
 from harness.oracles import pose
 from harness.wire import frame
 import test_application_access as access
@@ -216,6 +218,14 @@ class ApplicationObservationTests(WorldIdentityFixture):
             self.project = access.Path(db.execute('SELECT path FROM worktrees WHERE id=?', ('tree-one',)).fetchone()[0])
         shutil.copy2(access.workspace.WORLD.parent/'spatial-confined-xprobe', self.project/'probe')
         cookie = self.native.supervisor.issue(security.COMPOSITOR, b'', b'').cookie
+        native_config=compositor.NativeCompositorConfig(protocol_version=1,
+            display_number=self.native.display,compositor_cookie=cookie,server_id=self.server_id,
+            server_pid=self.native.server.pid,server_uid=os.getuid())
+        native_fd=os.memfd_create('application-observation-compositor',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)
+        os.write(native_fd,native_config.SerializeToString(deterministic=True))
+        fcntl.fcntl(native_fd,fcntl.F_ADD_SEALS,
+            fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
+        self.addCleanup(os.close,native_fd)
         data = b'\xff\xff'
         for part in (b'', str(self.native.display).encode(), b'MIT-MAGIC-COOKIE-1', cookie):
             data += struct.pack('!H', len(part))+part
@@ -225,7 +235,8 @@ class ApplicationObservationTests(WorldIdentityFixture):
             roots = lambda:[self.terms(), self.terms(self.second, rights=[grant.WORLD_OBSERVE, grant.WORLD_NAVIGATE], depth=0)] + (
                 [self.terms(self.third, rights=[grant.WORLD_OBSERVE, grant.WORLD_NAVIGATE], depth=0)] if include_third_actor else [])
             self.world_process = self.scoped_world(session.REGISTERED_ACTORS, native=True,
-                broker=self.relay, roots=roots, peer_count=3 if include_third_actor else 2)
+                broker=self.relay, roots=roots, peer_count=3 if include_third_actor else 2,
+                native_fd=native_fd)
             if legacy:
                 old=self.world_process;old.close()
                 config=session.WorldIdentityConfig();text_format.Parse(old.config_path.read_text(),config)

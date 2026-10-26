@@ -546,7 +546,7 @@ add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources}
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/workspace_presentations.cpp src/world/presentation_geometry.cpp src/world/actors.cpp src/world/application_actions.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
-target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch spatial-broker-copy-cleanup spatial-broker-cleanup-bootstrap)
+target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch spatial-broker-copy-cleanup spatial-broker-cleanup-bootstrap spatial-native-input)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
 target_link_libraries(spatial-storage-broker-launch-probe PRIVATE spatial-core)
 add_dependencies(spatial-storage-broker-launch-probe broker-python-protobuf)
@@ -1815,6 +1815,8 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>)
     set_tests_properties(scoped-native-input PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_custom_target(scoped-native-input-fixture DEPENDS spatial-scoped-input-probe spatial-security-auth
+        python-protobuf security-python-protobuf input-python-protobuf compositor-python-protobuf)
     add_executable(spatial-xprobe native/xprobe.c)
     set_target_properties(spatial-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
     target_compile_definitions(spatial-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
@@ -1921,6 +1923,10 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd> $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(application-observation PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+        add_custom_target(application-observation-fixture DEPENDS identityd spatial-issuer-client worldd workspaced
+            spatial-security-auth spatial-xprobe spatial-confined-xprobe python-protobuf broker-python-protobuf
+            issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf
+            security-python-protobuf compositor-python-protobuf)
         add_custom_target(world-input-witness-fixture DEPENDS worldd identityd spatial-issuer-client workspaced
             spatial-security-auth spatial-confined-xprobe spatial-xprobe spatial-process-scope-probe spatial-app-init spatial-presentation-probe spatial-storage-owner-service
             world-input-witness-python-protobuf broker-python-protobuf world-session-python-protobuf issuer-python-protobuf
@@ -2112,6 +2118,9 @@ if(BUILD_TESTING)
             $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         set_tests_properties(world-participant-native PROPERTIES TIMEOUT 120
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+        add_custom_target(world-participant-native-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm
+            spatial-xprobe python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf
+            world-session-python-protobuf security-python-protobuf compositor-python-protobuf)
         add_test(NAME world-identity COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_identity.py" $<TARGET_FILE:identityd>
@@ -2141,7 +2150,8 @@ if(BUILD_TESTING)
         set_tests_properties(broker-issuer-progress PROPERTIES TIMEOUT 180 RUN_SERIAL TRUE
             ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
         add_custom_target(world-issuer-progress-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm spatial-xprobe
-            python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf)
+            python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf
+            security-python-protobuf compositor-python-protobuf)
         add_test(NAME world-issuer-progress COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_issuer_progress.py" $<TARGET_FILE:identityd>

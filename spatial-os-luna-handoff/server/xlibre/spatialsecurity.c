@@ -164,6 +164,15 @@ Bool SpatialSecurityInputController(ClientPtr client)
     return state->connection && !state->closed && state->label.role == ROLE(COMPOSITOR);
 }
 
+Bool SpatialSecuritySameInputController(ClientPtr client, ClientPtr owner)
+{
+    if (!SpatialSecurityInputController(client) || !SpatialSecurityInputController(owner)) return FALSE;
+    SpatialConnection *subject = connection(client), *object = connection(owner);
+    return subject && object && subject->connection && !subject->closed &&
+        object->connection && !object->closed &&
+        !memcmp(subject->label.credential, object->label.credential, KEY_BYTES);
+}
+
 Bool SpatialSecuritySameApplication(ClientPtr client, ClientPtr owner)
 {
     if (!active || !client || !owner || client == serverClient || owner == serverClient) return FALSE;

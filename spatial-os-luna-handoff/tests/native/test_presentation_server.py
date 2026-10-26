@@ -280,7 +280,7 @@ sys.stdin.buffer.read(1)
             pixel=core.Pixel(x=1,y=1),pointer=core.ActorPointerRequest(button=1,pressed=True)))
         self.assertTrue(reply.HasField('input'),reply);self.assertEqual(list(reply.input.held_buttons),[1])
         sequence+=1
-        reply=self.world_command(stream,sequence,input=core.RendererInputCommand(actor_id='actor',
+        reply=self.world_command(stream,sequence,input=core.RendererInputCommand(actor_id='actor',target=found[0].handle,
             key=core.ActorKeyRequest(keysym='a',pressed=True)))
         self.assertTrue(reply.HasField('input'),reply)
         return sequence
@@ -509,7 +509,7 @@ os._exit(0)
                     target=found[0].handle,pixel=core.Pixel(x=1,y=1),pointer=core.ActorPointerRequest(button=1,pressed=True)))
                 if not result.HasField('input'):raise RuntimeError(str(result))
                 sequence+=1;result=self.world_command(client,sequence,input=core.RendererInputCommand(actor_id='held',
-                    key=core.ActorKeyRequest(keysym='a',pressed=True)))
+                    target=found[0].handle,key=core.ActorKeyRequest(keysym='a',pressed=True)))
                 if not result.HasField('input'):raise RuntimeError(str(result))
                 os.write(ready_write,b'R');os.read(gate_read,1);os._exit(0)
             except BaseException:os.write(ready_write,b'E');os._exit(1)

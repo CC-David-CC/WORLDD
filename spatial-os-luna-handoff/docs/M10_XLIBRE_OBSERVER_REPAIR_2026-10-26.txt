@@ -1,0 +1,54 @@
+# M10 XLibre qualification observer repair
+
+Status: implementing; M10 remains unqualified.
+Base source: 260cc91edc013cdd18689b6128aab80f47f6926b.
+Host builds run on middle-child. Runtime checks run on sb16 and sb16-2.
+
+## R12 finding
+
+R12 omitted the qualification observer from both host runtime manifests.
+The observer endpoint and lifecycle witness tests therefore launched the production X server.
+That server correctly refused observer requests because observer support was disabled.
+R12 Debug failed those observer checks on both hosts.
+
+## Repair
+
+Build production and observer XLibre binaries separately.
+Keep observer support explicitly disabled in production builds.
+Use separate Debug and ASan-UBSan build directories for each variant.
+Record the feature selection and sanitizer mode in each build receipt.
+Run native unit and modesetting symbol checks with each build on middle-child.
+Package observer executables, libraries, wrappers, and configuration as a distinct runtime row.
+Require the runtime manifest to pin each observer binary and its dependencies.
+Run observer endpoint and lifecycle tests on sb16 and sb16-2 in both profiles.
+
+## Native seat revocation contract
+
+The private SPATIAL-INPUT protocol adds a seat-revoke request.
+It releases held keys and buttons, then permanently fences that seat from new input.
+Only a live compositor connection with the exact credential that created the seat may revoke it.
+An already removed seat returns NO_SEAT, which the world treats as completed cleanup.
+A different compositor credential receives FORBIDDEN and cannot change the seat.
+The scoped-input regression checks both the denied and authorized cases.
+
+Worldd receives the sealed compositor configuration used by its supervised server.
+It keeps a separate authenticated input connection for urgent seat revocation.
+This lets identity loss release native input while spatialwm is blocked.
+The renderer request remains pending until its ordinary completion path settles.
+The revocation regression requires physical releases before the renderer resumes.
+
+Observer logs record rejected request operation and result code.
+They also record bounded rejection reasons for malformed or invalid transitions.
+They do not record key values or request payloads.
+
+## Selected checks
+
+Build the current XLibre overlays in production and qualification-observer modes.
+Run unit and modesetting checks for all four build variants on middle-child.
+Deploy the checked XLibre wrappers and observer packages to both hosts.
+Run observer endpoint, input witness, and lifecycle witness groups on both hosts.
+Run the full M10 gate only after the observer package and all input repairs are frozen together.
+
+An earlier Debug observer binary passed local unit and modesetting checks.
+The current seat-revocation, credential-scope, and diagnostic changes need a rebuild.
+Production and observer ASan-UBSan checks remain unrun.

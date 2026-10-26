@@ -112,7 +112,7 @@ class SecurityIdentityTests(unittest.TestCase):
         self.log_path = self.root/f'server-{len(list(self.root.glob("server-*")))}.log'
         log_path = self.log_path
         log = log_path.open('wb')
-        argv = [str(binary),'-displayfd',str(outgoing),'-screen','0',geometry,'-nolisten','tcp','-noreset',
+        argv = [str(binary),'-displayfd',str(outgoing),'-screen','0',geometry,'-nolisten','tcp',
                 '-ac','+byteswappedclients','-spatial-security-fd',str(config)]
         # Authentication uses core X11. Keep graphics-driver qualification separate.
         # Default and cumulative runs retain GLX. The focused sanitizer profile

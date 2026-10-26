@@ -7,10 +7,12 @@
 #include "platform/render_worker.hpp"
 #include "platform/compositor_config.hpp"
 #include "platform/broker.hpp"
+#include "x11/input.hpp"
 #include <charconv>
 #include <algorithm>
 #include <csignal>
 #include <set>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
@@ -138,6 +140,13 @@ int main(int argc, char** argv) {
                 throw std::invalid_argument("Native compositor configuration: conflicting display");
             display = native->display();
         }
+        std::unique_ptr<spatial::NativeInput> revocation_input;
+        if(native) {
+            const int descriptor=fcntl(native->descriptor(),F_DUPFD_CLOEXEC,3);
+            if(descriptor<3)throw std::runtime_error("Cannot duplicate native seat-revocation authority");
+            try {revocation_input=std::make_unique<spatial::NativeInput>(descriptor);}
+            catch(...) {if(fcntl(descriptor,F_GETFD)>=0)close(descriptor);throw;}
+        }
         if (config.empty()) config = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "runtime.textproto";
         // Management pipes and actor-only sockets have separate protobuf interfaces.
         const auto settings = spatial::load_runtime_config(config);
@@ -156,7 +165,7 @@ int main(int argc, char** argv) {
             std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display,
             native ? native->descriptor() : -1, fixture_faults);
         if (native) native->consume();
-        spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get());
+        spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get(), revocation_input.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;
         if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get(), actor_listener, actor_tls_config);
         spatial::serve(world, actors, renderer.get(), &surfaces, broker.get(), sessions.get(), witness.get());

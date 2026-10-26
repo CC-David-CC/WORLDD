@@ -7,6 +7,7 @@
 #include "platform/broker.hpp"
 #include "world/surfaces.hpp"
 #include "platform/render_worker.hpp"
+#include "x11/input.hpp"
 #include "core/geometry.hpp"
 #include "core/scene.hpp"
 #include <google/protobuf/text_format.h>
@@ -90,8 +91,10 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     if (result.has_render()) validate_render_config(result.render());
     return result;
 }
-Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces, RenderWorker* renderer, BrokerClient* broker)
-    : store_(store), surfaces_(surfaces), renderer_(renderer), broker_(broker), config_(config), manual_clock_(manual_clock) {
+Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces,
+               RenderWorker* renderer, BrokerClient* broker, NativeInput* revocation_input)
+    : store_(store), surfaces_(surfaces), renderer_(renderer), broker_(broker), revocation_input_(revocation_input),
+      config_(config), manual_clock_(manual_clock) {
     for (const auto& entity : store_.actors()) {
         Actor actor; actor.entity = entity; actors_.emplace(entity.id(), std::move(actor));
     }
@@ -473,6 +476,8 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     if (actor.local_view) queue_local_clear(*actor.local_view);
     cancel_object(actor);
     if (renderer_ && renderer_->busy()) {
+        if(actor.native.native_seat_id() && revocation_input_)
+            revocation_input_->revoke_seat(actor.native.native_seat_id());
         actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
     } else release_input(actor, true);
     actor.clear_motion(); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();

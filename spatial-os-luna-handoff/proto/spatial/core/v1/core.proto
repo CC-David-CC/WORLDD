@@ -137,6 +137,7 @@ message NativeActorInput {
   repeated string held_keys = 2;
   repeated uint32 held_buttons = 3;
   SurfaceHandle focus = 4;
+  fixed64 native_seat_id = 5;
 }
 message CapturedMotion { sint32 x = 1; sint32 y = 2; }
 message RendererInputCommand {

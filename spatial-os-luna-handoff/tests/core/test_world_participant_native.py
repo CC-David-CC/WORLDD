@@ -13,10 +13,11 @@ from harness.wire import frame
 
 
 class WorldParticipantNativeTests(WorldParticipantFixture):
-    def world(self, grants=(), native=False):
+    def world(self, grants=(), native=False, fixture_faults=False):
         self.assertTrue(native)
         self.assertEqual(set(grants), {'navigate','interact','observe'})
-        world=self.start_world(native=True)
+        native_fd=self.native_compositor_authority()
+        world=self.start_world(native=True,fixture_faults=fixture_faults,native_fd=native_fd)
         world.management('system.hello')
         return world
 
@@ -63,6 +64,7 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
     def test_revocation_during_renderer_request_does_not_ack_or_replay_late_input(self):
         world,peer,probe=self.held()
         compositor=self.compositor(world)
+        with probe.condition:offset=len(probe.events)
         os.kill(compositor,signal.SIGSTOP)
         try:
             peer.sequence+=1;peer.action_sequence+=1
@@ -70,7 +72,13 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
                 action=core.ActorActionRequest(seq=peer.action_sequence,key=core.ActorKeyRequest(keysym='b',pressed=True)))
             peer.stream.sendall(frame(request))
             self.assertFalse(select.select([peer.stream],[],[],.1)[0])
+            revoke_started=time.monotonic()
             self.revoke_now()
+            released_key=probe.wait(lambda row:row.get('event')=='key' and not row['pressed'],after=offset,timeout=.22)
+            released_button=probe.wait(lambda row:row.get('event')=='button' and not row['pressed'],after=offset,timeout=.22)
+            self.assertLess(time.monotonic()-revoke_started,.25,
+                'Seat releases waited for the stopped renderer or exceeded the native input expiry')
+            self.assertIsNone(probe.proc.poll())
             time.sleep(.15)
             status=self.barrier()
             self.assertEqual((status.participant_count,status.pending_count,status.complete),(1,1,False))
@@ -80,7 +88,9 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
         self.assertEqual(reply.request_id,request.request_id)
         self.assertTrue(reply.HasField('error'),reply)
         self.until(self.barrier,lambda result:result.complete)
-        rows=self.independent_release(probe)
+        rows=probe.input_events(after=offset)
+        self.assertTrue(any(row==released_key for row in rows))
+        self.assertTrue(any(row==released_button for row in rows))
         self.assertFalse(any(e.get('text_hex')=='62' for e in rows))
         self.denied(peer.act(key=core.ActorKeyRequest(keysym='c',pressed=True)),core.UNAUTHORIZED)
         world.close()

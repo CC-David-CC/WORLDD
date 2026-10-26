@@ -83,6 +83,7 @@ struct ActorSessionClient::Impl {
     std::uint64_t next_id = 1;
     std::uint64_t motion_sequence = 0;
     Clock::time_point next_motion_refresh = Clock::time_point::min();
+    bool retained_movement_enabled = false;
     std::function<std::optional<core::v1::ActorInputRequest>()> motion_refresh;
     Lifecycle state = Lifecycle::New;
     std::string prepared_transition;
@@ -252,7 +253,8 @@ struct ActorSessionClient::Impl {
     }
 
     void send_motion_refresh(Clock::time_point deadline) {
-        if (state != Lifecycle::Active || !motion_refresh || Clock::now() < next_motion_refresh) return;
+        if (state != Lifecycle::Active || !retained_movement_enabled || !motion_refresh ||
+                Clock::now() < next_motion_refresh) return;
         next_motion_refresh = Clock::now() + std::chrono::milliseconds(80);
         const auto input = motion_refresh();
         if (!input) return;
@@ -402,9 +404,11 @@ struct ActorSessionClient::Impl {
             geometry_view_id = opened.geometry_view_id();
             geometry_service_incarnation = opened.authority_service_incarnation();
             geometry_authority_generation = opened.authority_generation();
+            retained_movement_enabled = opened.retained_movement_enabled();
             geometry_sequence = 0; motion_sequence = 0; next_motion_refresh = Clock::now();
         } else require(opened.geometry_view_id().empty() && opened.authority_service_incarnation().empty() &&
-                       opened.authority_generation() == 0, "Prepared actor has active geometry identity");
+                       opened.authority_generation() == 0 && !opened.retained_movement_enabled(),
+                       "Prepared actor has active geometry identity");
     }
 
     void validate_challenge(const pb::ChallengeReply& challenge) {

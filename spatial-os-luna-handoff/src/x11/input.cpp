@@ -54,6 +54,13 @@ native_input::Reply NativeInput::call(native_input::Request request) {
     request.set_protocol_version(1); request.set_request_id(++sequence_);
     return exchange(request);
 }
+void NativeInput::revoke_seat(std::uint64_t seat_id) {
+    if (!seat_id) throw std::invalid_argument("Cannot revoke an empty native seat identity");
+    native_input::Request request; request.mutable_revoke()->set_id(seat_id);
+    const auto reply=call(std::move(request));
+    if (reply.code()!=native_input::OK && reply.code()!=native_input::NO_SEAT)
+        throw std::runtime_error("Native actor seat revocation was not confirmed");
+}
 native_input::Reply NativeInput::exchange(const native_input::Request& request) {
     validate_message(request);
     const auto bytes = request.SerializeAsString();

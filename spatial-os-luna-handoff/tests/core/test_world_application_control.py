@@ -673,6 +673,8 @@ class WorldApplicationControlTests(observation.ApplicationObservationTests):
         baseline=self.probe_events(app)
         baseline_presses=[r for r in baseline if r.get('event')=='button' and r.get('button')==1 and r.get('pressed')]
         self.assertTrue(baseline_presses)
+        self.control_action(self.viewer,unfocus=core.ActorStopRequest())
+        self.actor_aim()
         xid=next(r['xid'] for r in baseline if r.get('event')=='ready')
         controller=self.native.connect(self.native.supervisor.issue(security.COMPOSITOR,b'',b'').cookie)
         before_generation=self.native_target_generation(controller,xid)

@@ -199,7 +199,8 @@ pb::ChallengeReply challenge_for(const Fixture& f) {
     return challenge;
 }
 
-void opened(const Fixture& f, pb::WorldSessionOpened* result, bool active = true) {
+void opened(const Fixture& f, pb::WorldSessionOpened* result, bool active = true,
+            bool retained_movement = false) {
     result->set_world_id(f.world);
     result->set_actor_id(f.actor_id);
     auto* status = result->mutable_identity();
@@ -213,11 +214,13 @@ void opened(const Fixture& f, pb::WorldSessionOpened* result, bool active = true
         result->set_geometry_view_id(std::string(32, 'v'));
         result->set_authority_service_incarnation(std::string(32, 's'));
         result->set_authority_generation(7);
+        result->set_retained_movement_enabled(retained_movement);
     }
 }
 
 void handshake(int fd, const Fixture& f, bool prepared = false, bool fragmented = false,
-               const std::function<void(pb::WorldSessionReply&)>& mutate = {}) {
+               const std::function<void(pb::WorldSessionReply&)>& mutate = {},
+               bool retained_movement = false) {
     const auto begin = receive(fd, pb::WorldSessionRequest::kBegin, 1);
     check(begin.begin().credential().SerializeAsString() == f.credential.SerializeAsString(),
           "begin credential mismatch");
@@ -237,7 +240,7 @@ void handshake(int fd, const Fixture& f, bool prepared = false, bool fragmented 
     if (prepared) {
         response.mutable_prepared()->set_transition_id(f.transition);
         opened(f, response.mutable_prepared()->mutable_actor(), false);
-    } else opened(f, response.mutable_opened());
+    } else opened(f, response.mutable_opened(), true, retained_movement);
     if (mutate) mutate(response);
     send_reply(fd, response, fragmented);
 }
@@ -776,7 +779,7 @@ void motion_refresh_during_slow_action(Fixture& f) {
         elapsed=std::chrono::steady_clock::now()-started;
         check(reply.has_action() && reply.action().accepted(), "slow action reply changed");
     }, [&](int fd) {
-        handshake(fd,f);
+        handshake(fd,f,false,false,{},true);
         const auto action=receive(fd,pb::WorldSessionRequest::kAction,3);
         check(action.action().seq()==1 && action.action().has_stop(), "slow action request changed");
         for (std::uint64_t index=1; index<=5; ++index) {
@@ -794,6 +797,30 @@ void motion_refresh_during_slow_action(Fixture& f) {
     check(received.size()==5, "slow action did not carry five one-way motion frames");
     for (std::size_t index=1; index<received.size(); ++index)
         check(received[index]-received[index-1]<250ms, "authenticated movement refresh gap exceeded input expiry");
+}
+
+void motion_refresh_not_sent_without_capability(Fixture& f) {
+    session(f, [&](auto& client, int) {
+        client.authenticate();
+        std::atomic<unsigned> refresh_count{0};
+        client.set_motion_refresh([&]() -> std::optional<core::v1::ActorInputRequest> {
+            ++refresh_count;
+            core::v1::ActorInputRequest input; input.set_translation_frame(core::v1::BODY_TRANSLATION);
+            input.add_axes(.5); for (int axis=1; axis<6; ++axis) input.add_axes(0);
+            return input;
+        });
+        core::v1::ActorActionRequest stop; stop.set_seq(1); stop.mutable_stop();
+        const auto reply=client.action(stop);
+        check(reply.has_action() && reply.action().accepted(),"default-off action reply changed");
+        check(refresh_count.load()==0,"client generated motion without server capability");
+    }, [&](int fd) {
+        handshake(fd,f);
+        const auto action=receive(fd,pb::WorldSessionRequest::kAction,3);
+        check(action.action().seq()==1 && action.action().has_stop(),"default-off action changed");
+        pollfd ready{fd,POLLIN,0};
+        check(poll(&ready,1,200)==0,"client sent an unadvertised motion refresh");
+        auto reply=reply_for(3);reply.mutable_action()->set_accepted(true);send_reply(fd,reply);
+    });
 }
 
 void interrupt_rotation_revokes_old_handle(Fixture& f) {
@@ -973,6 +1000,7 @@ int main(int argc, char** argv) {
         }
         if (argc == 2 && std::string(argv[1]) == "--motion-refresh-only") {
             run("motion-refresh-during-slow-action", [&] { motion_refresh_during_slow_action(fixture); });
+            run("motion-refresh-not-sent-without-capability", [&] { motion_refresh_not_sent_without_capability(fixture); });
             return 0;
         }
         if (argc == 2 && std::string(argv[1]) == "--geometry-only") {

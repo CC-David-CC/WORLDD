@@ -22,6 +22,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--evidence-dir', required=True)
     parser.add_argument('--sanitize', action='store_true', help='Instrument the native server with ASan and UBSan')
+    parser.add_argument('--qualification-observer', action='store_true',
+                        help='Build the separate qualification-only native input observer server')
+    parser.add_argument('--compile-only', action='store_true',
+                        help='Record native unit checks as unrun for execution on a qualification host')
     args = parser.parse_args()
     host = socket.gethostname().split('.')[0].casefold()
     if host not in ('middle-child', 'rog-ally-x-rc72la'):
@@ -34,7 +38,9 @@ def main():
     prefix = local / 'xlibre-deps'
     record = {'host': host, 'utc': datetime.now(timezone.utc).isoformat(), 'status': 'failed',
               'base_lock': lock, 'lock_sha256': digest(lock_path),
-              'builder_sha256': digest(Path(__file__)), 'sanitizers': args.sanitize, 'commands': [], 'binaries': {}}
+              'builder_sha256': digest(Path(__file__)), 'sanitizers': args.sanitize,
+              'qualification_observer': args.qualification_observer,
+              'native_unit_checks': 'unrun', 'commands': [], 'binaries': {}}
 
     def run(label, argv, env=None, timeout=300):
         command = [str(item) for item in argv]
@@ -76,7 +82,9 @@ def main():
                 'patches': lock['patches'], 'overlays': lock.get('overlays', {})}
         key = hashlib.sha256(json.dumps(spec, sort_keys=True).encode()).hexdigest()
         folder = local / 'xlibre-patched' / key
-        source = folder / 'source'
+        # `local/` may be an artifact link outside the checkout. Resolve the
+        # worktree path before checking that overlay destinations stay inside it.
+        source = (folder / 'source').resolve()
         manifest = folder / 'source.json'
         if not folder.exists():
             folder.mkdir(parents=True)
@@ -119,12 +127,16 @@ def main():
         (local / 'xkb-compiled').mkdir(exist_ok=True)
         options = ['--prefix=' + str(server / 'image'), *lock['meson_options'],
                    '-Dxkb_output_dir=' + str(local / 'xkb-compiled')]
-        build = server / ('build-sanitize' if args.sanitize else 'build')
+        build_name = 'build-observer' if args.qualification_observer else 'build'
+        build = server / (build_name + ('-sanitize' if args.sanitize else ''))
         options += ['-Db_sanitize=' + ('address,undefined' if args.sanitize else 'none')]
+        options += ['-Dspatial_native_input_observer=' + ('true' if args.qualification_observer else 'false')]
         configure('server-configure', server, options, env, build)
         run('server-build', ['ninja', '-C', build, '-j2'], env, timeout=900)
-        run('server-unit', ['meson', 'test', '-C', build, '--no-rebuild',
-                            '--print-errorlogs', 'unit', 'modesetting symbol test'], env)
+        if not args.compile_only:
+            run('server-unit', ['meson', 'test', '-C', build, '--no-rebuild',
+                                '--print-errorlogs', 'unit', 'modesetting symbol test'], env)
+            record['native_unit_checks'] = 'passed'
         for name, relative in [('Xvfb', 'hw/vfb/Xvfb'), ('Xorg', 'hw/xfree86/Xorg')]:
             path = build / relative
             record['binaries'][name] = {'path': str(path), 'sha256': digest(path)}

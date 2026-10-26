@@ -23,6 +23,7 @@ native_input::Reply XInputRouter::checked(native_input::Request request) {
 }
 wire::NativeActorInput XInputRouter::state(const std::string& actor, Seat& seat, const native_input::Reply& reply) {
     wire::NativeActorInput result; result.set_actor_id(actor);
+    result.set_native_seat_id(seat.id);
     for (unsigned button = 1; button < 32; ++button)
         if (reply.held_buttons() & (1u << button)) result.add_held_buttons(button);
     if (reply.held_keys().size() != 32) throw std::runtime_error("Invalid native key bitmap");

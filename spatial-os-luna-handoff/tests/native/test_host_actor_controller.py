@@ -85,6 +85,8 @@ class HostActorControllerNativeTests(application.SessionApplicationTests):
             issuer_client_config=str(self.issuer.config_file()),
             participant_runtime_config=config.child_participant_config,
             admission=session.EXPLICIT_ACTORS, authority_directory=str(directory))
+        # This fixture covers M10 host movement refreshes, not the default-off policy.
+        value.enable_retained_movement = True
         path = self.root / ('host-actor-identity' + suffix + '.textproto')
         path.write_text(text_format.MessageToString(value)); path.chmod(0o600)
         config.launch.arguments.extend(['--identity-config', str(path)])

@@ -65,9 +65,9 @@ class ScopedInputTests(unittest.TestCase):
     def launch(self, *, sealed=True, bad_pid=False, role=security.COMPOSITOR):
         self.start()
         self.credential = self.supervisor.issue(role, b'', b'')
-        other = self.supervisor.issue(security.COMPOSITOR, b'', b'')
+        self.other_credential = self.supervisor.issue(security.COMPOSITOR, b'', b'')
         descriptors = []
-        for index, credential in enumerate((self.credential, other)):
+        for index, credential in enumerate((self.credential, self.other_credential)):
             value = config.NativeCompositorConfig(protocol_version=1, display_number=self.display,
                 compositor_cookie=credential.cookie, server_id=self.supervisor.inspect().server_id,
                 server_pid=self.server.pid + (1 if bad_pid and index == 0 else 0), server_uid=os.getuid())
@@ -147,6 +147,26 @@ class ScopedInputTests(unittest.TestCase):
         reply = self.independent_input(other, 1, close=ip.Seat(id=opened.seat))
         self.assertIsNotNone(reply); self.assertEqual(reply.code, ip.NO_SEAT)
         self.assertEqual(self.call(proc, 2, status=ip.Seat(id=opened.seat)).code, ip.OK)
+
+    def test_seat_revocation_requires_the_owning_compositor_credential(self):
+        proc = self.launch(); self.read(proc, core.RenderResult)
+        opened = self.call(proc, 1, open=ip.Empty())
+        self.assertEqual(opened.code, ip.OK)
+        unrelated = self.connect(self.other_credential.cookie)
+        denied = self.independent_input(unrelated, 1, revoke=ip.Seat(id=opened.seat))
+        self.assertIsNotNone(denied); self.assertEqual(denied.code, ip.FORBIDDEN)
+        active = self.call(proc, 2, key=ip.Key(seat=opened.seat,keycode=50,pressed=True))
+        self.assertEqual(active.code, ip.NO_FOCUS,
+            'unrelated compositor credential changed the owner seat state')
+        same_grant = self.connect(self.credential.cookie)
+        revoked = self.independent_input(same_grant, 1, revoke=ip.Seat(id=opened.seat))
+        self.assertIsNotNone(revoked); self.assertEqual(revoked.code, ip.OK)
+        cleared = self.call(proc, 3, status=ip.Seat(id=opened.seat))
+        self.assertEqual(cleared.code, ip.OK)
+        self.assertFalse(cleared.held_buttons or any(cleared.held_keys))
+        blocked = self.call(proc, 4, key=ip.Key(seat=opened.seat,keycode=50,pressed=True))
+        self.assertEqual(blocked.code,ip.FORBIDDEN,
+            'same-credential revocation did not permanently fence the seat')
 
     def test_broker_without_root_ownership_is_denied_by_server(self):
         self.start()

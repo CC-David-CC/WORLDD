@@ -5,7 +5,9 @@ import "security.proto";
 // Private compositor-to-server interface. The authenticated X connection must
 // use a live COMPOSITOR credential, or own SubstructureRedirect on the server root.
 // In unsecured development sessions, SubstructureRedirect ownership is required.
-// Seats belong to their creating connection. Actor grants remain in worldd.
+// Seats belong to their creating connection. Another connection can revoke a
+// seat only when it presents the same issued compositor credential. Actor
+// grants remain in worldd.
 message Empty {}
 message Seat { fixed64 id = 1; }
 message Inspect { fixed32 xid = 1; }
@@ -43,6 +45,8 @@ message Request {
     Seat status = 9;
     Motion motion = 10;
     KeyTapBatch key_tap_batch = 11;
+    // The seat owner's compositor credential fences it against later input.
+    Seat revoke = 12;
   }
 }
 enum Code {

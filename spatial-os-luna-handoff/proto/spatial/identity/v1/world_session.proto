@@ -112,6 +112,8 @@ message WorldSessionOpened {
   bytes geometry_view_id = 4;
   bytes authority_service_incarnation = 5;
   uint64 authority_generation = 6;
+  // Older clients treat an absent field as false and never send refreshes.
+  bool retained_movement_enabled = 7;
 }
 // One inherited private channel has at most one authenticated actor session.
 // Caller-selected actor IDs, session tokens, and grants are not accepted.

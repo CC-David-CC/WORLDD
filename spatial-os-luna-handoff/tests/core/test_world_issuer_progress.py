@@ -9,8 +9,11 @@ from unittest.mock import patch
 import unittest
 from google.protobuf import text_format
 import core_pb2 as core
+import issuer_pb2 as issuer
 import world_session_pb2 as session
 from harness.issuer_progress import DelayedInfoIssuer, IssuerLifetimeWitness
+from harness.oracles import pose
+from harness.probe import Probe
 from test_world_identity import WorldIdentityFixture
 
 
@@ -23,7 +26,8 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
         self.assertIn(socket.gethostname().split(".")[0], ("sb16", "sb16-2"))
         self.assertTrue(os.environ.get("SPATIAL_TEST_DISPLAY"))
         self._info_relay = DelayedInfoIssuer(self)
-        world, peer, probe = self.held()
+        native_fd=self.native_compositor_authority()
+        world, peer, probe = self.held(native_fd=native_fd)
         self._progress_observations = dict(stage="native_input_held", issuer_io_budget_seconds=5,
             broker_outer_wait="UNRUN in this native INFO case", operation_300_second_deadline="UNRUN")
         def retain_progress():
@@ -35,13 +39,15 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
         self._progress_observations["independent_pressed_control"] = dict(key=pressed_key, button=pressed_button)
         with probe.condition:
             offset = len(probe.events)
-        self._info_relay.delay_armed.set()
-        self.assertTrue(self._info_relay.delay_entered.wait(3), "Real world did not issue idle INFO")
-        self.assertFalse(self._info_relay.delay_finished.is_set())
-        before = self.capture_issuer_lifetime("real_info_reply_pending")
+        before = self.capture_issuer_lifetime("before_info_reply_delay")
         self.assertEqual(before["policy"]["idle_timeout_ms"], 3000)
         self.assertEqual(before["policy"]["io_timeout_ms"], 5000)
         self.assertTrue(all(item["exit_code"] is None for item in before["processes"]))
+        self._info_relay.delay_armed.set()
+        self.assertTrue(self._info_relay.delay_entered.wait(3), "Real world did not issue idle INFO")
+        self.assertFalse(self._info_relay.delay_finished.is_set())
+        self.assertIsNone(world.proc.poll(), "World exited while issuer INFO was pending")
+        self.assertIsNone(probe.proc.poll(), "Native target exited while issuer INFO was pending")
         def retain_probe():
             target = Path(os.environ["SPATIAL_SECURITY_EVIDENCE"])
             probe.log.flush()
@@ -53,6 +59,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
     def pending_other_actor_auth_with_native_input(self):
         self.assertIn(socket.gethostname().split('.')[0],('sb16','sb16-2'))
         self.assertTrue(os.environ.get('SPATIAL_TEST_DISPLAY'))
+        native_fd=self.native_compositor_authority()
         self.retained_movement_override=True
         self.second_key,self.second_public=self.key('m10-slow-auth-actor')
         self.second_record=self.decide(self.owner_peer,self.enroll(self.owner_peer,
@@ -60,7 +67,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             self.second_key,self.second_public)).enrollment
         self.second=self.claims(self.second_record,self.info)
         self._info_relay=DelayedInfoIssuer(self,delayed_operation='credential_check',actor_id=self.second.actor_id)
-        world=self.world(grants=['navigate','interact','observe'],native=True,
+        world=self.world(grants=['navigate','interact','observe'],native=True,native_fd=native_fd,
             additional_actor_profiles=[(self.second.actor_id,['navigate'])])
         self._progress_observations=dict(stage='other_actor_credential_check_pending',input_timeout_seconds=.25)
         peer,other_peer=world.peers

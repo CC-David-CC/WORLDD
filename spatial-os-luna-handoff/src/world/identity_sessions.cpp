@@ -774,6 +774,7 @@ struct IdentitySessions::Impl {
         result.set_geometry_view_id(channel.view_id);
         result.set_authority_service_incarnation(participant->service_incarnation());
         result.set_authority_generation(generation);
+        result.set_retained_movement_enabled(config.enable_retained_movement());
         return result;
     }
     void settle_foreground(const authority::v1::ActorRef& actor, bool workspace) {

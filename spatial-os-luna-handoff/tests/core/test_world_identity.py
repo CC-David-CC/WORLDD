@@ -75,11 +75,15 @@ class SessionPeer:
 
 
 class WorldProcess:
-    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None, fixture_faults=False, input_witness_fd=None, presentation=None, participant_fd=None):
+    def __init__(self, fixture, config, state, native=False, count=2, runtime_config=None, broker=None,
+                 fixture_faults=False, input_witness_fd=None, presentation=None, participant_fd=None,
+                 native_fd=None):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
+        native_fd_copy=os.dup(native_fd) if native_fd is not None else None
+        if native_fd_copy is not None:command+=['--native-security-fd',str(native_fd_copy)]
         if runtime_config: command+=['--config',str(runtime_config)]
         if fixture_faults: command+=['--fixture-faults']
         if native: command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
@@ -92,6 +96,7 @@ class WorldProcess:
                         str(getattr(broker, 'pid', broker.proc.pid))]
         for _,server in pairs: command+=['--actor-fd',str(server.fileno())]
         extra_fds = (tuple([workspace_channel.fileno()]) if workspace_channel else ())
+        if native_fd_copy is not None:extra_fds += (native_fd_copy,)
         if participant_fd is not None:extra_fds += (participant_fd,)
         if input_witness_fd is not None:
             command += ['--input-witness-fd',str(input_witness_fd)]
@@ -111,6 +116,8 @@ class WorldProcess:
             if workspace_channel_owned: workspace_channel.close()
             if self.broker_channel: self.broker_channel.close(); self.broker_channel = None
             raise
+        finally:
+            if native_fd_copy is not None:os.close(native_fd_copy)
         if workspace_channel_owned: workspace_channel.close()
         for _,server in pairs: server.close()
     @staticmethod
@@ -302,7 +309,22 @@ class WorldProcess:
 class WorldIdentityFixture(ClientFixture):
     def setUp(self):
         super().setUp();self.worlds=[];self.registered_services={};self.registry_revision=0
-        self.addCleanup(lambda:[world.close() for world in reversed(self.worlds)])
+        def close_worlds_and_native_fixture():
+            failures=[]
+            for world in reversed(self.worlds):
+                try:
+                    world.close()
+                except BaseException as error:
+                    failures.append(error)
+            native_fixture=getattr(self,'native_fixture',None)
+            if native_fixture is not None:
+                try:
+                    native_fixture.doCleanups()
+                except BaseException as error:
+                    failures.append(error)
+            if failures:
+                raise failures[0]
+        self.addCleanup(close_worlds_and_native_fixture)
         self.owner_peer=self.ready()
         self.record=self.decide(self.owner_peer,self.enroll(self.owner_peer)).enrollment
         self.identity=self.claims(self.record,self.info)
@@ -312,6 +334,38 @@ class WorldIdentityFixture(ClientFixture):
             for path in self.root.glob('*.log'):
                 (target/(type(self).__name__+'-'+self._testMethodName+'-'+path.name)).write_bytes(path.read_bytes())
         self.addCleanup(retain_service_logs)
+    def native_compositor_authority(self):
+        if hasattr(self,'_native_security_fd'):
+            return self._native_security_fd
+        import compositor_native_pb2 as compositor
+        import security_pb2 as security
+        native_path=str(Path(__file__).resolve().parents[1]/'native')
+        if native_path not in sys.path:sys.path.insert(0,native_path)
+        if 'test_security_identity' not in sys.modules:
+            sys.argv.insert(1,os.environ.get('SPATIAL_XPROBE',str(Path(__file__).resolve().parents[2]/'build/spatial-xprobe')))
+        import importlib
+        fixture_module=importlib.import_module('test_security_identity')
+        fixture=fixture_module.SecurityIdentityTests(methodName='runTest')
+        fixture._testMethodName=self._testMethodName
+        fixture.setUp()
+        self.native_fixture=fixture
+        supervisor=fixture.start()
+        identity=supervisor.inspect()
+        cookie=supervisor.issue(security.COMPOSITOR,b'',b'').cookie
+        config=compositor.NativeCompositorConfig(protocol_version=1,display_number=fixture.display,
+            compositor_cookie=cookie,server_id=identity.server_id,server_pid=fixture.server.pid,server_uid=os.getuid())
+        descriptor=os.memfd_create('m10-native-compositor',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)
+        os.write(descriptor,config.SerializeToString(deterministic=True))
+        fcntl.fcntl(descriptor,fcntl.F_ADD_SEALS,
+            fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
+        self.addCleanup(os.close,descriptor)
+        auth=self.root/'native-compositor.auth';data=b'\xff\xff'
+        for part in (b'',str(fixture.display).encode(),b'MIT-MAGIC-COOKIE-1',cookie):
+            data+=struct.pack('!H',len(part))+part
+        auth.write_bytes(data);auth.chmod(0o600)
+        self.enterContext(patch.dict(os.environ,SPATIAL_TEST_DISPLAY=':'+str(fixture.display),XAUTHORITY=str(auth)))
+        self._native_security_fd=descriptor
+        return descriptor
     def configure_participant(self, config, domains):
         # Registration is explicit fixture provisioning. Production still rejects missing service configuration.
         identity=tuple(sorted(domain.SerializeToString() for domain in domains))
@@ -351,7 +405,7 @@ class WorldIdentityFixture(ClientFixture):
         reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None, count=2,
-              fixture_faults=False, additional_actor_profiles=()):
+              fixture_faults=False, additional_actor_profiles=(), native_fd=None):
         client_path=self.config_file()
         client=text_format.Parse(client_path.read_text(),pb.IssuerTlsClientConfig())
         client.ClearField('io_timeout_ms')
@@ -365,7 +419,7 @@ class WorldIdentityFixture(ClientFixture):
         state=state or self.root/f'world-state-{len(self.worlds)}'
         self.configure_world_participant(config,state)
         path=self.root/f'world-{len(self.worlds)}.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
-        world=WorldProcess(self,path,state,native,count=count,fixture_faults=fixture_faults)
+        world=WorldProcess(self,path,state,native,count=count,fixture_faults=fixture_faults,native_fd=native_fd)
         world.state_path=state; world.config_path=path
         self.worlds.append(world);world.management('system.hello');return world
     def authenticate(self, peer, record=None, key=None, public=None, **spawn):
@@ -391,8 +445,9 @@ class WorldIdentityFixture(ClientFixture):
             if predicate(result):return result
             if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
             time.sleep(.01)
-    def held(self, fixture_faults=False):
-        world=self.world(grants=['navigate','interact','observe'],native=True,fixture_faults=fixture_faults);peer=world.peers[0]
+    def held(self, fixture_faults=False, native_fd=None):
+        world=self.world(grants=['navigate','interact','observe'],native=True,fixture_faults=fixture_faults,
+            native_fd=native_fd);peer=world.peers[0]
         self.assertTrue(self.authenticate(peer).HasField('opened'))
         probe=Probe(self.root,xi2=True,display=os.environ['SPATIAL_TEST_DISPLAY']);self.addCleanup(probe.close)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']

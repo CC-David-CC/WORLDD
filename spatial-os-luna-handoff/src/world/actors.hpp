@@ -16,12 +16,14 @@ namespace broker_wire = workspace::v1;
 class Surfaces;
 class RenderWorker;
 class BrokerClient;
+class NativeInput;
 wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path);
 
 // One actor engine serves fixture and monotonic clocks through the same tick.
 class Actors {
 public:
-    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr, RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr);
+    Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr,
+           RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr, NativeInput* revocation_input = nullptr);
     using Authority = std::function<bool(const std::string&, const std::vector<std::string>&)>;
     wire::ActorOpenReply open(const wire::ActorOpenRequest& request, bool require_observation_grant = false, Authority authority = {},
                               std::optional<spatial::authority::v1::ActorRef> principal = {}, bool local_application_output = true);
@@ -206,6 +208,7 @@ private:
     Surfaces* surfaces_;
     RenderWorker* renderer_;
     BrokerClient* broker_;
+    NativeInput* revocation_input_;
     std::map<std::string, std::string> leases_;
     std::vector<workspace::v1::ApplicationControlLease> control_releases_;
     bool flushing_input_ = false;
