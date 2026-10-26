@@ -161,7 +161,7 @@ class WorldParticipantFixture(WorldIdentityFixture):
         peer=self.connect();op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
         result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result);peer.close()
     def start_world(self,relay=None,participate=True,state=None,native=False,private_parent=None,fixture_faults=False,
-                    native_fd=None):
+                    native_fd=None,broker=None,actor_grants=None):
         # Actor queries and participant traffic use separate, independently authenticated TLS connections.
         client=self.config_file();query_path=self.root/'query-client.textproto';query_path.write_bytes(client.read_bytes());query_path.chmod(0o600)
         service=self.config_file(endpoint_port=relay.port if relay else None,io_timeout_ms=3000)
@@ -169,13 +169,14 @@ class WorldParticipantFixture(WorldIdentityFixture):
         participant=issuer.AuthorityParticipantRuntimeConfig(protocol_version=1,issuer_client_config=str(service_path),private_key_path=str(self.signer),participant_id=self.definition.id,registered_revision=1)
         if private_parent is not None:participant=private_parent.config
         participant_path=self.root/'participant.textproto';participant_path.write_text(text_format.MessageToString(participant));participant_path.chmod(0o600)
+        selected_grants=actor_grants if actor_grants is not None else ['navigate','observe','interact']
         config=session.WorldIdentityConfig(protocol_version=1,issuer_client_config=str(query_path),admission=session.REGISTERED_ACTORS,
-            actor_grants=[session.WorldActorGrants(actor_id=self.identity.actor_id,grants=['navigate','observe','interact'])])
+            actor_grants=[session.WorldActorGrants(actor_id=self.identity.actor_id,grants=selected_grants)])
         if self.retained_movement_enabled():config.enable_retained_movement=True
         if participate:config.participant_runtime_config=str(participant_path)
         path=self.root/('world-config-'+str(len(self.worlds))+'.textproto');path.write_text(text_format.MessageToString(config));path.chmod(0o600)
         world=WorldProcess(self,path,state or self.world_state,native=native,runtime_config=self.runtime_path,
-            fixture_faults=fixture_faults,native_fd=native_fd,
+            fixture_faults=fixture_faults,native_fd=native_fd,broker=broker,
             participant_fd=private_parent.child.fileno() if private_parent else None);self.worlds.append(world);self.addCleanup(world.close)
         if private_parent:private_parent.child.close()
         return world

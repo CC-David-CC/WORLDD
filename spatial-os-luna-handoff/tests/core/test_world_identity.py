@@ -13,6 +13,8 @@ import subprocess
 import sys
 import threading
 import time
+import shutil
+import types
 import unittest
 from unittest.mock import patch
 from google.protobuf import text_format
@@ -72,6 +74,71 @@ class SessionPeer:
     def act(self, **action):
         self.action_sequence+=1
         return self.call(action=core.ActorActionRequest(seq=self.action_sequence,**action))
+
+
+class BrokeredNativeProbe:
+    """Read native X events from an application launched through the workspace broker."""
+    class ProcessWitness:
+        def __init__(self, exit_path):self.exit_path=exit_path
+        def poll(self):
+            if not self.exit_path.exists():return None
+            try:return int(self.exit_path.read_text())
+            except (OSError,ValueError):return 1
+
+    def __init__(self, probe_id, app, app_data, world, process_id):
+        self.id=probe_id;self.app=app;self.app_data=Path(app_data);self.world=world
+        self.process_id=process_id;self.path=self.app_data/'probe.jsonl'
+        self.stderr=types.SimpleNamespace(name=str(self.path))
+        self.exit_path=self.app_data/'exited';self.release_path=self.app_data/'release'
+        self.commands_path=self.app_data/'commands';self.proc=self.ProcessWitness(self.exit_path)
+        self.condition=threading.Condition();self.sequence=0
+        self.log=self.path.open('a',encoding='utf-8')
+        self.ready=self.wait(lambda row:row.get('event')=='ready',timeout=8)
+        self.xid=self.ready['xid']
+
+    @property
+    def events(self):
+        rows=[]
+        try:lines=self.path.read_text(errors='replace').splitlines()
+        except FileNotFoundError:return rows
+        for line in lines:
+            try:rows.append(json.loads(line))
+            except json.JSONDecodeError:continue
+        return rows
+
+    def wait(self,predicate,after=0,timeout=5):
+        deadline=time.monotonic()+timeout
+        while True:
+            rows=self.events
+            for row in rows[after:]:
+                if predicate(row):return row
+            if self.proc.poll() is not None:
+                raise RuntimeError('Broker-launched native X probe exited; see '+str(self.path))
+            remaining=deadline-time.monotonic()
+            if remaining<=0:raise AssertionError('No matching native event; observed '+repr(rows[after:]))
+            time.sleep(min(.01,remaining))
+
+    def command(self,op,*args):
+        self.sequence+=1;sequence=self.sequence
+        with self.commands_path.open('a',encoding='utf-8') as stream:
+            stream.write(' '.join([op,str(sequence),*(str(arg) for arg in args)])+'\n')
+        return self.wait(lambda row:row.get('event')=='ack' and row.get('seq')==sequence)
+
+    def input_events(self,after=0):
+        self.command('sync')
+        return [dict(row) for row in self.events[after:]
+            if row.get('event') in ('key','button','motion','focus')]
+
+    def geometry(self):
+        self.command('geometry')
+        return self.wait(lambda row:row.get('event')=='geometry' and row.get('seq')==self.sequence)
+
+    def close(self):
+        self.release_path.touch(exist_ok=True)
+        deadline=time.monotonic()+8
+        while self.proc.poll() is None and time.monotonic()<deadline:time.sleep(.01)
+        self.log.flush();self.log.close()
+        if self.proc.poll() is None:raise AssertionError('Broker-launched native X probe did not stop')
 
 
 class WorldProcess:
@@ -316,6 +383,15 @@ class WorldIdentityFixture(ClientFixture):
                     world.close()
                 except BaseException as error:
                     failures.append(error)
+            relay=getattr(self,'_native_input_relay',None)
+            if relay is not None:
+                try:relay.close()
+                except BaseException as error:failures.append(error)
+                self._native_input_relay=None
+            for broker in reversed(getattr(self,'_native_input_brokers',())):
+                try:broker.close()
+                except BaseException as error:failures.append(error)
+            if hasattr(self,'_native_input_brokers'):self._native_input_brokers.clear()
             native_fixture=getattr(self,'native_fixture',None)
             if native_fixture is not None:
                 try:
@@ -369,9 +445,86 @@ class WorldIdentityFixture(ClientFixture):
             probe_data+=struct.pack('!H',len(part))+part
         probe_auth.write_bytes(probe_data);probe_auth.chmod(0o600)
         self._native_probe_auth=probe_auth
+        self.native_supervisor=supervisor
+        self.native_server_id=identity.server_id
         self.enterContext(patch.dict(os.environ,SPATIAL_TEST_DISPLAY=':'+str(fixture.display),XAUTHORITY=str(auth)))
         self._native_security_fd=descriptor
         return descriptor
+
+    def setup_native_input_workspace(self):
+        """Give native input tests a real broker-authorized app surface."""
+        if getattr(self,'_native_input_relay',None) is not None:
+            return self._native_security_fd
+        native_fd=self.native_compositor_authority()
+        import broker_pb2 as broker_pb
+        import security_pb2 as security
+        import test_application_access as access
+        import test_application_observation as observation
+        import test_workspace_authority as workspace
+
+        self._native_input_brokers=[]
+        native_config=broker_pb.NativeLaunchConfig(protocol_version=1,
+            display_number=self.native_fixture.display,
+            broker_cookie=self.native_supervisor.issue(security.BROKER,b'',b'').cookie,
+            server_id=self.native_server_id,server_pid=self.native_fixture.server.pid,server_uid=os.getuid())
+        missing=object()
+        names=('brokers','principal','workspace_terms','make_broker','broker_factory')
+        previous={name:getattr(self,name,missing) for name in names}
+        self.brokers=self._native_input_brokers
+        self.principal=types.MethodType(workspace.WorkspaceAuthorityTests.principal,self)
+        self.workspace_terms=types.MethodType(workspace.WorkspaceAuthorityTests.workspace_terms,self)
+
+        def broker_factory(fixture,state,config=None):
+            if config is None:return workspace.BrokerProcess(fixture,state)
+            # access.Broker registers itself in fixture.brokers.
+            return access.Broker(fixture,config,native_config)
+
+        self.broker_factory=broker_factory
+        self.make_broker=types.MethodType(workspace.WorkspaceAuthorityTests.make_broker,self)
+        try:
+            workspace.WorkspaceAuthorityTests.workspace(self,
+                roots=lambda:[self.workspace_terms(rights=access.ALL)],attach_world=False)
+        finally:
+            for name,value in previous.items():
+                if value is missing:delattr(self,name)
+                else:setattr(self,name,value)
+        shutil.copy2(workspace.WORLD.parent/'spatial-confined-xprobe',self.project/'probe')
+        self._native_input_relay=observation.BrokerRelay(self.broker)
+        return native_fd
+
+    def brokered_native_probe(self,world,peer):
+        if getattr(self,'_native_input_relay',None) is None:
+            raise RuntimeError('Native input workspace was not initialized')
+        import broker_pb2 as broker_pb
+        probe_id='m10-native-'+os.urandom(8).hex()
+        code=("import subprocess,time\nfrom pathlib import Path\n"
+            "out=open('/state/data/probe.jsonl','w')\n"
+            "p=subprocess.Popen(['/project/probe','--id',"+repr(probe_id)+"],stdin=subprocess.PIPE,stdout=out,stderr=out)\n"
+            "sent=0\nwhile not Path('/state/data/release').exists():\n"
+            " if p.poll() is not None:\n  Path('/state/data/exited').write_text(str(p.returncode))\n  raise SystemExit(p.returncode or 1)\n"
+            " commands=Path('/state/data/commands')\n if commands.exists():\n"
+            "  data=commands.read_bytes();end=data.rfind(b'\\n')+1\n"
+            "  if end>sent:p.stdin.write(data[sent:end]);p.stdin.flush();sent=end\n"
+            " time.sleep(.01)\n"
+            "p.terminate();p.wait();out.close()\nPath('/state/data/exited').write_text(str(p.returncode))\n")
+        launched=peer.act(process_launch=core.ProcessLaunchRequest(operation_id=probe_id,
+            profile='development',argv=['/usr/bin/python3','-c',code]))
+        self.assertTrue(launched.HasField('action'),launched)
+        process_id=launched.action.process.process_id
+        app=broker_pb.ApplicationRef(workspace=b'one',application=process_id.encode(),
+            server_id=self.native_server_id)
+        app_data=self.execution/'applications'/process_id/'data'
+        probe=BrokeredNativeProbe(probe_id,app,app_data,world,process_id)
+        target=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if target:
+            def retain_probe():
+                Path(target).mkdir(parents=True,exist_ok=True)
+                probe.log.flush()
+                for path in dict.fromkeys((probe.path,Path(probe.stderr.name))):
+                    (Path(target)/(self._testMethodName+'-'+path.name)).write_bytes(path.read_bytes())
+            self.addCleanup(retain_probe)
+        self.addCleanup(probe.close)
+        return probe
     def native_probe(self,evidence,xi2=False,display=None):
         probe_auth=getattr(self,'_native_probe_auth',None)
         if probe_auth is None:raise RuntimeError('Native probe credentials were not initialized')
@@ -426,7 +579,7 @@ class WorldIdentityFixture(ClientFixture):
         reply=read_message(io.BytesIO(result.stdout),core.Reply);self.assertFalse(reply.HasField('error'),reply)
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None, count=2,
-              fixture_faults=False, additional_actor_profiles=(), native_fd=None):
+              fixture_faults=False, additional_actor_profiles=(), native_fd=None, broker=None):
         if native and native_fd is None:
             native_fd=self.native_compositor_authority()
         client_path=self.config_file()
@@ -442,7 +595,7 @@ class WorldIdentityFixture(ClientFixture):
         state=state or self.root/f'world-state-{len(self.worlds)}'
         self.configure_world_participant(config,state)
         path=self.root/f'world-{len(self.worlds)}.textproto';path.write_text(text_format.MessageToString(config));path.chmod(0o600)
-        world=WorldProcess(self,path,state,native,count=count,fixture_faults=fixture_faults,native_fd=native_fd)
+        world=WorldProcess(self,path,state,native,count=count,broker=broker,fixture_faults=fixture_faults,native_fd=native_fd)
         world.state_path=state; world.config_path=path
         self.worlds.append(world);world.management('system.hello');return world
     def authenticate(self, peer, record=None, key=None, public=None, **spawn):
@@ -469,17 +622,28 @@ class WorldIdentityFixture(ClientFixture):
             if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
             time.sleep(.01)
     def held(self, fixture_faults=False, native_fd=None):
-        world=self.world(grants=['navigate','interact','observe'],native=True,fixture_faults=fixture_faults,
-            native_fd=native_fd);peer=world.peers[0]
+        prepared_fd=self.setup_native_input_workspace()
+        if native_fd is None:native_fd=prepared_fd
+        else:self.assertEqual(native_fd,prepared_fd,'Native input workspace and compositor descriptor must match')
+        world=self.world(grants=['navigate','interact','observe','process.launch'],native=True,fixture_faults=fixture_faults,
+            native_fd=native_fd,broker=self._native_input_relay);peer=world.peers[0]
         self.assertTrue(self.authenticate(peer).HasField('opened'))
+        world.management('workspace.available',id='one',available=True)
+        selected=peer.act(workspace_select=core.WorkspaceIdRequest(id='one'))
+        self.assertTrue(selected.HasField('action'),selected)
+        self.assertTrue(selected.action.accepted,selected)
         # This probe has the APPLICATION identity. XACE denies XI2 to apps,
         # so the input witness must use ordinary core X events.
-        probe=self.native_probe(self.root,xi2=False)
+        probe=self.brokered_native_probe(world,peer)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])
-        self.assertTrue(peer.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1))).HasField('action'))
-        self.assertTrue(peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True)).HasField('action'))
+        aimed=peer.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1)))
+        self.assertTrue(aimed.HasField('action'),aimed)
+        self.assertTrue(aimed.action.accepted,aimed)
+        pointed=peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
+        self.assertTrue(pointed.HasField('action'),pointed)
+        self.assertTrue(pointed.action.accepted,pointed)
         self.assertTrue(peer.act(key=core.ActorKeyRequest(keysym='Shift_L',pressed=True)).HasField('action'))
         state=peer.call(inspect=session.WorldSessionInspect()).state
         self.assertTrue(state.held_keys);self.assertTrue(state.held_buttons)

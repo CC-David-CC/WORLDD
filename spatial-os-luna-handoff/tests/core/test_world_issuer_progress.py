@@ -25,7 +25,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
         self.assertIn(socket.gethostname().split(".")[0], ("sb16", "sb16-2"))
         self.assertTrue(os.environ.get("SPATIAL_TEST_DISPLAY"))
         self._info_relay = DelayedInfoIssuer(self)
-        native_fd=self.native_compositor_authority()
+        native_fd=self.setup_native_input_workspace()
         world, peer, probe = self.held(native_fd=native_fd)
         self._progress_observations = dict(stage="native_input_held", issuer_io_budget_seconds=5,
             broker_outer_wait="UNRUN in this native INFO case", operation_300_second_deadline="UNRUN")
@@ -58,7 +58,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
     def pending_other_actor_auth_with_native_input(self):
         self.assertIn(socket.gethostname().split('.')[0],('sb16','sb16-2'))
         self.assertTrue(os.environ.get('SPATIAL_TEST_DISPLAY'))
-        native_fd=self.native_compositor_authority()
+        native_fd=self.setup_native_input_workspace()
         self.retained_movement_override=True
         self.second_key,self.second_public=self.key('m10-slow-auth-actor')
         self.second_record=self.decide(self.owner_peer,self.enroll(self.owner_peer,
@@ -66,14 +66,18 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             self.second_key,self.second_public)).enrollment
         self.second=self.claims(self.second_record,self.info)
         self._info_relay=DelayedInfoIssuer(self,delayed_operation='credential_check',actor_id=self.second.actor_id)
-        world=self.world(grants=['navigate','interact','observe'],native=True,native_fd=native_fd,fixture_faults=True,
-            additional_actor_profiles=[(self.second.actor_id,['navigate'])])
+        world=self.world(grants=['navigate','interact','observe','process.launch'],native=True,native_fd=native_fd,fixture_faults=True,
+            additional_actor_profiles=[(self.second.actor_id,['navigate'])],broker=self._native_input_relay)
         self._progress_observations=dict(stage='other_actor_credential_check_pending',input_timeout_seconds=.25)
         peer,other_peer=world.peers
         opened=self.authenticate(peer)
         self.assertTrue(opened.HasField('opened'))
         self._native_actor_id=opened.opened.actor_id
-        probe=self.native_probe(self.root,xi2=False)
+        world.management('workspace.available',id='one',available=True)
+        selected=peer.act(workspace_select=core.WorkspaceIdRequest(id='one'))
+        self.assertTrue(selected.HasField('action'),selected)
+        self.assertTrue(selected.action.accepted,selected)
+        probe=self.brokered_native_probe(world,peer)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda result:result['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])

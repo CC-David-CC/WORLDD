@@ -28,14 +28,20 @@ class ActorStopLifetimeTests(WorldIdentityFixture):
         key,public=self.key('stop-lifetime-other')
         record=self.decide(self.owner_peer,self.enroll(self.owner_peer,self.intent(public),key,public)).enrollment
         self.other_claims=self.claims(record,self.info)
+        native_fd=self.setup_native_input_workspace()
         with patch.dict(os.environ,{'SPATIAL_TRACE_STOP':'1'}):
-            world=self.world(grants=['navigate','interact','observe'],native=True,count=3)
+            world=self.world(grants=['navigate','interact','observe','process.launch'],native=True,count=3,
+                broker=self._native_input_relay,native_fd=native_fd)
         first,other,rebind=world.peers
         opened=self.authenticate(first);self.assertTrue(opened.HasField('opened'),opened)
+        world.management('workspace.available',id='one',available=True)
+        selected=first.act(workspace_select=core.WorkspaceIdRequest(id='one'))
+        self.assertTrue(selected.HasField('action'),selected)
+        self.assertTrue(selected.action.accepted,selected)
         spawn=core.Pose();spawn.position.x=1;spawn.orientation.w=1
         self.assertTrue(self.authenticate(other,record,key,public,pose=spawn).HasField('opened'))
         self.other_x=other.call(inspect=session.WorldSessionInspect()).state.pose.position.x
-        probe=self.native_probe(self.root,xi2=False)
+        probe=self.brokered_native_probe(world,first)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda value:value['surface'] is not None)['surface']
         world.management('surface.place',id=found['id'],room=world.management('world.info')['entry_room'],pose=pose((0,0,-2)),size=[2,2])
         self.assertTrue(first.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1))).action.accepted)
