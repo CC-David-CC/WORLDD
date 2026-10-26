@@ -30,7 +30,10 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         output=self.project/('native-'+str(index)+'.jsonl');commands=self.project/('commands-'+str(index));release=self.project/('release-'+str(index));exited=self.project/('exited-'+str(index))
         code=("import subprocess,time\nfrom pathlib import Path\n"
             "out=open('/project/"+output.name+"','w')\n"
-            "p=subprocess.Popen(['/project/probe','--id','m10-app-"+str(index)+"'],stdin=subprocess.PIPE,stdout=out,stderr=out)\n"
+            # The independent witness selects XI2 events on this same window.
+            # Use the same event protocol here so its selection does not take
+            # the event away from a core-only probe under normal X server rules.
+            "p=subprocess.Popen(['/project/probe','--xi2','--id','m10-app-"+str(index)+"'],stdin=subprocess.PIPE,stdout=out,stderr=out)\n"
             "sent=0\nwhile not Path('/project/"+release.name+"').exists():\n"
             " if p.poll() is not None:\n  Path('/project/"+exited.name+"').write_text(str(p.returncode))\n  raise SystemExit(p.returncode or 1)\n"
             " commands=Path('/project/"+commands.name+"')\n if commands.exists():\n"
@@ -51,6 +54,8 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
             self.addCleanup(retain)
         try:
             self.until(rows,lambda values:any(row.get('event')=='ready' for row in values))
+            self.assertTrue(next(row for row in rows() if row.get('event')=='ready').get('xi2'),
+                'Native app probe must select XI2 alongside the independent XI2 witness')
         except AssertionError:
             diagnostic=self.execution/'applications'/launched.process_id/'setup.log'
             self.fail('Native application did not become ready. Output: '+(output.read_text(errors='replace') if output.exists() else '<missing>')+

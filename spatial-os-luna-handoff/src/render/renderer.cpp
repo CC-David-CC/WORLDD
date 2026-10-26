@@ -293,7 +293,11 @@ render::v1::NativeActorSeatIdentity Renderer::native_actor_seat(const render::v1
 }
 wire::NativeActorInput Renderer::input(const wire::RendererInputCommand& command) {
     if (!impl_->input) throw WorldError(wire::UNIMPLEMENTED, "Native actor input requires the project XLibre server");
-    synchronize();
+    // Keyboard delivery already carries the checked focus generation. The
+    // XLibre input extension revalidates that live generation and seat before
+    // injecting each key edge, so a full surface snapshot and GL finish add
+    // latency without strengthening the keyboard authorization check.
+    if (!command.has_key() && !command.has_key_tap_batch()) synchronize();
     return impl_->input->execute(command);
 }
 void Renderer::reserve_input(const render::v1::WorldPresentationBinding& binding,const supervisor::v1::NativeScopeIdentity* scope) {

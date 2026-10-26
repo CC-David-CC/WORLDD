@@ -2112,21 +2112,22 @@ if(BUILD_TESTING)
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_security_identity.py" $<TARGET_FILE:spatial-security-auth>)
         set_tests_properties(native-security-identity PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
-        add_test(NAME world-participant-native COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_participant_native.py" $<TARGET_FILE:identityd>
-            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-        set_tests_properties(world-participant-native PROPERTIES TIMEOUT 120
-            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+        function(add_native_identity_fixture_test name script timeout)
+            add_test(NAME "${name}" COMMAND "${Python3_EXECUTABLE}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}" -B
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}" -B
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
+                "${CMAKE_CURRENT_SOURCE_DIR}/${script}" ${ARGN})
+            set_tests_properties("${name}" PROPERTIES TIMEOUT "${timeout}" RUN_SERIAL TRUE
+                ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+        endfunction()
+        add_native_identity_fixture_test(world-participant-native tests/core/test_world_participant_native.py 120
+            $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         add_custom_target(world-participant-native-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm
             spatial-xprobe python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf
             world-session-python-protobuf security-python-protobuf compositor-python-protobuf)
-        add_test(NAME world-identity COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_identity.py" $<TARGET_FILE:identityd>
-            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-        set_tests_properties(world-identity PROPERTIES TIMEOUT 120
-            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+        add_native_identity_fixture_test(world-identity tests/core/test_world_identity.py 120
+            $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         add_test(NAME actor-stop-liveness COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_stop_liveness.py" $<TARGET_FILE:identityd>
@@ -2152,30 +2153,14 @@ if(BUILD_TESTING)
         add_custom_target(world-issuer-progress-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm spatial-xprobe
             python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf
             security-python-protobuf compositor-python-protobuf)
-        add_test(NAME world-issuer-progress COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_issuer_progress.py" $<TARGET_FILE:identityd>
-            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-        set_tests_properties(world-issuer-progress PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE
-            ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
-        add_test(NAME actor-stop-progress COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_stop_progress.py" $<TARGET_FILE:identityd>
-            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-        set_tests_properties(actor-stop-progress PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE
-            ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
-        add_test(NAME actor-stop-lifetime COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_actor_stop_lifetime.py" $<TARGET_FILE:identityd>
-            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-        set_tests_properties(actor-stop-lifetime PROPERTIES TIMEOUT 120 RUN_SERIAL TRUE
-            ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>;ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE}")
-        add_test(NAME world-authority COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_authority.py" $<TARGET_FILE:identityd>
-            $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
-        set_tests_properties(world-authority PROPERTIES TIMEOUT 180
-            ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>")
+        add_native_identity_fixture_test(world-issuer-progress tests/core/test_world_issuer_progress.py 120
+            $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        add_native_identity_fixture_test(actor-stop-progress tests/core/test_actor_stop_progress.py 120
+            $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        add_native_identity_fixture_test(actor-stop-lifetime tests/core/test_actor_stop_lifetime.py 120
+            $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+        add_native_identity_fixture_test(world-authority tests/core/test_world_authority.py 180
+            $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         add_test(NAME world-shared-state COMMAND "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}"
             "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_shared_state.py" $<TARGET_FILE:identityd>

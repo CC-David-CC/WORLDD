@@ -191,13 +191,16 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
             moving=producer.key('w')
             self.wait_processed(moving)
             time.sleep(.35)
-            after=self.state().pose.position
-            self.assertLess(after.z,before.z-.1,'Actor movement stopped with the controls presenter')
             released=producer.key('w',False)
             self.wait_processed(released)
         finally:
             try:os.kill(compositor,signal.SIGCONT)
             except ProcessLookupError:pass
+        # Inspect only after restoring the compositor. The capture release was
+        # already processed while it was stopped, so any displacement must have
+        # accumulated during the stalled-presentation interval.
+        after=self.state().pose.position
+        self.assertLess(after.z,before.z-.1,'Actor movement stopped with the controls presenter')
         shown=producer.key('F10')
         self.wait_processed(shown)
         self.assertTrue(self.shared('controls_menu').menu.visible)

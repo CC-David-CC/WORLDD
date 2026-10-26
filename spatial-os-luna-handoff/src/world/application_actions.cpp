@@ -159,19 +159,26 @@ wire::ActorApplicationPlaceReply Actors::place_application(Actor& actor,const wi
         reply.set_world_revision(placed.world_revision());return reply;
     };
     std::vector<broker_wire::AuthorizationFence> fences;
-    for(const auto right:{authority::v1::WORKSPACE_ACCESS,authority::v1::WORKSPACE_PRESENTATION_ATTACH}) {
-        const auto checked=workspace_check(actor,workspace,right,{},&fences);
+    for(const auto right:{authority::v1::WORKSPACE_ACCESS,authority::v1::APPLICATION_OBSERVE,
+                          authority::v1::WORKSPACE_PRESENTATION_ATTACH}) {
+        const auto components=right==authority::v1::APPLICATION_OBSERVE
+            ? std::vector<std::string>{"applications",identity.application.application()}
+            : std::vector<std::string>{};
+        const auto checked=workspace_check(actor,workspace,right,components,&fences);
         if(!checked || !checked->allowed() || !current())throw WorldError(wire::FORBIDDEN,"Workspace attachment authority denied");
     }
-    broker_wire::ApplicationAccessRequest access;*access.mutable_principal()=*actor.principal;*access.add_applications()=identity.application;
-    const auto checked=broker_->application_access(access);
-    if(checked.applications_size()!=1 || !checked.applications(0).observe())throw WorldError(wire::FORBIDDEN,"Application observation authority denied");
-    broker_wire::AuthorizationFence stamp;stamp.set_incarnation(checked.incarnation());stamp.set_epoch(checked.epoch());fences.push_back(stamp);
+    // A retry returns an already committed receipt. Keep the current actor and
+    // workspace fences, but do not require the application process to remain
+    // observable after its placement has committed.
     if(const auto replay=store_.application_slot_operation(entity,request.operation_id(),digest,operation_principal)) {
         validate_authority_fence(actor,fences);
         if(!current())throw WorldError(wire::FORBIDDEN,"Application placement context changed before replay publication");
         return placement_reply(*replay);
     }
+    broker_wire::ApplicationAccessRequest access;*access.mutable_principal()=*actor.principal;*access.add_applications()=identity.application;
+    const auto checked=broker_->application_access(access);
+    if(checked.applications_size()!=1 || !checked.applications(0).observe())throw WorldError(wire::FORBIDDEN,"Application observation authority denied");
+    broker_wire::AuthorizationFence stamp;stamp.set_incarnation(checked.incarnation());stamp.set_epoch(checked.epoch());fences.push_back(stamp);
     refresh_native();const auto actual=surfaces_->application(identity.handle);
     if(!actual || actual->SerializeAsString()!=identity.application.SerializeAsString())throw WorldError(wire::STALE_TARGET,"Application discovery is stale");
     const auto camera=scene_pose(actor.entity.pose());

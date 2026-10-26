@@ -27,6 +27,10 @@ from harness.probe import Probe
 from test_issuer_client import ClientFixture
 
 WORLD = Path(sys.argv.pop(1))
+if __name__ == '__main__':
+    # Several native fixtures import this module after the test script has
+    # consumed its binary arguments. Reuse the running module and its fixtures.
+    sys.modules.setdefault('test_world_identity', sys.modules[__name__])
 
 
 def receive(read, ready, message, *, deadline=None):
