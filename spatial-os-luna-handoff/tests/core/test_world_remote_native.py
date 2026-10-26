@@ -1,5 +1,6 @@
 """Remote world geometry must not export live applications, even with observation grants."""
 import os
+import fcntl
 import socket
 import ssl
 import struct
@@ -22,7 +23,7 @@ from harness.wire import frame
 class HybridWorldProcess(WorldProcess):
     connect=RemoteWorldProcess.connect
 
-    def __init__(self,fixture,config,state,native=False,count=2,runtime_config=None,broker=None):
+    def __init__(self,fixture,config,state,native=False,count=2,runtime_config=None,broker=None,native_fd=None):
         self.sequence=0;self.broker_channel=None;self.log=(fixture.root/f'hybrid-{len(fixture.worlds)}.log').open('wb')
         self.server_key,self.server_cert=fixture.certificate('hybrid-world','world.test')
         tls=session.WorldActorTlsConfig(protocol_version=1,certificate_path=str(self.server_cert),
@@ -34,15 +35,20 @@ class HybridWorldProcess(WorldProcess):
         pairs=[socket.socketpair() for _ in range(count)];self.peers=[SessionPeer(p[0]) for p in pairs]
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config),
             '--actor-listen-fd',str(listener.fileno()),'--actor-tls-config',str(path)]
+        native_fd_copy=os.dup(native_fd) if native_fd is not None else None
+        if native_fd_copy is not None:command+=['--native-security-fd',str(native_fd_copy)]
         if runtime_config:command+=['--config',str(runtime_config)]
         if native:command+=['--display',os.environ['SPATIAL_TEST_DISPLAY']]
         if broker:command+=['--workspace-fd',str(broker.stream.fileno()),'--workspace-pid',str(broker.proc.pid)]
         for _,server in pairs:command+=['--actor-fd',str(server.fileno())]
+        extra_fds=tuple([broker.stream.fileno()]) if broker else ()
+        if native_fd_copy is not None:extra_fds+=(native_fd_copy,)
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
-                pass_fds=(listener.fileno(),)+tuple(p[1].fileno() for p in pairs)+(tuple([broker.stream.fileno()]) if broker else ()))
+                pass_fds=(listener.fileno(),)+tuple(p[1].fileno() for p in pairs)+extra_fds)
             self._initialize_process_lifecycle()
         finally:
+            if native_fd_copy is not None:os.close(native_fd_copy)
             listener.close()
             for _,server in pairs:server.close()
 
@@ -100,13 +106,23 @@ class RemoteNativeTests(ActorPixelTests):
 
 class HybridWorldProcessLifecycleRegression(WorldProcessLifecycleMixin, unittest.TestCase):
     def test_hybrid_world_process_initializes_and_records_lifecycle(self):
-        from unittest.mock import patch
         fixture = self.Fixture(self.root)
+        native_fd=os.memfd_create('hybrid-native-security-test',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)
+        self.addCleanup(os.close,native_fd)
+        os.write(native_fd,b'sealed native security configuration')
+        fcntl.fcntl(native_fd,fcntl.F_ADD_SEALS,
+            fcntl.F_SEAL_WRITE|fcntl.F_SEAL_GROW|fcntl.F_SEAL_SHRINK|fcntl.F_SEAL_SEAL)
         with patch.dict(HybridWorldProcess.__init__.__globals__, {"WORLD": self.helper}):
             world = HybridWorldProcess(
-                fixture, self.root / "identity.textproto", self.root / "state", count=1
+                fixture, self.root / "identity.textproto", self.root / "state", count=1,
+                native_fd=native_fd
             )
+        argument=world.proc.args.index('--native-security-fd')
+        child_fd=int(world.proc.args[argument+1])
+        child_descriptor=Path(f'/proc/{world.proc.pid}/fd/{child_fd}')
+        self.assertEqual(os.fstat(native_fd).st_ino,os.stat(child_descriptor).st_ino)
         self.assert_lifecycle_close(world)
+        os.fstat(native_fd)
 
 
 if __name__=='__main__':

@@ -352,6 +352,7 @@ class WorldIdentityFixture(ClientFixture):
         supervisor=fixture.start()
         identity=supervisor.inspect()
         cookie=supervisor.issue(security.COMPOSITOR,b'',b'').cookie
+        probe_cookie=supervisor.issue(security.APPLICATION,b'm10-test-workspace',b'm10-native-probe').cookie
         config=compositor.NativeCompositorConfig(protocol_version=1,display_number=fixture.display,
             compositor_cookie=cookie,server_id=identity.server_id,server_pid=fixture.server.pid,server_uid=os.getuid())
         descriptor=os.memfd_create('m10-native-compositor',os.MFD_CLOEXEC|os.MFD_ALLOW_SEALING)
@@ -363,9 +364,29 @@ class WorldIdentityFixture(ClientFixture):
         for part in (b'',str(fixture.display).encode(),b'MIT-MAGIC-COOKIE-1',cookie):
             data+=struct.pack('!H',len(part))+part
         auth.write_bytes(data);auth.chmod(0o600)
+        probe_auth=self.root/'native-probe.auth';probe_data=b'\xff\xff'
+        for part in (b'',str(fixture.display).encode(),b'MIT-MAGIC-COOKIE-1',probe_cookie):
+            probe_data+=struct.pack('!H',len(part))+part
+        probe_auth.write_bytes(probe_data);probe_auth.chmod(0o600)
+        self._native_probe_auth=probe_auth
         self.enterContext(patch.dict(os.environ,SPATIAL_TEST_DISPLAY=':'+str(fixture.display),XAUTHORITY=str(auth)))
         self._native_security_fd=descriptor
         return descriptor
+    def native_probe(self,evidence,xi2=False,display=None):
+        probe_auth=getattr(self,'_native_probe_auth',None)
+        if probe_auth is None:raise RuntimeError('Native probe credentials were not initialized')
+        with patch.dict(os.environ,XAUTHORITY=str(probe_auth)):
+            probe=Probe(evidence,xi2=xi2,display=display or os.environ['SPATIAL_TEST_DISPLAY'])
+        self.addCleanup(probe.close)
+        target=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        if target:
+            def retain_probe():
+                directory=Path(target);directory.mkdir(parents=True,exist_ok=True)
+                probe.log.flush()
+                for path in (probe.path,Path(probe.stderr.name)):
+                    (directory/(self._testMethodName+'-'+path.name)).write_bytes(path.read_bytes())
+            self.addCleanup(retain_probe)
+        return probe
     def configure_participant(self, config, domains):
         # Registration is explicit fixture provisioning. Production still rejects missing service configuration.
         identity=tuple(sorted(domain.SerializeToString() for domain in domains))
@@ -449,7 +470,7 @@ class WorldIdentityFixture(ClientFixture):
         world=self.world(grants=['navigate','interact','observe'],native=True,fixture_faults=fixture_faults,
             native_fd=native_fd);peer=world.peers[0]
         self.assertTrue(self.authenticate(peer).HasField('opened'))
-        probe=Probe(self.root,xi2=True,display=os.environ['SPATIAL_TEST_DISPLAY']);self.addCleanup(probe.close)
+        probe=self.native_probe(self.root,xi2=True)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])

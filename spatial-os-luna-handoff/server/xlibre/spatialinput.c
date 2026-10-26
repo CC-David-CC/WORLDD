@@ -517,19 +517,34 @@ static void client_state(CallbackListPtr *list, void *unused, void *data)
     }
 }
 
-static Bool checked(const ProtobufCMessage *message)
+static Bool checked_graph(const ProtobufCMessage *message, unsigned depth, unsigned *nodes)
 {
-    if (!message || message->n_unknown_fields || !protobuf_c_message_check(message)) return FALSE;
+    if (!message || depth > 16 || ++*nodes > 256 || message->n_unknown_fields ||
+        !protobuf_c_message_check(message)) return FALSE;
     for (unsigned i = 0; i < message->descriptor->n_fields; ++i) {
         const ProtobufCFieldDescriptor *field = &message->descriptor->fields[i];
         const uint8_t *bytes = (const uint8_t *)message;
         if (field->type != PROTOBUF_C_TYPE_MESSAGE) continue;
         if ((field->flags & PROTOBUF_C_FIELD_FLAG_ONEOF) &&
             *(const unsigned *)(bytes + field->quantifier_offset) != field->id) continue;
-        const ProtobufCMessage *child = *(ProtobufCMessage *const *)(bytes + field->offset);
-        if (child && !checked(child)) return FALSE;
+        if (field->label == PROTOBUF_C_LABEL_REPEATED) {
+            size_t count = *(const size_t *)(bytes + field->quantifier_offset);
+            ProtobufCMessage *const *items = *(ProtobufCMessage *const *const *)(bytes + field->offset);
+            if (count > 256 || (count && !items)) return FALSE;
+            for (size_t n = 0; n < count; ++n)
+                if (!checked_graph(items[n], depth + 1, nodes)) return FALSE;
+        } else {
+            const ProtobufCMessage *child = *(ProtobufCMessage *const *)(bytes + field->offset);
+            if (child && !checked_graph(child, depth + 1, nodes)) return FALSE;
+        }
     }
     return TRUE;
+}
+
+static Bool checked(const ProtobufCMessage *message)
+{
+    unsigned nodes = 0;
+    return checked_graph(message, 0, &nodes);
 }
 
 static void invalid_input_diagnostic(ClientPtr client,const Request *request,const char *reason)

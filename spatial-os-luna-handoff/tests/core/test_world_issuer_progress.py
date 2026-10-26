@@ -74,7 +74,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
         opened=self.authenticate(peer)
         self.assertTrue(opened.HasField('opened'))
         self._native_actor_id=opened.opened.actor_id
-        probe=Probe(self.root,xi2=True,display=os.environ['SPATIAL_TEST_DISPLAY']);self.addCleanup(probe.close)
+        probe=self.native_probe(self.root,xi2=True)
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda result:result['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])
