@@ -117,6 +117,12 @@ bool pure_stop(const pb::WorldSessionRequest& request) {
     return (request.has_action() && request.action().has_stop()) ||
         (request.has_control_action() && request.control_action().has_stop());
 }
+bool safe_during_issuer_wait(const pb::WorldSessionRequest& request, bool world_authority) {
+    if (request.has_close() || request.has_inspect()) return true;
+    if (request.has_grants()) return !request.grants().has_workspace() && world_authority;
+    if (request.has_revoke()) return !request.revoke().has_workspace() && world_authority;
+    return false;
+}
 unsigned lifecycle_diagnostic_count = 0, reply_queued_diagnostic_count = 0;
 unsigned close_diagnostic_count = 0;
 void lifecycle_diagnostic(const Channel& channel, const char* reason) {
@@ -168,6 +174,7 @@ struct IdentitySessions::Impl {
     BrokerClient* broker;
     pb::WorldIdentityConfig config;
     std::unique_ptr<identity::IssuerClient> client;
+    std::unique_ptr<identity::IssuerClient> auxiliary_client;
     std::unique_ptr<identity::ParticipantRuntime> participant;
     std::optional<std::uint64_t> consumed_revision;
     std::uint64_t generation = 0, acknowledged_revision = 0, command_sequence = 0;
@@ -176,7 +183,11 @@ struct IdentitySessions::Impl {
     std::uint64_t authority_progress_request = 0;
     std::map<std::string,std::uint64_t> checked_subjects;
     bool pumping_motion = false;
+    bool pumping_refresh_only = false;
+    bool reentrant_control_dispatch = false;
+    bool auxiliary_exchange_in_progress = false;
     std::size_t motion_cursor = 0;
+    std::size_t refresh_cursor = 0;
     pb::ParticipantCommand::OperationCase pending_operation = pb::ParticipantCommand::OPERATION_NOT_SET;
     bool closing = false, released = false;
     pb::IssuerInfo issuer;
@@ -189,6 +200,7 @@ struct IdentitySessions::Impl {
     std::map<std::string, std::set<std::string>> grants;
     std::string audience;
     Clock::time_point last_exchange = Clock::now();
+    Clock::time_point last_aux_exchange = Clock::now();
     world_diagnostic::LastSuccessfulExchange last_successful_exchange;
     bool ready = false, broken = false, ticking = false;
     bool issuer_exchange_in_progress = false;
@@ -227,6 +239,13 @@ struct IdentitySessions::Impl {
         pb::IssuerRequest request; request.set_protocol_version(1); request.mutable_info();
         const auto info = client->call(request);
         require(info.has_info(), "World issuer identity is unavailable"); issuer = info.info();
+        auxiliary_client = std::make_unique<identity::IssuerClient>(config.issuer_client_config());
+        pb::IssuerRequest auxiliary_request; auxiliary_request.set_protocol_version(1); auxiliary_request.mutable_info();
+        const auto auxiliary_info = auxiliary_client->call(auxiliary_request);
+        require(auxiliary_info.has_info() && auxiliary_info.info().issuer_id() == issuer.issuer_id() &&
+                auxiliary_info.info().public_key() == issuer.public_key(),
+                "Auxiliary world issuer connection has a different identity");
+        last_aux_exchange = Clock::now();
         if (!config.authority_directory().empty())
             authority = std::make_unique<WorldAuthority>(config.authority_directory(), world.info().world_id(), issuer.issuer_id());
         require(std::filesystem::path(config.participant_runtime_config()).is_absolute(), "World authority participant configuration is required");
@@ -475,6 +494,30 @@ struct IdentitySessions::Impl {
             try { exchange(std::move(request)); }
             catch (const WorldError&) { fail(); }
         }
+        if (!broken && !issuer_exchange_in_progress) {
+            try { maintain_auxiliary(); }
+            catch (const WorldError&) { fail(); }
+        }
+    }
+    void maintain_auxiliary() {
+        if (broken || !auxiliary_client || auxiliary_exchange_in_progress ||
+                Clock::now()-last_aux_exchange < std::chrono::seconds(1)) return;
+        auxiliary_exchange_in_progress = true;
+        struct Clear { bool& active; ~Clear() { active = false; } } clear{auxiliary_exchange_in_progress};
+        pb::IssuerRequest request; request.set_protocol_version(1); request.mutable_info();
+        try {
+            const auto reply = auxiliary_client->call(std::move(request));
+            require(reply.has_info() && reply.info().issuer_id() == issuer.issuer_id() &&
+                    reply.info().public_key() == issuer.public_key(),
+                    "Auxiliary world issuer identity changed");
+            last_aux_exchange = Clock::now();
+            last_successful_exchange.record_success(last_aux_exchange);
+        } catch (const std::exception&) {
+            std::cerr << "World auxiliary issuer maintenance failed "
+                << auxiliary_client->failure_diagnostic() << '\n';
+            fail();
+            throw WorldError(wire::UNAVAILABLE, "World auxiliary issuer connection failed");
+        }
     }
     void settle() {
         if(actors.cancellation_settled())for(auto& owned:channels){
@@ -538,29 +581,38 @@ struct IdentitySessions::Impl {
     }
     pb::IssuerReply exchange(pb::IssuerRequest request) {
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
-        if (issuer_exchange_in_progress) throw std::logic_error("Recursive world issuer exchange is not allowed");
-        issuer_exchange_in_progress = true;
-        struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{issuer_exchange_in_progress};
+        identity::IssuerClient* selected = client.get();
+        bool* selected_busy = &issuer_exchange_in_progress;
+        if (issuer_exchange_in_progress) {
+            if (!reentrant_control_dispatch || auxiliary_exchange_in_progress || !auxiliary_client)
+                throw std::logic_error("Recursive world issuer exchange is not allowed");
+            selected = auxiliary_client.get();
+            selected_busy = &auxiliary_exchange_in_progress;
+        }
+        *selected_busy = true;
+        struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{*selected_busy};
         request.set_protocol_version(1);
         const auto operation = request.has_info() ? "info" :
             request.has_credential_check() ? "credential_check" :
             request.has_actor_status() ? "actor_status" : "other";
         const auto since_last_success = last_successful_exchange.elapsed_ms(Clock::now());
         pb::IssuerReply reply;
-        try { reply = client->call(std::move(request)); }
+        try { reply = selected->call(std::move(request)); }
         catch (const CancellationFailure&) {
             std::cerr << world_diagnostic::issuer_failure_line(operation, since_last_success)
-                << " " << client->failure_diagnostic() << '\n';
+                << " " << selected->failure_diagnostic() << '\n';
             throw;
         }
         catch (const std::exception&) {
             std::cerr << world_diagnostic::issuer_failure_line(operation, since_last_success)
-                << " " << client->failure_diagnostic() << '\n';
+                << " " << selected->failure_diagnostic() << '\n';
             fail(); throw WorldError(wire::UNAVAILABLE, "World issuer connection failed");
         }
         if (broken) throw WorldError(wire::UNAVAILABLE, "World identity service is disabled");
-        last_exchange = Clock::now();
-        last_successful_exchange.record_success(last_exchange);
+        const auto completed = Clock::now();
+        if (selected == client.get()) last_exchange = completed;
+        else last_aux_exchange = completed;
+        last_successful_exchange.record_success(completed);
         if (reply.has_error()) {
             const auto code = reply.error().code();
             if (code == wire::STORAGE_ERROR || code == wire::INTERNAL_ERROR || code == wire::UNAVAILABLE) fail();
@@ -899,6 +951,13 @@ struct IdentitySessions::Impl {
                     if(channel.token.empty())throw WorldError(wire::UNAUTHORIZED,"World session was revoked");
                 }
             }
+            if(retained_movement_only && cooperative && !cooperative_stop && pure_movement(request) &&
+                    retained_authority(channel) && !navigation_allowed(channel)) {
+                const auto& action=request.has_control_action()?request.control_action():request.action();
+                require(action.token().empty(),"Actor channel cannot supply a session token");
+                actors.consume_sequence(channel.token,action.seq());
+                throw WorldError(wire::FORBIDDEN,"Navigation grant required");
+            }
             if(retained_movement_only && !cooperative_stop && (!pure_movement(request) || !retained_authority(channel) ||
                     (cooperative && !navigation_allowed(channel))))throw MotionDeferred{};
             if (request.has_close()) { disconnect(channel, "client_close"); reply.mutable_closed()->set_closed(true); return reply; }
@@ -1221,20 +1280,26 @@ struct IdentitySessions::Impl {
         lifecycle_diagnostic(channel,"reply_queued");
         stop_trace::Scope trace("stop_reply",operation.request);stop_trace::mark("stop_ticket",operation.ticket);
     }
-    void pump(bool motion_only=false) {
+    void pump(bool motion_only=false, bool refresh_only=false) {
         // Preserve maintenance cadence even when pump is used without serve's tick.
         // Applying a batch can yield during native cancellation. Its cursor is
         // not usable until every event and dependent grant has been processed.
-        if(motion_only && (pumping_motion || ticking))return;
+        if(motion_only && ticking)return;
+        if(motion_only && pumping_motion && !refresh_only)return;
+        if(refresh_only && pumping_refresh_only)return;
         struct Reset {bool& active;bool previous;~Reset(){active=previous;}} reset{pumping_motion,pumping_motion};
+        struct RefreshReset {bool& active;bool previous;~RefreshReset(){active=previous;}} refresh_reset{
+            pumping_refresh_only,pumping_refresh_only};
         if(motion_only) {
-            pumping_motion=true;
+            if(refresh_only)pumping_refresh_only=true;
+            else pumping_motion=true;
             poll_authority();
             queue_progress();
         } else tick();
         actors.progress_stops();
         const auto motion_deadline=Clock::now()+std::chrono::milliseconds(2);
-        const auto start=channels.empty()?0:motion_cursor%channels.size();unsigned dispatched=0;
+        const auto cursor=refresh_only?refresh_cursor:motion_cursor;
+        const auto start=channels.empty()?0:cursor%channels.size();unsigned dispatched=0;
         for (std::size_t visit=0;visit<channels.size();++visit) {
             if(motion_only && (dispatched>=4 || Clock::now()>=motion_deadline))break;
             const auto index=motion_only?(start+visit)%channels.size():visit;
@@ -1243,7 +1308,8 @@ struct IdentitySessions::Impl {
             complete_stop(channel);
             if(channel.stopping)continue;
             if(motion_only) {
-                motion_cursor=(index+1)%channels.size();
+                if(refresh_only)refresh_cursor=(index+1)%channels.size();
+                else motion_cursor=(index+1)%channels.size();
                 if(channel.departure || channel.pending || channel.prepared ||
                         channel.needs_observation || channel.needs_geometry_observation ||
                         (!channel.output.empty() && !channel.motion_reply && !channel.stop_reply) ||
@@ -1323,6 +1389,7 @@ struct IdentitySessions::Impl {
             const auto bytes = channel.input.substr(4, length);
             pb::WorldSessionRequest candidate;
             const bool parsed=candidate.ParseFromString(bytes);
+            if(refresh_only && (!parsed || !candidate.has_motion_refresh()))continue;
             if(motion_only && channel.in_dispatch && (!parsed || !candidate.has_motion_refresh()))continue;
             if(parsed && candidate.has_motion_refresh()) {
                 if(motion_only)++dispatched;
@@ -1347,15 +1414,17 @@ struct IdentitySessions::Impl {
             }
             const bool draft_motion=config.enable_retained_movement() && parsed &&
                 pure_movement(candidate) && !channel.token.empty();
+            const bool retained_intent=draft_motion && retained_authority(channel);
+            const bool issuer_wait_operation=motion_only && issuer_exchange_in_progress && parsed &&
+                safe_during_issuer_wait(candidate,static_cast<bool>(authority));
             if(motion_only) {
-                if(!parsed || (!pure_stop(candidate) && (!config.enable_retained_movement() ||
-                        !pure_movement(candidate) || !retained_authority(channel))))continue;
+                if(!parsed || (!pure_stop(candidate) && !retained_intent && !issuer_wait_operation))continue;
                 // A denial may require native cancellation. Defer it to the outer scheduler.
-                if(!pure_stop(candidate) && !navigation_allowed(channel))continue;
+                if(retained_intent && !navigation_allowed(channel))continue;
             }
             if (draft_motion) {
                 if (!retained_authority(channel)) continue;
-            } else if(motion_only && !pure_stop(candidate))continue;
+            } else if(motion_only && !pure_stop(candidate) && !issuer_wait_operation)continue;
             if(motion_only)++dispatched;
             const auto deferred_frame=(motion_only || draft_motion)?channel.input.substr(0,length+4):std::string{};
             const auto original_input_started=channel.input_started;
@@ -1366,13 +1435,18 @@ struct IdentitySessions::Impl {
             bool copy_status_request = false;
             const bool stopping=parsed && ((candidate.has_action() && candidate.action().has_stop()) ||
                 (candidate.has_control_action() && candidate.control_action().has_stop()));
+            struct ReentrantDispatchReset {
+                bool& active; bool previous;
+                ~ReentrantDispatchReset(){active=previous;}
+            } reentrant_reset{reentrant_control_dispatch,reentrant_control_dispatch};
+            if(issuer_wait_operation)reentrant_control_dispatch=true;
             stop_trace::Scope trace(stopping?"world":nullptr,candidate.request_id());
             if(stopping){stop_trace::mark("channel",channel.diagnostic_id);
                 stop_trace::mark("tls",bool(channel.tls));
                 stop_trace::mark("actor_sequence",candidate.has_action()?candidate.action().seq():candidate.control_action().seq());}
             pb::WorldSessionReply reply;
             try { reply = dispatch(channel, bytes, self_revocation_receipt, copy_status_request,
-                motion_only || draft_motion,motion_only); }
+                draft_motion || (motion_only && (pure_stop(candidate) || retained_intent)),motion_only); }
             catch(const StopDeferred& stop) {
                 channel.stopping=PendingActorStop{stop.ticket,candidate.request_id(),stop.sequence,
                     cancellation,stop.controlled};
@@ -1446,8 +1520,17 @@ IdentitySessions::~IdentitySessions() {
     for (auto& channel : impl_->channels) { try { impl_->disconnect(*channel, "shutdown"); } catch (const std::exception&) {} }
 }
 void IdentitySessions::set_tick(std::function<void()> callback) {
-    impl_->client->set_tick([this, callback = std::move(callback)] {
-        impl_->pump(true);callback();impl_->pump(true);
+    auto shared_callback=std::make_shared<std::function<void()>>(std::move(callback));
+    impl_->client->set_tick([this, shared_callback] {
+        impl_->pump(true);
+        if(*shared_callback)(*shared_callback)();
+        impl_->pump(true);
+        impl_->maintain_auxiliary();
+    });
+    impl_->auxiliary_client->set_tick([this, shared_callback] {
+        impl_->pump(true,true);
+        if(*shared_callback)(*shared_callback)();
+        impl_->pump(true,true);
     });
 }
 void IdentitySessions::tick() { impl_->tick(); }

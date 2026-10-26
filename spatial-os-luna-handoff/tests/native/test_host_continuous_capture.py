@@ -1,6 +1,7 @@
 """Independent human capture through the production receiver and native session."""
 import concurrent.futures
 import os
+import signal
 from pathlib import Path
 import queue
 import socket
@@ -165,6 +166,47 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
         self.wait_processed(producer.key('w'))
         self.assertTrue(self.shared('controls_tick').accepted)
         self.assertEqual(list(self.state().axes), [0, 0, -1, 0, 0, 0])
+        self.stop()
+        self.shutdown_checked()
+
+    def test_stalled_compositor_does_not_block_actor_capture_or_motion(self):
+        self.presentation_continuations_override=True
+        self.ready_host()
+        producer=self.producer()
+        compositor_pids=self.live_compositor_pids()
+        self.assertEqual(len(compositor_pids),1,compositor_pids)
+        compositor=compositor_pids[0]
+        before=self.state().pose.position
+        before_pixels=self.foreground_pixels()
+        os.kill(compositor,signal.SIGSTOP)
+        try:
+            started=time.monotonic()
+            opened=producer.key('F10')
+            self.wait_processed(opened)
+            self.assertLess(time.monotonic()-started,.25,
+                'Actor capture waited for a stalled controls presentation')
+            self.wait_processed(producer.key('F10',False))
+            closed=producer.key('Escape')
+            self.wait_processed(closed)
+            moving=producer.key('w')
+            self.wait_processed(moving)
+            time.sleep(.35)
+            after=self.state().pose.position
+            self.assertLess(after.z,before.z-.1,'Actor movement stopped with the controls presenter')
+            released=producer.key('w',False)
+            self.wait_processed(released)
+        finally:
+            try:os.kill(compositor,signal.SIGCONT)
+            except ProcessLookupError:pass
+        shown=producer.key('F10')
+        self.wait_processed(shown)
+        self.assertTrue(self.shared('controls_menu').menu.visible)
+        self.wait_processed(producer.key('F10',False))
+        deadline=time.monotonic()+2
+        pixels=self.foreground_pixels()
+        while pixels==before_pixels and time.monotonic()<deadline:
+            time.sleep(.02);pixels=self.foreground_pixels()
+        self.assertNotEqual(pixels,before_pixels,'Queued controls presentation did not appear after the compositor resumed')
         self.stop()
         self.shutdown_checked()
 

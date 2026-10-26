@@ -427,8 +427,8 @@ void HostActorController::synchronize_controls_presentation_locked() {
     if(!present_controls_ || !shared_enabled_ || !capture_generation_)return;
     control::v1::ControlMenuView view;view.set_protocol_version(1);
     if(!control_fenced_ && current_client_ && !current_client_->failed() && controls_menu_)view=controls_menu_->view();
-    if(session_ && (control_fenced_ || !current_client_ || current_client_->failed())) {
-        // Uncertainty never waits for an output receipt or claims it was shown.
+    if(session_ && (presentation_continuations_ || control_fenced_ || !current_client_ || current_client_->failed())) {
+        // Menu output is a presentation continuation. It cannot hold the actor worker.
         session_->defer_present_controls(capture_generation_,view);return;
     }
     const auto bytes=view.SerializeAsString();
