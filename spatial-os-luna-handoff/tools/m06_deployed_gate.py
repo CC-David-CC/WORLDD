@@ -1560,7 +1560,7 @@ def verify_runtime(runtime, host, profile, source):
 
 
 def materialize_xserver_launcher(runtime, directory):
-    """Expose a checked wrapper under the Xvfb name required by native tests."""
+    """Create an executable Xvfb entrypoint that runs the checked wrapper."""
     wrapper = runtime.get("xace_wrapper", {})
     wrapper_path = Path(wrapper.get("path", ""))
     expected = wrapper.get("sha256")
@@ -1577,11 +1577,16 @@ def materialize_xserver_launcher(runtime, directory):
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=False)
     launcher = directory / "Xvfb"
-    launcher.symlink_to(wrapper_path)
-    if (not launcher.is_symlink() or launcher.name != "Xvfb"
-            or launcher.resolve(strict=True) != wrapper_path.resolve(strict=True)
-            or sha(launcher) != expected):
-        raise RuntimeError("X server test launcher does not resolve to the checked wrapper")
+    launcher_bytes = ("#!/bin/sh\nexec /usr/bin/python3 "
+                      + shlex.quote(str(wrapper_path)) + ' "$@"\n').encode("utf-8")
+    launcher.write_bytes(launcher_bytes)
+    launcher.chmod(0o755)
+    if (launcher.is_symlink() or not launcher.is_file() or launcher.name != "Xvfb"
+            or launcher.read_bytes() != launcher_bytes
+            or stat.S_IMODE(launcher.stat().st_mode) != 0o755
+            or sha(wrapper_path) != expected
+            or sha(binary_path) != binary.get("sha256")):
+        raise RuntimeError("X server test launcher does not execute the checked wrapper")
     return str(launcher)
 
 

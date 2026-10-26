@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -471,17 +472,22 @@ class GateStaticTests(unittest.TestCase):
             gate.checked_runtime_xserver_mapping(
                 {'xace_wrapper': {'path': 'relative/Xvfb'}}, launcher)
 
-    def test_materialized_xserver_launcher_has_required_name_and_checked_wrapper_bytes(self):
+    def test_materialized_xserver_launcher_executes_checked_wrapper(self):
         _,runtime,row,_=self.runtime_fixture(builder='middle-child')
         wrapper=Path(row['xace_wrapper']['path'])
         binary=Path(json.loads(Path(row['server_receipt']['path']).read_text())['binaries']['Xvfb']['path'])
+        binary.write_text('#!/bin/sh\nprintf "%s\\n" "$@"\n', encoding='utf-8')
+        binary.chmod(0o755)
         row['deployed_binary']={'path':str(binary),'sha256':gate.sha(binary)}
         launcher=Path(gate.materialize_xserver_launcher(row,self.root/'attempt'/'production'))
         self.assertEqual(launcher.name,'Xvfb')
-        self.assertTrue(launcher.is_symlink())
-        self.assertEqual(launcher.resolve(strict=True),wrapper.resolve(strict=True))
-        self.assertEqual(gate.sha(launcher),gate.sha(wrapper))
+        self.assertFalse(launcher.is_symlink())
         self.assertTrue(os.access(launcher,os.X_OK))
+        self.assertEqual(launcher.read_text(encoding='utf-8'),
+                         '#!/bin/sh\nexec /usr/bin/python3 ' + shlex.quote(str(wrapper)) + ' "$@"\n')
+        result=subprocess.run([str(launcher),'--launcher-proof'],capture_output=True,text=True,check=False)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(result.stdout,'--launcher-proof\n')
 
     def test_full_inventory_relocation_is_single_pass(self):
         inventory = [dict(name='native', command=['/old/source/build/probe',

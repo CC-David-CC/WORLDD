@@ -1,0 +1,26 @@
+M10 native test launcher repair
+Status: implementation pending focused verification; M10 remains unqualified.
+
+Failure
+
+The deployed Xvfb path was a symlink to a Python wrapper without a shebang.
+Native tests execute that path directly. Linux returned Exec format error.
+World startup then failed before probe surfaces or actor actions existed.
+The failure invalidated the native setup results from focused attempt 06.
+
+Correction
+
+The shared M06 helper now writes an executable shell launcher named Xvfb.
+It starts the pinned Python wrapper with /usr/bin/python3.
+The wrapper still execs the hash-checked X server binary with its pinned graphics environment.
+M10 imports this shared M06 helper for production and observer servers.
+
+Checks selected before execution
+
+Run the M06 static gate tests on sb16 and sb16-2.
+These checks validate the launcher bytes, permissions, and executable wrapper chain.
+Run the thirteen focused M10 suites in Debug and ASan-UBSan on both hosts.
+These suites cover native startup, input refresh, actor stop, revocation, and application controls.
+Keep failed attempt 06 as setup-failure evidence. Use a new attempt for the correction.
+
+No production behavior, schema, or acceptance assertion changes in this repair.
