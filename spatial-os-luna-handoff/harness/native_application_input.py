@@ -125,3 +125,59 @@ class NativeXI2Observer:
             event=self._packet(end)
             if event is not None:self.events.append(event)
         return list(self.events)
+
+
+class NativeRawKeyObserver(NativeXI2Observer):
+    """Observe raw key edges without selecting device events on an app window.
+
+    A trusted client selects raw events on the root. Raw events identify the
+    device and source, but do not identify a destination window. An independent
+    application witness must prove delivery to its own window.
+    """
+    def __init__(self,client,window):
+        self.client=client;self.window=window;self.events=[];self.closed=False
+        self.opcode=None
+        try:
+            client.stream.setblocking(False)
+            name=b'XInputExtension'
+            ext,_=self.request(98,struct.pack('<HH',len(name),0)+name)
+            if not ext[8]:raise AssertionError('XInputExtension is missing')
+            self.opcode=ext[9]
+            version,extra=self.request(self.opcode,struct.pack('<HH',2,1),minor=47)
+            if extra or struct.unpack_from('<HH',version,8)<(2,1):
+                raise AssertionError('XI 2.1 negotiation refused')
+            geometry,extra=self.request(14,struct.pack('<I',window))
+            if extra:raise AssertionError('Unexpected geometry payload')
+            self.raw_root=struct.unpack_from('<I',geometry,8)[0]
+            mask=bytearray(4)
+            for kind in (13,14):mask[kind//8]|=1<<(kind%8)
+            client.stream.settimeout(3.0)
+            try:client.send(self.opcode,struct.pack('<IHHHH',self.raw_root,1,0,1,1)+bytes(mask),minor=46)
+            finally:client.stream.setblocking(False)
+            self.request(43)
+        except BaseException:
+            self.close();raise
+
+    def deselect(self):
+        self.client.stream.settimeout(3.0)
+        try:self.client.send(self.opcode,struct.pack('<IHHHH',self.raw_root,1,0,1,1)+bytes(4),minor=46)
+        finally:self.client.stream.setblocking(False)
+        self.request(43)
+
+    def _packet(self,deadline,header=None):
+        if header is None:header=self._exact(32,deadline)
+        if header[0]!=self.GENERIC_EVENT or header[1]!=self.opcode:
+            raise AssertionError('Unexpected raw XI2 packet')
+        size=struct.unpack_from('<I',header,4)[0]*4
+        if size>65536:raise AssertionError('Excessive raw XI2 packet')
+        data=self._exact(size,deadline)
+        kind=struct.unpack_from('<H',header,8)[0]
+        if kind not in (13,14):raise AssertionError('Unselected raw XI2 event')
+        mask_size=struct.unpack_from('<H',header,22)[0]*4
+        if mask_size>len(data) or len(data)!=mask_size+16*sum(byte.bit_count() for byte in data[:mask_size]):
+            raise AssertionError('Invalid raw XI2 valuator payload length')
+        device=struct.unpack_from('<H',header,10)[0]
+        source=struct.unpack_from('<H',header,20)[0]
+        if device<=1 or source<=1:raise AssertionError('Invalid raw XI2 device/source')
+        return {'kind':'key','type':kind,'pressed':kind==13,'device':device,'source':source,
+                'detail':struct.unpack_from('<I',header,16)[0], 'raw':True}
