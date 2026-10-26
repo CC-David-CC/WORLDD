@@ -13,7 +13,6 @@ import issuer_pb2 as issuer
 import world_session_pb2 as session
 from harness.issuer_progress import DelayedInfoIssuer, IssuerLifetimeWitness
 from harness.oracles import pose
-from harness.probe import Probe
 from test_world_identity import WorldIdentityFixture
 
 

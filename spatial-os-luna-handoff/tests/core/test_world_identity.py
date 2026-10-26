@@ -427,6 +427,8 @@ class WorldIdentityFixture(ClientFixture):
         self.configure_participant(config,[grants.Domain(kind=grants.WORLD,id=result_value(reply)['world_id'])])
     def world(self, admission=session.EXPLICIT_ACTORS, admitted=True, grants=(), native=False, state=None, count=2,
               fixture_faults=False, additional_actor_profiles=(), native_fd=None):
+        if native and native_fd is None:
+            native_fd=self.native_compositor_authority()
         client_path=self.config_file()
         client=text_format.Parse(client_path.read_text(),pb.IssuerTlsClientConfig())
         client.ClearField('io_timeout_ms')
