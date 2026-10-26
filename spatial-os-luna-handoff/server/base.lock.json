@@ -97,7 +97,7 @@
     "server/patches/0014-native-observer-xvfb-link-whole.patch": "3c1ccd66b20580737371fb963d27c3cf7ca7838dd9d819f5468ed8f5f2404aff",
     "server/patches/0015-native-observer-endpoint-argument.patch": "4d3cc019a4e28e7affe3701a3e32db6afa5253df15052778c754f0ceb43381a0",
     "server/patches/0016-native-observer-output-argument.patch": "69da2be633977916f3ac9013219a9a0f9a68d44fb3921177d136080bee2dfc10",
-    "server/xlibre/spatialinput.c": "e0d85e1ba6087708a82226bd282f74240bfba451d207fd39dd1924b73ec50a37",
+    "server/xlibre/spatialinput.c": "878e75c4068e41a50a48b609d5ee42a10ffacaaa78646afca9ec98463dc7b96e",
     "server/xlibre/spatialinput.h": "1889edd8432ffcf90d1bb7317c0b32c2c8fa033a23b9e0753a1ada4c3fce9d3e",
     "server/xlibre/meson.build": "8683b92f62a72a037fcf949b395c3a67fd05de98b90cf9ffcad910b2d3552496",
     "proto/spatial/input/v1/input.proto": "7c0473c6c9e3099036e29154b4c7bb78511ebc0a5da5f4648dd28c39ca36e5b8",
