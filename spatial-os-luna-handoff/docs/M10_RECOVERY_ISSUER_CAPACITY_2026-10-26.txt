@@ -1,0 +1,30 @@
+M10 recovery fixture issuer capacity
+
+The frozen candidate d3c469d139cb97f59e059066727917347f39bbbf failed the
+actor-transition-recovery group while starting its second world. The fixture issuer
+accepted at most eight connections. The world reported an issuer TLS failure.
+
+On sb16, a diagnostic ran the unchanged departure-before-commit assertion twice.
+An independent sampler counted established connections at the issuer's local port.
+With a limit of eight, the test failed at second-world startup. The sampler observed
+eight established connections. With a limit of 32, the test passed. The sampler
+observed up to eleven established connections. These results identify a fixture
+capacity problem for this scenario. They do not qualify other recovery cases.
+
+The recovery fixture now sets its issuer connection limit to 32 before launch.
+The original recovery assertions, issuer authority checks, and production limits
+remain unchanged. The complete recovery group passed on both hosts in Debug, using
+the frozen runtime and the corrected fixture. Each host ran all four cases. Recheck
+the group on the final integrated candidate before qualification.
+
+Evidence on sb16:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/recovery-capacity-8-retry1
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/recovery-capacity-8-retry1
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/recovery-capacity-32
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/recovery-capacity-32
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/recovery-fixture-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/recovery-fixture-01
+
+The earlier recovery-capacity-8 attempt failed in setup because its diagnostic
+environment variable did not cross the resource wrapper. It did not run the recovery
+assertion. Its evidence is retained separately.

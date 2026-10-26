@@ -29,6 +29,19 @@ class ActorTransitionRecoveryTests(existing.SessionReplacementTests):
     coordinator_probe = 'spatial-actor-transition-recovery-probe'
     shared_presentation = True
 
+    def issuer_fixture(self):
+        fixture = super().issuer_fixture()
+        launch = fixture.launch
+
+        def launch_for_two_worlds(address='127.0.0.1'):
+            # The live broker and two world authorities need more than the
+            # base fixture's eight concurrent issuer connections.
+            fixture.config.connection_limit = 32
+            return launch(address)
+
+        fixture.launch = launch_for_two_worlds
+        return fixture
+
     def setUp(self):
         super().setUp()
         register = self.issuer.register
