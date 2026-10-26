@@ -40,6 +40,7 @@ class RelayingIssuer:
         self.status_lock = threading.Lock(); self.status_seen = 0; self.trigger_after_status = 1
         self.delayed_credential_actor_id = delayed_credential_actor_id
         self.credential_delay_seconds = credential_delay_seconds
+        self.credential_delay_release = None
         self.credential_delay_armed = threading.Event(); self.credential_delay_entered = threading.Event()
         self.credential_delay_finished = threading.Event(); self.credential_delay_records = []
         self.streams = []; self.workers = []; self.before_reply = None
@@ -97,7 +98,10 @@ class RelayingIssuer:
                                 self.credential_delay_armed.clear(); delay_credential = True
                 if delay_credential:
                     started = time.monotonic(); self.credential_delay_entered.set()
-                    time.sleep(self.credential_delay_seconds)
+                    if self.credential_delay_release is None:
+                        time.sleep(self.credential_delay_seconds)
+                    elif not self.credential_delay_release.wait(10):
+                        raise AssertionError('Delayed credential reply was not released')
                     self.credential_delay_records.append(dict(elapsed_seconds=time.monotonic()-started))
                     self.credential_delay_finished.set()
                 if self.before_reply: self.before_reply(request, reply)
@@ -299,6 +303,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
         third = self.claims(third_record, self.info)
         relay = RelayingIssuer(self, lambda: None, delayed_credential_actor_id=third.actor_id,
             credential_delay_seconds=1)
+        relay.credential_delay_release = threading.Event()
         world = self.scoped_world(session.REGISTERED_ACTORS, issuer_port=relay.port,
             peer_count=3, input_timeout=.25)
         child = self.grant_to_second(world, [grant.WORLD_NAVIGATE])
@@ -310,28 +315,31 @@ class WorldAuthorityTests(WorldIdentityFixture):
         relay.credential_delay_armed.set()
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
             authentication = pool.submit(self.authenticate, authenticating, third_record, third_key, third_public)
-            self.assertTrue(relay.credential_delay_entered.wait(3), 'Third actor did not enter the delayed credential check')
-            started = time.monotonic()
-            refreshes = []
-            request = core.ActorInputRequest(axes=[1, 0, 0, 0, 0, 0])
-            while time.monotonic() - started < .4:
-                moving.motion_refresh(request)
-                refreshes.append(time.monotonic())
-                time.sleep(.08)
-            moving_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
-            self.assertGreater(moving_pose-before_pose, .08, 'Actor did not move during unrelated authentication')
-            self.assertFalse(relay.credential_delay_finished.is_set(), 'Authentication delay ended before grant revocation')
-            revoked = self.revoke_grant(owner, child)
-            self.assertTrue(revoked.HasField('grant'), revoked)
-            self.denied(self.navigation(moving), core.FORBIDDEN)
-            stopped_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
-            time.sleep(.12)
-            final_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
-            gaps = [later-earlier for earlier, later in zip(refreshes, refreshes[1:])]
-            still_pending = not relay.credential_delay_finished.is_set()
-            self.assertTrue(still_pending, 'Authentication delay ended before revocation stopped movement')
-            self.assertTrue(all(gap < .25 for gap in gaps), gaps)
-            self.assertEqual(stopped_pose, final_pose, 'Revoked actor continued moving')
+            try:
+                self.assertTrue(relay.credential_delay_entered.wait(3), 'Third actor did not enter the delayed credential check')
+                started = time.monotonic()
+                refreshes = []
+                request = core.ActorInputRequest(axes=[1, 0, 0, 0, 0, 0])
+                while time.monotonic() - started < .4:
+                    moving.motion_refresh(request)
+                    refreshes.append(time.monotonic())
+                    time.sleep(.08)
+                moving_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+                self.assertGreater(moving_pose-before_pose, .08, 'Actor did not move during unrelated authentication')
+                self.assertFalse(relay.credential_delay_finished.is_set(), 'Authentication delay ended before grant revocation')
+                revoked = self.revoke_grant(owner, child)
+                self.assertTrue(revoked.HasField('grant'), revoked)
+                self.denied(self.navigation(moving), core.FORBIDDEN)
+                stopped_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+                time.sleep(.12)
+                final_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+                gaps = [later-earlier for earlier, later in zip(refreshes, refreshes[1:])]
+                still_pending = not relay.credential_delay_finished.is_set()
+                self.assertTrue(still_pending, 'Authentication delay ended before revocation stopped movement')
+                self.assertTrue(all(gap < .25 for gap in gaps), gaps)
+                self.assertEqual(stopped_pose, final_pose, 'Revoked actor continued moving')
+            finally:
+                relay.credential_delay_release.set()
             self.assertTrue(relay.credential_delay_finished.wait(3), 'Unrelated actor authentication did not recover')
             authenticated = authentication.result(timeout=3)
         self.assertTrue(authenticated.HasField('opened'), authenticated)
