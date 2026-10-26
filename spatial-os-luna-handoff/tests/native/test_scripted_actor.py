@@ -259,7 +259,12 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
             time.sleep(.01)
 
     def test_human_and_two_scripted_actors_navigate_independently(self):
+        self.retained_movement_override = True
         human = self.ready_host()
+        policy = text_format.Parse((self.root/'scripted-world-policy.textproto').read_text(),
+                                   world.WorldIdentityConfig())
+        self.assertTrue(policy.enable_retained_movement,
+                        'Three-actor liveness check requires the M10 refresh path')
         producer = self.producer()
         first, second = self.scripted_peer(0), self.scripted_peer(1)
         self.assertEqual(len({human.inspection.state.id, first.initial.state.id, second.initial.state.id}), 3)
