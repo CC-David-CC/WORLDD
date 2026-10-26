@@ -1,6 +1,9 @@
 M10 actor seats, input liveness, and overload contract
 Status: implementation in progress. M10 remains unqualified.
 
+The exact retained-refresh test-contract correction is recorded in
+`docs/M10_RETAINED_REFRESH_TEST_CONTRACT_REVISION_2026-10-25.txt`.
+
 This contract change combines the M10 movement-liveness and native-input fixes.
 It preserves the actor authorization boundary and the existing 250 ms motion expiry.
 It does not change any locked acceptance assertion.

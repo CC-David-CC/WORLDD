@@ -1,0 +1,102 @@
+M10 retained refresh test-contract revision
+Date: 2026-10-25
+Status: reviewed contract correction; candidate remains unqualified.
+
+Source pin and review
+
+Base candidate: 3548729a146dca847932dd28f5767367cf00a427.
+The independent review confirmed a mismatch between the 2026-10-24 retained-presentation
+draft and the 2026-10-25 input-liveness contract. The review made no source changes and
+ran no tests.
+
+Exact contradiction
+
+The 2026-10-24 draft required a new participant progress receipt after each motion ingress.
+The 2026-10-25 contract removes that barrier so an authenticated actor can refresh movement
+while rendering, broker work, or another actor's authentication is slow. `queue_progress()`
+requests the initial receipt only. The two old world-participant tests armed a fault after
+the initial receipt and then waited for another progress command. Both waits were for a
+request that the current contract deliberately removed.
+
+The R9 Debug runs reproduced the mismatch on sb16 and sb16-2. CTest test #90,
+`world-participant`, failed in both runs. The exact failing cases were
+`test_failed_retained_check_cancels_active_motion_and_stays_disabled` and
+`test_failed_retained_checks_never_apply_or_fall_back`. Preserve the full host logs and
+source pins with the R9 attempt records. The failures do not establish a revocation-path
+failure.
+
+Neither test module nor either test ID appears in `acceptance.lock.json`. This revision
+does not edit the lock.
+
+Corrected invariant
+
+Retained movement requires one valid initial participant proof. The world checks its
+identity, service incarnation, activation generation, feed cursor, and sequence. No
+movement may use the ordinary dispatch path while that proof is missing or invalid.
+
+After the initial proof, an authenticated actor may refresh only current movement intent.
+Each refresh still checks the actor session, token, sequence, navigation grant, live
+participant, checked revocation feed, and target generation. Refresh does not request a new
+participant progress receipt or wait for an issuer, broker, or renderer reply. The world
+consumes feed events before applying queued refreshes. It cancels movement and held input
+when it consumes a matching event. Participant loss, a bad feed, stale incarnation, bad
+refresh, or sequence failure disables the path and closes the actor channel. There is no
+fallback to ordinary dispatch. Unrefreshed movement still expires after 250 ms.
+
+For retained refresh, an issuer revocation commit is not itself evidence that the world
+received the corresponding feed event. Until delivery, the world acts on its latest
+checked feed. The strict default-off checked-dispatch test continues to require a direct
+current-status check. The retained-mode test now records this distinct ordering: refreshes
+continue while the revocation event is held, then stop when the event is delivered and
+consumed. This is the explicit feed boundary in the 2026-10-25 contract.
+
+Why the correction does not weaken authorization
+
+The initial proof remains mandatory. Every refresh uses the same authenticated actor
+session and navigation authority. No caller-controlled identity, stale target, malformed
+sequence, or unchecked feed can authorize movement. A consumed revocation cancels the
+actor before later refreshes apply. Participant or feed failure closes the channel and
+releases motion without waiting for the 250 ms intent expiry. The old direct-status test
+remains pinned to checked-dispatch mode. The new retained-mode case separately verifies
+the liveness ordering and cancellation after feed delivery.
+
+Counterexamples retained or added
+
+- Invalid initial generation, cursor, or replayed progress sequence cannot enable motion.
+- A refresh sent before the initial proof is accepted cannot move the actor or fall back.
+- Losing the checked participant after motion starts closes the actor channel and stops
+  motion before the ten-second fixture expiry.
+- A held revocation event leaves the issuer barrier pending. Retained refresh remains
+  live during that interval, then movement stops after the event is consumed.
+- Existing renderer, broker, and second-actor authentication regressions continue to
+  cover movement progress during unrelated slow operations.
+
+Selected checks for this correction
+
+Run the complete changed participant suite from the new source worktree. It covers the
+initial proof, participant-loss, and feed-order cases. Run the issuer-progress and
+workspace-authority suites afterward because they cover delayed issuer and broker paths.
+The current Debug binaries predate this test-only change; the edited tests import them
+from the external build directory.
+
+```sh
+env SPATIAL_TEST_RETAINED_MOVEMENT=0 \
+  PYTHONPATH=/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug/python:/home/dflanag3/src/m10-retained-refresh-contract-20261025/spatial-os-luna-handoff:/home/dflanag3/src/m10-retained-refresh-contract-20261025/spatial-os-luna-handoff/tests/core \
+  /usr/bin/python3 -B /home/dflanag3/src/m10-retained-refresh-contract-20261025/spatial-os-luna-handoff/tests/core/test_world_participant.py \
+  /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug/identityd \
+  /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug/spatial-issuer-client \
+  /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/build-Debug/worldd
+```
+
+Focused result: `world-participant` passed 11/11 in 13.1 seconds with
+`SPATIAL_TEST_RETAINED_MOVEMENT=0`, then 11/11 in 13.0 seconds with the setting equal to
+`1`. Both logs are stored outside Git under
+`/home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/runs/`.
+
+The test-display wrapper restricts native display tests to sb16 and sb16-2. Therefore the
+issuer-progress and workspace-authority checks remain selected and unrun locally. Run them
+with the next deployed candidate on both required hosts. These local Debug checks do not
+replace that run or qualify M10.
+
+Do not treat these focused checks as the M10 gate. The full Debug, sanitizer, harness,
+native, recovery, performance, and physical-input gates remain required on sb16 and sb16-2.

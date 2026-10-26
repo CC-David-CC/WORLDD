@@ -63,7 +63,7 @@ class CheckedParticipantParent:
         self.fixture=fixture;self.parent,self.child=socket.socketpair();self.parent.settimeout(3)
         self.stop=threading.Event();self.armed=threading.Event();self.held=threading.Event()
         self.release=threading.Event();self.warmed=threading.Event();self.errors=[];self.mode=None
-        self.sequence=0;self.active=None;self.closed=False
+        self.sequence=0;self.progress_requests=0;self.active=None;self.closed=False
         incarnation=os.urandom(32);self.peer=fixture.connect()
         reply=self.peer.call(authority_authentication_begin=issuer.AuthorityAuthenticationBegin(
             participant_id=fixture.definition.id,registered_revision=1,service_incarnation=incarnation))
@@ -95,6 +95,7 @@ class CheckedParticipantParent:
                 command=receive(self.parent.recv,self.parent,issuer.ParticipantCommand)
                 operation=command.WhichOneof('operation')
                 if operation=='progress':
+                    self.progress_requests+=1
                     batch=self.read_feed();self.sequence+=1
                     progress=issuer.AuthorityProgress(activation=self.active,feed_sequence=self.sequence,
                         through_revision=batch.through_revision,head_revision=batch.head_revision)
@@ -134,6 +135,14 @@ class CheckedParticipantParent:
             self.fixture.assertTrue(reply.HasField('authority_activation'),reply)
         self.peer.close()
         if self.errors:raise self.errors[0]
+    def disconnect(self):
+        """Drop the checked participant channel without acknowledging release."""
+        self.stop.set();self.release.set()
+        try:self.parent.shutdown(socket.SHUT_RDWR)
+        except OSError:pass
+        self.thread.join(3)
+        self.fixture.assertFalse(self.thread.is_alive(),'Private parent did not stop after channel loss')
+        self.parent.close()
 
 
 class WorldParticipantFixture(WorldIdentityFixture):
@@ -181,44 +190,42 @@ class WorldParticipantFixture(WorldIdentityFixture):
 
 
 class WorldParticipantTests(WorldParticipantFixture):
-    def test_failed_retained_check_cancels_active_motion_and_stays_disabled(self):
+    def test_retained_motion_stops_when_checked_participant_is_lost(self):
         self.retained_movement_override=True
         # The ten-second fixture expiry cannot explain cancellation in this test.
         settings=text_format.Parse(self.runtime_path.read_text(),core.RuntimeConfig())
         self.assertEqual(settings.input_timeout,10)
-        for mode in ('generation','cursor','replay'):
-            with self.subTest(mode=mode):
-                parent=CheckedParticipantParent(self);parent.mode=mode
-                world=self.start_world(private_parent=parent);world.management('system.hello')
-                peer=world.peers[0];opened=self.authenticate(peer)
-                self.assertTrue(opened.HasField('opened'),opened);actor=opened.opened.actor_id
-                self.assertTrue(parent.warmed.wait(2))
-                initial=world.management('world.get',id=actor)['pose']
-                self.assertTrue(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])).action.accepted)
-                time.sleep(.05)
-                moving=world.management('world.get',id=actor)['pose']
-                self.assertGreater(moving['p'][0],initial['p'][0],'Positive control did not move the real actor')
-                parent.armed.set();peer.sequence+=1;peer.action_sequence+=1
-                request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
-                    action=core.ActorActionRequest(seq=peer.action_sequence,input=core.ActorInputRequest(axes=[-1,0,0,0,0,0])))
-                peer.stream.sendall(frame(request));self.assertTrue(parent.held.wait(2))
-                self.assertFalse(select.select([peer.stream],[],[],.05)[0],'Unchecked refresh produced a receipt')
-                failed_at=time.monotonic();parent.release.set()
-                reply=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
-                self.denied(reply,core.UNAVAILABLE)
-                stopped=world.management('world.get',id=actor)['pose']
-                time.sleep(.15)
-                self.assertEqual(world.management('world.get',id=actor)['pose'],stopped,
-                    'Failed retained proof left previously authorized motion running')
-                for _ in range(3):
-                    self.denied(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])),core.UNAVAILABLE)
-                    self.assertEqual(world.management('world.get',id=actor)['pose'],stopped,
-                        'Failed retained proof recovered through cached authority or fallback')
-                self.assertLess(time.monotonic()-failed_at,settings.input_timeout,
-                    'Input expiry could explain the observed cancellation')
-                world.close();self.assertEqual(world.proc.returncode,2)
-                self.assertEqual(self.activations()[-1][2],1,'Failure discarded its unresolved issuer obligation')
-                parent.close();self.assertEqual(self.activations()[-1][2],0)
+        parent=CheckedParticipantParent(self)
+        world=self.start_world(private_parent=parent);world.management('system.hello')
+        peer=world.peers[0];opened=self.authenticate(peer)
+        self.assertTrue(opened.HasField('opened'),opened);actor=opened.opened.actor_id
+        self.assertTrue(parent.warmed.wait(2))
+        self.assertEqual(parent.progress_requests,1,'Retained mode needs one initial checked progress receipt')
+        time.sleep(.05)
+        initial=world.management('world.get',id=actor)['pose']
+        peer.motion_refresh(core.ActorInputRequest(axes=[1,0,0,0,0,0]))
+        moving=self.until(lambda:world.management('world.get',id=actor)['pose'],
+            lambda pose:pose['p'][0]>initial['p'][0])
+        self.assertEqual(parent.progress_requests,1,'A movement refresh requested another progress round trip')
+        failed_at=time.monotonic();parent.disconnect()
+        deadline=time.monotonic()+2
+        while 'participant_failed' not in Path(world.log.name).read_text():
+            if time.monotonic()>deadline:self.fail('World did not detect checked participant loss')
+            time.sleep(.01)
+        try:peer.motion_refresh(core.ActorInputRequest(axes=[-1,0,0,0,0,0]))
+        except OSError:pass
+        self.assertTrue(select.select([peer.stream],[],[],2)[0],'Participant loss left the actor channel live')
+        self.assertEqual(peer.stream.recv(1),b'','Participant loss did not close the retained actor channel')
+        stopped=world.management('world.get',id=actor)['pose']
+        time.sleep(.15)
+        self.assertEqual(world.management('world.get',id=actor)['pose'],stopped,
+            'Participant loss left previously authorized motion running')
+        self.assertLess(time.monotonic()-failed_at,settings.input_timeout,
+            'Input expiry could explain the observed cancellation')
+        self.assertGreater(moving['p'][0],initial['p'][0])
+        world.close();self.assertEqual(world.proc.returncode,2)
+        self.assertEqual(self.activations()[-1][2],1,'Failure discarded its unresolved issuer obligation')
+        parent.close();self.assertEqual(self.activations()[-1][2],0)
 
     def test_pending_retained_check_preserves_frame_without_motion(self):
         self.retained_movement_override=True
@@ -242,34 +249,39 @@ class WorldParticipantTests(WorldParticipantFixture):
         self.assertTrue(peer.act(stop=core.ActorStopRequest()).action.accepted)
         world.close();self.assertEqual(world.proc.returncode,0);parent.close()
 
-    def test_failed_retained_checks_never_apply_or_fall_back(self):
+    def test_invalid_initial_retained_proofs_never_apply_or_fall_back(self):
         self.retained_movement_override=True
+        settings=text_format.Parse(self.runtime_path.read_text(),core.RuntimeConfig())
+        settings.input_timeout=10;self.runtime_path.write_text(text_format.MessageToString(settings))
         for mode in ('generation','cursor','replay'):
             with self.subTest(mode=mode):
-                parent=CheckedParticipantParent(self);parent.mode=mode
+                parent=CheckedParticipantParent(self);parent.mode=mode;parent.armed.set()
                 world=self.start_world(private_parent=parent);world.management('system.hello')
                 peer=world.peers[0];opened=self.authenticate(peer)
                 self.assertTrue(opened.HasField('opened'),opened);actor=opened.opened.actor_id
-                self.assertTrue(parent.warmed.wait(2));before=world.management('world.get',id=actor)['pose']
-                parent.armed.set();peer.sequence+=1;peer.action_sequence+=1
-                request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
-                    action=core.ActorActionRequest(seq=peer.action_sequence,input=core.ActorInputRequest(axes=[1,0,0,0,0,0])))
-                peer.stream.sendall(frame(request));self.assertTrue(parent.held.wait(2))
-                self.assertFalse(select.select([peer.stream],[],[],.1)[0])
-                self.assertEqual(world.management('world.get',id=actor)['pose'],before)
+                self.assertTrue(parent.held.wait(2),'Initial retained proof was not requested')
+                self.assertEqual(parent.progress_requests,1)
+                before=world.management('world.get',id=actor)['pose']
+                peer.motion_refresh(core.ActorInputRequest(axes=[1,0,0,0,0,0]))
+                self.assertTrue(select.select([peer.stream],[],[],1)[0],
+                    'Motion without the initial checked proof was not rejected')
+                self.assertEqual(peer.stream.recv(1),b'','Missing initial proof used ordinary action dispatch')
+                self.assertEqual(world.management('world.get',id=actor)['pose'],before,
+                    'Motion applied before the initial checked proof')
                 parent.release.set()
-                reply=receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
-                self.denied(reply,core.UNAVAILABLE)
+                self.assertTrue(parent.warmed.wait(2))
+                deadline=time.monotonic()+2
+                while 'Invalid private authority progress identity or cursor' not in Path(world.log.name).read_text():
+                    if time.monotonic()>deadline:self.fail('Invalid initial retained proof did not disable world identity')
+                    time.sleep(.01)
                 self.assertEqual(world.management('world.get',id=actor)['pose'],before)
-                self.denied(peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0])),core.UNAVAILABLE)
-                self.assertEqual(world.management('world.get',id=actor)['pose'],before)
-                world.log.flush()
-                self.assertIn('Invalid private authority progress identity or cursor',Path(world.log.name).read_text())
                 world.close();self.assertEqual(world.proc.returncode,2)
                 self.assertEqual(self.activations()[-1][2],1,'Failure must preserve the unresolved issuer obligation')
                 parent.close();self.assertEqual(self.activations()[-1][2],0)
 
     def test_committed_revoke_blocks_fresh_movement_while_feed_is_held(self):
+        # This asserts legacy checked-dispatch behavior. Retained M10 refresh has a separate test.
+        self.retained_movement_override=False
         settings=text_format.Parse(self.runtime_path.read_text(),core.RuntimeConfig())
         settings.input_timeout=.25;self.runtime_path.write_text(text_format.MessageToString(settings))
         relay=HeldRevocationRelay(self);world=self.start_world(relay);world.management('system.hello')
@@ -299,6 +311,45 @@ class WorldParticipantTests(WorldParticipantFixture):
         reply=early if early is not None else receive(peer.stream.recv,peer.stream,session.WorldSessionReply)
         self.denied(reply,core.UNAUTHORIZED)
         self.until(self.barrier,lambda value:value.complete)
+        world.close();self.assertEqual(world.proc.returncode,0)
+
+    def test_retained_refresh_uses_last_checked_feed_until_revocation_delivery(self):
+        self.retained_movement_override=True
+        settings=text_format.Parse(self.runtime_path.read_text(),core.RuntimeConfig())
+        settings.input_timeout=10;self.runtime_path.write_text(text_format.MessageToString(settings))
+        relay=HeldRevocationRelay(self);world=self.start_world(relay);world.management('system.hello')
+        peer=world.peers[0];opened=self.authenticate(peer)
+        self.assertTrue(opened.HasField('opened'),opened);actor=opened.opened.actor_id
+        # Wait for the initial checked feed before testing retained refreshes.
+        time.sleep(.3)
+        start=world.management('world.get',id=actor)['pose']['p']
+        peer.motion_refresh(core.ActorInputRequest(axes=[1,0,0,0,0,0]))
+        moving=self.until(lambda:world.management('world.get',id=actor)['pose']['p'],
+            lambda position:position[0]>start[0])
+        self.assertGreater(moving[0],start[0])
+        self.revoke_now();self.assertTrue(relay.held.wait(.3));self.assertFalse(relay.delivered.is_set())
+        self.assertEqual(self.barrier().pending_count,1)
+        before=world.management('world.get',id=actor)['pose']['p']
+        refresh_times=[]
+        for _ in range(8):
+            refresh_times.append(time.monotonic())
+            peer.motion_refresh(core.ActorInputRequest(axes=[0,1,0,0,0,0]))
+            time.sleep(.04)
+        self.assertLess(max(b-a for a,b in zip(refresh_times,refresh_times[1:])),.25,
+            'Refresh source exceeded the 250 ms intent expiry')
+        self.assertFalse(relay.delivered.is_set(),'Revocation event was delivered during the held-feed interval')
+        after=world.management('world.get',id=actor)['pose']['p']
+        self.assertGreater(after[1],before[1],'Retained refresh waited for the held authority response')
+        relay.release.set();self.assertTrue(relay.delivered.wait(.3))
+        self.until(self.barrier,lambda value:value.complete)
+        stopped=world.management('world.get',id=actor)['pose'];time.sleep(.15)
+        self.assertEqual(world.management('world.get',id=actor)['pose'],stopped,
+            'Consumed revocation left movement active')
+        try:peer.motion_refresh(core.ActorInputRequest(axes=[0,-1,0,0,0,0]))
+        except OSError:pass
+        time.sleep(.1)
+        self.assertEqual(world.management('world.get',id=actor)['pose'],stopped,
+            'A post-revocation refresh restarted movement')
         world.close();self.assertEqual(world.proc.returncode,0)
 
     def test_actor_serving_world_requires_participant_configuration(self):
