@@ -1,0 +1,28 @@
+M10 native participant fixture correction
+
+The native revocation fixture now launches a real workspace broker and a confined
+probe application. Its issuer registers both the workspace and world participants.
+The previous test expected one participant, although both participants now join the
+revocation barrier. On both hosts, the corrected registration reached the barrier
+and reported two participants, one pending, and incomplete.
+
+The two native tests now require exactly two participants and one pending obligation
+while the compositor is stopped. Completion requires both participants. The world
+activation query now selects the exact registered world participant instead of
+assuming that the issuer database contains no workspace activation. It still requires
+the world activation to be released at the applied revision. Native key and button
+release, denial, and late-input assertions remain in place.
+
+This correction still fails if either participant is missing, the issuer reports
+completion while the world obligation is pending, the world activation remains live,
+or native release and stale-input checks fail. Both corrected scenarios passed in
+Debug on sb16 and sb16-2 with the frozen runtime and the corrected fixture overlay.
+Run them again on the final integrated candidate before qualification.
+
+The earlier focused failure evidence is retained on both hosts under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/participant-fixtures-02
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/participant-fixtures-02
+
+The passing focused evidence is retained on both hosts under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/participant-fixtures-03
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/participant-fixtures-03

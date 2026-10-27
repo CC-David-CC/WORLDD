@@ -169,7 +169,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
             private_channels['input_witness_fd'] = input_witness_fd
         if presentation is not None:
             private_channels['presentation'] = presentation
-        if native and native_fd is None:
+        if native and native_fd is None and presentation is None:
             native_fd=self.native_compositor_authority()
         if native_fd is not None:
             private_channels['native_fd'] = native_fd

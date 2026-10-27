@@ -18,6 +18,7 @@ public:
     void check();
     void reset();
     bool connected() const;
+    int transport_fd() const;
     int socket_fd() const;
     const std::string& number() const;
     const std::string& server_id() const;

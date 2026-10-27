@@ -145,6 +145,7 @@ std::pair<std::string, std::string> NativeChannel::request(unsigned major, std::
 }
 void NativeChannel::reset() { impl_->channel.reset(); }
 bool NativeChannel::connected() const { return impl_->channel.value >= 0; }
+int NativeChannel::transport_fd() const { return impl_->channel.value; }
 int NativeChannel::socket_fd() const { return impl_->socket_path.value; }
 const std::string& NativeChannel::number() const { return impl_->number; }
 const std::string& NativeChannel::server_id() const { return impl_->server_id; }

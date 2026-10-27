@@ -49,6 +49,7 @@ typedef struct ApplicationInput ApplicationInput;
 typedef struct SeatRec {
     struct SeatRec *next;
     ClientPtr owner;
+    ClientPtr guardian;
     uint64_t id;
     DeviceIntPtr pointer, keyboard, pointer_slave, keyboard_slave;
     XID target, focus;
@@ -514,6 +515,12 @@ static void client_state(CallbackListPtr *list, void *unused, void *data)
     for (SeatRec *seat = seats, *next; seat; seat = next) {
         next = seat->next;
         if (seat->owner == info->client) close_seat(seat);
+        else if (seat->guardian == info->client) {
+            /* Keep the owner alive, but never leave it an unguarded seat. */
+            seat->guardian = NULL;
+            cancel(seat);
+            seat->revoked = TRUE;
+        }
     }
 }
 
@@ -583,6 +590,20 @@ static void operate(ClientPtr client, const Request *request, Reply *reply, Targ
         reply->code = CODE(INVALID_ARGUMENT); return;
     }
     *last = request->request_id;
+    if (request->operation_case == OP(GUARD)) {
+        if (!request->guard || !request->guard->id) {
+            reply->code = CODE(INVALID_ARGUMENT); return;
+        }
+        for (seat = seats; seat; seat = seat->next)
+            if (seat->id == request->guard->id) break;
+        if (!seat) { reply->code = CODE(NO_SEAT); return; }
+        if (client == seat->owner || !SpatialSecuritySameInputController(client, seat->owner) ||
+            seat->revoked || (seat->guardian && seat->guardian != client)) {
+            reply->code = CODE(FORBIDDEN); return;
+        }
+        seat->guardian = client;
+        return;
+    }
     if (request->operation_case == OP(REVOKE)) {
         if (!request->revoke || !request->revoke->id) {
             invalid_input_diagnostic(client,request,"missing revoke seat id");

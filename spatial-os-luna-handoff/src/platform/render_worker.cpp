@@ -1,5 +1,6 @@
 #include "platform/render_worker.hpp"
 #include "core/scene.hpp"
+#include "core/stop_trace.hpp"
 #include "platform/presentation_stream.hpp"
 #include "platform/process_handle.hpp"
 #include "presentation.pb.h"
@@ -461,6 +462,7 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std
                     if(poll(&output,1,10)<0 && errno!=EINTR)throw std::runtime_error("Shared compositor send poll failed");
                 }
             }
+            if (command.has_input()) { stop_trace::Scope trace("renderer_input_sent", command.request_id()); }
             reply=receive();
             if(reply.request_id()!=sequence_)throw std::runtime_error("Shared compositor response identity mismatch");
         }catch(...){
@@ -491,6 +493,7 @@ wire::RenderResult RenderWorker::exchange(wire::RenderCommand command, const std
         if (count <= 0) throw std::runtime_error("Cannot submit compositor scene");
         sent += static_cast<std::size_t>(count);
     }
+    if (command.has_input()) { stop_trace::Scope trace("renderer_input_sent", command.request_id()); }
     const auto reply = receive();
     if (reply.request_id() != sequence_) throw std::runtime_error("Compositor response identity mismatch");
     if (reply.has_error()) throw WorldError(reply.error().code(), reply.error().message().c_str());

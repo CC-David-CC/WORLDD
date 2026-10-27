@@ -159,7 +159,9 @@ class WorldParticipantFixture(WorldIdentityFixture):
         self.signer,self.public=self.key('world-service')
         self.definition=issuer.AuthorityParticipant(id=b'w'*32,public_key=self.public,domains=[grants.Domain(kind=grants.WORLD,id=self.world_id)])
         peer=self.connect();op=issuer.IssuerOperation(participant_register=issuer.AuthorityParticipantRegister(participant=self.definition,expected_registry_revision=0))
-        result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result);peer.close()
+        result=self.execute(peer,self.challenge(peer,op));self.assertTrue(result.HasField('participant'),result)
+        self.registry_revision=result.participant.registered_revision
+        peer.close()
     def start_world(self,relay=None,participate=True,state=None,native=False,private_parent=None,fixture_faults=False,
                     native_fd=None,broker=None,actor_grants=None):
         # Actor queries and participant traffic use separate, independently authenticated TLS connections.

@@ -108,9 +108,15 @@ class SessionApplicationTests(existing.SessionActorTests):
             scope=grants.Scope(domain=grants.Domain(kind=grants.WORKSPACE, id=WORKSPACE)), rights=RIGHTS)]
 
     def world_grant_roots(self):
-        return [grants.GrantTerms(subject=self.principal,
+        roots = [grants.GrantTerms(subject=self.principal,
             scope=grants.Scope(domain=grants.Domain(kind=grants.WORLD, id=self.world_domain)),
             rights=[grants.WORLD_ENTER, grants.WORLD_NAVIGATE, grants.WORLD_OBSERVE, grants.WORLD_MANIPULATE])]
+        second = getattr(self, 'second_principal', None)
+        if second:
+            roots.append(grants.GrantTerms(subject=second,
+                scope=grants.Scope(domain=grants.Domain(kind=grants.WORLD, id=self.world_domain)),
+                rights=[grants.WORLD_ENTER, grants.WORLD_NAVIGATE, grants.WORLD_OBSERVE]))
+        return roots
 
     def broker_config(self, target=38):
         config = super().broker_config(target)
@@ -177,9 +183,16 @@ class SessionApplicationTests(existing.SessionActorTests):
         result = subprocess.run([config.launch.executable, '--state-dir', str(self.root / 'world'),
             '--init-authority', str(self.config_file('world-seed', seed))], capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
+        admitted_actor_ids = [self.claims.actor_id]
+        actor_grants = [session.WorldActorGrants(actor_id=self.claims.actor_id,
+            grants=['navigate', 'interact', 'observe'])]
+        second = getattr(self, 'second_claims', None)
+        if second:
+            admitted_actor_ids.append(second.actor_id)
+            actor_grants.append(session.WorldActorGrants(actor_id=second.actor_id, grants=['navigate']))
         policy = session.WorldIdentityConfig(protocol_version=1, issuer_client_config=str(self.issuer.config_file()),
             participant_runtime_config=config.child_participant_config, admission=session.EXPLICIT_ACTORS,
-            authority_directory=str(directory))
+            admitted_actor_ids=admitted_actor_ids, actor_grants=actor_grants, authority_directory=str(directory))
         self.config_file('actor-identity', policy)
         runtime = core.RuntimeConfig()
         text_format.Parse(Path(config.launch.executable).with_name('runtime.textproto').read_text(), runtime)
@@ -309,6 +322,153 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertEqual(cleanup.stage, launch.OWNED_SCOPES_STOPPED)
         self.finish_session()
 
+    def test_supervised_key_tap_progresses_during_other_actor_authentication(self):
+        import concurrent.futures
+
+        second_key, second_public = self.issuer.key('M10 supervised slow-auth actor')
+        enrollment = self.issuer.enroll(self.issuer.peer,
+            self.issuer.intent(public=second_public, kind=identity.AGENT, label='M10 slow-auth actor'),
+            second_key, second_public)
+        second_record = self.issuer.decide(self.issuer.peer, enrollment).enrollment
+        self.second_claims = self.issuer.claims(second_record, self.issuer.info)
+        self.second_principal = grants.ActorRef(issuer_id=self.second_claims.issuer_id,
+            actor_id=self.second_claims.actor_id)
+        from harness.issuer_progress import DelayedInfoIssuer
+        self._info_relay = DelayedInfoIssuer(self.issuer, delayed_operation='credential_check',
+            actor_id=self.second_claims.actor_id)
+        original_config_file = self.issuer.config_file
+        def relayed_config_file(endpoint_port=None, **overrides):
+            return original_config_file(endpoint_port=endpoint_port or self._info_relay.port, **overrides)
+        self.issuer.config_file = relayed_config_file
+        self.held_application()
+
+        other = self.connect_actor()
+        other_sequence = 0
+        def other_call(**operation):
+            nonlocal other_sequence
+            other_sequence += 1
+            request = session.WorldSessionRequest(protocol_version=1, request_id=other_sequence, **operation)
+            other.sendall(frame(request))
+            def exact(size):
+                data = bytearray()
+                while len(data) < size:
+                    part = other.recv(size-len(data))
+                    if not part: raise EOFError('Second actor channel closed')
+                    data.extend(part)
+                return bytes(data)
+            size = int.from_bytes(exact(4), 'big')
+            self.assertLessEqual(size, 1048576)
+            reply = session.WorldSessionReply.FromString(exact(size))
+            self.assertEqual((reply.protocol_version, reply.request_id), (1, other_sequence))
+            return reply
+        begin = other_call(begin=session.WorldAuthenticationBegin(credential=second_record.credential))
+        self.assertTrue(begin.HasField('challenge'), begin)
+        proof = self.issuer.proof(begin.challenge, second_key, second_public)
+        offset = len(self.events())
+        self._info_relay.delay_armed.set()
+        def complete_other_actor():
+            return other_call(complete=identity.AuthenticationComplete(
+                nonce=begin.challenge.nonce, proof=proof))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            authentication = pool.submit(complete_other_actor)
+            self.assertTrue(self._info_relay.delay_entered.wait(3),
+                'Second actor did not enter the delayed credential check')
+            started = time.monotonic()
+            tap = self.act(key_tap_batch=core.ActorKeyTapBatchRequest(
+                chords=[core.ActorKeyChord(keysyms=['F1'])]))
+            completed = time.monotonic()
+            rows = self.until(self.events, lambda values:
+                len([row for row in values[offset:] if row.get('event') == 'key' and
+                    row.get('keysym') == 65470]) >= 2)
+            pending = not self._info_relay.delay_finished.is_set()
+            self.assertTrue(self._info_relay.delay_finished.wait(6),
+                'Second actor credential check did not recover')
+            authenticated = authentication.result(timeout=3)
+        witnessed = [row for row in rows[offset:] if row.get('event') == 'key' and row.get('keysym') == 65470]
+        self.assertTrue(authenticated.HasField('opened'), authenticated)
+        self.assertTrue(tap.accepted, tap)
+        self.assertTrue(pending, 'Authentication completed before key delivery')
+        self.assertLess(completed-started, .25, 'Focused key tap waited behind another actor authentication')
+        self.assertEqual([row.get('pressed') for row in witnessed], [True, False], witnessed)
+        self.assertTrue(self.act(stop=core.ActorStopRequest()).accepted)
+        self.released()
+        self.finish_session()
+
+    def test_supervisor_guardian_fences_input_before_issuer_commits_revocation(self):
+        self.held_application()
+        world_pid = self.world_ids.worldd_pid
+        server_pid = self.server.pid
+        self.issuer.peer.close()
+        self.issuer.peer = self.issuer.connect()
+        owner_peer = self.issuer.peer
+        target = identity.IdentityReference(kind=identity.ACTOR_TARGET, id=self.claims.actor_id)
+
+        def identity_status():
+            operation = identity.IssuerOperation(identity_read=target)
+            reply = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer, operation))
+            self.assertTrue(reply.HasField('identity_status'), reply)
+            return reply.identity_status
+
+        def stopped(pid):
+            state = next(line.split()[1] for line in Path(f'/proc/{pid}/status').read_text().splitlines()
+                         if line.startswith('State:'))
+            return state == 'T'
+
+        for pid in (server_pid, world_pid):
+            os.kill(pid, signal.SIGSTOP)
+        def resume(pid):
+            try: os.kill(pid, signal.SIGCONT)
+            except ProcessLookupError: pass
+        self.addCleanup(resume, world_pid)
+        self.addCleanup(resume, server_pid)
+        try:
+            deadline = time.monotonic() + 2
+            while not all(stopped(pid) for pid in (server_pid, world_pid)):
+                self.assertLess(time.monotonic(), deadline, 'X server and worldd must stop before revocation')
+                time.sleep(.005)
+
+            before = identity_status()
+            self.assertTrue(before.active)
+            revoke = identity.IssuerOperation(identity_revoke=identity.IdentityRevoke(
+                target=target, expected_security_revision=before.security_revision,
+                reason='M10 supervised native precommit regression'))
+            prepared = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer, revoke))
+            self.assertTrue(prepared.HasField('identity_status'), prepared)
+            pending = prepared.identity_status
+            self.assertTrue(pending.revocation_pending, pending)
+            self.assertEqual(pending.security_revision, before.security_revision)
+            self.assertEqual(pending.pending_commit_revision, before.security_revision + 1)
+            self.assertTrue(pending.active)
+            self.assertTrue(stopped(world_pid), 'worldd must remain stopped during the native fence')
+            rows = self.events()
+            self.assertFalse(any(row.get('event') in ('key', 'button') and not row.get('pressed') for row in rows), rows)
+
+            pending = identity_status()
+            self.assertTrue(pending.revocation_pending, pending)
+            self.assertEqual(pending.security_revision, before.security_revision)
+        finally:
+            resume(server_pid)
+
+        def released(rows):
+            return all(any(row.get('event') == event and not row.get('pressed') for row in rows)
+                       for event in ('key', 'button'))
+        release_rows = self.until(self.events, released)
+        self.assertTrue(stopped(world_pid), 'Guardian release must not depend on worldd recovery')
+        committed = self.until(identity_status, lambda status: status.actor_revoked and not status.revocation_pending)
+        self.assertEqual(committed.security_revision, before.security_revision + 1)
+        barrier = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer,
+            identity.IssuerOperation(barrier_read=identity.AuthorityBarrierRead(
+                revision=committed.security_revision)))).authority_barrier
+        self.assertEqual(barrier.target, target)
+        self.assertGreater(barrier.pending_count, 0,
+            'Postcommit participant settlement remains separate from native precommit fencing')
+        self.assertTrue(released(release_rows))
+        self.assertIsNone(self.coordinator.poll(), 'Supervisor must remain alive after guardian fencing')
+        resume(world_pid)
+        stopped_world = self.request(stop_world=self.owner).cleanup
+        self.assertEqual(stopped_world.stage, launch.OWNED_SCOPES_STOPPED)
+        self.finish_session()
+
     def test_world_crash_preserves_application_and_pending_owned_reservation(self):
         self.held_application()
         self.crash_world()
@@ -357,5 +517,11 @@ class SessionApplicationTests(existing.SessionActorTests):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite(SessionApplicationTests(name) for name in SessionApplicationTests.__dict__ if name.startswith('test_'))
+    selected = os.environ.get('SPATIAL_TEST_METHOD')
+    names = [name for name in SessionApplicationTests.__dict__ if name.startswith('test_')]
+    if selected:
+        if selected not in names:
+            raise SystemExit('Unknown SPATIAL_TEST_METHOD: ' + selected)
+        names = [selected]
+    suite = unittest.TestSuite(SessionApplicationTests(name) for name in names)
     raise SystemExit(not unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful())

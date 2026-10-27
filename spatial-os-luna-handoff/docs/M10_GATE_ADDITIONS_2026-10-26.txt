@@ -1,0 +1,144 @@
+M10 gate additions, 2026-10-26
+
+This change adds checks. It removes no M09 or M10 required suite or named case.
+The M10-specific required suite count changes from 50 to 51. The new suite is
+three-actor-raw-input-native. Its test keeps the existing high-rate edge, order,
+device, application-delivery, and 250-taps-per-second assertions. It uses a
+privileged raw-key witness and an independent core-event application witness.
+The original three-actor application suite remains required and unchanged in
+the gate. Raw events do not identify a destination window. The application
+witness proves delivery to its own window.
+
+The subsequent scheduling draft adds the motion-frame-selection suite. This
+raises the M10-specific count from 51 to 52. It also names the primary and
+auxiliary INFO movement checks, movement behind a queued key, unsent inspection
+revocation, auxiliary maintenance shutdown, and auxiliary connection loss.
+These are additive requirements. The existing suites and named cases remain.
+The required 256-actor scale regression is not implemented and remains pending.
+The world-issuer-progress aggregate CTest timeout changes from 120 to 210
+seconds because the additive suite now contains 26 methods. The first 19-method
+exploratory run took 126 seconds on sb16-2, despite ending with failures. The
+individual movement, cancellation, and issuer deadlines remain unchanged.
+The native resource service retains its 240-second outer limit. This timeout
+change is explicit and does not count any failed or unrun case as passed.
+
+Test-contract conflict under review: the existing
+test_default_configuration_keeps_retained_movement_disabled asserts that an
+ordinary checked movement must wait at least four seconds for delayed INFO. The
+requested liveness contract says unrelated issuer maintenance must not block
+an authenticated actor. The asynchronous auxiliary maintenance can let the
+ordinary checked movement finish while that auxiliary INFO remains pending.
+The default retained-movement flag must still remain disabled, and disabling
+it must not permit an unchecked one-way refresh. Preserve the existing failing
+test until a separately reviewed contract correction proves those negative
+cases and records the change. Do not count the faster reply as a test pass.
+Selected negative regression: with retained movement disabled, send a one-way
+refresh to an authenticated actor. Require channel rejection, native held-input
+release, and no actor displacement. Run it on both hosts against the current
+diagnostic world before reviewing any correction to the legacy timing test.
+The negative regression passed on both hosts. It is recorded in
+runs/integrated-default-refresh-negative-01-01 and matching evidence on each
+host. Next, test ordinary checked movement during delayed auxiliary INFO and
+prove actor revocation still cancels held input and rejects later movement.
+That checked-movement regression passed on both hosts in approximately 31 ms.
+The delayed INFO remained pending, held input was released after revocation,
+and a subsequent movement request received UNAUTHORIZED. Evidence is in
+runs/integrated-default-checked-live-01-01 and matching evidence on each host.
+Both new methods are additive named gate requirements. The legacy timing test
+is still present and its contract correction remains a separate reviewed task.
+The draft gate also names the five-actor functional case, revocation and channel
+closure during a delayed credential check, and queued-key revocation after the
+world consumes the event. These additions do not establish the 256-actor target.
+The gate also names a stricter issuer-acknowledgement revocation test. The
+asynchronous credential draft failed this test on both hosts and was removed
+from the active worktree. Passing a test after world consumption does not replace
+the earlier issuer-acknowledgement boundary.
+The updated gate harness ran nine tests and passed on both hosts. Evidence is
+in runs/gate-additions-harness-05 on each host. This does not qualify M10.
+The additive gate harness ran nine tests and passed on both hosts. The Debug
+CTest inventory registers motion-frame-selection exactly once. These checks do
+not run or qualify the full gate. Their logs are in runs/gate-additions-harness-04
+under the M10 liveness artifact directory on each host.
+
+The existing world-issuer-progress suite also gains named checks for a focused
+key during another actor's pending authentication, native release during that
+authentication after controller revocation, world-only issuer connection loss,
+and native key/pointer state after global issuer loss. These additions do not
+replace the existing motion, revocation, or issuer-loss assertions.
+
+The raw-input rate check and focused-key isolation check currently fail on both
+hosts. The global issuer-loss state check reaches its native assertions but
+fails workspace participant cleanup. These are unqualified findings, not passes.
+The complete frozen Debug and sanitizer gates remain required on both hosts.
+
+The production native guardian precommit regression is now a named
+stop-and-release M10 case in the full session-application suite. It runs with a
+real issuer, supervisor, worldd, guardian, XLibre server, and application
+witness. The separate `session-guardian-precommit` CTest remains a focused
+selector for diagnosis. Nine M10 gate-harness checks passed locally after
+adding the named case; the full source inventory and both host harness checks
+must be repeated after the final candidate is frozen.
+
+The first harness invocation ran the Python file directly. It ran zero tests.
+Do not count its zero exit code as a pass. The corrected unittest invocation ran
+all nine gate-harness checks on each host, and both runs passed. Their logs are
+in runs/gate-additions-harness-02 under the M10 liveness artifact directory on
+each host. These checks validate the gate harness, not M10 qualification.
+
+Harness entrypoint repair: run the same nine checks by direct file execution
+and unittest module discovery on both hosts. Direct execution must produce the
+same test count and a nonzero exit when any selected check fails. This protects
+gate development from a silent zero-test success; it does not change the gate.
+Both invocation forms ran nine checks and passed on both hosts. Selecting a
+nonexistent test produced exit 1 on both hosts. Evidence is in
+runs/gate-entrypoint-03 under the M10 liveness artifact directory on each host.
+The tested harness source SHA-256 is
+a5b6d92e3c4ab889a903efc523e52cf39efc99baad20ef61ed8d0523ce723ba3.
+
+The current gate selectors and 26-method issuer-progress source were checked on
+both hosts. Nine gate-harness tests passed on each host. Evidence is in
+runs/gate-additions-harness-06 on each host. This checks selector coverage and
+does not run the M10 gate. The selector source SHA-256 is
+1217f389f6f1385850263790dbbf489e8667c4a1b81ba76a7de93f5dde9481bc.
+The issuer-progress source SHA-256 is
+a3218758d9b8b0df470f1635ee75bd553adcbc891a5f521e214e082e74077da6.
+
+Add the existing world-remote-lifecycle suite to the M10 required profile and
+name the new 256-slot transport case. This raises the M10 suite count to 53.
+The transport check supplements the still-unimplemented authenticated actor
+scale and scheduling checks. Run the gate-harness checks on both hosts after
+updating the selector manifest.
+All nine gate-harness checks passed on each host. Evidence is in
+runs/gate-additions-harness-07. The selector manifest SHA-256 is
+8b20f11c864738a37d3bb9ea7d7bfb9c93cc66ae3df3b2e8149aa30b248822cc.
+This does not establish the result of the full qualification gate.
+
+Add world-actor-scale as a required suite and name its 256-identity case.
+The M10-specific suite count is now 54. Its 600-second outer timeout covers
+real identity enrollment and authentication. Existing per-operation limits
+remain unchanged. This case does not replace the required movement-load test.
+All nine gate-harness checks passed on each host. Evidence is in
+runs/gate-additions-harness-08. The selector manifest SHA-256 is
+ecf1b78771fa7dbf31e8720229bf083b40cee9c9b19b5eb687467aa160431838.
+The generated CTest inventory has one world-actor-scale registration with the
+600-second timeout. These checks do not establish full M10 qualification.
+The 256-actor movement baseline is also a named required case in the same
+suite. It does not replace the delayed-authority and lease-contention cases.
+The nine gate-harness checks passed on both hosts after the addition. Evidence
+is in runs/gate-additions-harness-09. The selector manifest SHA-256 is
+b7f127ae21865c011e7955417b1b833d8e85529d6e5b4ea6dc959c28156cdd8d.
+The 255-actor movement check during delayed authentication is also a named
+required case. It keeps the original 250 ms expiry and the 4.1-second delay.
+After the latest fixture corrections, all nine gate-harness checks passed on
+both hosts. Evidence is in runs/gate-additions-harness-11. The checks do not
+replace the full Debug, sanitizer, acceptance, and cross-host gate.
+The nested-close movement and revocation regression is a named required case.
+All nine gate-harness checks passed on both hosts with that selector. Evidence
+is runs/gate-additions-harness-12. The selector manifest SHA-256 is
+68eb1feb6d463dcf3d41f1e6e997436f78c36ad24b9f1b78a6813b164d1919c6.
+Add the existing world-participant-native suite and the issuer-commit queued-key
+case to the mandatory M10 inventory. The M10-specific count becomes 55. The
+new case tests a stronger effect boundary than the existing completion barrier.
+All nine gate-harness checks passed on each host after this addition. Evidence
+is in runs/gate-additions-harness-13. The new native case itself fails on both
+hosts and therefore remains a qualification blocker.

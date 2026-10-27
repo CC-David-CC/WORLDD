@@ -4,6 +4,7 @@ import os
 import hashlib
 import io
 import json
+import re
 import grants_pb2 as grants
 from pathlib import Path
 import select
@@ -12,6 +13,7 @@ import struct
 import subprocess
 import sys
 import threading
+import tempfile
 import time
 import shutil
 import types
@@ -83,21 +85,36 @@ class SessionPeer:
 class BrokeredNativeProbe:
     """Read native X events from an application launched through the workspace broker."""
     class ProcessWitness:
-        def __init__(self, exit_path):self.exit_path=exit_path
+        def __init__(self, exit_path, pid, start_ticks):
+            self.exit_path=exit_path
+            self.pidfd=os.pidfd_open(pid)
+            try:
+                if WorldProcess.process_start_ticks(pid)!=start_ticks or select.select([self.pidfd],[],[],0)[0]:
+                    raise RuntimeError('Native probe launcher process changed or exited before pinning')
+            except BaseException:
+                os.close(self.pidfd)
+                raise
         def poll(self):
-            if not self.exit_path.exists():return None
+            if not select.select([self.pidfd],[],[],0)[0]:return None
+            if not self.exit_path.exists():return -1
             try:return int(self.exit_path.read_text())
             except (OSError,ValueError):return 1
+        def close(self):os.close(self.pidfd)
 
-    def __init__(self, probe_id, app, app_data, world, process_id):
+    def __init__(self, probe_id, app, app_data, world, process_id, host_pid, start_ticks):
         self.id=probe_id;self.app=app;self.app_data=Path(app_data);self.world=world
         self.process_id=process_id;self.path=self.app_data/'probe.jsonl'
         self.stderr=types.SimpleNamespace(name=str(self.path))
         self.exit_path=self.app_data/'exited';self.release_path=self.app_data/'release'
-        self.commands_path=self.app_data/'commands';self.proc=self.ProcessWitness(self.exit_path)
+        self.commands_path=self.app_data/'commands';self.proc=self.ProcessWitness(self.exit_path,host_pid,start_ticks)
         self.condition=threading.Condition();self.sequence=0
-        self.log=self.path.open('a',encoding='utf-8')
-        self.ready=self.wait(lambda row:row.get('event')=='ready',timeout=8)
+        self.log=None
+        try:
+            self.log=self.path.open('a',encoding='utf-8')
+            self.ready=self.wait(lambda row:row.get('event')=='ready',timeout=8)
+        except BaseException:
+            if self.log is not None:self.log.close()
+            self.proc.close();raise
         self.xid=self.ready['xid']
 
     @property
@@ -138,11 +155,13 @@ class BrokeredNativeProbe:
         return self.wait(lambda row:row.get('event')=='geometry' and row.get('seq')==self.sequence)
 
     def close(self):
-        self.release_path.touch(exist_ok=True)
-        deadline=time.monotonic()+8
-        while self.proc.poll() is None and time.monotonic()<deadline:time.sleep(.01)
-        self.log.flush();self.log.close()
-        if self.proc.poll() is None:raise AssertionError('Broker-launched native X probe did not stop')
+        try:
+            self.release_path.touch(exist_ok=True)
+            deadline=time.monotonic()+8
+            while self.proc.poll() is None and time.monotonic()<deadline:time.sleep(.01)
+            if self.proc.poll() is None:raise AssertionError('Broker-launched native X probe did not stop')
+        finally:
+            self.log.flush();self.log.close();self.proc.close()
 
 
 class WorldProcess:
@@ -151,6 +170,11 @@ class WorldProcess:
                  native_fd=None):
         self.log=(fixture.root/f'world-{len(fixture.worlds)}.log').open('wb'); self.sequence=0
         pairs=[socket.socketpair() for _ in range(count)]
+        send_buffer=getattr(fixture,'actor_test_send_buffer',None)
+        if send_buffer is not None:
+            if not fixture_faults or send_buffer<1024 or send_buffer>65536:
+                raise ValueError('Invalid fixture actor send buffer')
+            for _,server in pairs:server.setsockopt(socket.SOL_SOCKET,socket.SO_SNDBUF,send_buffer)
         self.peers=[SessionPeer(pair[0]) for pair in pairs]
         command=[str(WORLD),'--state-dir',str(state),'--identity-config',str(config)]
         native_fd_copy=os.dup(native_fd) if native_fd is not None else None
@@ -173,8 +197,9 @@ class WorldProcess:
             command += ['--input-witness-fd',str(input_witness_fd)]
             extra_fds += (input_witness_fd,)
         if presentation is not None:
-            command += presentation.world_arguments()
-            extra_fds += presentation.world_descriptors()
+            use_presentation_native = native_fd_copy is None
+            command += presentation.world_arguments(include_native=use_presentation_native)
+            extra_fds += presentation.world_descriptors(include_native=use_presentation_native)
         try:
             self.proc=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.log,
                 pass_fds=tuple(server.fileno() for _,server in pairs)+extra_fds)
@@ -459,6 +484,14 @@ class WorldIdentityFixture(ClientFixture):
         """Give native input tests a real broker-authorized app surface."""
         if getattr(self,'_native_input_relay',None) is not None:
             return self._native_security_fd
+        if getattr(self,'independent_probe_owner',False):
+            key,public=self.key('independent-native-probe-owner')
+            issuer_peer=self.connect()
+            try:
+                record=self.decide(issuer_peer,self.enroll(issuer_peer,
+                    self.intent(public=public,label='Independent native probe owner'),key,public)).enrollment
+            finally:issuer_peer.close()
+            self._probe_owner=(record,key,public,self.claims(record,self.info))
         native_fd=self.native_compositor_authority()
         import broker_pb2 as broker_pb
         import security_pb2 as security
@@ -481,13 +514,19 @@ class WorldIdentityFixture(ClientFixture):
         def broker_factory(fixture,state,config=None):
             if config is None:return workspace.BrokerProcess(fixture,state)
             # access.Broker registers itself in fixture.brokers.
-            return access.Broker(fixture,config,native_config)
+            broker_type=getattr(fixture,'native_broker_type',access.Broker)
+            return broker_type(fixture,config,native_config)
 
         self.broker_factory=broker_factory
         self.make_broker=types.MethodType(workspace.WorkspaceAuthorityTests.make_broker,self)
         try:
+            def roots():
+                result=[self.workspace_terms(rights=access.ALL)]
+                if getattr(self,'_probe_owner',None):
+                    result.append(self.workspace_terms(self._probe_owner[3],rights=access.ALL))
+                return result
             workspace.WorkspaceAuthorityTests.workspace(self,
-                roots=lambda:[self.workspace_terms(rights=access.ALL)],attach_world=False)
+                roots=roots,attach_world=False)
         finally:
             for name,value in previous.items():
                 if value is missing:delattr(self,name)
@@ -511,15 +550,23 @@ class WorldIdentityFixture(ClientFixture):
             "  if end>sent:p.stdin.write(data[sent:end]);p.stdin.flush();sent=end\n"
             " time.sleep(.01)\n"
             "p.terminate();p.wait();out.close()\nPath('/state/data/exited').write_text(str(p.returncode))\n")
+        broker_log=self.broker.path
+        log_offset=broker_log.stat().st_size
         launched=peer.act(process_launch=core.ProcessLaunchRequest(operation_id=probe_id,
             profile='development',argv=['/usr/bin/python3','-c',code]))
         self.assertTrue(launched.HasField('action'),launched)
+        with broker_log.open('rb') as log:
+            log.seek(log_offset)
+            attachments=re.findall(rb'owned payload attachment host_pid=(\d+) start_ticks=(\d+) ',log.read())
+        self.assertEqual(len(attachments),1,'Expected exactly one checked probe payload attachment')
+        host_pid,start_ticks=map(int,attachments[0])
         process_id=launched.action.process.process_id
         app=broker_pb.ApplicationRef(workspace=b'one',application=process_id.encode(),
             server_id=self.native_server_id)
         app_data=self.execution/'applications'/process_id/'data'
-        probe=BrokeredNativeProbe(probe_id,app,app_data,world,process_id)
+        probe=BrokeredNativeProbe(probe_id,app,app_data,world,process_id,host_pid,start_ticks)
         target=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
+        self.addCleanup(probe.close)
         if target:
             def retain_probe():
                 Path(target).mkdir(parents=True,exist_ok=True)
@@ -527,7 +574,6 @@ class WorldIdentityFixture(ClientFixture):
                 for path in dict.fromkeys((probe.path,Path(probe.stderr.name))):
                     (Path(target)/(self._testMethodName+'-'+path.name)).write_bytes(path.read_bytes())
             self.addCleanup(retain_probe)
-        self.addCleanup(probe.close)
         return probe
     def native_probe(self,evidence,xi2=False,display=None):
         probe_auth=getattr(self,'_native_probe_auth',None)
@@ -625,12 +671,14 @@ class WorldIdentityFixture(ClientFixture):
             if predicate(result):return result
             if time.monotonic()>deadline:self.fail(f'World condition expired: {result}')
             time.sleep(.01)
-    def held(self, fixture_faults=False, native_fd=None):
+    def held(self, fixture_faults=False, native_fd=None, hold_native_input=True):
         prepared_fd=self.setup_native_input_workspace()
         if native_fd is None:native_fd=prepared_fd
         else:self.assertEqual(native_fd,prepared_fd,'Native input workspace and compositor descriptor must match')
+        owner=getattr(self,'_probe_owner',None)
+        extra={'additional_actor_profiles':[(owner[3].actor_id,['navigate','interact','observe','process.launch'])]} if owner else {}
         world=self.world(grants=['navigate','interact','observe','process.launch'],native=True,fixture_faults=fixture_faults,
-            native_fd=native_fd,broker=self._native_input_relay);peer=world.peers[0]
+            native_fd=native_fd,broker=self._native_input_relay,**extra);peer=world.peers[0]
         self.assertTrue(self.authenticate(peer).HasField('opened'))
         world.management('workspace.available',id='one',available=True)
         selected=peer.act(workspace_select=core.WorkspaceIdRequest(id='one'))
@@ -638,13 +686,24 @@ class WorldIdentityFixture(ClientFixture):
         self.assertTrue(selected.action.accepted,selected)
         # This probe has the APPLICATION identity. XACE denies XI2 to apps,
         # so the input witness must use ordinary core X events.
-        probe=self.brokered_native_probe(world,peer)
+        launcher=peer
+        if owner:
+            launcher=world.peers[1]
+            self.assertTrue(self.authenticate(launcher,owner[0],owner[1],owner[2]).HasField('opened'))
+            selected=launcher.act(workspace_select=core.WorkspaceIdRequest(id='one'))
+            self.assertTrue(selected.HasField('action') and selected.action.accepted,selected)
+        probe=self.brokered_native_probe(world,launcher)
+        if owner:launcher.close()
         found=self.until(lambda:world.management('surface.find',probe_id=probe.id),lambda r:r['surface'] is not None)['surface']
         room=world.management('world.info')['entry_room']
         world.management('surface.place',id=found['id'],room=room,pose=pose((0,0,-2)),size=[2,2])
         aimed=peer.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1)))
         self.assertTrue(aimed.HasField('action'),aimed)
         self.assertTrue(aimed.action.accepted,aimed)
+        if not hold_native_input:
+            state=peer.call(inspect=session.WorldSessionInspect()).state
+            self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons)
+            return world,peer,probe
         pointed=peer.act(pointer=core.ActorPointerRequest(button=1,pressed=True))
         self.assertTrue(pointed.HasField('action'),pointed)
         self.assertTrue(pointed.action.accepted,pointed)
@@ -856,6 +915,7 @@ class WorldIdentityTests(WorldIdentityFixture):
         self.denied(peer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
 
     def test_actor_revocation_releases_native_input(self):
+        self.independent_probe_owner=True
         world,peer,probe=self.held();self.revoke(pb.ACTOR_TARGET);self.released(world,probe)
         self.denied(peer.act(observe=core.ActorObserveRequest()),core.UNAUTHORIZED)
 
@@ -870,6 +930,23 @@ class WorldIdentityTests(WorldIdentityFixture):
 
 
 class ReceiveTests(unittest.TestCase):
+    def test_probe_process_witness_detects_exit_without_marker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            child=subprocess.Popen(['/usr/bin/sleep','60'])
+            try:
+                ticks=WorldProcess.process_start_ticks(child.pid)
+                self.assertIsNotNone(ticks)
+                with self.assertRaisesRegex(RuntimeError,'changed or exited'):
+                    BrokeredNativeProbe.ProcessWitness(Path(directory)/'exited',child.pid,ticks+1)
+                witness=BrokeredNativeProbe.ProcessWitness(Path(directory)/'exited',child.pid,ticks)
+                try:
+                    self.assertIsNone(witness.poll())
+                    child.terminate();child.wait(timeout=5)
+                    self.assertEqual(witness.poll(),-1)
+                finally:witness.close()
+            finally:
+                if child.poll() is None:child.kill();child.wait(timeout=5)
+
     def test_receive_retries_would_block_after_readiness(self):
         reader, writer = socket.socketpair()
         self.addCleanup(reader.close)

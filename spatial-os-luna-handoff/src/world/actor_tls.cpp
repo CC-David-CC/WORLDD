@@ -47,7 +47,7 @@ ActorTlsListener::ActorTlsListener(int fd, const std::filesystem::path& path) : 
     if (config.has_idle_timeout_ms()) idle_ = Milliseconds(config.idle_timeout_ms());
     if (config.has_connection_limit()) limit_ = config.connection_limit();
     require(timeout_ >= Milliseconds(50) && timeout_ <= Milliseconds(60000) &&
-        idle_ >= Milliseconds(50) && idle_ <= Milliseconds(300000) && limit_ >= 1 && limit_ <= 128,
+        idle_ >= Milliseconds(50) && idle_ <= Milliseconds(300000) && limit_ >= 1 && limit_ <= 256,
         "Actor TLS limits are out of range");
     context_ = identity::tls_detail::make_context(true, config.certificate_path(), config.private_key_path(), config.client_ca_path());
 }

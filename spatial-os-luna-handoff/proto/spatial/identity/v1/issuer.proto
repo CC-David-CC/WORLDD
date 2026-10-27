@@ -3,6 +3,7 @@ package spatial.identity.v1;
 import "core.proto";
 import "key.proto";
 import "grants.proto";
+import "native_seat_guardian.proto";
 
 // Templates request domain authority. They are not grants or bearer capabilities.
 // The subject must be absent. A domain derives it from an authenticated enrollment.
@@ -95,7 +96,11 @@ message AuthorityAuthenticationResult {
 }
 
 // Durable participation. Trusted services must finish external cancellation before acknowledging.
-message AuthorityActivate { optional uint64 synchronized_revision = 1; }
+message AuthorityActivate {
+  optional uint64 synchronized_revision = 1;
+  // The retained supervisor sets this from its live guardian ownership, not child input.
+  bool native_seat_guardian_enabled = 2;
+}
 message AuthorityApplied {
   uint64 generation = 1;
   optional uint64 from_revision = 2;
@@ -113,6 +118,31 @@ message AuthorityActivationState {
   uint64 applied_revision = 7;
   uint64 head_revision = 8;
   bool active = 9;
+  bool native_seat_guardian_enabled = 10;
+}
+message AuthorityPrecommitRead { uint64 generation = 1; }
+message AuthorityPrecommitBatch {
+  bytes issuer_id = 1;
+  bytes participant_id = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  repeated spatial.identity.guardian.v1.NativeFenceIntent intents = 5;
+}
+message AuthorityPrecommitAck {
+  uint64 generation = 1;
+  bytes service_incarnation = 2;
+  spatial.identity.guardian.v1.NativeFenceReceipt receipt = 3;
+  // Signed by the registered supervisor key, independently of the world service key.
+  KeyProof supervisor_proof = 4;
+}
+message AuthorityPrecommitResult {
+  bytes issuer_id = 1;
+  bytes participant_id = 2;
+  uint64 generation = 3;
+  bytes service_incarnation = 4;
+  spatial.identity.guardian.v1.NativeFenceIntent intent = 5;
+  uint64 committed_revision = 6;
+  bool committed = 7;
 }
 message AuthorityBarrierRead { uint64 revision = 1; bytes after_participant_id = 2; uint32 limit = 3; }
 message AuthorityBarrierObligation {
@@ -240,6 +270,10 @@ message IdentityStatus {
   bool credential_revoked = 6;
   bool active = 7;
   uint64 security_revision = 8;
+  bool revocation_pending = 9;
+  bytes revocation_intent_id = 10;
+  uint64 pending_commit_revision = 11;
+  uint64 pending_fence_count = 12;
 }
 // Read-only service query. Actor validity is independent of any one credential.
 // Keep request order. Require between one and 128 distinct 32-byte identities.
@@ -417,6 +451,8 @@ message IssuerRequest {
     AuthorityFenceComplete authority_fence_complete = 31;
     AuthorityRetireBegin authority_retire_begin = 32;
     AuthorityRetireComplete authority_retire_complete = 33;
+    AuthorityPrecommitRead authority_precommit_read = 34;
+    AuthorityPrecommitAck authority_precommit_ack = 35;
   }
 }
 message IssuerReply {
@@ -444,6 +480,8 @@ message IssuerReply {
     AuthorityFenceState authority_fence = 28;
     AuthorityRetirementState authority_retirement = 29;
     AuthorityParticipantDomainsAdded participant_domains_added = 30;
+    AuthorityPrecommitBatch authority_precommit_batch = 31;
+    AuthorityPrecommitResult authority_precommit_result = 32;
   }
 }
 
@@ -505,6 +543,7 @@ message ParticipantCommand {
     AuthorityApplied applied = 11;
     AuthorityRelease release = 12;
     ParticipantProgressRead progress = 13;
+    AuthorityPrecommitAck precommit_ack = 14;
   }
 }
 message ParticipantUpdate {
@@ -518,5 +557,7 @@ message ParticipantUpdate {
     AuthorityActivationState released = 14;
     spatial.core.v1.Error error = 15;
     AuthorityProgress progress = 16;
+    spatial.identity.guardian.v1.NativeFenceIntent precommit_fence = 17;
+    AuthorityPrecommitResult precommit_result = 18;
   }
 }

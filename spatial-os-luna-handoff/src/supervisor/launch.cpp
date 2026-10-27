@@ -291,6 +291,8 @@ struct AuthorityLaunch::Impl {
     bool attached = false, stopping = false, started = false;
     bool relay_prepared = false, relay_terminal = false, relay_finished = false, relay_failed = false;
     bool relay_released = false;
+    std::function<identity::guardian::v1::NativeFenceReceipt(const identity::guardian::v1::NativeFenceIntent&)> native_fence_handler;
+    std::uint64_t next_internal_request_id = UINT64_MAX;
     std::uint32_t relay_target = 0;
     File relay_child;
     std::unique_ptr<identity::ParticipantStream> relay;
@@ -897,6 +899,12 @@ void AuthorityLaunch::submit_participant(identity::v1::ParticipantCommand comman
     require(process.populated() && !process.direct_child_exited(), "Authority child is no longer running");
     impl_->participant->submit(std::move(command));
 }
+void AuthorityLaunch::set_native_fence_handler(std::function<identity::guardian::v1::NativeFenceReceipt(
+        const identity::guardian::v1::NativeFenceIntent&)> handler) {
+    require(bool(handler)&&impl_->started&&!impl_->stopping&&!impl_->native_fence_handler,
+        "Native fence handler requires one live supervised launch");
+    impl_->native_fence_handler=std::move(handler);
+}
 identity::v1::AuthorityParticipantRuntimeConfig AuthorityLaunch::prepare_channel(std::uint32_t target_fd) {
     impl_->prepared_participant();
     require(!impl_->relay_prepared && impl_->record.has_authorization() && impl_->participant &&
@@ -933,6 +941,40 @@ void AuthorityLaunch::pump_channel() {
         for (int count = 0; count < 16 && !impl_->relay_terminal; ++count) {
             auto update = impl_->participant->poll(); if (!update) break;
             require(!update->has_authenticated(), "Private relay received repeated authentication");
+            if(update->has_precommit_fence()){
+                require(bool(impl_->native_fence_handler)&&impl_->authorization_config&&impl_->record.has_authorization(),
+                    "Issuer requested a native fence without a retained supervisor guardian");
+                const auto intent=update->precommit_fence();
+                auto receipt=impl_->native_fence_handler(intent);
+                const auto expected_generation=impl_->record.authorization().request().previous_generation()+1;
+                require(receipt.has_intent()&&receipt.intent().SerializeAsString()==intent.SerializeAsString()&&
+                    receipt.guardian_incarnation()==impl_->record.binding().service_incarnation()&&
+                    receipt.registration_generation()==expected_generation,
+                    "Native guardian receipt differs from its supervised launch");
+                auto key=identity::KeyPair::load(impl_->authorization_config->private_key_path());
+                require(key.public_key()==impl_->record.authorization().supervisor_public_key(),
+                    "Native fence signer differs from the registered supervisor");
+                identity::v1::SignRequest content;content.set_purpose(identity::v1::AUTHORITY_NATIVE_SEAT_FENCE);
+                content.set_payload(receipt.SerializeAsString());
+                identity::v1::ParticipantCommand ack;require(impl_->next_internal_request_id>0,
+                    "Internal participant request IDs exhausted");
+                ack.set_request_id(impl_->next_internal_request_id--);auto* value=ack.mutable_precommit_ack();
+                value->set_generation(receipt.registration_generation());
+                value->set_service_incarnation(impl_->record.binding().service_incarnation());
+                *value->mutable_receipt()=receipt;*value->mutable_supervisor_proof()=key.sign(content);
+                impl_->participant->submit(std::move(ack));
+                continue;
+            }
+            if(update->has_precommit_result()){
+                const auto& result=update->precommit_result();
+                const auto expected_generation=impl_->record.authorization().request().previous_generation()+1;
+                require(impl_->record.has_authorization()&&result.issuer_id()==impl_->record.binding().issuer_id()&&
+                    result.participant_id()==impl_->record.binding().participant_id()&&
+                    result.generation()==expected_generation&&
+                    result.service_incarnation()==impl_->record.binding().service_incarnation()&&result.intent().intent_id().size()==32,
+                    "Issuer precommit result differs from the retained launch");
+                continue;
+            }
             if (!update->has_revocations()) {
                 require((impl_->relay_request && update->request_id() == *impl_->relay_request) ||
                     (update->has_error() && update->request_id() == 0), "Private relay received an uncorrelated result");
@@ -955,6 +997,11 @@ void AuthorityLaunch::pump_channel() {
             require(command.ParseFromString(*bytes), "Malformed private participant command"); validate_message(command);
             require(command.operation_case() != identity::v1::ParticipantCommand::OPERATION_NOT_SET,
                 "Private participant command requires an operation");
+            require(!command.has_precommit_ack(),"World child cannot submit a supervisor native-fence receipt");
+            if(command.has_activate()){
+                // Child input cannot claim an independent guardian. The supervisor derives this from ownership.
+                command.mutable_activate()->set_native_seat_guardian_enabled(bool(impl_->native_fence_handler));
+            }
             impl_->participant->submit_forwarded(command); impl_->relay_request = command.request_id();
         }
     } catch (...) {

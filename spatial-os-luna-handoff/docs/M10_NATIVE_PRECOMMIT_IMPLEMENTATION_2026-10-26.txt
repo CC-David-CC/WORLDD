@@ -1,0 +1,113 @@
+M10 native seat revocation precommit, 2026-10-26
+
+Status: IMPLEMENTATION IN PROGRESS. Focused issuer, migration, guardian-role,
+and production precommit checks pass. Full M10 qualification remains open.
+
+Contract change
+An owner revocation may now remain pending while every active guardian-backed
+world generation fences its native seats. The issuer persists that intent and
+its exact generation obligations. It commits the revocation and creates the
+existing postcommit cancellation barrier only after all receipts are stored.
+This keeps the postcommit barrier as a separate settlement proof.
+
+Only the retained supervisor may sign a native fence receipt. The issuer checks
+that signature against the registered supervisor key. The world child cannot
+set the guardian activation flag or submit a fence acknowledgment. A stopped or
+unavailable guardian leaves the owner operation pending and blocks activation
+or release of the obligated generation.
+
+Selected checks before the first test run
+1. CTest identity-participant-barrier (#106): preserve activation, release, and
+   committed cancellation behavior when no native guardian is active.
+2. CTest identity-revocation (#167): preserve durable owner revocation and
+   barrier behavior.
+3. CTest identity-revocation-command (#170): verify pending commit polling and
+   resume behavior through spatial-revoke.
+4. CTest identity-enrollment (#165) and identity-bootstrap (#166): exercise
+   existing schema migration fixtures affected by the new schema version.
+
+The next check must exercise the real supervised world launch, queue a native
+input event, stop worldd, and prove the independent supervisor guardian fences
+the seat before issuer commit. Prototype guardian tests do not cover this path.
+
+Local Debug follow-up: the selected 13 CTest cases passed after updating the
+synthetic TLS issuer peer to advertise the new native-seat-precommit
+capability. The earlier six revocation-command failures stopped at handshake;
+they did not send revocation requests. Production identityd already advertised
+the capability. This result covers issuer and migration regressions only.
+CTest enumerates one native-seat-guardian-roles registration that runs ten
+named role cases, including guardian death and caught service failure.
+The refreshed focused role package then passed all ten cases on sb16 and
+sb16-2. Both used the pinned XLibre Xvfb witness. Receipts are under
+spatial-artifacts/m10-liveness-followup-20261026/guardian-final-followup-20261026-02/runs/guardian-role-10-debug-sb16-01
+on each host. Candidate manifest SHA256:
+0e4191547d4382840801ef85ee313f6d76d4686411bbdeedce85c1a1dd99f8ec
+The supervised world-to-issuer precommit regression now passes on both required
+hosts. This is not M10 qualification.
+
+Selected next regression: CTest `session-guardian-precommit` runs the production
+session-application fixture with a real issuer, supervised worldd, XLibre
+server, guardian, and independent application input witness. It holds a key
+and pointer button, stops worldd and XLibre, then submits owner-signed actor
+revocation. It requires the issuer to remain pending at its old security
+revision while the native fence cannot run. After XLibre resumes, the witness
+must observe both releases while worldd remains stopped. The issuer must then
+commit, while the separate postcommit participant barrier remains pending.
+Run this named test in Debug on sb16 and sb16-2 before sanitizer and full-gate
+work. The CTest selection preserves its method name through both native
+resource wrappers.
+
+Production regression result, candidate 08: PASS on sb16 and sb16-2. The test
+held a real key and pointer button, stopped XLibre and worldd, and submitted
+owner-signed revocation. The issuer stayed pending until XLibre resumed. The
+independent application witness observed both releases while worldd remained
+stopped. The issuer then committed, while the separate participant barrier
+remained pending. The test resumed worldd, stopped its owned scopes, and closed
+the session cleanly.
+
+This exposed and fixed a generation check in the production supervisor. Launch
+authorization stores generation zero; the active generation is
+previous_generation + 1. The supervisor had compared guardian receipts and
+precommit results with the zero field, rejected valid receipts, and left issuer
+revocation pending. It now checks the derived active generation. Candidate 08
+manifest SHA256:
+74f7fed06bb4b43203d27749575013d5bb8617fa2cfdd9e781ae2c333aae2dfa
+Evidence is under
+spatial-artifacts/m10-liveness-followup-20261026/session-guardian-precommit-candidate-08/runs/session-guardian-precommit-debug-08
+on each test host. The local CTest wrapper correctly refused to execute this
+native test on middle-child; the pinned XLibre test server ran on each assigned
+test host. No additional X server installation was needed.
+
+Expanded session-application fixture: 4 tests passed on sb16 and sb16-2 after
+fixing a stop acknowledgment race. Stop now remains pending while its confirmed
+broker control-lease release is still queued. The release drains through the
+existing world scheduler, so movement refresh processing does not wait for a
+blocking broker call. This preserves the existing reservation assertion.
+Candidate manifest SHA256:
+1be8e8f3efb33ba6cff915ed8c2e390aa40f09b9d167bf6252f3423975b59f6b
+Evidence is under
+spatial-artifacts/m10-liveness-followup-20261026/session-application-expanded-candidate-02/runs/session-application-expanded-debug-02
+on each test host.
+
+Observer checks: native input observer artifact (21 tests), collector (12
+tests), and native observer endpoint (72 tests) passed on both hosts. The
+endpoint test used the pinned observer XLibre build
+023248ae5947ba466fb0d30654804b1f563b5804c43e8bc37d2c245715cf8bce and the
+production XLibre build
+0124faabb272a136c038acb61729c6a9d55b66cdb35e2f09d550457cfd13de01 for its
+negative checks. Candidate manifest SHA256:
+6b85b5df2351a87caf5fb984d9b8449e4035aab3ec404188a1d4041615cb4015
+Evidence is under
+spatial-artifacts/m10-liveness-followup-20261026/observer-checks-candidate-03/runs/observer-debug-03
+on each test host. The earlier observer attempts used the wrong XLibre build;
+they are retained as failed packaging evidence and are not counted as product
+failures.
+
+The focused and expanded receipts passed before final candidate freezing. Retry
+staging used hard links between package payloads, so later package updates can
+change older staging copies. Their test receipts remain intact, and each
+successful run verified its manifest before execution. Build the final gate
+candidate from independent file copies, transfer it to both hosts, and verify
+every manifest entry before the full gate. Reverify the frozen candidate after
+transfer. Full M10 Debug, sanitizer, harness, native, and acceptance gates are
+still pending.

@@ -7,6 +7,7 @@
 #include "platform/render_worker.hpp"
 #include "platform/compositor_config.hpp"
 #include "platform/broker.hpp"
+#include "identity/native_seat_guardian_client.hpp"
 #include "x11/input.hpp"
 #include <charconv>
 #include <algorithm>
@@ -24,6 +25,7 @@ int main(int argc, char** argv) {
     std::string display;
     bool fixture_clock = false, fixture_faults = false, migration_v1 = false, migration_v2 = false, migration_v3 = false;
     int broker_fd = -1, broker_pid = -1, actor_listener = -1, native_fd = -1, witness_fd = -1;
+    int guardian_fd=-1,guardian_supervisor_pid=-1;
     int presentation_fd=-1,presentation_pidfd=-1,presentation_pid=-1,presentation_owner=-1;
     try {
         signal(SIGPIPE, SIG_IGN);
@@ -51,6 +53,18 @@ int main(int argc, char** argv) {
                 const auto parsed = std::from_chars(number.data(), number.data()+number.size(), native_fd);
                 if (parsed.ec != std::errc{} || parsed.ptr != number.data()+number.size() || native_fd <= STDERR_FILENO)
                     throw std::invalid_argument("Native compositor configuration: invalid inherited descriptor");
+            }
+            else if(argument=="--native-guardian-fd"&&guardian_fd==-1&&i+1<argc){
+                const std::string_view number(argv[++i]);
+                const auto parsed=std::from_chars(number.data(),number.data()+number.size(),guardian_fd);
+                if(parsed.ec!=std::errc{}||parsed.ptr!=number.data()+number.size()||guardian_fd<3)
+                    throw std::invalid_argument("Native seat guardian: invalid inherited descriptor");
+            }
+            else if(argument=="--native-guardian-supervisor-pid"&&guardian_supervisor_pid==-1&&i+1<argc){
+                const std::string_view number(argv[++i]);
+                const auto parsed=std::from_chars(number.data(),number.data()+number.size(),guardian_supervisor_pid);
+                if(parsed.ec!=std::errc{}||parsed.ptr!=number.data()+number.size()||guardian_supervisor_pid<=1)
+                    throw std::invalid_argument("Native seat guardian: invalid supervisor identity");
             }
             else if (argument == "--actor-listen-fd" && actor_listener == -1 && i + 1 < argc) {
                 const std::string_view number(argv[++i]);
@@ -86,6 +100,8 @@ int main(int argc, char** argv) {
             else throw std::invalid_argument("Unknown or incomplete worldd argument");
         }
         const bool presentation=presentation_fd!=-1 || presentation_pidfd!=-1 || presentation_pid!=-1 || presentation_owner!=-1;
+        if((guardian_fd==-1)!=(guardian_supervisor_pid==-1)|| (guardian_fd>=0&&native_fd<0))
+            throw std::invalid_argument("Incomplete native seat guardian channel");
         if(presentation){
             if(presentation_fd<3 || presentation_pidfd<3 || presentation_pid<3 || presentation_owner<3 || native_fd<3 ||
                 migration_v1 || migration_v2 || migration_v3 || !authority_seed.empty())throw std::invalid_argument("Incomplete or incompatible presentation configuration");
@@ -110,6 +126,10 @@ int main(int argc, char** argv) {
         if (native_fd >= 0 && (native_fd == broker_fd || native_fd == actor_listener ||
                 std::find(actor_channels.begin(), actor_channels.end(), native_fd) != actor_channels.end()))
             throw std::invalid_argument("Native compositor configuration: descriptor shares another channel");
+        if(guardian_fd>=0&&(guardian_fd==native_fd||guardian_fd==broker_fd||guardian_fd==actor_listener||
+                guardian_fd==presentation_fd||guardian_fd==presentation_pidfd||
+                std::find(actor_channels.begin(),actor_channels.end(),guardian_fd)!=actor_channels.end()))
+            throw std::invalid_argument("Native seat guardian descriptor shares another authority channel");
         if (actor_listener >= 0) {
             if (actor_listener == broker_fd) throw std::invalid_argument("Actor listener cannot share the broker descriptor");
             spatial::prepare_actor_listener(actor_listener);
@@ -147,6 +167,9 @@ int main(int argc, char** argv) {
             try {revocation_input=std::make_unique<spatial::NativeInput>(descriptor);}
             catch(...) {if(fcntl(descriptor,F_GETFD)>=0)close(descriptor);throw;}
         }
+        std::unique_ptr<spatial::identity::NativeSeatGuardianClient> native_guardian;
+        if(guardian_fd>=0)native_guardian=std::make_unique<spatial::identity::NativeSeatGuardianClient>(
+            guardian_fd,guardian_supervisor_pid,guardian_supervisor_pid);
         if (config.empty()) config = std::filesystem::read_symlink("/proc/self/exe").parent_path() / "runtime.textproto";
         // Management pipes and actor-only sockets have separate protobuf interfaces.
         const auto settings = spatial::load_runtime_config(config);
@@ -165,7 +188,7 @@ int main(int argc, char** argv) {
             std::filesystem::read_symlink("/proc/self/exe").parent_path() / "spatialwm", state, display,
             native ? native->descriptor() : -1, fixture_faults);
         if (native) native->consume();
-        spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get(), revocation_input.get());
+        spatial::Actors actors(world, settings, fixture_clock, &surfaces, renderer.get(), broker.get(), revocation_input.get(),native_guardian.get());
         std::unique_ptr<spatial::IdentitySessions> sessions;
         if (!identity_config.empty()) sessions = std::make_unique<spatial::IdentitySessions>(identity_config, actor_channels, world, actors, broker.get(), actor_listener, actor_tls_config);
         spatial::serve(world, actors, renderer.get(), &surfaces, broker.get(), sessions.get(), witness.get());

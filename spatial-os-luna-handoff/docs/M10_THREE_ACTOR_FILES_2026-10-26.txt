@@ -1,0 +1,67 @@
+M10 three-actor file check, unqualified Debug integration payload
+
+The payload archive SHA-256 is
+38128bbb07adb30ff0b47949b7270c9baf82ccd598935e1f142e31f5bf571ef9.
+The payload includes uncommitted changes and is not a frozen gate candidate.
+Both hosts used the same payload and their verified native XLibre runtimes.
+
+sb16 passed all seven file-suite tests. sb16-2 passed six and failed one.
+The failing scenario reached its human movement assertion after file operations
+and confined process checks. At the six-second condition deadline, the reported
+human pose matched its starting pose and its axes were zero. Two scripted actors
+also requested motion during that interval.
+The capture key event had passed its processed-sequence barrier. That barrier
+does not establish that movement reached the world. The retained host log shows
+channel shutdown during cleanup, after the failed assertion. It does not establish
+the cause of the missing motion. Do not treat cleanup shutdown as its cause.
+
+The file scenario did not explicitly select retained movement. The integration
+launcher did not set SPATIAL_TEST_RETAINED_MOVEMENT. The separate three-actor
+navigation test explicitly enables it. The failed file scenario must remain
+unresolved until its actual execution path and motion timing are verified.
+Selecting retained movement for another check cannot retroactively pass this one.
+
+A focused rerun with the same default movement configuration also failed on
+sb16-2. It failed earlier, when the capture producer found its socket closed
+before sending the movement key. The host log recorded capture binding
+retirement. Its cause is not yet established. The focused run and evidence are
+under runs/integrated-files-original-01 and evidence/integrated-files-original-01
+within the same host artifact directory.
+
+The focused comparison attempted to enable retained movement, but the resource
+delegate did not forward that environment variable to the test service. Both
+runs therefore used the default path and do not compare retained movement.
+The run passed on sb16 and failed on sb16-2. The sb16-2 host reported
+unavailable controls while waiting for the key's processed status. Its log
+records a watchdog interruption after 352 ms and subsequent actor TLS closure.
+This diagnostic does not identify the queued event. Evidence is under
+runs/integrated-files-retained-01 and evidence/integrated-files-retained-01.
+
+The corrected comparison injects the flag after resource delegation and asserts
+its presence inside the test service. With retained movement enabled, the
+focused file scenario passed once on sb16. The sb16-2 run failed when the
+capture stream reset before the test sent its movement key. The host reported
+capture binding retirement. Evidence is under
+runs/integrated-files-retained2-01 and the matching evidence directory.
+
+The focused scenario passed once on each host with both retained movement and
+presentation continuations enabled. The test service asserted both settings.
+Evidence is under runs/integrated-files-both-01 and the matching evidence
+directory. One pass does not resolve the earlier failures or qualify M10.
+
+Evidence on each host:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/integrated-files-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/integrated-files-01
+
+Selected follow-up: run the human and two scripted agents real shared-file
+scenario on both hosts against the world and compositor with the scoped peer
+health change. Require retained movement and presentation continuations inside
+the delegated test service. Preserve prior failures and exact binary pins. This
+is one focused run and does not establish the full M10 gate.
+The selected real-file scenario passed once on each host with the scoped peer
+health candidate and both required settings. World SHA-256 was
+42cf3bb5cb68e168fd0b5e8b07384b36d94bb5bf989e7e13ab0a1730e2e82631;
+compositor SHA-256 was
+0fb0c8a142d74fbdbf5a4262fcc2d8f2c47ae071819468d93229c1d8b28c1149.
+Evidence is runs/integrated-files-peer-health-01-01 and the matching evidence
+directory on each host. This does not resolve older failure causes or qualify M10.

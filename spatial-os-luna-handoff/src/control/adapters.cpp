@@ -42,7 +42,11 @@ void MotionIntent::clear() {
 void MotionIntent::clear_motion(Clock::time_point now) {
     std::lock_guard lock(mutex_);
     for (auto& [id, source] : sources_) {
-        (void)id; source.keys.clear(); source.axes.fill(0); source.has_axes = false;
+        (void)id;
+        source.keys.clear();
+        if (source.has_axes && std::any_of(source.axes.begin(), source.axes.end(),
+                [](double value) { return value != 0; })) source.axes_neutral_required = true;
+        source.axes.fill(0); source.has_axes = false;
     }
     fresh_after_ = now;
 }
@@ -74,37 +78,62 @@ bool MotionIntent::observe(const v1::DeviceEvent& event, Clock::time_point captu
             retired_generations_[event.source_id()] = source.generation;
             sources_.erase(found);
             for (auto& [id, current] : sources_) {
-                (void)id; current.keys.clear(); current.axes.fill(0); current.has_axes = false;
+                (void)id;
+                current.keys.clear();
+                if (current.has_axes && std::any_of(current.axes.begin(), current.axes.end(),
+                        [](double value) { return value != 0; })) current.axes_neutral_required = true;
+                current.axes.fill(0); current.has_axes = false;
             }
             fresh_after_ = now;
             return true;
         }
-        if (captured < fresh_after_ || now - captured >= event_max_age) {
-            source.keys.clear(); source.axes.fill(0); source.has_axes = false; fresh_after_ = now;
-            return true;
-        }
-        if (event.has_heartbeat()) return true;
+        bool key_pressed_edge = false, key_released_edge = false;
         if (event.has_key()) {
             if (source.kind != v1::KEYBOARD || event.key().keysym().empty() ||
                 event.key().keysym().size() > 64 || event.key().keysym().find('\0') != std::string::npos) return false;
             if (!event.key().repeat()) {
                 if (event.key().pressed()) {
-                    if (!source.keys.contains(event.key().keysym()) && source.keys.size() >= maximum_held_keys) return false;
-                    source.keys.insert(event.key().keysym());
-                }
-                else source.keys.erase(event.key().keysym());
+                    if (!source.physical_keys.contains(event.key().keysym()) &&
+                        source.physical_keys.size() >= maximum_held_keys) return false;
+                    key_pressed_edge = source.physical_keys.insert(event.key().keysym()).second;
+                } else
+                    key_released_edge = source.physical_keys.erase(event.key().keysym()) != 0;
+            }
+        }
+        if (captured < fresh_after_ || now - captured >= event_max_age) {
+            source.keys.clear();
+            if (source.has_axes && std::any_of(source.axes.begin(), source.axes.end(),
+                    [](double value) { return value != 0; })) source.axes_neutral_required = true;
+            source.axes.fill(0); source.has_axes = false; fresh_after_ = now;
+            return true;
+        }
+        if (event.has_heartbeat()) return true;
+        if (event.has_key()) {
+            if (!event.key().repeat() && key_pressed_edge) {
+                if (source.keys.size() >= maximum_held_keys) return false;
+                source.keys.insert(event.key().keysym());
+            } else if (!event.key().repeat() && key_released_edge) {
+                source.keys.erase(event.key().keysym());
             }
         } else if (event.has_axes()) {
             if (source.kind != v1::SPACEMOUSE || event.axes().raw_size() != 6) return false;
             const auto& profile = active_profile(profiles_);
-            source.axes.fill(0); source.has_axes = profile.spacemouse_calibrated();
-            if (source.has_axes) for (unsigned i = 0; i < 6; ++i) {
+            std::array<double, 6> normalized{};
+            if (profile.spacemouse_calibrated()) for (unsigned i = 0; i < 6; ++i) {
                 const auto& calibration = profile.spacemouse_axes(static_cast<int>(i));
                 const auto index = static_cast<unsigned>(std::abs(calibration.raw_axis()) - 1);
                 const double raw = event.axes().raw(static_cast<int>(index));
                 if (!std::isfinite(raw) || std::abs(raw) > 1e9) return false;
-                source.axes[i] = std::clamp((raw - calibration.center()) / calibration.full_scale() *
+                normalized[i] = std::clamp((raw - calibration.center()) / calibration.full_scale() *
                     (calibration.raw_axis() < 0 ? -1 : 1), -1., 1.);
+            }
+            const bool neutral = std::all_of(normalized.begin(), normalized.end(),
+                [](double value) { return value == 0; });
+            if (source.axes_neutral_required && !neutral) {
+                source.axes.fill(0); source.has_axes = false;
+            } else {
+                source.axes_neutral_required = false;
+                source.axes = normalized; source.has_axes = profile.spacemouse_calibrated();
             }
             source.axes_time = captured;
         } else if (event.has_motion()) {
@@ -126,7 +155,11 @@ std::optional<core::v1::ActorInputRequest> MotionIntent::next(Clock::time_point 
         return now < item.second.heartbeat || now - item.second.heartbeat >= source_timeout;
     });
     if (source_lost) for (auto& [id, source] : sources_) {
-        (void)id; source.keys.clear(); source.axes.fill(0); source.has_axes = false;
+        (void)id;
+        source.keys.clear();
+        if (source.has_axes && std::any_of(source.axes.begin(), source.axes.end(),
+                [](double value) { return value != 0; })) source.axes_neutral_required = true;
+        source.axes.fill(0); source.has_axes = false;
     }
     std::array<double, 6> axes{};
     const auto& profile = active_profile(profiles_);

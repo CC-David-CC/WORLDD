@@ -43,6 +43,7 @@ protobuf_generate_cpp(cabinet_proto_sources cabinet_proto_headers proto/spatial/
 protobuf_generate_cpp(copy_worker_proto_sources copy_worker_proto_headers proto/spatial/workspace/v1/copy_worker.proto)
 protobuf_generate_cpp(key_proto_sources key_proto_headers proto/spatial/identity/v1/key.proto)
 protobuf_generate_cpp(issuer_proto_sources issuer_proto_headers proto/spatial/identity/v1/issuer.proto)
+protobuf_generate_cpp(native_seat_guardian_proto_sources native_seat_guardian_proto_headers proto/spatial/identity/v1/native_seat_guardian.proto)
 protobuf_generate_cpp(world_session_proto_sources world_session_proto_headers proto/spatial/identity/v1/world_session.proto)
 protobuf_generate_cpp(geometry_view_proto_sources geometry_view_proto_headers proto/spatial/identity/v1/geometry_view.proto)
 protobuf_generate_cpp(actor_client_tls_proto_sources actor_client_tls_proto_headers proto/spatial/identity/v1/actor_session_client.proto)
@@ -259,6 +260,12 @@ add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/issuer_pb2.py"
     DEPENDS proto/spatial/identity/v1/issuer.proto proto/spatial/authority/v1/grants.proto proto/spatial/identity/v1/key.proto proto/spatial/core/v1/core.proto proto/spatial/security/v1/security.proto proto/spatial/workspace/v1/file_actions.proto protobuf::protoc VERBATIM)
 add_custom_target(issuer-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/issuer_pb2.py")
 add_dependencies(issuer-python-protobuf file-actions-python-protobuf)
+add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/native_seat_guardian_pb2.py"
+    COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
+        --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1
+        ${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/identity/v1/native_seat_guardian.proto
+    DEPENDS proto/spatial/identity/v1/native_seat_guardian.proto protobuf::protoc VERBATIM)
+add_custom_target(native-seat-guardian-python-protobuf ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/python/native_seat_guardian_pb2.py")
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/python/geometry_view_pb2.py"
     COMMAND protobuf::protoc --python_out=${CMAKE_CURRENT_BINARY_DIR}/python
         --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/proto/spatial/workspace/v1
@@ -437,6 +444,7 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/build_id.hpp" "#pragma once\n#define SPA
 add_library(spatial-protobuf STATIC ${control_profile_proto_sources} ${control_profile_proto_headers} ${presentation_proto_sources} ${presentation_proto_headers} ${compositor_proto_sources} ${compositor_proto_headers} ${native_scope_proto_sources} ${native_scope_proto_headers} ${proto_sources} ${proto_headers} ${broker_proto_sources} ${broker_proto_headers} ${key_proto_sources} ${key_proto_headers} ${issuer_proto_sources} ${issuer_proto_headers} ${world_session_proto_sources} ${world_session_proto_headers} ${geometry_view_proto_sources} ${geometry_view_proto_headers} ${actor_client_tls_proto_sources} ${actor_client_tls_proto_headers} ${actor_transition_proto_sources} ${actor_transition_proto_headers} ${host_actor_controller_proto_sources} ${host_actor_controller_proto_headers} ${grants_proto_sources} ${grants_proto_headers}
     ${presentation_interface_proto_cc} ${presentation_interface_proto_h} ${security_proto_sources} ${security_proto_headers} ${selection_scope_proto_sources} ${selection_scope_proto_headers})
 target_link_libraries(spatial-protobuf PUBLIC protobuf::libprotobuf)
+target_sources(spatial-protobuf PRIVATE ${native_seat_guardian_proto_sources} ${native_seat_guardian_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${scope_proto_sources} ${scope_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${storage_proto_sources} ${storage_proto_headers})
 target_sources(spatial-protobuf PRIVATE ${cabinet_proto_sources} ${cabinet_proto_headers})
@@ -505,7 +513,7 @@ add_library(spatial-authority-launch STATIC src/supervisor/launch.cpp src/superv
 target_link_libraries(spatial-authority-launch PUBLIC spatial-process-scope spatial-control-reply SQLite::SQLite3)
 add_executable(spatial-authority-launch-probe src/testing/authority_launch_probe.cpp)
 add_executable(spatial-authority-supervisor src/supervisor/main.cpp)
-target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch spatial-workspace-resources spatial-storage-launch spatial-broker-copy-cleanup spatial-broker-cleanup-bootstrap)
+target_link_libraries(spatial-authority-supervisor PRIVATE spatial-authority-launch spatial-workspace-resources spatial-storage-launch spatial-broker-copy-cleanup spatial-broker-cleanup-bootstrap spatial-native-seat-guardian)
 target_link_libraries(spatial-authority-launch-probe PRIVATE spatial-authority-launch)
 add_dependencies(spatial-authority-launch-probe broker-python-protobuf launch-python-protobuf scope-python-protobuf native-scope-python-protobuf security-python-protobuf python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf)
 add_executable(spatial-process-scope-probe src/testing/process_scope_probe.cpp)
@@ -544,9 +552,15 @@ add_executable(identityd src/identity/issuer_main.cpp)
 target_link_libraries(identityd PRIVATE spatial-issuer)
 add_library(spatial-native-input STATIC src/x11/input.cpp ${input_proto_sources} ${input_proto_headers})
 target_link_libraries(spatial-native-input PUBLIC spatial-scene spatial-compositor-config X11::X11)
+add_library(spatial-native-seat-guardian STATIC src/identity/native_seat_guardian.cpp
+    src/identity/native_seat_ledger.cpp src/identity/native_seat_guardian_dispatch.cpp
+    src/identity/native_seat_guardian_client.cpp src/identity/native_seat_guardian_world_service.cpp)
+target_include_directories(spatial-native-seat-guardian PUBLIC src "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(spatial-native-seat-guardian PUBLIC spatial-native-input spatial-presentation-stream
+    spatial-protobuf SQLite::SQLite3 OpenSSL::Crypto)
 add_library(spatial-core STATIC src/core/protocol.cpp src/world/store.cpp src/world/storage_vfs.cpp src/world/workspace_presentations.cpp src/world/presentation_geometry.cpp src/world/actors.cpp src/world/application_actions.cpp src/world/objects.cpp src/world/surfaces.cpp src/platform/render_process.cpp src/platform/presentation_owner.cpp src/platform/render_worker.cpp src/platform/broker.cpp)
 target_include_directories(spatial-core PUBLIC src)
-target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch spatial-broker-copy-cleanup spatial-broker-cleanup-bootstrap spatial-native-input)
+target_link_libraries(spatial-core PUBLIC spatial-compositor-config spatial-presentation-stream spatial-scene SQLite::SQLite3 spatial-authority spatial-workspace-resources spatial-storage-launch spatial-broker-copy-cleanup spatial-broker-cleanup-bootstrap spatial-native-input spatial-native-seat-guardian)
 add_executable(spatial-storage-broker-launch-probe src/testing/storage_broker_launch_probe.cpp)
 target_link_libraries(spatial-storage-broker-launch-probe PRIVATE spatial-core)
 add_dependencies(spatial-storage-broker-launch-probe broker-python-protobuf)
@@ -617,7 +631,7 @@ add_library(spatial-input-witness-protobuf STATIC ${input_witness_proto_sources}
 target_link_libraries(spatial-input-witness-protobuf PUBLIC protobuf::libprotobuf)
 target_include_directories(spatial-input-witness-protobuf PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 add_executable(worldd src/world/actor_tls.cpp src/world/main.cpp src/world/server.cpp src/world/input_witness.cpp src/world/identity_sessions.cpp src/world/authority.cpp)
-target_link_libraries(worldd PRIVATE spatial-input-witness-protobuf spatial-compositor-config spatial-core spatial-identity spatial-actor-session-client spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib)
+target_link_libraries(worldd PRIVATE spatial-input-witness-protobuf spatial-compositor-config spatial-core spatial-identity spatial-actor-session-client spatial-issuer-watch-lib spatial-authority spatial-participant-runtime-lib spatial-native-seat-guardian)
 add_dependencies(worldd spatialwm)
 add_library(spatial-app-initializer STATIC src/workspace/app_initializer.cpp)
 target_link_libraries(spatial-app-initializer PUBLIC spatial-scene)
@@ -681,6 +695,18 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-actor-control-check PRIVATE spatial-actor-control)
     add_test(NAME actor-control-layer COMMAND $<TARGET_FILE:spatial-actor-control-check>)
     set_tests_properties(actor-control-layer PROPERTIES TIMEOUT 60)
+    add_executable(spatial-motion-frame-selection-check tests/core/test_motion_frame_selection.cpp)
+    target_link_libraries(spatial-motion-frame-selection-check PRIVATE spatial-core)
+    add_test(NAME motion-frame-selection COMMAND $<TARGET_FILE:spatial-motion-frame-selection-check>)
+    set_tests_properties(motion-frame-selection PROPERTIES TIMEOUT 60)
+    add_executable(spatial-native-seat-binding-check tests/core/test_native_seat_guardian_binding.cpp)
+    target_link_libraries(spatial-native-seat-binding-check PRIVATE spatial-core)
+    add_test(NAME native-seat-guardian-binding COMMAND $<TARGET_FILE:spatial-native-seat-binding-check>)
+    set_tests_properties(native-seat-guardian-binding PROPERTIES TIMEOUT 60)
+    add_executable(spatial-native-seat-ledger-check tests/core/test_native_seat_ledger.cpp src/identity/native_seat_ledger.cpp)
+    target_link_libraries(spatial-native-seat-ledger-check PRIVATE spatial-core SQLite::SQLite3 Threads::Threads)
+    add_test(NAME native-seat-guardian-ledger COMMAND $<TARGET_FILE:spatial-native-seat-ledger-check>)
+    set_tests_properties(native-seat-guardian-ledger PROPERTIES TIMEOUT 60)
     add_executable(spatial-control-menu-check tests/core/test_control_menu.cpp)
     target_link_libraries(spatial-control-menu-check PRIVATE spatial-control-menu)
     add_test(NAME actor-control-menu COMMAND $<TARGET_FILE:spatial-control-menu-check>)
@@ -1429,6 +1455,11 @@ if(BUILD_TESTING)
         $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
     set_tests_properties(world-remote-lifecycle PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME world-actor-scale COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_world_actor_scale.py" $<TARGET_FILE:identityd>
+        $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
+    set_tests_properties(world-actor-scale PROPERTIES TIMEOUT 600
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME world-remote-native COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}"
@@ -1810,13 +1841,78 @@ if(BUILD_TESTING)
     target_link_libraries(spatial-input-bridge PRIVATE spatial-native-input)
     add_executable(spatial-scoped-input-probe src/testing/scoped_input_probe.cpp)
     target_link_libraries(spatial-scoped-input-probe PRIVATE spatial-native-input)
+    add_executable(spatial-native-seat-guardian-probe src/testing/native_seat_guardian_probe.cpp
+        src/identity/native_seat_guardian.cpp src/identity/native_seat_ledger.cpp)
+    target_link_libraries(spatial-native-seat-guardian-probe PRIVATE spatial-core SQLite::SQLite3)
+    add_test(NAME native-seat-guardian-prototype COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_seat_guardian.py"
+        $<TARGET_FILE:spatial-native-seat-guardian-probe> $<TARGET_FILE:spatial-security-auth>
+        NativeSeatGuardianTests.test_guardian_fences_exact_seat_and_rejects_foreign_controller)
+    set_tests_properties(native-seat-guardian-prototype PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
+    add_executable(spatial-native-seat-guardian-worker-probe src/testing/native_seat_guardian_worker.cpp
+        src/identity/native_seat_guardian.cpp src/identity/native_seat_ledger.cpp)
+    target_link_libraries(spatial-native-seat-guardian-worker-probe PRIVATE spatial-core SQLite::SQLite3)
+    add_test(NAME native-seat-guardian-process COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_seat_guardian_process.py"
+        $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:spatial-native-seat-guardian-worker-probe>
+        NativeSeatGuardianProcessTests.test_independent_guardian_fences_stopped_seat_owner)
+    set_tests_properties(native-seat-guardian-process PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
+    add_executable(spatial-native-seat-guardian-channel-probe src/testing/native_seat_guardian_channel.cpp
+        src/identity/native_seat_guardian.cpp src/identity/native_seat_ledger.cpp)
+    target_link_libraries(spatial-native-seat-guardian-channel-probe PRIVATE spatial-core SQLite::SQLite3)
+    add_test(NAME native-seat-guardian-channel COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_seat_guardian_channel.py"
+        $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:spatial-native-seat-guardian-channel-probe>
+        NativeSeatGuardianChannelTests.test_checked_channel_fences_stopped_owner
+        NativeSeatGuardianChannelTests.test_different_process_cannot_send_on_inherited_channel)
+    set_tests_properties(native-seat-guardian-channel PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
+    add_executable(spatial-native-seat-guardian-roles-probe src/testing/native_seat_guardian_roles.cpp
+        src/identity/native_seat_guardian.cpp src/identity/native_seat_ledger.cpp src/identity/native_seat_guardian_dispatch.cpp
+        src/identity/native_seat_guardian_service.cpp)
+    target_link_libraries(spatial-native-seat-guardian-roles-probe PRIVATE spatial-core SQLite::SQLite3)
+    add_test(NAME native-seat-guardian-roles COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_seat_guardian_roles.py"
+        $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:spatial-native-seat-guardian-roles-probe>
+        NativeSeatGuardianRolesTests.test_distinct_roles_fence_stopped_owner
+        NativeSeatGuardianRolesTests.test_guardian_death_fences_registered_seat
+        NativeSeatGuardianRolesTests.test_world_role_cannot_request_fence
+        NativeSeatGuardianRolesTests.test_issuer_role_cannot_register_seat
+        NativeSeatGuardianRolesTests.test_world_registration_with_wrong_incarnation_is_rejected
+        NativeSeatGuardianRolesTests.test_replayed_world_request_is_rejected
+        NativeSeatGuardianRolesTests.test_inherited_world_channel_rejects_another_process
+        NativeSeatGuardianRolesTests.test_same_process_cannot_own_both_roles
+        NativeSeatGuardianRolesTests.test_fence_with_wrong_issuer_is_rejected
+        NativeSeatGuardianRolesTests.test_caught_service_failure_fences_seat_while_guardian_process_survives)
+    set_tests_properties(native-seat-guardian-roles PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
+    add_executable(spatial-native-seat-guardian-world-probe src/testing/native_seat_guardian_world_probe.cpp)
+    target_link_libraries(spatial-native-seat-guardian-world-probe PRIVATE spatial-native-seat-guardian)
+    add_test(NAME native-seat-guardian-world COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_seat_guardian_world.py"
+        $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:spatial-native-seat-guardian-world-probe>
+        NativeSeatGuardianWorldTests.test_checked_registration_receipt_precedes_input_and_disconnect_revokes)
+    set_tests_properties(native-seat-guardian-world PROPERTIES TIMEOUT 90
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};PYTHONDONTWRITEBYTECODE=1")
     add_test(NAME scoped-native-input COMMAND "${Python3_EXECUTABLE}"
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_scoped_input.py"
         $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>)
     set_tests_properties(scoped-native-input PROPERTIES TIMEOUT 90
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME native-seat-capacity COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_native_seat_capacity.py"
+        $<TARGET_FILE:spatial-scoped-input-probe> $<TARGET_FILE:spatial-security-auth>)
+    set_tests_properties(native-seat-capacity PROPERTIES TIMEOUT 120
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
     add_custom_target(scoped-native-input-fixture DEPENDS spatial-scoped-input-probe spatial-security-auth
-        python-protobuf security-python-protobuf input-python-protobuf compositor-python-protobuf)
+        spatial-native-seat-guardian-world-probe python-protobuf security-python-protobuf input-python-protobuf
+        compositor-python-protobuf native-seat-guardian-python-protobuf)
     add_executable(spatial-xprobe native/xprobe.c)
     set_target_properties(spatial-xprobe PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED ON)
     target_compile_definitions(spatial-xprobe PRIVATE SPATIAL_HAVE_XI2=1)
@@ -2153,7 +2249,7 @@ if(BUILD_TESTING)
         add_custom_target(world-issuer-progress-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm spatial-xprobe
             python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf
             security-python-protobuf compositor-python-protobuf)
-        add_native_identity_fixture_test(world-issuer-progress tests/core/test_world_issuer_progress.py 120
+        add_native_identity_fixture_test(world-issuer-progress tests/core/test_world_issuer_progress.py 210
             $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         add_native_identity_fixture_test(actor-stop-progress tests/core/test_actor_stop_progress.py 120
             $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
@@ -2692,6 +2788,13 @@ if(BUILD_TESTING)
         $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
     set_tests_properties(session-application PROPERTIES TIMEOUT 180
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
+    add_test(NAME session-guardian-precommit COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} --
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/native/test_session_application.py" "${CMAKE_CURRENT_SOURCE_DIR}"
+        $<TARGET_FILE:spatial-authority-launch-probe> $<TARGET_FILE:spatial-security-auth>
+        $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client>)
+    set_tests_properties(session-guardian-precommit PROPERTIES TIMEOUT 180
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_TEST_METHOD=test_supervisor_guardian_fences_input_before_issuer_commits_revocation;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
     add_test(NAME storage-session-launcher-contract COMMAND "${Python3_EXECUTABLE}" -B
         "${CMAKE_CURRENT_SOURCE_DIR}/tests/core/test_storage_session_launcher.py")
     set_tests_properties(storage-session-launcher-contract PROPERTIES TIMEOUT 30)

@@ -134,6 +134,8 @@ private:
         std::int64_t started;
         Binding binding;
         bool urgent;
+        const char* origin;
+        const char* phase = "starting";
         bool release_satisfied = false;
         bool interrupted = false;
     };
@@ -147,7 +149,8 @@ private:
     bool retire_capture();
     bool complete(const std::function<void()>& publish, bool success);
     void complete_failure(std::exception_ptr, const std::function<void(std::exception_ptr)>& publish);
-    void begin_exchange(const Binding& urgent = {}, bool cancellation = false);
+    void begin_exchange(const Binding& urgent = {}, bool cancellation = false, const char* origin = "maintenance");
+    void set_flight_phase(const char* phase) noexcept;
     void end_exchange() noexcept;
     void stop() noexcept;
     HostActorController& controller_;

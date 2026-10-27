@@ -24,6 +24,7 @@
 namespace spatial::identity {
 namespace {
 namespace core = spatial::core::v1;
+namespace guardian_v1 = spatial::identity::guardian::v1;
 using participant_detail::require;
 using Domains = std::set<std::pair<int, std::string>>;
 Domains domain_set(const v1::AuthorityParticipant& participant) {
@@ -151,6 +152,7 @@ struct ParticipantRuntime::Impl {
             std::optional<v1::RevocationBatch> checked_feed;
             std::uint64_t feed_sequence = 0;
             std::optional<v1::ParticipantCommand> progress_request;
+            std::set<std::string> queued_precommit_intents;
             const auto wait = static_cast<std::uint32_t>(std::min<std::int64_t>(100, client.timeout().count()/2));
             const auto control_wait = static_cast<std::uint32_t>(std::min<std::int64_t>(20, client.timeout().count()/2));
             bool progress_enabled = false;
@@ -185,7 +187,8 @@ struct ParticipantRuntime::Impl {
                 }
                 if (command) {
                     current_request = command->request_id();
-                    stage = command->has_activate() ? "activate" : command->has_applied() ? "applied" : "release";
+                    stage = command->has_activate() ? "activate" : command->has_applied() ? "applied" :
+                        command->has_release() ? "release" : "precommit_ack";
                     v1::IssuerRequest request; request.set_protocol_version(1);
                     if (command->has_activate()) {
                         require(!active && delivered && command->activate().has_synchronized_revision() &&
@@ -201,12 +204,18 @@ struct ParticipantRuntime::Impl {
                                 applied.through_revision() == applied.from_revision()+1 && applied.through_revision() <= *delivered,
                                 "Acknowledgement requires one contiguous consumed revision and the active generation");
                         *request.mutable_authority_applied() = applied;
-                    } else {
+                    } else if(command->has_release()) {
                         const auto& release = command->release();
                         require(active && active->active() && release.generation() == active->generation() &&
                                 release.has_applied_revision() && release.applied_revision() == active->applied_revision(),
                                 "Release requires the active acknowledged generation");
                         *request.mutable_authority_release() = release;
+                    } else {
+                        const auto& ack=command->precommit_ack();
+                        require(active&&active->active()&&active->native_seat_guardian_enabled()&&
+                            ack.generation()==active->generation()&&ack.service_incarnation()==service_incarnation,
+                            "Native precommit acknowledgment requires the active guardian generation");
+                        *request.mutable_authority_precommit_ack()=ack;
                     }
                     if (command->has_applied()) {
                         const auto& applied = command->applied();
@@ -227,6 +236,11 @@ struct ParticipantRuntime::Impl {
                         *update.mutable_error() = reply.error();
                     } else {
                         if (reply_error(reply, stage, command->request_id())) return;
+                        if(command->has_precommit_ack()){
+                            require(reply.has_authority_precommit_result(),"Precommit acknowledgment response is missing");
+                            *update.mutable_precommit_result()=reply.authority_precommit_result();
+                            queued_precommit_intents.erase(command->precommit_ack().receipt().intent().intent_id());
+                        }else{
                         active = reply.authority_activation();
                         { std::lock_guard lock(mutex); stop_state = *active; }
                         if (command->has_activate()) *update.mutable_activated() = *active;
@@ -240,9 +254,29 @@ struct ParticipantRuntime::Impl {
                             { std::lock_guard lock(mutex); closed = true; }
                             publish(std::move(update)); return;
                         }
+                        }
                     }
                     if (!publish(std::move(update))) return;
                     current_request = 0;
+                }
+                if(active&&active->active()&&active->native_seat_guardian_enabled()){
+                    v1::IssuerRequest precommit_request;precommit_request.set_protocol_version(1);
+                    precommit_request.mutable_authority_precommit_read()->set_generation(active->generation());
+                    stage="native_precommit_read";
+                    reply=client.call(std::move(precommit_request));if(reply_error(reply,stage,current_request))return;
+                    const auto& precommits=reply.authority_precommit_batch();
+                    require(precommits.issuer_id()==identity.issuer_id()&&precommits.participant_id()==config.participant_id()&&
+                        precommits.generation()==active->generation()&&precommits.service_incarnation()==service_incarnation&&
+                        precommits.intents_size()<=1,"Native precommit batch identity mismatch");
+                    for(const auto& intent:precommits.intents()){
+                        require(intent.intent_id().size()==32&&intent.issuer_id()==identity.issuer_id()&&intent.target_id().size()==32&&
+                            (intent.target_kind()==guardian_v1::REVOCATION_ACTOR||intent.target_kind()==guardian_v1::REVOCATION_CREDENTIAL),
+                            "Native precommit intent is invalid");
+                        if(queued_precommit_intents.insert(intent.intent_id()).second){
+                            update.Clear();*update.mutable_precommit_fence()=intent;
+                            if(!publish(std::move(update)))return;
+                        }
+                    }
                 }
                 v1::IssuerRequest request; request.set_protocol_version(1);
                 auto* read = request.mutable_revocations();
@@ -313,6 +347,7 @@ struct ParticipantRuntime::Impl {
                     }
                     if (waiting) {
                         current_request = waiting->request_id();
+                        require(!waiting->has_precommit_ack(),"The world child cannot acknowledge its supervisor's native fence");
                         if (waiting->has_activate()) {
                             require(!active && delivered && waiting->activate().has_synchronized_revision() &&
                                 waiting->activate().synchronized_revision() == *delivered,

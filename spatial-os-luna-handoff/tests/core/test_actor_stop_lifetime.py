@@ -1,6 +1,7 @@
 """Pending Stop ownership against a real paused compositor and native X witness."""
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -11,10 +12,12 @@ import time
 import unittest
 from unittest.mock import patch
 import core_pb2 as core
+import geometry_native_pb2 as native_witness
 import world_session_pb2 as session
 from harness.oracles import pose
 from harness.wire import frame
-from test_world_identity import WorldIdentityFixture, receive
+from geometry_process_identity import collect, start_ticks
+from test_world_identity import WORLD, WorldIdentityFixture, receive
 
 
 class ActorStopLifetimeTests(WorldIdentityFixture):
@@ -51,7 +54,10 @@ class ActorStopLifetimeTests(WorldIdentityFixture):
         probe.wait(lambda row:row.get('event')=='button' and row['pressed'])
         with probe.condition:offset=len(probe.events)
         children=Path('/proc/'+str(world.proc.pid)+'/task/'+str(world.proc.pid)+'/children').read_text().split()
-        compositors=[int(pid) for pid in children if Path('/proc/'+pid+'/exe').resolve().name=='spatialwm']
+        expected=(WORLD.parent/'spatialwm').resolve(strict=True)
+        identities=collect([(int(pid),start_ticks(int(pid))) for pid in children],protocol=native_witness)
+        digest=hashlib.sha256(expected.read_bytes()).digest()
+        compositors=[item.pid for item in identities if item.executable_sha256==digest]
         self.assertEqual(len(compositors),1,compositors)
         return world,first,other,rebind,probe,offset,compositors[0],opened.opened.actor_id
 

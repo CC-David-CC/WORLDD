@@ -45,7 +45,8 @@ class RemoteWorldProcess(WorldProcess):
         self.server_key,self.server_cert=fixture.certificate('world-server','world.test')
         config=session.WorldActorTlsConfig(protocol_version=1,certificate_path=str(self.server_cert),
             private_key_path=str(self.server_key),client_ca_path=str(fixture.service_cert),
-            io_timeout_ms=700,idle_timeout_ms=3000,connection_limit=8)
+            io_timeout_ms=700,idle_timeout_ms=getattr(fixture,'remote_idle_timeout_ms',3000),
+            connection_limit=getattr(fixture,'remote_connection_limit',8))
         config_path=fixture.root/'world-tls.textproto'
         config_path.write_text(text_format.MessageToString(config));config_path.chmod(0o600)
         listener=socket.socket();listener.bind(('127.0.0.1',0));listener.listen(16)

@@ -39,6 +39,24 @@ class RemoteLifecycleTests(RemoteSecurityTests):
         for peer in peers:peer.close()
         time.sleep(.05);self.live_actor(world)
 
+    def test_256_tls_slots_reject_excess_and_recover(self):
+        self.remote_connection_limit=256
+        self.remote_idle_timeout_ms=300000
+        world=self.remote_world()
+        context=self.remote_context(world)
+        peers=[]
+        for _ in range(256):
+            peer=self.connect_with(world,context)
+            self.denied(peer.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
+            peers.append(peer)
+        raw=socket.create_connection(('127.0.0.1',world.port),timeout=2)
+        self.addCleanup(raw.close)
+        self.assert_closed(raw)
+        peers.pop().close()
+        time.sleep(.05)
+        replacement=self.connect_with(world,context)
+        self.denied(replacement.call(inspect=session.WorldSessionInspect()),core.UNAUTHORIZED)
+
     def test_disconnect_stops_real_motion_before_motion_expiry(self):
         world=self.remote_world();peer=self.live_actor(world)
         state=peer.call(inspect=session.WorldSessionInspect()).state

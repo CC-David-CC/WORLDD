@@ -1,0 +1,18 @@
+M10 privileged process-descriptor test witness
+Date: 2026-10-26. Status: implementation in progress; host checks pending.
+
+M10 hardening marks worldd and spatialwm non-dumpable. An unprivileged test process
+cannot inspect their /proc/<pid>/fd directories. Tests must keep that protection.
+The M10 gate exposed direct descriptor enumeration in native witness tests.
+
+The geometry test witness gains one additive protobuf operation. It reads only the
+caller-supplied target substrings. It returns only which requested substrings matched.
+It pins each PID with pidfd and verifies start time before and after the read. The request
+is bounded by process count, target count, string size, frame size, and a two-second wait.
+The helper runs through fixed sudo and isolated Python invocation, like the existing
+process-identity witness.
+
+This is test support. It does not grant application processes access to /proc, change
+worldd or spatialwm dumpability, or report unrelated descriptor targets. Existing M10
+acceptance assertions remain unchanged. The Debug and sanitizer runs must verify both
+the no-leak and retirement cases before this correction is integrated.

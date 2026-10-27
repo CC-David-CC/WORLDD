@@ -195,6 +195,67 @@ void checked_cancellation_requires_fresh_device_input() {
     f.key("w", false); f.key("w", true); f.adapter.tick(f.now);
     check(f.last_input().axes(2) == -1, "fresh key failed after checked cancellation");
 }
+void captured_motion_keeps_physical_edges_across_cancel() {
+    Fixture f; auto intent = f.adapter.motion_intent();
+    auto deliver = [&](p::DeviceEvent event) {
+        check(intent->observe(event, f.now, f.now), "capture motion observer rejected a valid event");
+        f.adapter.event(event, f.now);
+    };
+    auto connected = f.event("keyboard"); connected.mutable_connected()->set_kind(p::KEYBOARD); deliver(connected);
+    auto key = [&](const char* keysym, bool pressed) {
+        auto event = f.event("keyboard"); event.mutable_key()->set_keysym(keysym); event.mutable_key()->set_pressed(pressed);
+        deliver(event);
+    };
+    key("w", true);
+    auto moving = intent->next(f.now);
+    check(moving && moving->axes(2) == -1, "captured movement intent did not start");
+    key("F12", true);
+    f.now += std::chrono::milliseconds(80);
+    auto stopped = intent->next(f.now);
+    check(stopped && std::all_of(stopped->axes().begin(), stopped->axes().end(), [](double axis) { return axis == 0; }),
+          "cancellation did not publish a zero movement refresh");
+    f.now += std::chrono::milliseconds(80);
+    key("w", true); // Duplicate down while the physical key remains held.
+    check(!intent->next(f.now), "duplicate held-key down revived movement after cancellation");
+    key("w", false); key("w", true);
+    f.now += std::chrono::milliseconds(80);
+    auto resumed = intent->next(f.now);
+    check(resumed && resumed->axes(2) == -1, "fresh physical key edge did not restore movement");
+}
+void captured_spacemouse_requires_neutral_after_cancel() {
+    Fixture f; auto profiles = f.adapter.profiles();
+    for (auto& profile : *profiles.mutable_profiles()) {
+        profile.set_spacemouse_calibrated(true);
+        for (int i = 0; i < 6; ++i) {
+            auto* axis = profile.add_spacemouse_axes(); axis->set_raw_axis(i + 1); axis->set_full_scale(100);
+        }
+    }
+    f.adapter.set_profiles(profiles); auto intent = f.adapter.motion_intent();
+    auto deliver = [&](p::DeviceEvent event) {
+        check(intent->observe(event, f.now, f.now), "capture motion observer rejected a valid event");
+        f.adapter.event(event, f.now);
+    };
+    auto connected = f.event("spacemouse"); connected.mutable_connected()->set_kind(p::SPACEMOUSE); deliver(connected);
+    auto keyboard = f.event("keyboard"); keyboard.mutable_connected()->set_kind(p::KEYBOARD); deliver(keyboard);
+    auto axes = [&](double x) {
+        auto event = f.event("spacemouse"); event.mutable_axes()->add_raw(x);
+        for (int i = 1; i < 6; ++i) event.mutable_axes()->add_raw(0);
+        deliver(event);
+    };
+    axes(100); check(intent->next(f.now)->axes(0) == 1, "captured SpaceMouse motion did not start");
+    auto cancel = f.event("keyboard"); cancel.mutable_key()->set_keysym("F12"); cancel.mutable_key()->set_pressed(true);
+    deliver(cancel);
+    f.now += std::chrono::milliseconds(80);
+    auto stopped = intent->next(f.now);
+    check(stopped && std::all_of(stopped->axes().begin(), stopped->axes().end(), [](double axis) { return axis == 0; }),
+          "SpaceMouse cancellation did not publish a zero movement refresh");
+    f.now += std::chrono::milliseconds(80); axes(100);
+    check(!intent->next(f.now), "held SpaceMouse deflection resumed movement after cancellation");
+    axes(0); (void)intent->next(f.now);
+    axes(100); f.now += std::chrono::milliseconds(80);
+    auto resumed = intent->next(f.now);
+    check(resumed && resumed->axes(0) == 1, "neutral SpaceMouse recenter did not rearm movement");
+}
 void all_signed_axes_combination_and_expiry() {
     Fixture f; auto profiles = f.adapter.profiles();
     for (auto& profile : *profiles.mutable_profiles()) {
@@ -332,6 +393,8 @@ int main() {
         hold_navigation_balances_both_edges(); std::cout << "PASS hold-navigation-edges\n";
         empty_and_world_geometry_clicks_do_not_become_application_input(); std::cout << "PASS non-application-click-filtering\n";
         checked_cancellation_requires_fresh_device_input(); std::cout << "PASS checked-cancellation-fresh-device-input\n";
+        captured_motion_keeps_physical_edges_across_cancel(); std::cout << "PASS captured-motion-physical-key-edge-cancel\n";
+        captured_spacemouse_requires_neutral_after_cancel(); std::cout << "PASS captured-spacemouse-neutral-rearm-after-cancel\n";
         all_signed_axes_combination_and_expiry(); std::cout << "PASS signed-axes-combination-expiry\n";
         stale_sources_and_disconnect(); std::cout << "PASS stale-source-disconnect-cancellation\n";
         mouse_counts_do_not_depend_on_event_rate(); std::cout << "PASS mouse-event-rate-independence\n";

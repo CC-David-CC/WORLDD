@@ -55,7 +55,7 @@ class RemoteConfigTests(BootstrapWorldFixture):
         for field,value,message in [('protocol_version',2,'Unsupported actor TLS configuration version'),
                 ('io_timeout_ms',49,'limits are out of range'),('io_timeout_ms',60001,'limits are out of range'),
                 ('idle_timeout_ms',49,'limits are out of range'),('idle_timeout_ms',300001,'limits are out of range'),
-                ('connection_limit',0,'limits are out of range'),('connection_limit',129,'limits are out of range')]:
+                ('connection_limit',0,'limits are out of range'),('connection_limit',257,'limits are out of range')]:
             with self.subTest(field=field,value=value):
                 previous=getattr(self.tls,field);setattr(self.tls,field,value)
                 self.reject(message);setattr(self.tls,field,previous)

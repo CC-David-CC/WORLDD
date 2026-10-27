@@ -1,0 +1,243 @@
+M10 native guardian lifetime, 2026-10-26
+
+Status: UNQUALIFIED component repair. Issuer precommit integration and
+end-to-end production supervision qualification remain incomplete. The
+stopped-world issuer-commit failures remain open. This document does not qualify
+M10 or certify all XLibre input paths.
+
+Finding
+The guardian prototype acknowledged seat registration but had no native
+lifetime relationship with that seat. Killing the guardian left the owner seat
+usable. The reproducer failed on sb16 and sb16-2. Later key requests returned
+NO_FOCUS rather than FORBIDDEN. The existing test uses an unfocused seat, so
+this first reproducer proves the missing fence, not application delivery.
+
+Ownership
+This is a missing contract in our Spatial input extension and guardian
+integration. It is not a reproduced upstream XLibre vulnerability. Existing
+seats are connection-owned. An independent guardian needs an explicit native
+lifetime binding before its registration receipt can be trusted.
+
+Stopped-world input finding
+The issuer-commit key and first-pointer failures do not currently isolate an
+XLibre defect. The test stops worldd and spatialwm after worldd has queued an
+input command to the compositor. The issuer commits revocation while neither
+process can act. Since production has not registered an independent guardian,
+the X server has received no seat revoke. When resumed, spatialwm submits the
+queued command and the server accepts the still-active seat. The issuer barrier
+remaining pending is correct; it reports that worldd has not consumed and
+settled the revocation. It does not provide precommit cancellation.
+
+The separate native server check explicitly revokes the prepared seat through
+an independent compositor credential while the world and compositor are
+stopped. After resume, the queued first-pointer press does not reach the
+application. This exercises the server's seat-revoked check and supports the
+conclusion that this targeted path works when the revoke reaches XLibre first.
+It is not a complete XLibre audit and does not cover events already delivered
+to an application connection before the fence.
+
+Required integration
+The issuer currently commits IdentityRevoke in one transaction, then records
+postcommit obligations for authority participants. Worldd receives those
+events and cancels inputs. This order cannot meet the stopped-world contract.
+The next design must durably prepare a revocation intent, stop matching seat
+registration, collect checked native-fence receipts from every guardian, and
+only then commit the revocation. A missing guardian must leave the operation
+pending and uncommitted. Recovery must replay the same intent and fence exact
+seat registrations idempotently. Production supervision must keep guardians
+independent of worldd and spatialwm.
+
+Uncommitted worktree seat-registration wiring
+The per-world spatial-authority-supervisor now creates a private checked
+world channel when it launches a native compositor target. It retains an
+independent NativeInput connection and a durable seat ledger. It runs
+NativeSeatGuardianWorldService while the world child is alive. worldd receives
+the other channel endpoint and constructs NativeSeatGuardianClient. On first
+input, Actors::send_input prepares the seat, registers its exact binding, checks
+the returned SeatRegistrationReceipt, then submits the input. These are
+uncommitted worktree edits, not code in branch HEAD or the current candidate.
+The prototype-only two-role NativeSeatGuardianService is not the production
+endpoint. This worktree path still needs an end-to-end supervisor and worldd
+test, and the supervised launch configuration must require the guardian where
+M10 depends on it.
+
+Extend the issuer participant protocol with durable precommit fence intents.
+For each active supervised world generation, the issuer records an obligation
+before the target revocation can commit. Its supervisor fences matching seats
+through its independent NativeInput, records the exact result, then acknowledges
+the intent. The issuer commits only after every active generation acknowledges.
+Worldd can remain stopped during this process. After commit, the existing
+revocation feed and completion barrier continue to cancel actor state and prove
+settlement. A stopped or missing supervisor leaves the intent pending. On
+restart, the same durable intent is replayed against the ledger, and confirmed
+fences are not applied to a different seat registration.
+
+Private schema addition
+input.proto adds Seat guard at Request field 13. Existing fields, operations,
+and acceptance locks are unchanged. The operation adds a lifetime dependency;
+it does not grant actor authority, input ownership, or permission to steer input.
+
+The caller must use an independent native connection with the same issued
+compositor credential as the seat owner. Binding is idempotent for that exact
+connection. A different guardian cannot replace it. The owner cannot guard its
+own seat. A revoked seat cannot acquire a new guardian.
+
+When the server observes the guardian connection closing or entering retained
+client state, it releases held input and permanently revokes the seat. The
+owner may still inspect, cancel, or close it. Unrelated seats remain usable.
+Applications stay alive. Owner close removes the seat, so later guardian close has no stale seat
+pointer to follow. This does not detect a live but stopped guardian connection.
+
+Guardian registration and lifetime
+NativeSeatGuardian persists registration, binds the exact native seat, and
+checks native connection health before acknowledging registration. Any failed
+binding prevents acknowledgement. A crash before binding cannot authorize the
+first input; worldd awaits the receipt when the supervisor channel is present.
+
+Both guardian service variants close their dedicated native connection on
+failure and destruction. This asks the native server to fence every seat bound
+to that connection even if the caller catches the service exception. The
+uncommitted worktree wires NativeSeatGuardianWorldService into the
+production supervisor for seat registration. It does not yet consume issuer
+precommit fence intents.
+
+Committed candidate and uncommitted worktree call graphs
+Branch HEAD 612946d has no NativeSeatGuardian wiring in worldd or the
+supervisor. That is the committed-candidate finding: Actors builds a local
+NativeSeatBinding, then submits input without guardian registration.
+
+The uncommitted worktree adds a supervisor channel and
+NativeSeatGuardianWorldService, constructs NativeSeatGuardianClient in worldd,
+and registers a prepared seat before submitting its first input. CMake links
+the guardian library into worldd and spatial-authority-supervisor. This code is
+not yet qualified or committed.
+
+Remaining integration gap
+The supervisor launch path creates the channel pair for a native compositor
+target, retains NativeInput and the guardian ledger, constructs
+NativeSeatGuardianWorldService, announces readiness, and pumps it independently
+of worldd and spatialwm. worldd constructs NativeSeatGuardianClient from the
+inherited endpoint. Actors::send_input prepares the seat, builds the binding,
+requests registration, validates the receipt, and checks cancellation state
+again before submitting input.
+
+The missing production contract is issuer precommit integration. The production
+world service handles seat registration only. It does not receive durable
+revocation intents or return a fence acknowledgement to the issuer. Identity
+revocation still commits before participant completion, so a stopped world and
+compositor can retain a queued native action after issuer commit. Existing
+standalone guardian tests do not prove the full supervisor-to-worldd launch
+path or issuer precommit behavior.
+
+Verification
+The baseline failure is preserved on both hosts under:
+  runs/integrated-native-guardian-lifetime-before-01-01
+
+Build logs, source overlays, binaries, and manifests are external under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026
+
+The selected Debug checks passed on both hosts: nine guardian role/lifetime
+cases and five native server cases. The native server cases exercise exact
+credential checks, self-binding denial, takeover denial, idempotency, owner
+close before guardian close, explicit seat revocation, and credential loss.
+An independent application X client observes the actual button and Shift key
+presses, then their releases after guardian disconnect. It also checks that
+later input is forbidden and an unrelated seat remains usable.
+
+The nine role cases passed with a TSan guardian worker on both hosts. The five
+native server cases also passed in those runs, but their server and owner are
+Debug binaries. These five checks do not establish TSan coverage of XLibre.
+
+ASan/UBSan instruments both XLibre and the guardian worker. Both selected suites
+passed on sb16. On sb16-2 the five server cases passed. The nine-role run had
+one cleanup failure: the server did not shut down within the existing four
+seconds after the wrong-role registration test. The isolated repeat of that
+test passed. The initial failure remains unexplained and preserved. A full
+role-suite retry is tracked separately; a retry does not erase the failure.
+
+Run groups on each host:
+  integrated-native-guardian-lifetime-debug-{roles,server}-02-01
+  integrated-native-guardian-lifetime-asan-{roles,server}-02-01
+  integrated-native-guardian-lifetime-tsan-{roles,server}-02-01
+Isolated sb16-2 cleanup retry:
+  integrated-native-guardian-lifetime-asan-shutdown-03-01
+
+Initial additional Debug server checks stopped before their new assertions
+because their package contained stale Python input bindings. Two existing
+checks passed. Those reports remain under the corresponding -01-01 run groups.
+The -02-01 groups use regenerated bindings in new fixture directories.
+
+Input C++ and Python bindings were generated independently in two clean source
+and output directories with protoc 3.21.12. Both generations match each other
+and the current Debug build files. This is focused input-schema evidence;
+full candidate generation reproducibility remains required.
+Receipt: guardian-input-generation-01/receipt.json
+
+Remaining work
+Implement issuer durable intent, matching-registration exclusion, complete
+guardian coverage, checked native fences before commit, and crash recovery.
+Qualify and commit the uncommitted supervisor/worldd registration wiring.
+Test the stopped-world issuer-commit failures through that real path. Resolve
+the ASan shutdown failure before qualification. Dispatch repair and the full
+frozen gate remain separate outstanding M10 work.
+
+Caught-exception follow-up
+The guardian driver now has a test-only hold mode. After a role violation,
+NativeSeatGuardianService closes its dedicated native connection, and the test
+keeps the process alive while an independent seat owner verifies FORBIDDEN.
+This proves service failure cleanup does not rely on process exit. The hold mode
+is not compiled into production world or compositor handlers.
+
+The expanded role suite passed 10/10 and the native server suite passed 5/5 on
+both hosts in Debug, ASan/UBSan, and TSan worker configurations. TSan covers the
+guardian worker; XLibre and the scoped owner are Debug binaries in those runs.
+The ASan/UBSan XLibre server passed the five native server checks. Run groups:
+  runs/integrated-native-guardian-caught-failure-{debug,asan,tsan}-roles-01-01
+  runs/integrated-native-guardian-caught-failure-{debug,asan,tsan}-server-01-01
+The earlier ASan shutdown timeout and its preserved passing reruns remain part
+of the evidence history. This new suite does not reproduce that timeout.
+
+Server builds used the pinned XLibre base and maintained overlays, including
+the new spatialinput operation. Debug and ASan/UBSan Xvfb were compiled on
+middle-child. XLibre unit checks were UNRUN in these compile-only build receipts.
+
+2026-10-26 focused follow-up
+The ten-case Debug guardian role suite passed on sb16 and sb16-2. Each test
+launched against the staged XLibre Xvfb and checked input through an independent
+native owner. The new caught-exception case proved FORBIDDEN while the guardian
+process remained alive. Receipts are under
+spatial-artifacts/m10-liveness-followup-20261026/guardian-final-followup-20261026/runs/<host>/debug-02.
+The first packaging attempt stopped before test discovery because it omitted
+the repository-level harness module. That setup failure is preserved in the
+corresponding debug-01 logs. The corrected payload passed SHA-256 checks before
+the retry. The full ten-case suite has Debug coverage in this follow-up. Four
+selected lifetime cases, including the caught-exception case, have sanitizer
+coverage below.
+
+Sanitizer follow-up for caught-service lifetime
+The four lifetime-focused cases (valid independent fencing, guardian death,
+wrong-issuer rejection, and caught-service failure with the process kept alive)
+passed on sb16 and sb16-2 under ASan/UBSan. The same four cases passed under
+TSan after launching only the instrumented guardian worker with per-process
+ASLR disabled through setarch. Initial TSan attempts failed at runtime startup
+with `unexpected memory mapping`; they did not report a data race. These
+sanitizer runs cover the guardian worker and its cleanup path, not the full
+worldd-supervisor production launch or issuer commit flow.
+
+Issuer precommit implementation constraint
+Issuer::revoke currently advances security_revision, inserts the revocation, and
+snapshots postcommit authority_barrier obligations in one transaction. The TLS
+server is a single nonblocking event loop that advances each peer by one bounded
+step. Blocking inside IdentityRevoke while waiting for supervisor acknowledgments
+would stop the event loop from receiving those acknowledgments. The fix therefore
+needs a durable asynchronous PREPARING state: record the signed target and
+fence obligations, return a pending operation identity, deliver intents through
+the retained participant path, and commit the revocation only after every
+supervisor reports its checked native fence. Pending preparation must prevent a
+new authority generation from bypassing the obligation set. The existing
+postcommit authority barrier remains a separate settlement proof.
+The issuer must authenticate each precommit receipt with the registered
+supervisor key. A participant TLS connection alone is insufficient because the
+world process must not be able to claim that the independent guardian fenced its
+native seats. The retained supervisor must set the generation's guardian flag
+from its live guardian ownership, rather than forwarding a child-supplied flag.

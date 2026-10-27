@@ -6,6 +6,7 @@
 #include "world/actor_tls.hpp"
 #include "world/queued_copy_status.hpp"
 #include "world/control_action.hpp"
+#include "world/motion_frame_selection.hpp"
 #include "core/stop_trace.hpp"
 #include "platform/broker.hpp"
 #include "platform/local_actor_endpoint.hpp"
@@ -19,6 +20,7 @@
 #include <openssl/rand.h>
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cerrno>
 #include <fcntl.h>
 #include <poll.h>
@@ -87,8 +89,11 @@ struct Channel {
     bool in_dispatch = false, output_copy_status_request = false;
     bool motion_reply = false;
     bool stop_reply = false;
+    bool cooperative_inspect_reply = false;
     std::optional<PendingActorStop> stopping;
     bool stop_diagnostic_reply = false;
+    bool key_batch_diagnostic_reply = false;
+    std::uint64_t diagnostic_key_ingress = 0;
     std::optional<std::uint64_t> credential_revision;
     std::uint64_t motion_sequence = 0;
     bool output_revocation_denial = false;
@@ -117,8 +122,12 @@ bool pure_stop(const pb::WorldSessionRequest& request) {
     return (request.has_action() && request.action().has_stop()) ||
         (request.has_control_action() && request.control_action().has_stop());
 }
-bool safe_during_issuer_wait(const pb::WorldSessionRequest& request, bool world_authority) {
+bool safe_during_issuer_wait(const pb::WorldSessionRequest& request, bool world_authority,
+        bool guarded_key_tap_ready) {
     if (request.has_close() || request.has_inspect()) return true;
+    if (guarded_key_tap_ready &&
+        ((request.has_action() && request.action().has_key_tap_batch()) ||
+         (request.has_control_action() && request.control_action().has_key_tap_batch())))return true;
     if (request.has_grants()) return !request.grants().has_workspace() && world_authority;
     if (request.has_revoke()) return !request.revoke().has_workspace() && world_authority;
     return false;
@@ -175,6 +184,11 @@ struct IdentitySessions::Impl {
     pb::WorldIdentityConfig config;
     std::unique_ptr<identity::IssuerClient> client;
     std::unique_ptr<identity::IssuerClient> auxiliary_client;
+    std::function<void()> auxiliary_tick;
+    std::atomic<bool> auxiliary_maintenance_done{false};
+    std::exception_ptr auxiliary_maintenance_error;
+    pb::IssuerReply auxiliary_maintenance_reply;
+    std::jthread auxiliary_maintenance;
     std::unique_ptr<identity::ParticipantRuntime> participant;
     std::optional<std::uint64_t> consumed_revision;
     std::uint64_t generation = 0, acknowledged_revision = 0, command_sequence = 0;
@@ -219,6 +233,7 @@ struct IdentitySessions::Impl {
         validate_message(config);
         require(config.protocol_version() == 1 && (config.admission() == pb::REGISTERED_ACTORS ||
                 config.admission() == pb::EXPLICIT_ACTORS), "World admission policy is required");
+        actors.require_native_seat_guardian(config.require_native_seat_guardian());
         require(!descriptors.empty() || listener_fd>=0 || !config.local_actor_socket_path().empty(),"World requires actor transport");
         if(!config.local_actor_socket_path().empty())
             local_listener=std::make_unique<local_actor::Listener>(config.local_actor_socket_path());
@@ -272,6 +287,8 @@ struct IdentitySessions::Impl {
         channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
         channel.local_view_attested = false;
         channel.credential_revision.reset(); channel.motion_reply = false;channel.stop_reply=false;
+        channel.cooperative_inspect_reply=false;
+        channel.key_batch_diagnostic_reply = false;
         channel.motion_sequence = 0;
         // Swap queued bytes out before cancellation callbacks can re-enter.
         // The pump sees empty output until Actors::close returns; deferred cancellation settles later.
@@ -485,6 +502,7 @@ struct IdentitySessions::Impl {
         if (ticking) return;
         poll_authority();
         queue_progress();
+        try { maintain_auxiliary(); } catch (const WorldError&) { fail(); }
         // Keep the action issuer connection alive during component waits too.
         // The polling guard has ended, so this call's progress callbacks still
         // detect controller loss and consume revocations while INFO is pending.
@@ -500,24 +518,57 @@ struct IdentitySessions::Impl {
         }
     }
     void maintain_auxiliary() {
-        if (broken || !auxiliary_client || auxiliary_exchange_in_progress ||
-                Clock::now()-last_aux_exchange < std::chrono::seconds(1)) return;
-        auxiliary_exchange_in_progress = true;
-        struct Clear { bool& active; ~Clear() { active = false; } } clear{auxiliary_exchange_in_progress};
-        pb::IssuerRequest request; request.set_protocol_version(1); request.mutable_info();
-        try {
-            const auto reply = auxiliary_client->call(std::move(request));
-            require(reply.has_info() && reply.info().issuer_id() == issuer.issuer_id() &&
-                    reply.info().public_key() == issuer.public_key(),
-                    "Auxiliary world issuer identity changed");
-            last_aux_exchange = Clock::now();
+        if (auxiliary_maintenance.joinable()) {
+            if (!auxiliary_maintenance_done.load(std::memory_order_acquire)) return;
+            auxiliary_maintenance.join();
+            auxiliary_client->set_tick(auxiliary_tick);
+            auxiliary_exchange_in_progress=false;
+            if (auxiliary_maintenance_error) {
+                std::cerr << "World auxiliary issuer maintenance failed "
+                    << auxiliary_client->failure_diagnostic() << std::endl;
+                auxiliary_maintenance_error=nullptr;
+                fail();
+                throw WorldError(wire::UNAVAILABLE, "World auxiliary issuer connection failed");
+            }
+            const auto& reply=auxiliary_maintenance_reply;
+            if (!reply.has_info() || reply.info().issuer_id()!=issuer.issuer_id() ||
+                    reply.info().public_key()!=issuer.public_key()) {
+                fail();
+                throw WorldError(wire::UNAVAILABLE, "Auxiliary world issuer identity changed");
+            }
+            auxiliary_maintenance_reply.Clear();
+            last_aux_exchange=Clock::now();
             last_successful_exchange.record_success(last_aux_exchange);
-        } catch (const std::exception&) {
-            std::cerr << "World auxiliary issuer maintenance failed "
-                << auxiliary_client->failure_diagnostic() << '\n';
-            fail();
-            throw WorldError(wire::UNAVAILABLE, "World auxiliary issuer connection failed");
         }
+        if (broken || closing || !auxiliary_client || !auxiliary_tick || auxiliary_exchange_in_progress ||
+                Clock::now()-last_aux_exchange < std::chrono::seconds(1)) return;
+        auxiliary_exchange_in_progress=true;
+        auxiliary_maintenance_done.store(false,std::memory_order_relaxed);
+        auxiliary_maintenance_error=nullptr;
+        auxiliary_maintenance_reply.Clear();
+        try {
+            auxiliary_maintenance=std::jthread([this](std::stop_token stop) {
+                try {
+                    auxiliary_client->set_tick([stop] {
+                        if(stop.stop_requested())throw std::runtime_error("Auxiliary maintenance stopped");
+                    });
+                    stop_trace::Scope trace("world_auxiliary_info",0);
+                    pb::IssuerRequest request;request.set_protocol_version(1);request.mutable_info();
+                    auxiliary_maintenance_reply=auxiliary_client->call(std::move(request));
+                } catch (...) { auxiliary_maintenance_error=std::current_exception(); }
+                auxiliary_maintenance_done.store(true,std::memory_order_release);
+            });
+        } catch (...) {
+            auxiliary_exchange_in_progress=false;
+            fail();
+            throw WorldError(wire::UNAVAILABLE,"Cannot start auxiliary issuer maintenance");
+        }
+    }
+    void stop_auxiliary_maintenance() {
+        if(!auxiliary_maintenance.joinable())return;
+        auxiliary_maintenance.request_stop();
+        auxiliary_maintenance.join();
+        auxiliary_exchange_in_progress=false;
     }
     void settle() {
         if(actors.cancellation_settled())for(auto& owned:channels){
@@ -572,6 +623,7 @@ struct IdentitySessions::Impl {
     }
     void shutdown() {
         closing = true;
+        stop_auxiliary_maintenance();
         for (auto& channel : channels) { disconnect(*channel, "world_shutdown"); channel->close_transport(); }
         const auto deadline = Clock::now()+std::max(client->timeout()*2, std::chrono::milliseconds(2000));
         while (!released && !broken && Clock::now() < deadline) {
@@ -591,6 +643,11 @@ struct IdentitySessions::Impl {
         }
         *selected_busy = true;
         struct ClearExchange { bool& active; ~ClearExchange() { active = false; } } clear{*selected_busy};
+        const char* trace_role = request.has_info() ? "world_issuer_info" :
+            request.has_credential_check() ? "world_issuer_credential_check" :
+            request.has_actor_status() ? "world_issuer_actor_status" : "world_issuer_other";
+        stop_trace::Scope trace(trace_role,0);
+        stop_trace::mark("auxiliary",selected != client.get());
         request.set_protocol_version(1);
         const auto operation = request.has_info() ? "info" :
             request.has_credential_check() ? "credential_check" :
@@ -816,7 +873,8 @@ struct IdentitySessions::Impl {
         if(allowed!=grants.end())for(const auto& grant:allowed->second)open.add_grants(grant);
         Actors::Authority check;
         if(authority)check=[this,actor](const auto& right,const auto& scope){return authority->allowed(actor,right,scope);};
-        const auto opened=actors.open(open,true,std::move(check),actor,!channel.tls);
+        const auto opened=actors.open(open,true,std::move(check),actor,!channel.tls,pending.claims.credential_id(),
+            participant->service_incarnation(),generation,status.security_revision());
         channel.token=opened.token();channel.credential=pending.begin.credential();channel.claims=pending.claims;
         channel.motion_sequence=0;
         channel.credential_revision=status.security_revision();
@@ -846,6 +904,8 @@ struct IdentitySessions::Impl {
         }
     }
     wire::ActorLocalViewState local_view_control(const wire::ActorLocalViewRequest& request) {
+        stop_trace::Scope view_trace("world_local_view",0);
+        stop_trace::mark("present",request.has_present());
         validate_message(request);
         require(request.protocol_version() == 1 && request.has_identity() &&
                 request.operation_case() != wire::ActorLocalViewRequest::OPERATION_NOT_SET,
@@ -876,7 +936,9 @@ struct IdentitySessions::Impl {
         };
         // Presentation keeps its checked issuer read until its asynchronous
         // continuation can carry an ingress fence too.
+        stop_trace::mark("credential_begin");
         current(channel);
+        stop_trace::mark("credential_done");
         if (!active()) throw WorldError(wire::UNAUTHORIZED, "Actor session changed during local attestation");
         const auto actor = principal(claims);
         if ((config.admission() == pb::EXPLICIT_ACTORS &&
@@ -897,7 +959,9 @@ struct IdentitySessions::Impl {
         } else {
             if (!channel.local_view_attested)
                 throw WorldError(wire::FORBIDDEN, "Local view requires retained host attestation");
+            stop_trace::mark("present_begin");
             result=actors.present_local_view(token,identity,request.present().width(),request.present().height(),active);
+            stop_trace::mark("present_done");
             if (!active()) throw WorldError(wire::UNAUTHORIZED,"Actor session changed during local presentation");
         }
         result.set_bound(channel.local_view_attested);
@@ -911,6 +975,10 @@ struct IdentitySessions::Impl {
         try {
             pb::WorldSessionRequest request;
             require(request.ParseFromString(bytes), "Malformed world session protobuf"); reply.set_request_id(request.request_id());
+            stop_trace::Scope dispatch_trace("world_dispatch",request.request_id());
+            stop_trace::mark("operation",static_cast<std::uint64_t>(request.operation_case()));
+            if (request.has_action()) stop_trace::mark("action",static_cast<std::uint64_t>(request.action().action_case()));
+            if (request.has_control_action()) stop_trace::mark("control_action",static_cast<std::uint64_t>(request.control_action().action_case()));
             channel.active_request_id = request.request_id(); channel.in_dispatch = true;
             struct DispatchTraceReset {
                 Channel& channel;
@@ -1020,9 +1088,11 @@ struct IdentitySessions::Impl {
                 pending.nonce = challenge.nonce(); pending.expires = Clock::now()+std::chrono::milliseconds(content.lifetime_ms());
                 channel.pending = std::move(pending); *reply.mutable_challenge() = challenge;
             } else if (request.has_geometry_view()) {
+                stop_trace::Scope geometry_trace("world_geometry_view",request.request_id());
                 if (channel.token.empty() || channel.view_id.size() != 32)
                     throw WorldError(wire::UNAUTHORIZED, "Channel has no active actor session");
                 const auto status = current(channel.credential, channel.claims);
+                stop_trace::mark("credential_done");
                 const auto actor = principal(channel.claims);
                 if ((config.admission() == pb::EXPLICIT_ACTORS &&
                      !(authority ? authority->allowed(actor, "enter") : admitted.contains(status.actor_id()))) ||
@@ -1036,6 +1106,7 @@ struct IdentitySessions::Impl {
                         "identity:"+hex(issuer.issuer_id())+":"+hex(status.actor_id()), channel.view_id,
                         generation, ++channel.view_sequence);
                     construction_ms = world_diagnostic::bounded_ms(Clock::now() - geometry_started);
+                    stop_trace::mark("construction_done",construction_ms);
                 } catch (...) {
                     construction_ms = world_diagnostic::bounded_ms(Clock::now() - geometry_started);
                     std::cerr << world_diagnostic::geometry_failure_line("construction", construction_ms, std::nullopt) << '\n';
@@ -1273,6 +1344,7 @@ struct IdentitySessions::Impl {
         if(channel.fd.value<0 || !channel.output.empty())return;
         std::ostringstream output;write_frame(output,reply);channel.output=output.str();channel.sent=0;
         channel.output_request_id=operation.request;channel.stop_reply=true;channel.motion_reply=false;
+        channel.cooperative_inspect_reply=false;
         channel.stop_diagnostic_reply=stop_trace::enabled();
         channel.needs_observation=false;channel.needs_geometry_observation=false;
         channel.output_copy_status_request=false;channel.output_revocation_denial=false;
@@ -1285,7 +1357,13 @@ struct IdentitySessions::Impl {
         // Applying a batch can yield during native cancellation. Its cursor is
         // not usable until every event and dependent grant has been processed.
         if(motion_only && ticking)return;
-        if(motion_only && pumping_motion && !refresh_only)return;
+        if(motion_only && pumping_motion && !refresh_only) {
+            // Component waits may re-enter a motion pump. Continue only the
+            // bounded refresh path so revocation and movement stay live.
+            stop_trace::Scope trace("world_nested_refresh", 0);
+            pump(true, true);
+            return;
+        }
         if(refresh_only && pumping_refresh_only)return;
         struct Reset {bool& active;bool previous;~Reset(){active=previous;}} reset{pumping_motion,pumping_motion};
         struct RefreshReset {bool& active;bool previous;~RefreshReset(){active=previous;}} refresh_reset{
@@ -1295,13 +1373,14 @@ struct IdentitySessions::Impl {
             else pumping_motion=true;
             poll_authority();
             queue_progress();
+            try { maintain_auxiliary(); } catch (const WorldError&) { fail(); }
         } else tick();
         actors.progress_stops();
         const auto motion_deadline=Clock::now()+std::chrono::milliseconds(2);
         const auto cursor=refresh_only?refresh_cursor:motion_cursor;
         const auto start=channels.empty()?0:cursor%channels.size();unsigned dispatched=0;
         for (std::size_t visit=0;visit<channels.size();++visit) {
-            if(motion_only && (dispatched>=4 || Clock::now()>=motion_deadline))break;
+            if(motion_only && (dispatched>=64 || Clock::now()>=motion_deadline))break;
             const auto index=motion_only?(start+visit)%channels.size():visit;
             auto& owned=channels[index];
             auto& channel = *owned; if (channel.fd.value < 0) continue;
@@ -1312,7 +1391,8 @@ struct IdentitySessions::Impl {
                 else motion_cursor=(index+1)%channels.size();
                 if(channel.departure || channel.pending || channel.prepared ||
                         channel.needs_observation || channel.needs_geometry_observation ||
-                        (!channel.output.empty() && !channel.motion_reply && !channel.stop_reply) ||
+                        (!channel.output.empty() && !channel.motion_reply && !channel.stop_reply &&
+                         !channel.cooperative_inspect_reply) ||
                         (channel.token.empty() && !channel.stop_reply))continue;
             }
             auto drop = [&](const char* reason) {
@@ -1354,6 +1434,11 @@ struct IdentitySessions::Impl {
                     if (written > 0) channel.sent += static_cast<std::size_t>(written);
                 }
                 if (channel.sent == channel.output.size()) {
+                    if (channel.key_batch_diagnostic_reply) {
+                        stop_trace::Scope trace("world_key_batch_send", channel.output_request_id);
+                        stop_trace::mark("reply_sent", channel.sent);
+                        channel.key_batch_diagnostic_reply = false;
+                    }
                     if(channel.stop_diagnostic_reply) {
                         stop_trace::Scope trace("world_send",channel.output_request_id);
                         stop_trace::mark("channel",channel.diagnostic_id);
@@ -1364,7 +1449,7 @@ struct IdentitySessions::Impl {
                     channel.output_copy_status_request = false;
                     channel.output_revocation_denial = false;
                     channel.output_transport_write_attempted = false;
-                    channel.motion_reply = false;channel.stop_reply=false;
+                    channel.motion_reply = false;channel.stop_reply=false;channel.cooperative_inspect_reply=false;
                 }
             }
             if (channel.tls && channel.output.empty()) {
@@ -1383,17 +1468,38 @@ struct IdentitySessions::Impl {
             }
             if (!channel.output.empty() || channel.input.size() < 4) continue;
             const auto* h = reinterpret_cast<const unsigned char*>(channel.input.data());
-            const auto length = (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
+            auto length = (std::uint32_t(h[0]) << 24) | (std::uint32_t(h[1]) << 16) | (std::uint32_t(h[2]) << 8) | h[3];
             if (length > max_frame_bytes) { drop("oversize_frame"); continue; }
             if (channel.input.size() < length+4) continue;
-            const auto bytes = channel.input.substr(4, length);
+            auto bytes = channel.input.substr(4, length);
             pb::WorldSessionRequest candidate;
-            const bool parsed=candidate.ParseFromString(bytes);
+            bool parsed=candidate.ParseFromString(bytes);
+            if (stop_trace::enabled() && parsed && candidate.request_id() &&
+                    candidate.request_id()!=channel.diagnostic_key_ingress &&
+                    ((candidate.has_action() && candidate.action().has_key_tap_batch()) ||
+                     (candidate.has_control_action() && candidate.control_action().has_key_tap_batch()))) {
+                channel.diagnostic_key_ingress=candidate.request_id();
+                stop_trace::Scope trace("world_key_ingress",candidate.request_id());
+                stop_trace::mark("motion_only",motion_only);
+                stop_trace::mark("refresh_only",refresh_only);
+                stop_trace::mark("issuer_pending",issuer_exchange_in_progress);
+                stop_trace::mark("auxiliary_pending",auxiliary_exchange_in_progress);
+            }
+            std::size_t frame_offset=0;
+            if(motion_only && config.enable_retained_movement() && parsed) {
+                const auto selected=world_detail::motion_after_key(channel.input,length,candidate);
+                if(selected) {
+                    frame_offset=selected->offset;length=selected->length;
+                    bytes=channel.input.substr(frame_offset+4,length);
+                    parsed=candidate.ParseFromString(bytes);
+                }
+            }
             if(refresh_only && (!parsed || !candidate.has_motion_refresh()))continue;
             if(motion_only && channel.in_dispatch && (!parsed || !candidate.has_motion_refresh()))continue;
             if(parsed && candidate.has_motion_refresh()) {
                 if(motion_only)++dispatched;
-                channel.input.erase(0, length+4); channel.input_started=now;
+                channel.input.erase(frame_offset, length+4);
+                if(frame_offset==0)channel.input_started=now;
                 try {
                     validate_message(candidate);
                     require(candidate.protocol_version()==1 && candidate.request_id()>0 &&
@@ -1407,6 +1513,10 @@ struct IdentitySessions::Impl {
                     validate_message(refresh.input());
                     actors.refresh_motion(channel.token,refresh.input());
                     channel.motion_sequence=refresh.refresh_sequence();
+                    if(stop_trace::enabled()) {
+                        stop_trace::Scope trace("world_motion_refresh",candidate.request_id());
+                        stop_trace::mark("refresh_sequence",channel.motion_sequence);
+                    }
                 } catch (...) {
                     drop("motion_refresh_rejected");
                 }
@@ -1416,7 +1526,9 @@ struct IdentitySessions::Impl {
                 pure_movement(candidate) && !channel.token.empty();
             const bool retained_intent=draft_motion && retained_authority(channel);
             const bool issuer_wait_operation=motion_only && issuer_exchange_in_progress && parsed &&
-                safe_during_issuer_wait(candidate,static_cast<bool>(authority));
+                (!auxiliary_exchange_in_progress || candidate.has_close()) &&
+                safe_during_issuer_wait(candidate,static_cast<bool>(authority),
+                    !channel.token.empty() && actors.guarded_key_tap_ready(channel.token));
             if(motion_only) {
                 if(!parsed || (!pure_stop(candidate) && !retained_intent && !issuer_wait_operation))continue;
                 // A denial may require native cancellation. Defer it to the outer scheduler.
@@ -1435,12 +1547,15 @@ struct IdentitySessions::Impl {
             bool copy_status_request = false;
             const bool stopping=parsed && ((candidate.has_action() && candidate.action().has_stop()) ||
                 (candidate.has_control_action() && candidate.control_action().has_stop()));
+            const bool key_batch=parsed && ((candidate.has_action() && candidate.action().has_key_tap_batch()) ||
+                (candidate.has_control_action() && candidate.control_action().has_key_tap_batch()));
             struct ReentrantDispatchReset {
                 bool& active; bool previous;
                 ~ReentrantDispatchReset(){active=previous;}
             } reentrant_reset{reentrant_control_dispatch,reentrant_control_dispatch};
             if(issuer_wait_operation)reentrant_control_dispatch=true;
-            stop_trace::Scope trace(stopping?"world":nullptr,candidate.request_id());
+            stop_trace::Scope trace(stopping ? "world" : key_batch ? "world_key_batch" : nullptr,
+                                    candidate.request_id());
             if(stopping){stop_trace::mark("channel",channel.diagnostic_id);
                 stop_trace::mark("tls",bool(channel.tls));
                 stop_trace::mark("actor_sequence",candidate.has_action()?candidate.action().seq():candidate.control_action().seq());}
@@ -1483,7 +1598,9 @@ struct IdentitySessions::Impl {
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_request_id = reply.request_id();
             channel.stop_reply=pure_stop(candidate);
+            channel.cooperative_inspect_reply=issuer_wait_operation && candidate.has_inspect();
             channel.stop_diagnostic_reply=stopping && stop_trace::enabled();
+            channel.key_batch_diagnostic_reply=key_batch && stop_trace::enabled();
             stop_trace::mark("reply_queued");
             channel.motion_reply=pure_movement(candidate);
             channel.output_copy_status_request = copy_status_request && !copy_status_denial;
@@ -1517,6 +1634,8 @@ IdentitySessions::IdentitySessions(const std::filesystem::path& config, const st
     int listener, const std::filesystem::path& tls_configuration)
     : impl_(std::make_unique<Impl>(config, channels, world, actors, broker, listener, tls_configuration)) {}
 IdentitySessions::~IdentitySessions() {
+    impl_->closing=true;
+    impl_->stop_auxiliary_maintenance();
     for (auto& channel : impl_->channels) { try { impl_->disconnect(*channel, "shutdown"); } catch (const std::exception&) {} }
 }
 void IdentitySessions::set_tick(std::function<void()> callback) {
@@ -1527,11 +1646,12 @@ void IdentitySessions::set_tick(std::function<void()> callback) {
         impl_->pump(true);
         impl_->maintain_auxiliary();
     });
-    impl_->auxiliary_client->set_tick([this, shared_callback] {
+    impl_->auxiliary_tick=[this, shared_callback] {
         impl_->pump(true,true);
         if(*shared_callback)(*shared_callback)();
         impl_->pump(true,true);
-    });
+    };
+    if(!impl_->auxiliary_maintenance.joinable())impl_->auxiliary_client->set_tick(impl_->auxiliary_tick);
 }
 void IdentitySessions::tick() { impl_->tick(); }
 void IdentitySessions::pump() { impl_->pump(); }

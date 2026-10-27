@@ -26,6 +26,7 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
             result->add_capabilities("identity.authority-supervisor-registry/v1");
             result->add_capabilities("identity.authority-launch-authorization/v1");
             result->add_capabilities("identity.authority-domain-add/v1");
+            result->add_capabilities("identity.native-seat-precommit/v1");
         } else if (request.has_info()) *reply.mutable_info() = issuer.info();
         else if (request.has_challenge()) *reply.mutable_challenge() = issuer.challenge(request.challenge());
         else if (request.has_execute()) {
@@ -70,11 +71,14 @@ v1::IssuerReply dispatch_issuer(const v1::IssuerRequest& request, Issuer& issuer
                 *reply.mutable_challenge() = issuer.authority_authentication_begin(request.authority_authentication_begin(), *connection);
             else *reply.mutable_authority_authentication() = issuer.authority_authentication_complete(request.authority_authentication_complete(), *connection);
         }
-        else if (request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() || request.has_authority_state()) {
+        else if (request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() || request.has_authority_state() ||
+                 request.has_authority_precommit_read() || request.has_authority_precommit_ack()) {
             if (!connection) throw spatial::WorldError(spatial::wire::FORBIDDEN, "Service participation requires a TLS connection context");
             if (request.has_authority_activate()) *reply.mutable_authority_activation() = issuer.authority_activate(request.authority_activate(), *connection);
             else if (request.has_authority_applied()) *reply.mutable_authority_activation() = issuer.authority_applied(request.authority_applied(), *connection);
             else if (request.has_authority_release()) *reply.mutable_authority_activation() = issuer.authority_release(request.authority_release(), *connection);
+            else if (request.has_authority_precommit_read()) *reply.mutable_authority_precommit_batch() = issuer.authority_precommit_read(request.authority_precommit_read(), *connection);
+            else if (request.has_authority_precommit_ack()) *reply.mutable_authority_precommit_result() = issuer.authority_precommit_ack(request.authority_precommit_ack(), *connection);
             else *reply.mutable_authority_activation() = issuer.authority_state(*connection);
         }
         else throw spatial::WorldError(spatial::wire::UNKNOWN_METHOD, "No recognized issuer operation");

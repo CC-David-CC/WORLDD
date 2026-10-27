@@ -371,17 +371,21 @@ void HostActorController::enable_presentation_continuations() {
         "Presentation continuations require an unpresented shared actor");
     presentation_continuations_=true;
 }
-bool HostActorController::pump_geometry_presentation() {
+bool HostActorController::pump_geometry_presentation(const std::function<void(const char*)>& trace) {
+    if (trace) trace("geometry_deferred_cleanup");
     (void)pump_deferred_cleanup();
+    if (trace) trace("geometry_lock");
     std::unique_lock lock(mutex_, std::try_to_lock);
     if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return false;
     try {
         const auto destination=destinations_.find(current_world_);
         if(presentation_continuations_ && shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
+            if (trace) trace("geometry_view_identity");
             const auto identity=current_client_->local_view_identity();
             if(std::any_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& target){
                     return target.identity.SerializeAsString()==identity.SerializeAsString();}))return true;
             if(!local_target_ || local_target_->identity.SerializeAsString()!=identity.SerializeAsString()) {
+                if (trace) trace("geometry_retire_foreground");
                 if(!retire_foreground_locked())throw std::runtime_error("Previous foreground retirement is unconfirmed");
                 local_target_=LocalTarget{*destination->second.owner,identity};
             }
@@ -389,12 +393,15 @@ bool HostActorController::pump_geometry_presentation() {
                     local_frame_->capture_generation!=capture_generation_ ||
                     local_frame_->ticket.identity.SerializeAsString()!=identity.SerializeAsString() ||
                     local_frame_->ticket.owner.SerializeAsString()!=local_target_->owner.SerializeAsString())) {
+                if (trace) trace("geometry_cancel_frame");
                 session_->cancel_present_local_actor(local_frame_->ticket);
                 local_frame_.reset();
             }
+            if (trace) trace("geometry_begin_frame");
             if(!local_frame_)local_frame_=LocalFrame{
                 session_->begin_present_local_actor(local_target_->owner,identity,0,0),generation_,capture_generation_};
             const auto pending=*local_frame_;
+            if (trace) trace("geometry_poll_frame");
             auto result=session_->poll_present_local_actor(pending.ticket);
             if(!result)return true;
             local_frame_.reset();
@@ -406,10 +413,15 @@ bool HostActorController::pump_geometry_presentation() {
                 pending.ticket.owner.SerializeAsString()==local_target_->owner.SerializeAsString() &&
                 pending.ticket.presentation_generation==result->presentation_generation(),
                 "Local presentation completion lost its actor context");
+            if (trace) trace("geometry_publish_frame");
             publish_local_frame_locked(identity,*result);
-        }else refresh_foreground_locked();
+        }else {
+            if (trace) trace("geometry_refresh_foreground");
+            refresh_foreground_locked();
+        }
     }
     catch (...) {
+        if (trace) trace("geometry_failure_cleanup");
         const auto detail=exception_detail();
         if(detail!=presentation_failure_)std::cerr<<"Local presentation failed: "<<detail<<'\n';
         presentation_failure_=detail;

@@ -1,0 +1,33 @@
+M10 three-actor editor and terminal checks, unqualified Debug payload
+
+The payload archive SHA-256 is
+38128bbb07adb30ff0b47949b7270c9baf82ccd598935e1f142e31f5bf571ef9.
+The payload includes uncommitted changes and is not a frozen gate candidate.
+
+On both hosts, both tests failed at the final human Stop. The host returned an
+unavailable or stale shared actor context. Before that point, each test had
+verified all three actors' expected file contents through the real project
+directory and cabinet reads. One test used xedit. The other used xterm and a
+shell. Reaching those checks is useful evidence, but neither test passed.
+
+The corrected opt-in run injected retained movement and presentation
+continuations inside the test service and asserted both settings there. Both
+editor and terminal scenarios passed on both hosts. This is focused evidence for the
+unqualified payload, not a full gate or a pass for the default configuration.
+Evidence is under runs/integrated-files-editorboth-01 and its matching evidence
+directory on each host.
+
+Evidence is retained on both hosts under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/integrated-editor-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/integrated-editor-01
+
+Selected follow-up: run both the xedit save and xterm command workflows on
+both hosts with the same world and compositor as the peer-health file test.
+Require retained movement and presentation continuations in the service. Preserve
+exact binary hashes, application output, and failures. This is not a full gate.
+Peer-health follow-up passed both editor and terminal tests on both hosts.
+The runs took 146.6 seconds on sb16 and 176.8 seconds on sb16-2. They used
+world SHA-256 42cf3bb5cb68e168fd0b5e8b07384b36d94bb5bf989e7e13ab0a1730e2e82631
+and compositor SHA-256 0fb0c8a142d74fbdbf5a4262fcc2d8f2c47ae071819468d93229c1d8b28c1149.
+Evidence is runs/integrated-editor-peer-health-01-01 and the matching evidence
+directory on each host. This is focused evidence, not a full M10 gate.

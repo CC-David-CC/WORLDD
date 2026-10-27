@@ -47,6 +47,10 @@ message Request {
     KeyTapBatch key_tap_batch = 11;
     // The seat owner's compositor credential fences it against later input.
     Seat revoke = 12;
+    // An independent connection with the same issued compositor credential
+    // becomes this seat's lifetime guardian. Loss of that connection fences
+    // the seat permanently. Binding is idempotent only for that connection.
+    Seat guard = 13;
   }
 }
 enum Code {

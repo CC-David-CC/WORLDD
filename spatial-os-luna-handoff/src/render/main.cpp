@@ -72,11 +72,13 @@ int main(int argc, char** argv) {
         const char* delay_setting = std::getenv("SPATIAL_TEST_RENDER_INPUT_DELAY_MS");
         const char* command_setting = std::getenv("SPATIAL_TEST_RENDER_INPUT_DELAY_COMMAND");
         const char* marker_setting = std::getenv("SPATIAL_TEST_RENDER_INPUT_DELAY_MARKER");
+        const char* bad_prepare_setting = std::getenv("SPATIAL_TEST_RENDER_INVALID_PREPARED_SEAT");
         if (!fixture_faults && ((delay_setting && *delay_setting) || (command_setting && *command_setting) ||
-                                (marker_setting && *marker_setting)))
+                                (marker_setting && *marker_setting) || (bad_prepare_setting && *bad_prepare_setting)))
             throw std::invalid_argument("Renderer fixture delay requires --fixture-faults");
         const unsigned input_delay_ms = fixture_faults ? fixture_unsigned("SPATIAL_TEST_RENDER_INPUT_DELAY_MS", 5000) : 0;
         const unsigned delay_command = fixture_faults ? fixture_unsigned("SPATIAL_TEST_RENDER_INPUT_DELAY_COMMAND", 1024) : 0;
+        const bool invalid_prepared_seat = fixture_faults && fixture_unsigned("SPATIAL_TEST_RENDER_INVALID_PREPARED_SEAT", 1);
         if ((input_delay_ms == 0) != (delay_command == 0))
             throw std::invalid_argument("Renderer fixture delay requires both duration and command index");
         std::unique_ptr<spatial::CompositorConfig> native;
@@ -151,6 +153,8 @@ int main(int argc, char** argv) {
                             std::this_thread::sleep_for(std::chrono::milliseconds(input_delay_ms));
                         }
                         *reply.mutable_input() = renderer.input(command.input());
+                        if (invalid_prepared_seat && command.input().has_prepare())
+                            reply.mutable_input()->set_native_seat_id(0);
                     }
                     else if (command.observe()) *reply.mutable_visibility() = renderer.observe(command);
                     else *reply.mutable_frame() = renderer.draw(command);

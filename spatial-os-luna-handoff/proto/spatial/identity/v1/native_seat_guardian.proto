@@ -1,0 +1,78 @@
+syntax = "proto3";
+package spatial.identity.guardian.v1;
+
+// Draft private supervisor/issuer contract. No field is a credential or a grant.
+// Transport peers must be authenticated independently; messages alone grant no
+// permission. This schema is not an implementation of the revocation barrier.
+message NativeSeatBinding {
+  bytes issuer_id = 1;                 // 32 bytes
+  bytes actor_id = 2;                  // 32 bytes
+  bytes credential_id = 3;             // 32 bytes
+  string actor_entity_id = 4;
+  uint64 actor_session_instance = 5;  // nonzero
+  bytes service_incarnation = 6;       // 32 bytes
+  uint64 authority_generation = 7;    // nonzero
+  bytes native_server_id = 8;         // 32 bytes
+  bytes compositor_credential_id = 9; // 32 bytes; identifier, never cookie
+  uint64 native_seat_id = 10;         // nonzero
+}
+
+// Registration is complete before an actor can produce its first native input.
+// A receipt identifies one exact binding and guardian incarnation. It is not
+// authorization to act and cannot be transferred to a replacement seat.
+message SeatRegistration {
+  bytes operation_id = 1;             // 32 bytes, chosen for an idempotent retry
+  NativeSeatBinding binding = 2;
+  uint64 issuer_security_revision = 3;
+}
+message SeatRegistrationReceipt {
+  bytes operation_id = 1;
+  NativeSeatBinding binding = 2;
+  bytes guardian_incarnation = 3;     // 32 bytes
+  bytes registration_id = 4;          // 32 bytes
+  uint64 issuer_security_revision = 5;
+}
+
+enum RevocationTargetKind {
+  REVOCATION_TARGET_UNSPECIFIED = 0;
+  REVOCATION_ACTOR = 1;
+  REVOCATION_CREDENTIAL = 2;
+}
+// The issuer retains this intent durably and prevents matching registration
+// until all required guardians have fenced their matching seats. A result is not
+// a revocation commit; the issuer must separately perform its checked commit.
+message NativeFenceIntent {
+  bytes intent_id = 1;                // 32 bytes
+  bytes issuer_id = 2;                // 32 bytes
+  RevocationTargetKind target_kind = 3;
+  bytes target_id = 4;                // 32 bytes
+  uint64 expected_security_revision = 5;
+}
+message NativeFenceReceipt {
+  NativeFenceIntent intent = 1;
+  bytes guardian_incarnation = 2;      // 32 bytes
+  uint64 registration_generation = 3;
+  uint64 fenced_seat_count = 4;
+}
+
+// Draft private envelopes. The authenticated transport assigns each channel a
+// role; an envelope cannot grant itself that role. These replies are not issuer
+// commit or cancellation-completion receipts.
+message GuardianRequest {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof operation {
+    SeatRegistration register_seat = 3;
+    NativeFenceIntent fence = 4;
+  }
+}
+message GuardianReply {
+  uint32 protocol_version = 1;
+  uint64 request_id = 2;
+  oneof outcome {
+    bytes registration_id = 3;
+    uint32 remaining_fences = 4;
+    bool ready = 5;
+  }
+  SeatRegistrationReceipt registration_receipt = 6;
+}

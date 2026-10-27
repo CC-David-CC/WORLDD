@@ -6,6 +6,7 @@ import select
 import struct
 import subprocess
 import sys
+import time
 import unittest
 import compositor_native_pb2 as config
 import core_pb2 as core
@@ -119,6 +120,7 @@ class ScopedInputTests(unittest.TestCase):
             reply = self.call(proc, sequence, status=ip.Seat(id=opened.seat))
             self.assertIsInstance(reply, core.Error)
             self.assertEqual(reply.code, core.UNAVAILABLE)
+            self.assertIn('[channel closed]',reply.message)
             self.assertIsNone(proc.poll())
         proc.stdin.close(); self.assertEqual(proc.wait(timeout=5), 0)
 
@@ -128,6 +130,21 @@ class ScopedInputTests(unittest.TestCase):
         self.assertEqual(self.call(proc, 2, close=ip.Seat(id=opened.seat)).code, ip.OK)
         self.assertEqual(self.call(proc, 3, status=ip.Seat(id=opened.seat)).code, ip.NO_SEAT)
         self.assertEqual(self.call(proc, 4, open=ip.Empty()).code, ip.OK)
+        proc.stdin.close(); self.assertEqual(proc.wait(timeout=5), 0)
+
+    def test_revoked_peer_is_detected_before_next_native_request(self):
+        proc = self.launch(); self.read(proc, core.RenderResult)
+        def health(sequence):
+            proc.stdin.write(frame(ip.Request(protocol_version=1, request_id=sequence)))
+            proc.stdin.flush()
+            return self.read(proc, core.RenderResult)
+        self.assertTrue(health(1).HasField('ready'))
+        revoked = self.supervisor.call(revoke=security.Revoke(credential_id=self.credential.id))
+        self.assertEqual(revoked.code, security.OK); self.assertTrue(revoked.revoked)
+        result=health(2)
+        self.assertTrue(result.HasField('error'), result)
+        self.assertEqual(result.error.code, core.UNAVAILABLE)
+        self.assertIsNone(proc.poll())
         proc.stdin.close(); self.assertEqual(proc.wait(timeout=5), 0)
 
     def test_unsealed_configuration_is_rejected(self):
@@ -173,6 +190,72 @@ class ScopedInputTests(unittest.TestCase):
         broker = self.connect(self.supervisor.issue(security.BROKER, b'', b'').cookie)
         reply = self.independent_input(broker, 1, open=ip.Empty())
         if reply is not None: self.assertEqual(reply.code, ip.FORBIDDEN)
+
+    def test_guardian_binding_requires_exact_credential_and_independent_connection(self):
+        owner=self.launch();self.read(owner,core.RenderResult)
+        seat=self.call(owner,1,open=ip.Empty()).seat
+        self.assertEqual(self.call(owner,2,guard=ip.Seat(id=seat)).code,ip.FORBIDDEN)
+        unrelated=self.connect(self.other_credential.cookie)
+        self.assertEqual(self.independent_input(unrelated,1,guard=ip.Seat(id=seat)).code,ip.FORBIDDEN)
+        guard=self.connect(self.credential.cookie)
+        self.assertEqual(self.independent_input(guard,1,guard=ip.Seat(id=seat)).code,ip.OK)
+        self.assertEqual(self.independent_input(guard,2,guard=ip.Seat(id=seat)).code,ip.OK)
+        competitor=self.connect(self.credential.cookie)
+        self.assertEqual(self.independent_input(competitor,1,guard=ip.Seat(id=seat)).code,ip.FORBIDDEN)
+        competitor.close()
+        self.assertEqual(self.call(owner,3,key=ip.Key(seat=seat,keycode=38,pressed=True)).code,ip.NO_FOCUS)
+        guard.close();sequence=3;deadline=time.monotonic()+2
+        while True:
+            sequence+=1;reply=self.call(owner,sequence,key=ip.Key(seat=seat,keycode=38,pressed=True))
+            if reply.code==ip.FORBIDDEN or time.monotonic()>=deadline:break
+            self.assertEqual(reply.code,ip.NO_FOCUS);time.sleep(.01)
+        self.assertEqual(reply.code,ip.FORBIDDEN)
+        replacement=self.connect(self.credential.cookie)
+        self.assertEqual(self.independent_input(replacement,1,guard=ip.Seat(id=seat)).code,ip.FORBIDDEN)
+        owner.stdin.close();self.assertEqual(owner.wait(timeout=5),0)
+
+    def test_owner_can_close_guarded_seat_before_guardian_disconnects(self):
+        owner=self.launch();self.read(owner,core.RenderResult)
+        seat=self.call(owner,1,open=ip.Empty()).seat;guard=self.connect(self.credential.cookie)
+        self.assertEqual(self.independent_input(guard,1,guard=ip.Seat(id=seat)).code,ip.OK)
+        self.assertEqual(self.call(owner,2,close=ip.Seat(id=seat)).code,ip.OK)
+        guard.close()
+        another=self.call(owner,3,open=ip.Empty());self.assertEqual(another.code,ip.OK)
+        self.assertNotEqual(another.seat,seat)
+        self.assertEqual(self.call(owner,4,key=ip.Key(seat=another.seat,keycode=38,pressed=True)).code,ip.NO_FOCUS)
+        owner.stdin.close();self.assertEqual(owner.wait(timeout=5),0)
+
+    def test_guardian_disconnect_releases_real_application_input(self):
+        from test_resource_isolation import Client
+        owner=self.launch();self.read(owner,core.RenderResult)
+        seat=self.call(owner,1,open=ip.Empty()).seat;guard=self.connect(self.credential.cookie)
+        self.assertEqual(self.independent_input(guard,1,guard=ip.Seat(id=seat)).code,ip.OK)
+        survivor=self.connect(self.other_credential.cookie)
+        survivor_seat=self.independent_input(survivor,1,open=ip.Empty()).seat
+        app=Client(self.display,self.supervisor.issue(security.APPLICATION,b'guard-test',b'editor').cookie)
+        self.clients.append(app);window=app.create_window()
+        self.assertIsNone(app.operation(8,app.pack('I',window)))
+        self.assertIsNone(app.operation(2,app.pack('III',window,1<<11,15)))
+        target=self.call(owner,2,inspect=ip.Inspect(xid=window)).target
+        self.assertEqual(self.call(owner,3,button=ip.Button(seat=seat,target=target,x=8,y=8,
+            button=1,pressed=True,focus=True)).code,ip.OK)
+        self.assertEqual(self.call(owner,4,key=ip.Key(seat=seat,keycode=50,pressed=True)).code,ip.OK)
+        def events(expected):
+            result=[];deadline=time.monotonic()+2
+            while len(result)<len(expected):
+                left=deadline-time.monotonic();self.assertGreater(left,0)
+                self.assertTrue(select.select([app.stream],[],[],left)[0],'Independent application saw no input')
+                row=app.exact(32)
+                self.assertIn(row[0],(2,3,4,5,34),row)
+                if row[0]!=34:result.append((row[0],row[1]))
+            self.assertEqual(result,expected)
+        events([(4,1),(2,50)])
+        guard.close();events([(5,1),(3,50)])
+        state=self.call(owner,5,status=ip.Seat(id=seat))
+        self.assertEqual(state.code,ip.OK);self.assertFalse(state.held_buttons or any(state.held_keys))
+        self.assertEqual(self.call(owner,6,key=ip.Key(seat=seat,keycode=38,pressed=True)).code,ip.FORBIDDEN)
+        self.assertEqual(self.independent_input(survivor,2,key=ip.Key(seat=survivor_seat,keycode=38,pressed=True)).code,ip.NO_FOCUS)
+        owner.stdin.close();self.assertEqual(owner.wait(timeout=5),0)
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

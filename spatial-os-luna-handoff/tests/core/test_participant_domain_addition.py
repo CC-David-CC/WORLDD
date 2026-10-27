@@ -285,7 +285,7 @@ class ParticipantDomainAdditionTests(fencing.AuthorityFencingTests):
         self.peer.close(); self.supervisor.close(); self.stop_daemons()
         secret = (self.state/'issuer.pem').read_bytes()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE authority_domains_add_operation; DROP TABLE authority_participant_history; PRAGMA user_version=10;')
+            db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_domains_add_operation; DROP TABLE authority_participant_history; PRAGMA user_version=10;')
         before = self.snapshot_all()
         command = [str(BINARY), '--state-dir', str(self.state)]
         ordinary = run_issuer_migration(command, input=b'', capture_output=True, timeout=4)
@@ -297,7 +297,7 @@ class ParticipantDomainAdditionTests(fencing.AuthorityFencingTests):
         after = self.snapshot_all()
         self.assertEqual({name: after[name] for name in before}, before)
         with sqlite3.connect(self.state/'identity.db') as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 11)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 12)
         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret)
         self.peer = self.ready(); self.supervisor = self.client()
 
@@ -306,7 +306,7 @@ class ParticipantDomainAdditionTests(fencing.AuthorityFencingTests):
         self.peer.close(); self.supervisor.close(); self.stop_daemons()
         with sqlite3.connect(self.state/'identity.db') as db:
             db.execute('UPDATE authority_activation SET registration=?', (b'\x00',))
-            db.executescript('DROP TABLE authority_domains_add_operation; DROP TABLE authority_participant_history; PRAGMA user_version=10;')
+            db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_domains_add_operation; DROP TABLE authority_participant_history; PRAGMA user_version=10;')
         before = self.snapshot_all()
         migrated = run_issuer_migration([str(BINARY), '--state-dir', str(self.state), '--migrate'],
             input=b'', capture_output=True, timeout=4)

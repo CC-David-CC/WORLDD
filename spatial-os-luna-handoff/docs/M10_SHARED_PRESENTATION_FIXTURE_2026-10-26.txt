@@ -1,0 +1,21 @@
+M10 shared presentation fixture correction
+
+The frozen Debug gate's shared renderer query failed while waiting for READY.
+Its world log reported "Unknown or incomplete worldd argument". The fixture passed
+two --native-security-fd arguments: one from the world fixture and one from the
+shared presentation fixture. Worldd correctly rejected the duplicate argument.
+The renderer reported RETIRED; the five-second wait was a symptom of the world exit.
+
+The scoped world fixture now uses its explicitly supplied world descriptor when present.
+Otherwise it uses the shared presentation's descriptor. It passes only the chosen
+descriptor to worldd. The shared renderer keeps its own descriptor.
+The shared renderer query remains the regression check. The complete eight-case
+native input witness suite passed in Debug on both hosts with the frozen runtime and
+the corrected fixture overlay. Recheck the suite on the final integrated candidate.
+
+Frozen failure evidence on sb16:
+  /home/dflanag3/spatial-artifacts/m10-input-liveness-gate-repair-20261026/deployments/m10-d3c469d139cb-01/evidence/m10-local-d3c469d-sb16-03/Debug/native/WorldNativeInputWitnessTests-test_shared_renderer_query_joins_real_actor_seats_and_native_receipts-world-1.log
+
+Passing focused evidence is retained on both hosts under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/shared-presentation-02
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/shared-presentation-02

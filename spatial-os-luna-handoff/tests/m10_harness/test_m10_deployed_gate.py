@@ -17,7 +17,7 @@ class M10DeployedGateTests(unittest.TestCase):
         self.assertEqual(m10.REQUIRED, m10.m09.REQUIRED | m10.M10_REQUIRED)
 
     def test_every_required_suite_name_is_unique_and_m10_scoped(self):
-        self.assertEqual(len(m10.M10_REQUIRED), 50)
+        self.assertEqual(len(m10.M10_REQUIRED), 55)
         self.assertTrue(all(isinstance(name, str) and name for name in m10.M10_REQUIRED))
 
     def test_named_case_suite_map_covers_every_module(self):
@@ -87,3 +87,7 @@ class M10DeployedGateTests(unittest.TestCase):
         row["properties"].append({"name": "SKIP_RETURN_CODE", "value": 77})
         with self.assertRaisesRegex(RuntimeError, "can skip"):
             m10.require_m10_inventory(inventory)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

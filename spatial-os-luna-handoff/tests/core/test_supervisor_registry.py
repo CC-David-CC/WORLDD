@@ -207,7 +207,7 @@ class SupervisorRegistryTests(sessions.ParticipantSessionTests,clients.ClientFix
         self.assertTrue(self.service_finish(self.service_begin()).HasField('authority_authentication'))
         self.assertTrue(self.peer.call(authority_activate=pb.AuthorityActivate(synchronized_revision=0)).HasField('authority_activation'))
         self.peer.close();self.stop_daemons();secret=(self.state/'issuer.pem').read_bytes()
-        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=6;')
+        with sqlite3.connect(self.state/'identity.db') as db:db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=6;')
         before=self.snapshot_all();command=[str(sessions.BINARY),'--state-dir',str(self.state)]
         denied=run_issuer_migration(command,input=b'',capture_output=True,timeout=4);self.assertNotEqual(denied.returncode,0)
         self.assertIn(b'migration',denied.stderr.lower())
@@ -215,13 +215,13 @@ class SupervisorRegistryTests(sessions.ParticipantSessionTests,clients.ClientFix
             result=run_issuer_migration(command+['--migrate'],input=b'',capture_output=True,timeout=4);self.assertEqual(result.returncode,0,result.stderr)
         after=self.snapshot_all();self.assertEqual({n:after[n] for n in before},before);self.assertEqual(after['authority_supervisor'],[])
         self.assertEqual((self.state/'issuer.pem').read_bytes(),secret)
-        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],11)
+        with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],12)
         self.peer=self.ready();self.denied(self.bind(),core.BUSY)
 
     def test_failed_v6_migration_rolls_back_without_adopting_services(self):
         self.peer.close();self.stop_daemons()
         with sqlite3.connect(self.state/'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
+            db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=6; CREATE TABLE authority_supervisor(marker INTEGER);')
         before=self.snapshot_all();result=run_issuer_migration([str(sessions.BINARY),'--state-dir',str(self.state),'--migrate'],input=b'',capture_output=True,timeout=4)
         self.assertNotEqual(result.returncode,0);self.assertEqual(self.snapshot_all(),before)
         with sqlite3.connect(self.state/'identity.db') as db:self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],6)

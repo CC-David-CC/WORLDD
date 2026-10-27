@@ -130,15 +130,31 @@ void run(const pb::RevocationCommand& command, const char* config, const char* k
             }
             throw;
         }
-        require(committed.has_identity_status(), "Revocation commit response is missing");
+        require(committed.has_identity_status(), "Revocation preparation response is missing");
         const auto& status = committed.identity_status(); owner.check_identity(status, result.target());
-        require(status.security_revision() == result.revision() && !status.active() &&
-            (result.target().kind() == pb::ACTOR_TARGET ? status.actor_revoked() : status.credential_revoked()),
-            "Revocation commit response does not confirm the requested mutation");
-        result.set_state(pb::REVOCATION_COMMITTED);
+        require((status.revocation_pending() && status.pending_commit_revision()==result.revision()) ||
+            (status.security_revision()==result.revision() && !status.active()),
+            "Revocation response does not confirm a pending preparation or committed mutation");
+        if(!status.revocation_pending())result.set_state(pb::REVOCATION_COMMITTED);
     }
     const auto deadline = Clock::now() + std::chrono::milliseconds(command.has_wait_ms() ? command.wait_ms() : 5000);
     client.set_tick([deadline] { if (Clock::now() >= deadline) throw WaitExpired{}; });
+    for(;;){
+        pb::IssuerOperation operation;*operation.mutable_identity_read()=result.target();
+        auto reply=owner.execute(operation);
+        require(reply.has_identity_status(),"Identity status response is missing while awaiting revocation commit");
+        const auto& status=reply.identity_status();owner.check_identity(status,result.target());
+        const bool revoked=result.target().kind()==pb::ACTOR_TARGET?status.actor_revoked():status.credential_revoked();
+        if(revoked){
+            require(status.security_revision()==result.revision()&&!status.revocation_pending(),
+                "Committed revocation revision differs from the requested operation");
+            result.set_state(pb::REVOCATION_COMMITTED);break;
+        }
+        require(status.revocation_pending()&&status.pending_commit_revision()==result.revision()&&
+            status.security_revision()+1==result.revision(),
+            "Revocation is neither pending at the requested revision nor committed");
+        std::this_thread::sleep_until(std::min(deadline,Clock::now()+std::chrono::milliseconds(50)));
+    }
     for (;;) {
         pb::IssuerOperation operation; operation.mutable_barrier_read()->set_revision(result.revision());
         auto reply = owner.execute(operation);

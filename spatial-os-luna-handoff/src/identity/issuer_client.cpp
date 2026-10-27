@@ -56,6 +56,8 @@ bool outcome_matches(const v1::IssuerRequest& request, const v1::IssuerReply& re
         (request.has_authority_authentication_complete() && reply.has_authority_authentication()) ||
         ((request.has_authority_activate() || request.has_authority_applied() || request.has_authority_release() ||
             request.has_authority_state()) && reply.has_authority_activation()) ||
+        (request.has_authority_precommit_read() && reply.has_authority_precommit_batch()) ||
+        (request.has_authority_precommit_ack() && reply.has_authority_precommit_result()) ||
         (request.has_credential_check() && reply.has_identity_status()) ||
         (request.has_revocations() && reply.has_revocations()) ||
         (request.has_actor_status() && reply.has_actor_status());
@@ -102,7 +104,8 @@ void check_hello(const wire::HelloReply& hello) {
     for (const auto& capability : hello.capabilities())
         require(!capability.empty() && capability.size() <= 128 && capability.find('\0') == std::string::npos &&
                 capabilities.insert(capability).second, "Invalid issuer capabilities");
-    for (const auto* required : {"identity.issuer-control/v1", "identity.enrollment/v1", "identity.revocation/v1", "identity.authentication/v1"})
+    for (const auto* required : {"identity.issuer-control/v1", "identity.enrollment/v1", "identity.revocation/v1", "identity.authentication/v1",
+            "identity.native-seat-precommit/v1"})
         require(capabilities.contains(required), "Issuer capability is missing");
 }
 }
@@ -430,6 +433,7 @@ struct IssuerClient::Impl {
             require(!own_activation && request.authority_activate().has_synchronized_revision() && state.active() &&
                     state.applied_revision() == request.authority_activate().synchronized_revision() &&
                     state.applied_revision() == state.head_revision() &&
+                    state.native_seat_guardian_enabled()==request.authority_activate().native_seat_guardian_enabled() &&
                     (!latest_activation || state.generation() > latest_activation->generation()), "Invalid activation success");
         } else if (request.has_authority_applied()) {
             const auto& applied = request.authority_applied();

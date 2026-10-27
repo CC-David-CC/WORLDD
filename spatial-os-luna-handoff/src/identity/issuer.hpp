@@ -47,6 +47,8 @@ public:
     v1::AuthorityActivationState authority_applied(const v1::AuthorityApplied& request, IssuerConnection& connection);
     v1::AuthorityActivationState authority_release(const v1::AuthorityRelease& request, IssuerConnection& connection);
     v1::AuthorityActivationState authority_state(IssuerConnection& connection);
+    v1::AuthorityPrecommitBatch authority_precommit_read(const v1::AuthorityPrecommitRead&, IssuerConnection& connection);
+    v1::AuthorityPrecommitResult authority_precommit_ack(const v1::AuthorityPrecommitAck&, IssuerConnection& connection);
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

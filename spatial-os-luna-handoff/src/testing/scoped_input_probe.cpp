@@ -19,12 +19,22 @@ int main(int argc, char** argv) {
             if (!request.ParseFromString(bytes)) throw std::invalid_argument("Malformed input request");
             spatial::wire::RenderResult reply;
             reply.set_protocol_version(1); reply.set_request_id(request.request_id());
+            if (request.operation_case() == spatial::native_input::Request::OPERATION_NOT_SET) {
+                if (input.scoped_connected()) reply.mutable_ready();
+                else {
+                    reply.mutable_error()->set_code(spatial::wire::UNAVAILABLE);
+                    reply.mutable_error()->set_message("Native input channel closed");
+                }
+                spatial::write_frame(std::cout, reply);
+                continue;
+            }
             reply.mutable_ready(); // Successful envelope precedes the unchanged native reply.
             spatial::native_input::Reply result;
             try { result = input.exchange(request); }
             catch (const std::exception& error) {
                 reply.mutable_error()->set_code(spatial::wire::UNAVAILABLE);
-                reply.mutable_error()->set_message(error.what());
+                reply.mutable_error()->set_message(std::string(error.what())+
+                    (input.scoped_connected() ? " [channel open]" : " [channel closed]"));
             }
             spatial::native_input::Request status; status.mutable_status()->set_id(opened.seat());
             if (survivor.call(status).code() != spatial::native_input::OK)

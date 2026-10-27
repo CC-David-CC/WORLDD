@@ -339,7 +339,9 @@ struct ActorSessionClient::Impl {
         request.set_request_id(request_id);
         const bool stopping=(request.has_action() && request.action().has_stop()) ||
             (request.has_control_action() && request.control_action().has_stop());
-        stop_trace::Scope trace(stopping?"client":nullptr,request_id);
+        const bool key_batch=(request.has_action() && request.action().has_key_tap_batch()) ||
+            (request.has_control_action() && request.control_action().has_key_tap_batch());
+        stop_trace::Scope trace(stopping ? "client" : key_batch ? "client_key_batch" : nullptr,request_id);
         if(stopping){stop_trace::mark("tls",bool(tls));
             stop_trace::mark("actor_sequence",request.has_action()?request.action().seq():request.control_action().seq());}
         std::string body;

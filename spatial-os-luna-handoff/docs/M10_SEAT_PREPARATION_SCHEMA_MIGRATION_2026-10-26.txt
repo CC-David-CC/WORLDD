@@ -1,0 +1,57 @@
+M10 native seat preparation schema migration
+Status: DRAFT, UNQUALIFIED M10.
+
+The renderer input command adds an empty RendererInputPrepare message and
+operation field 17. The operation prepares an empty native seat before a first
+input effect. It does not grant actor authority or authorize input. Existing
+fields, field numbers, messages, enums, and oneof membership are unchanged.
+Existing renderers do not support the new operation and must not be assumed to
+prepare seats. This change does not implement independent revocation fencing.
+
+The explicit acceptance lock migration changes only the core.proto file hash,
+notice, and predecessor hash. It does not change acceptance test IDs, assertions,
+oracles, witnesses, or other file pins. The previous lock is preserved at
+/home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/seat-prepare-schema-check-01/acceptance-predecessor.lock.json.
+Its SHA-256 is 478566a4a2a0e7bb4df36135a7d8d2611c2260da8f16410761f87f064d165b2e.
+The new core.proto SHA-256 is 37dc9e35de8a70c31010c7050f9de4d0cad435a077f72019b29697cc3fd2429a.
+
+The descriptor comparison removed only the additive message and field from the
+candidate descriptor. Every resulting baseline descriptor matched exactly. The
+record is under /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/seat-prepare-schema-check-01.
+This comparison does not prove generated binding reproducibility or qualification.
+The final frozen candidate still requires independent clean generations and both
+host gates. Native input revocation and high-rate input remain unresolved.
+
+The migrated lock SHA-256 is af5bf2b9fd3f4caf7687c095ec3e63f3d04ed8b1e9a420a66e85555e3393a7aa.
+The lock verifier passed for every pinned file. It did not collect or execute the
+151 acceptance tests. The verifier created tools/__pycache__/guard.cpython-312.pyc;
+that exact 1,637-byte generated file was removed after verification.
+
+Selected preliminary generation check: copy the current schema tree into two
+independent source directories. Generate core C++ and Python bindings into two
+independent output directories with the Debug build's protoc and include order.
+Compare both outputs byte for byte with each other and the current Debug build.
+Record generator and schema hashes. This narrow check does not replace the full
+controlled generation proof for all shipped bindings and the frozen candidate.
+The preliminary independent rounds match each other. Their core.pb.cc and
+core.pb.h match the Debug build, but core_pb2.py differs. Evidence is
+core-generation-check-01/result.json under the M10 liveness artifact directory.
+Selected corrective check: rebuild the Debug python-protobuf target, then compare
+the regenerated core Python binding to the independent outputs. Preserve the
+original mismatch record. This remains a narrow preliminary check.
+After rebuilding python-protobuf, the Debug core_pb2.py matched both independent
+outputs. Its SHA-256 is d9a0fca18d2514f2cd365658fe9d26166dc3d4c1ae0c53c39d817f42749a6273.
+The earlier Debug Python SHA-256 was 8f5b7a9836101637202e7c9d17da17826d57530c95e2e34f9b97e89fd27b8cfe.
+Previous deployed payloads and evidence are unchanged. Their older generated
+Python binding does not prove the updated schema. A new package and the full
+independent generation proof remain required for the final candidate.
+The current Debug and retained deployed payload each contain 45 generated
+Python bindings with identical relative paths. Only core_pb2.py differs. Selected
+follow-up: run the three-actor native-window and control-transfer scenario on
+both hosts with the regenerated core binding in an exact, checked overlay. Keep
+the old payload immutable. This tests the overlay, not a complete new package.
+The selected native-window and control-transfer test passed on each host with
+core_pb2.py SHA-256 d9a0fca18d2514f2cd365658fe9d26166dc3d4c1ae0c53c39d817f42749a6273
+pinned ahead of the retained payload on PYTHONPATH. Evidence is under
+runs/integrated-generated-core-three-actor-01-01 and its matching evidence
+directory on each host. This does not change the old payload or qualify M10.

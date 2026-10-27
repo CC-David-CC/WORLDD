@@ -64,7 +64,7 @@ class FaultPeer:
         if request.HasField('hello'):
             reply.hello.CopyFrom(core.HelloReply(protocol='spatial-identity-protobuf/1', implementation='production',
                 build_id='sha256:'+'a'*64, capabilities=['identity.issuer-control/v1', 'identity.enrollment/v1',
-                'identity.revocation/v1', 'identity.authentication/v1']))
+                'identity.revocation/v1', 'identity.authentication/v1', 'identity.native-seat-precommit/v1']))
         elif request.HasField('info'): reply.info.CopyFrom(self.fixture.info)
         else: reply.error.CopyFrom(core.Error(code=core.FORBIDDEN, message='Transport witness rejection'))
         return reply

@@ -73,6 +73,626 @@ capture binding, and requests checked cancellation. The implementation may not d
 discrete edge silently. Agent text entry uses the bounded tap batch; motion uses latest
 intent. High-rate proposals do not create an unbounded history.
 
+Event scheduling and multi-actor scale
+
+Actor input is admitted as a typed, sequenced event for that actor's authenticated seat.
+The actor's mailbox preserves discrete-event order. Replaceable motion state may be
+coalesced under the rule above. A fair scheduler gives each ready actor bounded work
+before returning to another actor.
+
+World event handling must not wait synchronously for issuer, broker, renderer, workspace,
+or application work. Start those operations as bounded asynchronous jobs and feed their
+typed completion back to the owning actor or resource queue. A slow completion for one
+actor must not stop another actor's movement refresh, input release, or independent
+application control.
+
+Each event carries its actor-session incarnation and applicable lease generation. Check
+those fences again immediately before an external side effect. Revocation, Stop, and
+device loss advance or retire the relevant generation and take priority over queued
+ordinary input. Discard stale queued work. Never replay a side effect because a completion
+arrived late. Record the checked result against the original event sequence.
+
+Serialize only actual shared-resource conflicts. Independent actors and application
+instances make progress concurrently. An application surface group has one active
+control lease; a competing controller receives a bounded conflict result. A conflict on
+one application must not block control of another application. Shared world changes use
+the world's single authoritative commit path.
+
+Add a scale regression without changing existing locked assertions. Run at least 256
+simultaneously authenticated actor sessions through one production world authority.
+Drive each healthy actor at five movement refreshes per second, for at least 1275 refresh
+events per second in aggregate, while one selected actor has a slow authorization or
+renderer operation. Require every healthy actor's refresh gap to stay below the unchanged
+250 ms expiry. Require independent application leases to progress and same-application
+competition to resolve as one lease owner. Measure bounded queue depth and resident memory
+under a separate discrete-input burst. Preserve strict event order and prove revocation
+prevents every queued old-generation side effect.
+
+The 256-session figure is a minimum qualification load, not an architectural maximum.
+Production admission remains explicit and bounded, with a configured limit of at least
+256 sessions. The test must prove that overload is rejected cleanly at that limit and
+releases its resources. Do not implement one unbounded thread, queue, or retained event
+history per actor. Any capacity increase must retain per-actor fairness, bounded memory,
+exact cancellation, and the same authorization fences.
+
+Current implementation gap, observed 2026-10-26: the actor TLS configuration rejects
+connection limits above 128. The local listener uses a limit of 32 without a TLS listener.
+Both limits include channels already held by the world. The remote configuration test
+also expects 129 to be rejected. A scale change must explicitly revise that contract and
+its boundary test, then prove resource bounds and overload recovery at the new limit.
+Raising the number alone does not prove that actor dispatch or issuer capacity scales.
+
+Connection-limit contract revision selected 2026-10-26: permit a configured
+TLS listener limit up to 256 instead of 128. Keep the default unchanged. Reject
+zero and 257. Update the existing boundary assertion that rejects 129 because
+129 is now valid. Test 256 real TLS connections, rejection of an additional
+connection, and recovery after a slot closes. These are transport-capacity
+checks. They do not prove 256 authenticated actors or their action throughput.
+Run the changed remote configuration and lifecycle checks on both hosts before
+using this limit in a candidate. Retain source and runtime pins with the results.
+The three selected Debug checks passed on both hosts. The 256-slot test uses
+real TLS connections, verifies each receives an unauthorized actor response,
+rejects a 257th connection, and accepts a replacement after closure. Evidence
+is in integrated-transport-capacity-01-01 on each host. This does not count as
+an authenticated actor-scale test. The tested Debug world SHA-256 is
+1d838690f04f3f490f0aceaae99de4e51f9e6f90bf1b7de9a019871c09aaeac5.
+Selected sanitizer check: repeat these three cases using an ASan/UBSan world.
+All three checks passed on both hosts with the ASan/UBSan world. Retained run
+and evidence logs contain no sanitizer diagnostic. These runs use the Debug
+fixture payload with the separately built sanitizer world. Their evidence is
+integrated-transport-capacity-asan-01-01 on each host. The sanitizer world
+SHA-256 is 01c4fa859a93b95b843f4458e7caab2c827b2b796901ba34e2ff1b0d3803efe3.
+
+Selected actor-capacity check: enroll 256 distinct cryptographic identities,
+open 256 authenticated TLS actor sessions in one production world, and inspect
+each session. Verify distinct actor identities and continued session validity.
+Record progress during enrollment and authentication so early failure remains
+diagnosable. Run the check on both hosts with a bounded 600-second test budget.
+This first identity-capacity check does not measure refresh fairness, input
+throughput, application leases, or revocation under load.
+The initial run enrolled 256 identities on both hosts, then failed to start
+the world with "Unsafe or missing TLS material." The fixture included every
+actor ID in both the public world's admission list and its grant profiles. A
+representative configuration with those duplicate IDs exceeded the checked
+64 KiB configuration limit. Public admission does not require that list.
+Repeat with only the needed grant profiles and retain both failed runs. Check
+the final configuration size before starting the world. Evidence is in
+integrated-actor-identity-scale-01-01 on each host.
+The corrected check passed on both hosts. Each enrolled 256 distinct identities,
+authenticated 256 TLS sessions, and inspected all 256 actor states. The total
+test times were 86.034 seconds on sb16 and 107.229 seconds on sb16-2. Evidence
+is in integrated-actor-identity-scale-02-01 on each host. The test source
+SHA-256 is 506c316c81606b8289b3e898ac59c676b798226b4b581c64fc7b7c6dd628e91b.
+The Debug world SHA-256 is
+1d838690f04f3f490f0aceaae99de4e51f9e6f90bf1b7de9a019871c09aaeac5.
+The high-rate, independent-lease, fair-scheduling, and revocation-under-load
+requirements remain untested by this case.
+
+Selected scale baseline: authenticate 256 distinct actors, then send ten
+one-way movement refreshes per actor at 200 ms intervals. Use unique request
+IDs and the world's existing post-acceptance monotonic trace as the processing
+witness. Require every refresh and every per-actor processing gap below 250 ms.
+Confirm that all actors moved through their production actor state. Run both
+hosts with unchanged 250 ms expiry. This baseline does not yet exercise a slow
+unrelated authorization, competing leases, or revocation under load.
+The baseline passed on both hosts. Each run recorded all 2,560 accepted
+refreshes and observed movement for all 256 actors. The maximum processed
+refresh gap was 211.188 ms on sb16 and 234.948 ms on sb16-2. Maximum sender
+gaps were 202.624 ms and 227.695 ms respectively. The latter leaves limited
+margin below the 250 ms expiry. Evidence is in
+integrated-actor-movement-scale-01-01 on each host. The selected Debug world
+SHA-256 was 1d838690f04f3f490f0aceaae99de4e51f9e6f90bf1b7de9a019871c09aaeac5.
+The test source SHA-256 was
+e107a9209df995db1c7da173479978addcb69e2a69c4cad64419ad050b023983.
+This was a short baseline without an unrelated delayed operation. It does not
+prove sustained throughput, application leases, or cancellation under load.
+
+Selected delayed-authority scale check: authenticate 255 distinct actors and
+hold the 256th actor's real issuer credential response for 4.1 seconds. While
+that response is pending, send ten refreshes to each authenticated actor at
+200 ms intervals. Verify all 2,550 accepted refresh traces, sender gaps and
+world processing gaps below 250 ms, and movement of every healthy actor. Then
+require the delayed actor to authenticate. The independently checked delay must
+remain pending throughout the measured window. Run on both hosts and preserve
+failures. This check does not substitute for competing leases or revocation.
+The check failed on both hosts with the previous world. All 2,550 refreshes
+were eventually accepted, but maximum processing gaps reached 399.418 ms on
+sb16 and 529.125 ms on sb16-2. The sender gaps stayed below 232 ms. The slow
+exchange was still pending when sb16's movement was witnessed, but had ended
+before sb16-2 finished witnessing it. Evidence is in
+integrated-actor-slow-auth-scale-01-01 on each host.
+
+Focused scheduler correction: raise the maximum cooperative refresh batch from
+four to sixteen. Keep the existing two-millisecond time budget and round-robin
+cursor. Continue checking the revocation feed before each pass and retain all
+per-refresh authorization and sequence checks. Repeat the 255-actor delayed
+authentication check on both hosts. Also repeat focused movement, queued-key,
+revocation, and stop regressions before considering this change for a candidate.
+The sixteen-refresh batch did not pass the two-host check. Sb16's largest
+processing gap was 290.164 ms. Its trace showed roughly 90 to 100 ms to drain
+each 255-actor burst, with the round-robin cursor changing the burst order.
+Sb16-2 recorded a 230.899 ms maximum gap but the delayed actor's test socket
+timed out after two seconds, before the intentionally delayed 4.1-second reply.
+Evidence is integrated-actor-slow-auth-scale-02-01 on each host.
+Increase the bounded batch to 64 while retaining the two-millisecond budget.
+Set only the deliberately delayed test client's socket timeout to eight seconds.
+Keep issuer deadlines and all motion assertions unchanged. Repeat on both hosts.
+The 64-refresh batch passed the selected Debug scale case on both hosts. Each
+run recorded all 2,550 refreshes while the 256th actor's credential reply was
+pending. All 255 actors moved and the delayed actor later authenticated. The
+largest world processing gaps were 215.172 ms on sb16 and 244.916 ms on
+sb16-2. Sender gaps were 201.540 ms and 215.315 ms. The held credential
+exchanges lasted 4.122 and 4.109 seconds. The sb16-2 result leaves about 5 ms
+of margin. Evidence is integrated-actor-slow-auth-scale-03-01 on each host.
+The tested Debug world SHA-256 is
+1032d7f88636dac6fb26c04ddf53d057bd1ea08d7045c7d8ac6a7e3710d600ab.
+The test source SHA-256 is
+7382d9aeed707820f3adefd9dfbe6eb0e26c0b55e09880fed6932009dd97c8e2.
+This is a short scale result. The focused native safety regressions, sanitizer
+checks, sustained load, lease contention, and full gate remain required.
+The five selected native regressions passed on sb16. On sb16-2, the queued-key
+revocation case failed: the independent application did not observe the held
+Shift release before the stopped compositor resumed. The other four cases
+passed. Evidence is integrated-refresh-batch-native-03-01 on each host.
+The world log shows the actor revocation was consumed before the compositor
+resumed. The native release appeared in the application log after resumption.
+This is an unresolved cancellation failure; do not integrate the batch change.
+The 64-refresh draft was removed from active source and retained externally.
+
+Selected cancellation repair: revoke the existing native seat through the
+independent checked input connection before actor closure waits on the renderer,
+whether or not a renderer request is already in flight. Keep renderer cleanup
+and the durable completion barrier. Run the same stopped-compositor revocation
+checks, actor closure, native seat lifecycle, and focused sanitizers on both
+hosts before restoring any larger batch for a combined retest.
+Explicit test-contract correction: the existing native participant test
+expected held keys and buttons to remain pressed while an idle compositor was
+stopped. That conflicts with the requested immediate native cancellation. Keep
+its requirement that durable revocation completion remains pending until the
+compositor finishes cleanup. Replace only the old no-release assertion with an
+independent key and button release check while the compositor remains stopped.
+The release must occur within 250 ms of the revocation request.
+With the four-refresh batch restored and direct seat revocation added, the five
+selected native issuer-progress checks passed on both hosts. Evidence is
+integrated-native-seat-revoke-01-01 on each host. The Debug world SHA-256 is
+52cf45d4ab28e42401975da1a07dc41d0a4d582bb1fe45d8da365d7c0b4b5ac6.
+The durable participant and native seat checks remain outstanding.
+The first participant-test launch failed in fixture setup on both hosts because
+the staged source directory did not include its expected relative config path.
+It did not exercise world behavior. Evidence is
+integrated-native-seat-participant-01-01. Restage the fixture in its expected
+tests/core layout and repeat without changing its assertions.
+The corrected-layout run observed native releases on both hosts. Its first case
+then read the barrier before the separate workspace participant had settled,
+so the pending count was two instead of one. The renderer-in-flight case passed
+on both. Evidence is integrated-native-seat-participant-02-01. Repeat the first
+case while polling the barrier: every observed result must remain incomplete,
+and the required final pending count remains one before compositor resumption.
+Both participant cases passed on both hosts with that polling correction. The
+tests observed native key and button releases while the compositor was stopped,
+kept the durable barrier incomplete until cleanup, and rejected late input.
+Evidence is integrated-native-seat-participant-03-01 on each host. The test
+source SHA-256 is dc4f37cbe5f4963d55bc41e04aa279571cafd8f2a03bb653f480495f11327b45.
+The five issuer-progress cases and both participant cases also passed on both
+hosts with an ASan/UBSan world. Retained logs contain no sanitizer diagnostic.
+The runs used the Debug fixture payload and a separately built sanitizer world.
+Evidence is integrated-native-seat-revoke-asan-01-01 and
+integrated-native-seat-participant-asan-01-01 on each host. The sanitizer world
+SHA-256 is ee696be4c4f8048866be81f270d282b7a6b881f930d7538198cd832b176abe8e.
+Run native disconnect, credential revocation, actor revocation, and malformed
+channel closure cases to check the direct seat-revocation lifecycle.
+All four selected native lifecycle cases passed on both hosts. Evidence is
+integrated-native-seat-lifecycle-01-01. Restore the 64-refresh batch with the
+seat repair and repeat the focused native safety and 255-actor delayed-auth
+scale checks on both hosts. The combined source remains unqualified until those
+checks and the remaining milestone gates pass.
+The combined Debug native suite passed all five selected cases on sb16. On
+sb16-2, four cases passed and one failed before world startup: the fixture's
+owner issuer connection had closed during setup. Evidence is
+integrated-combined-seat-batch-native-01-01 on both hosts. Use a fresh verified
+issuer connection for this fixture's second-actor enrollment and repeat the
+same five cases without changing their runtime assertions.
+After the fixture repair, all five selected combined-build checks passed on
+both hosts. Both durable native participant checks also passed. Evidence is
+integrated-combined-seat-batch-native-02-01 and
+integrated-combined-seat-batch-participant-01-01. The combined Debug world
+SHA-256 is 4d2c1a7ab5db47fc6d8ef35a687cc8aa1166ea287bb73020e46460e5dec1da0b.
+The five-case test source SHA-256 is
+867c03b840795ed2a8c05eeac0aced4ccb0602408c29d8701b98e402bf690070.
+The 255-actor delayed-auth timing check must be repeated on this exact world.
+The combined Debug build passed that timing check on both hosts. Each recorded
+2,550 refreshes and movement for all 255 authenticated actors while the other
+credential exchange remained pending. The maximum world processing gaps were
+217.299 ms on sb16 and 233.820 ms on sb16-2. The delayed actor authenticated
+afterward. Evidence is integrated-combined-seat-batch-scale-01-01 on each host.
+This is one short run, not a sustained-load or full qualification result.
+The combined ASan/UBSan world passed the five focused issuer-progress and two
+participant cases on both hosts. Retained logs contain no sanitizer diagnostic.
+The runs used the Debug fixture payload with a separately built sanitizer world.
+Evidence is integrated-combined-seat-batch-native-asan-01-01 and
+integrated-combined-seat-batch-participant-asan-01-01 on each host. The world
+SHA-256 is 0b791bc41cb1c6cb57ec303159ca2b6fe8f7b73a6ae079a46b1b8a0c887bd840.
+
+Selected key-liveness experiment: while the primary issuer exchange is pending,
+allow only an authenticated actor's key or key-tap action to use the existing
+checked auxiliary issuer connection. Keep the ordinary per-action authority,
+sequence, lease, target, and native submission checks. Permit its reply to flush
+only through the existing revocation-aware output path. This is a diagnostic
+draft, not a general asynchronous scheduler or a qualification candidate.
+Run the focused key-tap liveness and both stopped-compositor revocation cases
+on each host. Reject the draft and restore source if a safety check fails.
+The key tap passed within 250 ms on both hosts, but both stopped-compositor
+revocation cases failed on each host. In one case the participant received the
+revocation batch, but worldd did not consume it before the compositor resumed.
+In the stricter case, the application received the queued F1 press and release
+after the issuer returned its revocation result. The experimental source was
+removed from the active worktree and the Debug world was rebuilt from the prior
+source. Evidence is integrated-reentrant-key-experiment-01-01 on each host.
+The rejected source SHA-256 is
+939f7b93dbecd2dad922f3129cf4db8e9aefdccd50b1003acb2fe976e9323da0.
+The rejected world SHA-256 is
+6d16cb5d68c37f509239a45477eb5db6e5fc5cddb92caf8e14e4f580bba7abd8.
+Both are preserved externally as reentrant-key-experiment artifacts.
+
+The trace indicates a nested renderer wait can enter pump_motion while an outer
+motion pump is already active. The reentrancy guard returns before polling the
+participant feed. The next focused repair must keep revocation and movement
+progress live during this nested wait. It must also address the separate
+issuer-commit-to-world-consumption interval; receiving a feed event later does
+not undo a native input effect. Do not restore the key draft until both cases
+pass with their original assertions.
+
+Selected nested-pump repair: when a component wait re-enters an active motion
+pump, run the already bounded refresh-only pump instead of returning without
+polling authority. The existing refresh-only reentrancy and ticking guards still
+prevent recursive dispatch. It may process only checked one-way movement and
+revocation, not a second discrete key action. Repeat renderer-slow movement,
+native revocation, queued-key, and stopped-compositor checks on both hosts.
+Run focused sanitizers before accepting this repair. It does not authorize the
+rejected key experiment or resolve its issuer-commit ordering failure.
+The six selected Debug checks passed on both hosts. Evidence is
+integrated-nested-refresh-native-01-01. The Debug world SHA-256 is
+59b3bee0c4ac034bcc20f03f33dc6ece2f16c09617ce6c161afda5b63f5fc943.
+These checks do not yet prove that the new nested branch was entered. Add a
+bounded diagnostic trace at that branch and require an observed entry in a
+focused nested-wait regression before treating the repair as verified.
+Selected branch witness: while one authentication is delayed, stop the real
+compositor and start a separate actor close that must wait for it. Require the
+independent native application to observe the held-input releases. While close
+is still pending, refresh a third authenticated actor's movement and revoke it.
+Require the nested-pump diagnostic, processed refreshes, and world consumption
+of that third actor's revocation before resuming the compositor. Then verify
+movement stopped, the close settled, and the unrelated authentication recovered.
+The focused branch witness passed on both hosts. It recorded eight movement
+refreshes, approximately 0.73 and 0.75 units of displacement, a consumed third
+actor revocation, stable pose afterward, and successful unrelated authentication.
+Evidence is integrated-nested-refresh-witness-01-01. The traced Debug world
+SHA-256 is 30a0ca1a1f1252b35c0620df8bf2173bb623edb4b52a4679c6c6cabc469d3da4.
+The test source SHA-256 is
+17942a61b94bfdf3a20badb0aca23ebc1f9b6c8ba3304b8886e4edacda9c3351.
+Run the same witness on the previous world as a negative control, then run the
+new world with focused sanitizers. These results do not authorize the rejected
+key path or prove the stronger issuer-commit ordering.
+The negative-control version checks movement before requiring the diagnostic
+marker. It failed on the previous world on both hosts because the third actor's
+eighth refresh did not reach the world while close waited. Evidence is
+integrated-nested-refresh-control-02-01. The reordered test source SHA-256 is
+88be2e6292f5bce6a0c998a3c6307e1c857ae3921fcdba7c2c29b74c64a5a7c1.
+The reordered witness passed on the repaired Debug world on both hosts. The
+other actor moved approximately 0.72 and 0.75 units, its revocation stopped
+motion, the pending close settled, and unrelated authentication recovered.
+Evidence is integrated-nested-refresh-witness-02-01 on each host.
+The same witness passed on both hosts with the separately built ASan/UBSan
+world and the Debug fixture payload. Retained logs contain no sanitizer
+diagnostic. Evidence is integrated-nested-refresh-witness-asan-01-01. The
+sanitizer world SHA-256 is
+3a17000c3c4656cfff95b6a4164840079ae6a21e68e3065434b400014be64cff.
+The witness also passed on both hosts with a ThreadSanitizer world. Retained
+logs contain no ThreadSanitizer diagnostic. Only the world process used the
+setarch -R wrapper needed by this environment. The remaining fixture payload
+was Debug. Evidence is integrated-nested-refresh-witness-tsan-01-01. The
+ThreadSanitizer world SHA-256 is
+917055c9fb2e3bd8a04b91257df23cd0c0e3bd3593654655ef5c344ff3db0791.
+
+Repeat the rejected cooperative-key experiment with the nested-pump repair in
+place. Require focused key liveness and both unchanged stopped-compositor
+revocation checks on each host. This diagnostic does not establish an atomic
+issuer-commit fence. Remove the cooperative-key draft if either check fails.
+With nested polling repaired, the key-liveness check and the post-consumption
+revocation check passed on both hosts. The stricter issuer-result check still
+failed on both: the application observed F1 press and release after the issuer
+returned revocation, even though the eventual actor reply was an error. Evidence
+is integrated-reentrant-key-experiment-02-01 on each host. The diagnostic key
+draft was removed and the Debug world rebuilt to the prior nested-pump source.
+The rejected world SHA-256 is
+8c84ab319d9f25513989da433e7404a0b93f8e9dd6a29b0a74c9cda0f6b98a1d.
+The rejected source SHA-256 is
+0d9532afb6b86d6fedd0debc9f0dcbffc822376276a220dacc7dc3e08396d09b.
+The restored Debug world SHA-256 is
+30a0ca1a1f1252b35c0620df8bf2173bb623edb4b52a4679c6c6cabc469d3da4.
+This demonstrates that feed progress alone does not provide the stricter
+commit-to-effect ordering. Keep the key-liveness requirement open.
+
+Selected existing-path counterexample: stop the compositor, submit a key, and
+confirm worldd has sent the renderer request. Stop worldd before revocation,
+then commit actor revocation through the independent issuer. Resume only the
+compositor while worldd remains stopped. The application must not receive the
+queued key after the issuer result. Record the issuer barrier and native events.
+This distinguishes a general commit-to-effect gap from the rejected key draft.
+Use a bounded diagnostic trace after renderer submission. Run on both hosts and
+retain any failure. The stronger check does not redefine the existing durable
+completion barrier or treat its pending state as a completion acknowledgement.
+The check failed on both hosts against the current non-cooperative-key world.
+The world submitted F1 to the stopped compositor, then was itself stopped.
+After the issuer returned the committed credential revocation, the completion
+barrier remained pending. Resuming only the compositor produced an F1 press
+and release in the independent application while worldd remained stopped.
+Evidence is integrated-issuer-commit-key-check-01-01 on each host. The tested
+Debug world SHA-256 is
+9241bb86ace13595bed150fa5a373bc85d2905f2b49d0e13794e602c9bfc3398.
+The test source SHA-256 is
+1de19470edf2d70250ac69e5cc789490ab28c63434dc90198361d727c33538e9.
+This shows the stricter issuer-commit-to-native-effect guarantee is not met by
+the existing path either. It does not show that the issuer reported the
+separate cancellation-completion barrier as complete. The key-liveness fix and
+the existing path both require an actual effect-boundary design before M10 can
+pass this stricter test. Do not weaken the test or rely on a later error reply.
+The two existing native participant checks still passed on both hosts with the
+diagnostic trace added. Evidence is
+integrated-issuer-commit-seat-regression-01-01. These checks cover cancellation
+after world participation; they do not resolve the stopped-world counterexample.
+
+Effect-boundary direction to implement and review: the issuer must not report
+the requested strong revocation result until the native input authority has
+fenced the affected seat. That authority must be able to fence the seat when
+worldd or the compositor is stalled. It must reject later old-generation input
+and fail closed if the fence cannot be confirmed. Durable recovery must retain
+the pending revocation and its exact affected participants. Keep the existing
+separate completion barrier for world and compositor cleanup. An online status
+read before submission is insufficient because the key may already be queued
+when the issuer commits. A time-based grace period is also insufficient.
+This direction is unimplemented. Its protocol, crash behavior, participant
+identity, input-seat ownership, and cancellation ordering need explicit tests.
+
+Focused draft: permit a retained movement refresh immediately behind one valid
+queued key event to pass that key. Preserve the key frame in place. Do not pass
+Stop, close, revocation, malformed, incomplete, or other operation frames. Apply
+the existing retained-authority, navigation, sequence, and input checks before
+movement. Select the busy-channel movement, idle-channel movement, and queued-key
+revocation native regressions on both hosts. Add a focused barrier check before
+integration. Run focused sanitizer checks for the changed frame handling. This
+draft does not make key effects asynchronous and does not satisfy the scale plan.
+
+Focused draft results, 2026-10-26: the busy-channel motion regression passed on
+both hosts with 15 of 15 refreshes processed during the movement window. The
+queued-key revocation regression passed on both. The separate actor revocation
+and native release regression passed on both. Frame-selection checks passed in
+Debug and ASan/UBSan on both hosts. They cover partial frames, oversized frames,
+invalid key identity, stale request IDs, Stop, close, and an intervening Stop.
+The idle-channel INFO test failed before sending movement on both hosts. Its
+initial actor inspect ended with EOF while INFO was delayed. The cause remains
+unresolved. Do not count it as a movement pass.
+
+The last tested diagnostic world SHA-256 was
+b8dda946da2506c9b3e1940a4320397bc151599bb0aea9899f9befb6cad76a9a.
+The Debug frame check SHA-256 was
+6274cf81fc75e82f8405120da4345635083cd5627013b86ca1f36ebfd6fe93a3.
+The ASan/UBSan frame check SHA-256 was
+3359868c7d45b7a3dad73a97cc0aa4dd244ca95a4633e2fe5261a4777621557c.
+The selection header SHA-256 was
+51f910a23ae7a6ef5f55561c08aff7cfb699eb3c9da4140d6d060afa48df3c9c.
+The selection test source SHA-256 was
+415e04d248aff59aa9ca63f050e313325e1f1411e635625e960eb6a94d670162.
+The world session source SHA-256 was
+070f2bab86ae5c6cc455e8cd1c2bc01e2465f23afa5b72576a5b119edc39766f.
+Per-host run logs are in runs/integrated-motion-behind-key-01-04,
+runs/integrated-key-bypass-revoke-01-04, runs/integrated-key-bypass-release-01-04,
+runs/integrated-key-bypass-idle-01-04, runs/motion-selection-debug-01, and
+runs/motion-selection-asan-01 under the M10 liveness artifact directory.
+The full native sanitizer suite and frozen candidate remain pending.
+
+Selected inspect-reply repair: a checked actor inspect dispatched during an
+issuer wait may flush its own queued reply in the cooperative pump. Preserve
+participant polling and disconnect behavior before every write. Do not extend
+this to observation pixels, geometry, authority mutations, or other replies.
+Run the existing pending-INFO native motion case on both hosts. Rerun busy-key
+motion and actor revocation. Check that revocation discards an unsent inspect
+reply before this change can be considered for a frozen candidate.
+
+This experimental reply change did not resolve the pending-INFO test. Both hosts
+failed. On sb16 the later inspect lost its channel. On sb16-2 the movement
+observation did not arrive within 220 ms, and the INFO delay had already ended.
+The inspect reply was queued only after the 4.1 second delayed INFO completed.
+The relay does not record which world connection owned the delayed INFO. A delay
+on the auxiliary connection is a plausible cause: its callback only pumps motion.
+That is not yet proven by this run. The reply change was removed. Its diagnostic
+world SHA-256 was b1b4bdeaf146542c013630c92bc4db902cd716187b91c9c83306b60f0f32044a.
+The failed evidence is in runs/integrated-key-bypass-idle-01-05 and the matching
+evidence directory on each host. The unsent-reply security test was not run for
+the discarded change.
+
+Selected diagnosis: record bounded monotonic start and end traces for primary
+and auxiliary issuer INFO exchanges. Run the same pending-INFO test on both
+hosts and compare its relay delay interval with each exchange. The trace must
+identify the blocked connection before attributing the inspect delay to it.
+This instrumentation changes no deadline, response, or authorization decision.
+
+Diagnosis result: the pending-INFO test again failed before sending movement on
+both hosts. On sb16 and sb16-2, an auxiliary INFO began 11 ms and 13 ms before
+the relay started its 4.1 second delay. The primary's next INFO began just after
+the relay forwarded the delayed reply. This supports the auxiliary-connection
+explanation. The fixed-size trace buffer overflowed during the long exchange, so
+its end marker was not retained. The relay does not identify a TLS connection;
+the timing is strong indirect evidence, not a direct connection identifier.
+The auxiliary callback permits only movement refresh dispatch. The inspect-based
+test therefore cannot establish movement liveness while that connection waits.
+The existing test remains required and failing. A separate direct movement
+witness and a nonblocking issuer design are needed.
+The diagnostic world SHA-256 was
+5874efa47bb5f0764e39045b708fdf8aab9d67f2f7f96846649d3dc8d6bc43c5.
+Evidence is in runs/integrated-key-bypass-idle-01-06 and the matching evidence
+directory under the M10 liveness artifact directory on each host.
+
+Selected supplemental witness: capture the actor's initial pose before arming
+the INFO delay. Send movement without a synchronous inspect while INFO remains
+pending. Require the world trace to record the checked refresh within 220 ms.
+After the exchange, inspect actual displacement and release held input. Run on
+both hosts. This does not replace the existing inspect-based test.
+
+The checked refresh was observed while INFO was pending on both hosts, after
+10.7 ms and 10.9 ms respectively. Both test runs later errored while inspecting
+the pose, so displacement and cleanup were not established. The world reported
+issuer EOF. The relay explicitly maintains the delayed upstream connection, but
+other relay connections may idle beyond the issuer's 3 second idle timeout. That
+is a hypothesis, not an established cause; issuer logs did not identify the
+closure. Preserve the failed run and diagnose the relay before changing it.
+Evidence is in runs/integrated-info-direct-motion-01-01 and the matching
+evidence directory on each host. The test source SHA-256 was
+a968fda83eb20fb9afa13a3c36d1acdc8bba65c93bb9364aba3f452fee5a6534.
+
+Selected relay diagnosis: retain bounded per-connection operation, delay, and
+closure phases without recording credentials. Rerun the direct movement case
+on both hosts. Compare the selected delayed connection with the connection that
+reports EOF. Do not alter keepalive or test deadlines in this diagnostic run.
+
+Connection diagnosis: the delayed INFO used relay connection 2 on both hosts.
+On sb16, connection 1 closed in the relay's client-read phase with TimeoutError
+just before the delayed reply. On sb16-2, connection 1's next upstream INFO
+received EOF just after that reply. The relay's independent idle connections
+therefore introduced failures unrelated to the deliberately delayed exchange.
+The run remains failed. Evidence is in runs/integrated-relay-diagnostic-01-01 and
+its matching evidence directory on both hosts. The diagnostic relay source hash
+was bbfdb8b2ea9e9b67b9df51134dd1fab4d2dd73b598692f79e863debe0673d40f.
+
+Selected fixture correction: keep each independent relay-to-issuer connection
+alive during idle client reads. Keep a five-second limit for incomplete frames.
+Do not change issuer, actor, or acceptance deadlines. Run the direct movement,
+inspect-based pending-INFO, and other-actor delayed authentication checks on
+both hosts. Preserve the original failed evidence and all assertions.
+
+Fixture correction results: the direct movement case passed on both hosts. The
+checked refresh arrived during pending INFO in 10.6 ms on sb16 and 1.5 ms on
+sb16-2. Both actors advanced about 0.25 units and their worlds exited cleanly.
+The delayed-authentication movement test also passed on both hosts. The original
+inspect-based pending-INFO test failed on both: INFO had completed before its
+movement observation. Its pre-movement inspect waits for the delayed exchange.
+No existing assertion was removed. This is an open production liveness issue,
+not a pass for the inspect-based case.
+
+The corrected relay source SHA-256 was
+6696b896c17259d4e54cd1b171e3cc1dffeda3b121e5c729add1bbcb0b9e907e.
+Per-host runs are integrated-relay-keepalive-direct-01-01,
+integrated-relay-keepalive-inspect-01-01, and
+integrated-relay-keepalive-auth-01-01. Their logs and matching evidence remain
+under the M10 liveness artifact directory on each host. All use an unqualified
+diagnostic world; they are not frozen-candidate qualification evidence.
+
+With the corrected relay, the delayed-authentication focused-key test failed on
+both hosts. The key reply took 4.150 seconds on sb16 and 4.148 seconds on
+sb16-2. The independent application saw no F1 events within 250 ms, then saw
+one press and one release after authentication. The action was accepted. This
+reproduces the application-input scheduling defect without the unrelated relay
+EOF. Evidence is in runs/integrated-relay-keepalive-key-01-01 and its matching
+evidence directory on each host.
+
+Selected production increment: move only auxiliary issuer INFO maintenance to
+one bounded asynchronous operation. Keep the checked client exclusively owned
+by that operation until its result is consumed. Continue actor work on the
+primary client. A failed or inconsistent auxiliary reply must disable identity
+service. Do not dispatch work that needs the auxiliary client while it is busy.
+Stop and join the operation before destroying the client. This does not make
+primary credential checks or renderer calls asynchronous.
+
+Selected checks before integration: the original pending-INFO inspection and
+movement test, direct movement test, delayed-authentication motion and key
+tests, and native revocation during delayed authentication on both hosts. Add
+failure and shutdown checks for a delayed or lost auxiliary exchange. Run
+focused sanitizers for thread and lifetime behavior. Preserve all failing runs.
+
+The primary-INFO rerun queued an authorized actor inspect reply during the
+delay, but did not send it until the delay ended. The earlier reply-flush draft
+could not solve the separate synchronous auxiliary wait. With that wait now
+asynchronous, select explicit primary and auxiliary INFO cases. Permit only a
+checked inspect reply to flush cooperatively. Poll revocation before sending and
+retain the existing cancellation rule for queued or partially written replies.
+Prove that an unsent reply is discarded on revocation before integration.
+
+Focused Debug result: explicit primary and auxiliary pending-INFO inspection
+and movement tests passed on both hosts. The observation took 64/68 ms on sb16
+and 108/117 ms on sb16-2, respectively, with INFO still pending. A separate
+backpressure test passed on both hosts: revocation discarded queued inspect
+request 9, the client received only request 8, and the independent app saw
+held input released. The tested world SHA-256 was
+d34bbc7645c1ea98c96b890779f4e6d1906976d0830ff4a48b0b8753d5e684bd.
+The issuer test source SHA-256 was
+bad08fbf0bf0b2459e69f625aff4d07ab66643aa8afe62343e96c16f265350f0.
+The world fixture SHA-256 was
+75326d652da6e0b5dbab047380125ae10f82e9950bb594ec1199005f3ec264ac.
+The world session source SHA-256 was
+1874e0f6e75a1f4d357f9f68da91ba694e744973bde52de4e3ee251d245b6ee3.
+The relay fixture SHA-256 was
+7b33065404013752661a6e8985b4b3d06e88aa75679c9b95bab9eb943ebbc86a.
+Per-host runs and matching evidence are integrated-async-aux3-primary-01-01,
+integrated-async-aux3-auxiliary-01-01, and integrated-async-aux3-revoke-01-01.
+These focused runs are not qualification. Further thread, failure, shutdown,
+security, and full-gate checks remain required.
+
+Focused Debug shutdown, auxiliary connection loss, and busy-channel movement
+passed on both hosts with that same world. Focused key input still failed on
+both during another actor's authentication. The six focused ASan/UBSan world
+checks passed on both hosts: primary and auxiliary INFO, unsent-reply revocation,
+worker shutdown, connection loss, and busy-channel movement. Their per-host
+batch is runs/async-aux-asan3-batch-01, with individual runs and evidence under
+integrated-async-aux-asan3-<case>-01-01. Only worldd was sanitizer-instrumented
+in these focused native runs. Its SHA-256 was
+de1cbba46e2f79f94917cce43f58a761c411c2bcfa4f8cf36711f74c1675f051.
+The 48 retained logs on each host contained no AddressSanitizer, LeakSanitizer,
+or undefined-behavior diagnostics. ThreadSanitizer is a separate pending build.
+
+Selected thread check: build a separate ThreadSanitizer world on middle-child.
+Run primary and auxiliary INFO, queued-reply revocation, worker shutdown, and
+issuer-loss cases on both hosts with that world. Preserve any sanitizer startup
+or runtime failure. An ASan/UBSan run does not establish thread-race freedom.
+
+ThreadSanitizer initially exited before the native case on both hosts with
+"unexpected memory mapping". A scoped setarch -R wrapper disables address
+randomization for the test process only. With that wrapper, the primary-INFO
+case passed on both hosts. The remaining thread cases use the same wrapper.
+The first startup failures remain in integrated-async-aux-tsan-primary-01-01;
+the passing primary runs are integrated-async-aux-tsan-noaslr-primary-01-01.
+The ThreadSanitizer world SHA-256 was
+1712624eee9d580ac170c6a36c84ba2f85ee69a7402a81cb04ebe18ec2cd9afc.
+With the process-only wrapper, primary and auxiliary INFO, unsent-reply
+revocation, worker shutdown, and issuer connection loss all passed on both
+hosts. Forty retained logs per host contained no ThreadSanitizer diagnostic.
+The individual runs use integrated-async-aux-tsan-noaslr-<case>-01-01. This
+focused check instruments worldd, not every component of the native session.
+
+Selected broader check: run all 19 world-issuer-progress methods on each host
+against the current Debug diagnostic world and current fixture overlay. Preserve
+the individual test outcomes, runtime, and logs. This exploratory run does not
+replace the deployed CTest gate or its timeout, and expected failures remain.
+
+The first broad run used an incomplete fixture overlay. It lacked the current
+NativeRawKeyObserver helper. It also exposed a nested environment-patch bug: the
+native fixture captured the temporary renderer-fault variables and restored them
+after the outer patch ended. Four later worlds on sb16 rejected those leaked
+settings. The fault setup now initializes the long-lived fixture environment
+first. The same ordering is applied to temporary trace settings. A final suite
+check asserts renderer-fault variables were not leaked. Repeat the entire suite
+with the complete overlay. Keep the first run as failed evidence.
+
+Corrected broad run: both hosts ran all 20 methods. Sb16 took 133.159 seconds;
+sb16-2 took 156.237 seconds. Each reported six failure records across five
+methods, with no errors. The failures were the management query during another
+actor's authentication, the global issuer-exit native witness plus its cleanup,
+the legacy four-second default-mode assertion, global issuer-loss workspace
+cleanup, and the focused-key latency requirement. The environment-leak check
+passed on both. These runs use the diagnostic world and are not the full gate.
+Logs and evidence are in integrated-async-aux4-suite-01-01 on each host. The
+suite source SHA-256 was
+8276e0c51ccaa4a43c4a7fb69cf9ad895946b2129db43221c37d4b9cceac2091.
+
 Required focused evidence
 
 Use the real native server and independent XI2 event witness. Delay action completion by
@@ -148,3 +768,112 @@ its owned `spatialwm`. The broker delay belongs to the test-only Python broker r
 Neither delay hook is active in a normal Spatial Desktop session.
 
 These checks are a component gate. They do not qualify M10 by themselves.
+
+Next draft increment: defer an authentication-begin credential check onto the
+existing bounded auxiliary issuer worker. Keep the request tied to its channel,
+cancellation generation, request ID, and starting security revision. Consume
+the result on the world thread. Reject stale or revoked results before issuing
+any challenge. Never replay a credential check after a transport failure. Keep
+the original actor action ordering and authorization checks. The single worker
+is a temporary capacity bound, not the planned multi-actor scheduler.
+
+Select the focused-key and movement-during-authentication tests, queued-key and
+actor revocation tests, canceled or disconnected authentication, auxiliary
+issuer failure, and clean shutdown on both hosts. Run focused thread and address
+sanitizers before integration. Preserve existing failed evidence and do not
+claim the full scheduler or scale requirement from these focused tests.
+The credential-check draft's focused Debug key, revoked-actor, closed-channel,
+movement, and active-actor revocation checks passed on both hosts. In the first
+key test, the application saw one press and release in 22.6 ms on sb16 and
+35.7 ms on sb16-2 while the other credential check remained pending. The
+checked world SHA-256 was
+160ceb20689bdf93af9b80305e722aa2ba5d366461aab7c081d5b3afb5736b18.
+After caching validated claims while queued, the corresponding five focused
+Debug checks and the focused ThreadSanitizer checks passed on both hosts. The
+cached version's Debug world SHA-256 was
+6c3bda082f0db4d9df20ab16eb93d964af8ce9a134cb3ef8a73477107a0f6e5b.
+The ThreadSanitizer world SHA-256 was
+0beb2cf4ee97d1c985863b47350f0d7fad69a1a4175868ed6054321ac15c265b.
+TSan used a process-only setarch -R wrapper. Forty retained logs per host had
+no ThreadSanitizer diagnostic. These checks do not qualify M10.
+Also run a five-actor native scenario: hold one credential check, queue three
+more authentications, and require an already authenticated actor's key input
+and movement to stay live. Require all four waiting actors to authenticate
+after the delay. This is a bounded functional check, not the 256-actor gate.
+The first five-actor run passed on sb16 and had one UNAUTHORIZED completion on
+sb16-2. The inherited fixture proof helper writes all signatures through the
+same two temporary filenames, and the new test called it from four threads.
+That can mix signatures between actors. Serialize only that fixture's signing
+operation and repeat the same concurrent authentication and input assertions.
+Keep the failed run; do not attribute the denial to production or the fixture
+until the corrected run supplies more evidence.
+The corrected five-actor run passed on both hosts. The already authenticated
+actor's key tap took 31.7 ms on sb16 and 22.9 ms on sb16-2. Each sent 13
+movement refreshes with maximum sender gaps below 81 ms and moved more than
+one world unit. All four waiting actors authenticated. The test serializes only
+the fixture's shared-file signing helper; issuer requests remain concurrent.
+Evidence is in integrated-async-auth4-five-actors-01-01 on each host. This does
+not establish 256-actor capacity or fair behavior at saturation.
+
+Safety finding: the first asynchronous-credential draft made the previously
+queued-key revocation test fail on both hosts. The application observed an F1
+press and release even though the test had requested revocation before resuming
+the stopped compositor. The test did not prove the compositor had stopped or
+that worldd had consumed revocation before resuming it. Do not accept the draft
+or infer exact event order from that result. Repeat with explicit stopped-state,
+revocation-consumption, and independent held-input-release witnesses before the
+compositor resumes. Preserve the original failed evidence in
+integrated-async-auth2-queued-01-01 on each host.
+The strengthened revocation test passed on both hosts. It confirmed the stopped
+compositor, world consumption of revocation, and release of the held Shift key
+and button before resuming. No F1 event reached the application afterward.
+The interval between issuer commit and world consumption remains a distinct
+question; this test does not prove there can be no effect in that interval.
+Evidence is in integrated-async-auth3-queued-01-01 on each host.
+
+Selected stricter revocation check: confirm the compositor is stopped before
+submitting a key, wait for the issuer's revocation operation to return, verify
+the app has seen no F1 event, then resume without waiting for the world feed.
+Require no F1 event after that issuer acknowledgement. This tests the distinct
+commit-to-consumption interval. Run on both hosts and retain any failure.
+This stricter check failed on both hosts. The compositor was confirmed stopped
+before key submission. After the issuer returned the revocation result, the app
+had no F1 event. The compositor then resumed, and the app received the F1 press
+and release. The asynchronous credential draft was removed from the active
+worktree. The exact rejected source is preserved externally as
+identity-sessions-async-auth-rejected-01.cpp with SHA-256
+e4fec666f0d0ac85d688cc8fa10db04a3c5ce7a1dea9ceb4d0881ff22b9ce0a4.
+The failed test evidence is integrated-async-auth5-issuer-ack-01-01 on both
+hosts. A new design must prevent queued native effects across this boundary; a
+successful later cancellation or an error reply does not undo an emitted key.
+The same issuer-acknowledgement test passed on both hosts after restoring the
+prior source. The restored diagnostic world SHA-256 was
+8868b22f03383129e47c98584902c35761230d35ebcc453098d394406885c7e9.
+Evidence is in integrated-rollback-issuer-ack-01-01 on each host. This is one
+scenario, not proof that the prior runtime has no revocation race elsewhere.
+The focused key-liveness test failed on both hosts after restoration. The key
+tap exceeded 250 ms while another actor's credential exchange remained pending.
+Evidence is integrated-rollback-auth-key-01-01 on each host. The safe rollback
+therefore does not solve independent actor input liveness.
+
+The issuer's low-level mutation result reports a committed revision. The
+revocation command separately waits for the durable participant barrier and
+reports REVOCATION_COMPLETE only after cancellation completes. The existing
+retained-motion contract explicitly distinguishes commit from feed consumption.
+The stricter queued-key test demands no new native key effect after the commit
+result. It is stronger than the existing completion-barrier guarantee. Preserve
+it as an additional unresolved safety requirement; do not present its failure as
+proof that the completion barrier acknowledged early. Any contract change needs
+an explicit review and must preserve the requested immediate revocation behavior.
+
+Selected witness correction: require release of the originally held Shift key
+and button in the issuer-acknowledgement test. Do not let the queued F1 release
+satisfy the held-key witness. Repeat the test on the restored Debug world on
+both hosts. Preserve the original results and check the independent app survives.
+The corrected witness passed on sb16 and sb16-2. Each run observed the held
+Shift release and button release, and no queued F1 event. The independent app
+remained alive. Evidence is in integrated-rollback-issuer-ack-witness-02-01
+on each host. This tests the restored Debug world in one ordering; it does not
+prove the post-commit guarantee for every possible scheduling interleaving.
+The test source SHA-256 is
+baacd059dc5afbb5e284aa5dd129fa0fe1fa549294989fd6586db3d1bbf42d47.

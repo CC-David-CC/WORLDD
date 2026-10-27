@@ -13,8 +13,10 @@ from types import SimpleNamespace
 
 import geometry_native_pb2 as protocol
 from geometry_process_identity import (
-    ProcessIdentity, ProcessIdentityError, _no_unknown_or_noncanonical,
-    _parse_cli, start_ticks, collect, finish_observer, parse_witness_request, privileged_read, read_identity, validate_expected,
+    ProcessFdMatches, ProcessIdentity, ProcessIdentityError, _no_unknown_or_noncanonical,
+    _parse_cli, start_ticks, collect, finish_observer, parse_fd_scan_request,
+    parse_witness_request, privileged_read, read_fd_matches, read_identity,
+    scan_fd_targets, validate_expected, validate_fd_queries,
 )
 
 class GeometryProcessIdentityTests(unittest.TestCase):
@@ -72,6 +74,59 @@ class GeometryProcessIdentityTests(unittest.TestCase):
     def test_total_process_record_count_is_bounded(self):
         with self.assertRaises(ValueError):
             validate_expected([(pid,123456) for pid in range(100,117)])
+
+    def test_fd_queries_are_bounded_and_reject_duplicate_targets_or_processes(self):
+        self.assertEqual(validate_fd_queries([(2345,123456,['socket:[7]'])]),
+            [(2345,123456,('socket:[7]',))])
+        for queries in ([],[(2345,123456,[])],[(2345,123456,['x','x'])],
+                [(2345,123456,['x']),(2345,123456,['y'])],[(2345,123456,['x'*257])]):
+            with self.subTest(queries=queries),self.assertRaises(ValueError):
+                validate_fd_queries(queries)
+
+    def test_fd_scan_request_requires_correlated_bounded_operation(self):
+        request=protocol.NativeGeometryWitnessRequest(request_id=1)
+        request.fd_scan.processes.add(pid=2345,start_ticks=123456,target_needles=['socket:[7]'])
+        parsed,queries,wait_ms=parse_fd_scan_request(request.SerializeToString(deterministic=True),protocol)
+        self.assertEqual((parsed.request_id,queries,wait_ms),(1,[(2345,123456,('socket:[7]',))],0))
+        bad=protocol.NativeGeometryWitnessRequest(request_id=2)
+        bad.fd_scan.processes.add(pid=2345,start_ticks=123456,target_needles=['x'])
+        with self.assertRaises(ProcessIdentityError):
+            parse_fd_scan_request(bad.SerializeToString(deterministic=True),protocol)
+        request.fd_scan.wait_until_absent_ms=2001
+        with self.assertRaises(ProcessIdentityError):
+            parse_fd_scan_request(request.SerializeToString(deterministic=True),protocol)
+
+    def test_privileged_fd_scan_uses_fixed_helper_and_returns_only_requested_matches(self):
+        helper=Path(__file__).with_name('geometry_process_identity.py')
+        calls=[]
+        def runner(argv,**kwargs):
+            calls.append((argv,kwargs))
+            request=self.parse_frame(kwargs['input'],protocol.NativeGeometryWitnessRequest)
+            self.assertEqual((request.request_id,request.WhichOneof('operation')),(1,'fd_scan'))
+            self.assertEqual(list(request.fd_scan.processes[0].target_needles),['needle'])
+            reply=protocol.NativeGeometryWitnessReply(request_id=1)
+            reply.fd_results.add(pid=2345,start_ticks=123456,matched_needles=['needle'])
+            return SimpleNamespace(returncode=0,stderr=b'',stdout=self.frame(reply.SerializeToString(deterministic=True)))
+        self.assertEqual(scan_fd_targets([(2345,123456,['needle'])],protocol=protocol,
+            runner=runner,helper=helper,bindings_dir=self.bindings),
+            [ProcessFdMatches(2345,123456,('needle',))])
+        argv,kwargs=calls[0]
+        self.assertEqual(argv,['sudo','-n',os.sys.executable,'-I',str(helper),'--root-witness-fd',
+            '--bindings-dir',str(self.bindings)])
+        self.assertEqual(kwargs['timeout'],10)
+
+    def test_fd_reader_pins_process_incarnation_and_reports_only_requested_needles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)/'2345'/'fd';root.mkdir(parents=True)
+            (root/'7').symlink_to('socket:[7]')
+            result=read_fd_matches(2345,123456,['socket:[7]'],proc=directory,
+                pin=lambda *_:os.open('/dev/null',os.O_RDONLY),ready=lambda _:False,
+                read_start=lambda *_:123456)
+            self.assertEqual(result,ProcessFdMatches(2345,123456,('socket:[7]',)))
+            with self.assertRaisesRegex(ProcessIdentityError,'changed before'):
+                read_fd_matches(2345,123456,['socket:[7]'],proc=directory,
+                    pin=lambda *_:os.open('/dev/null',os.O_RDONLY),ready=lambda _:False,
+                    read_start=lambda *_:123457)
 
     def test_root_request_requires_correlated_identity_operation(self):
         requests=(
@@ -209,10 +264,11 @@ print('isolated-protobuf-roundtrip')
 
     def test_real_root_isolated_roundtrip_reads_nondumpable_child_and_rejects_injection(self):
         self.assertNotEqual(os.geteuid(), 0, 'Run this regression as the qualification user')
-        code = """import ctypes, sys, time
+        code = """import ctypes, os, sys, time
 libc = ctypes.CDLL(None, use_errno=True)
 if libc.prctl(4, 0, 0, 0, 0) != 0:
     raise OSError(ctypes.get_errno(), 'PR_SET_DUMPABLE')
+fd = os.memfd_create('nondumpable-fd-witness')
 print('nondumpable-ready', flush=True)
 time.sleep(60)
 """
@@ -239,6 +295,9 @@ time.sleep(60)
                     on_privileged=lambda: calls.append('privileged'))
                 self.assertEqual(calls, ['privileged'])
                 self.assertEqual(result, [ProcessIdentity(child.pid, expected[0][1], digest)])
+                fds=scan_fd_targets([(child.pid,expected[0][1],['nondumpable-fd-witness'])],
+                    protocol=protocol,runner=runner,bindings_dir=self.bindings)
+                self.assertEqual(fds,[ProcessFdMatches(child.pid,expected[0][1],('nondumpable-fd-witness',))])
                 # An otherwise valid request reaches the root helper's context guard.
                 request = protocol.NativeGeometryWitnessRequest(request_id=2, identity=True)
                 helper = Path(__file__).with_name('geometry_process_identity.py')

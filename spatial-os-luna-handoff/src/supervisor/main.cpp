@@ -6,6 +6,10 @@
 #include "workspace/resources.hpp"
 #include "workspace/broker_copy_cleanup.hpp"
 #include "supervisor/broker_cleanup_bootstrap.hpp"
+#include "identity/native_seat_guardian_world_service.hpp"
+#include "identity/native_seat_guardian.hpp"
+#include "identity/native_seat_ledger.hpp"
+#include "x11/input.hpp"
 #include "broker.pb.h"
 #include "compositor_native.pb.h"
 #include <google/protobuf/text_format.h>
@@ -21,15 +25,42 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
+#include <sqlite3.h>
+#include <utility>
 
 namespace {
 namespace pb = spatial::supervisor::v1;
 using Clock = std::chrono::steady_clock;
 using File = spatial::identity::tls_detail::Fd;
+using GuardianDatabase = std::unique_ptr<sqlite3,decltype(&sqlite3_close)>;
 volatile std::sig_atomic_t interrupted = 0;
 void terminate(int signal) { interrupted = signal; }
 void require(bool okay, const char* message) {
     if (!okay) throw std::runtime_error(message);
+}
+GuardianDatabase open_guardian_ledger(const std::filesystem::path& directory){
+    require(directory.is_absolute(),"Native guardian ledger requires an absolute private directory");
+    File parent(open((directory/"native-seat-ledger.db").parent_path().c_str(),O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_NOFOLLOW));
+    struct stat parent_info{};
+    require(parent.value>=3&&fstat(parent.value,&parent_info)==0&&S_ISDIR(parent_info.st_mode)&&
+        parent_info.st_uid==geteuid()&&!(parent_info.st_mode&0077),"Native guardian ledger directory is not private");
+    File file(openat(parent.value,"native-seat-ledger.db",O_RDWR|O_CREAT|O_CLOEXEC|O_NOFOLLOW,0600));
+    struct stat file_info{};
+    require(file.value>=3&&fstat(file.value,&file_info)==0&&S_ISREG(file_info.st_mode)&&
+        file_info.st_uid==geteuid()&&!(file_info.st_mode&0077),"Native guardian ledger file is not private");
+    sqlite3* raw=nullptr;
+    const auto path=(directory/"native-seat-ledger.db").string();
+    const int opened=sqlite3_open_v2(path.c_str(),&raw,SQLITE_OPEN_READWRITE|SQLITE_OPEN_NOFOLLOW|SQLITE_OPEN_NOMUTEX,nullptr);
+    GuardianDatabase result(raw,sqlite3_close);
+    require(opened==SQLITE_OK&&sqlite3_busy_timeout(result.get(),2000)==SQLITE_OK,
+        "Cannot open durable native guardian ledger");
+    char* error=nullptr;
+    const int configured=sqlite3_exec(result.get(),"PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA; PRAGMA journal_mode=DELETE;",
+        nullptr,nullptr,&error);
+    if(error)sqlite3_free(error);
+    require(configured==SQLITE_OK,"Cannot configure durable native guardian ledger");
+    require(fsync(file.value)==0&&fsync(parent.value)==0,"Native guardian ledger durability is uncertain");
+    return result;
 }
 void tick() { poll(nullptr, 0, 5); }
 void parent_alive(int fd) {
@@ -78,7 +109,9 @@ pb::AuthoritySupervisorConfig configuration(const char* path, int native, int ma
         (value.has_broker_storage_owner() && value.has_broker_resources() && value.broker_resources().protocol_version() == 2),
         "Production broker supervisor requires aggregate resources and storage ownership");
     for (const auto& arg : value.launch().arguments())
-        require(arg != "--cleanup-bootstrap-fd" && arg != "--production" && (!value.require_broker_confinement() || arg != "--fixture-faults"),
+        require(arg != "--cleanup-bootstrap-fd" && arg != "--production" &&
+            arg != "--native-guardian-fd" && arg != "--native-guardian-supervisor-pid" &&
+            (!value.require_broker_confinement() || arg != "--fixture-faults"),
                 "Supervisor owns the production broker profile");
     require(value.protocol_version() == 1 && value.binding().supervised() &&
         value.has_participant() && value.has_authorization() && value.has_launch() &&
@@ -269,6 +302,12 @@ int main(int argc, char** argv) {
     std::unique_ptr<spatial::identity::ParticipantStream> management;
     std::unique_ptr<spatial::supervisor::ChildHandleServer> handles;
     std::shared_ptr<spatial::BrokerCopyCleanupParticipant> cleanup_participant;
+    File guardian_host_channel,guardian_world_channel;
+    GuardianDatabase guardian_database(nullptr,sqlite3_close);
+    std::unique_ptr<spatial::NativeInput> guardian_native_input;
+    std::unique_ptr<spatial::identity::NativeSeatLedger> guardian_ledger;
+    std::unique_ptr<spatial::identity::NativeSeatGuardian> guardian;
+    std::unique_ptr<spatial::identity::NativeSeatGuardianWorldService> guardian_service;
     bool explicit_shutdown = false;
     bool storage_start_cleanup_confirmed = true;
     std::signal(SIGPIPE, SIG_IGN);
@@ -373,8 +412,53 @@ int main(int argc, char** argv) {
             config.mutable_launch()->add_arguments(std::to_string(target));
             if (config.require_broker_confinement()) config.mutable_launch()->add_arguments("--production");
         }
+        if(config.has_compositor_native_target_fd()){
+            require(inherited.size()<16,"No inherited descriptor slot remains for the native guardian channel");
+            int pair[2];require(socketpair(AF_UNIX,SOCK_STREAM|SOCK_CLOEXEC,0,pair)==0,
+                "Cannot create supervised native guardian channel");
+            guardian_host_channel.reset(pair[0]);guardian_world_channel.reset(pair[1]);
+            std::set<std::uint32_t> used(config.launch().inherited_fds().begin(),config.launch().inherited_fds().end());
+            std::uint32_t target=0;
+            for(int candidate=239;candidate>=220;--candidate)
+                if(!used.count(static_cast<std::uint32_t>(candidate))){target=static_cast<std::uint32_t>(candidate);break;}
+            require(target>=220,"No descriptor target remains for the native guardian channel");
+            config.mutable_launch()->add_inherited_fds(target);inherited.push_back(guardian_world_channel.value);
+            config.mutable_launch()->add_arguments("--native-guardian-fd");
+            config.mutable_launch()->add_arguments(std::to_string(target));
+            config.mutable_launch()->add_arguments("--native-guardian-supervisor-pid");
+            config.mutable_launch()->add_arguments(std::to_string(getpid()));
+        }
         const auto started = launch->start(config.launch(), {STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO},
             inherited, config.has_broker_native_target_fd() && config.has_broker_storage_owner());
+        guardian_world_channel.reset();
+        if(guardian_host_channel.value>=3){
+            const int duplicate=fcntl(compositor_config.value,F_DUPFD_CLOEXEC,3);
+            require(duplicate>=3,"Cannot duplicate compositor configuration for independent guardian");
+            try{guardian_native_input=std::make_unique<spatial::NativeInput>(duplicate);}
+            catch(...){if(fcntl(duplicate,F_GETFD)>=0)close(duplicate);throw;}
+            guardian_database=open_guardian_ledger(config.journal_directory());
+            guardian_ledger=std::make_unique<spatial::identity::NativeSeatLedger>(guardian_database.get());
+            guardian=std::make_unique<spatial::identity::NativeSeatGuardian>(*guardian_ledger,*guardian_native_input);
+            const auto record=launch->inspect();
+            require(record.has_authorization()&&record.authorization().request().previous_generation()<INT64_MAX,
+                "Native guardian requires the exact authorized world generation");
+            const auto generation=record.authorization().request().previous_generation()+1;
+            guardian_service=std::make_unique<spatial::identity::NativeSeatGuardianWorldService>(*guardian,
+                record.binding().issuer_id(),record.binding().service_incarnation(),generation,
+                std::exchange(guardian_host_channel.value,-1),getpid(),launch->direct_child_pid());
+            guardian_service->announce();
+            const auto guardian_incarnation=record.binding().service_incarnation();
+            launch->set_native_fence_handler([&,generation,guardian_incarnation](const spatial::identity::guardian::v1::NativeFenceIntent& intent){
+                require(guardian&&guardian_ledger,"Native guardian ownership was lost during precommit");
+                while(guardian->fence_step(intent)>0){}
+                spatial::identity::guardian::v1::NativeFenceReceipt receipt;
+                *receipt.mutable_intent()=intent;receipt.set_guardian_incarnation(guardian_incarnation);
+                receipt.set_registration_generation(generation);
+                const auto count=guardian_ledger->obligation_count(intent.intent_id());
+                require(count<=INT64_MAX,"Native seat obligation count exceeds receipt range");
+                receipt.set_fenced_seat_count(count);return receipt;
+            });
+        }
         release_child_sources(config);
         storage_child.reset(); cleanup_bootstrap_child.reset();
         if (config.has_broker_storage_owner()) {
@@ -543,6 +627,7 @@ int main(int argc, char** argv) {
                 launch->pump_channel();
                 if (launch->child_completed()) {
                     child_completed = true;
+                    guardian_service.reset();
                     cleanup_pending = true;
                     try {
                         auto receipt = cleanup_once();
@@ -552,7 +637,7 @@ int main(int argc, char** argv) {
                         pending_failure = error.what();
                         std::cerr << "Child completed; cleanup pending: " << pending_failure << '\n';
                     }
-                }
+                } else if(guardian_service) guardian_service->pump();
                 if (storage) storage->check_alive();
                 management->flush(); tick();
             } catch (const std::exception& error) {

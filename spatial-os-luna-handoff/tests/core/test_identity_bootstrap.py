@@ -218,7 +218,7 @@ class BootstrapTests(EnrollmentFixture):
         self.client.close(); secret = (self.state/'issuer.pem').read_bytes(); policy = self.snapshot()
         with sqlite3.connect(self.state/'identity.db') as db:
             before = db.execute('SELECT * FROM credential').fetchall()
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=3;')
+            db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_retirement; DROP TABLE authority_fence; DROP TABLE authority_launch_authorization; DROP TABLE authority_supervisor; DROP TABLE authority_obligation; DROP TABLE authority_barrier; DROP TABLE authority_activation; DROP TABLE authority_participant_domain; DROP TABLE authority_participant; DROP TABLE authority_registry; DROP TABLE IF EXISTS bootstrap_profile; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=3;')
         command = [str(BINARY), '--state-dir', str(self.state)]
         old = run_issuer_migration(command, input=b'', capture_output=True, timeout=4)
         self.assertNotEqual(old.returncode, 0); self.assertIn(b'migration', old.stderr.lower())
@@ -227,7 +227,7 @@ class BootstrapTests(EnrollmentFixture):
             self.assertEqual(migrated.returncode, 0, migrated.stderr)
         with sqlite3.connect(self.state/'identity.db') as db:
             self.assertEqual(db.execute('SELECT * FROM credential').fetchall(), before)
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 11)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 12)
         self.assertEqual((self.state/'issuer.pem').read_bytes(), secret); self.assertEqual(self.snapshot(), policy)
         self.client = self.start(); self.assertEqual(self.enroll(self.client), approved)
         self.assertEqual(len(self.read('empty-v1').profile.grants), 0)

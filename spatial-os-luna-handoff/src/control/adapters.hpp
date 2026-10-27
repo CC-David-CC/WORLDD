@@ -26,8 +26,12 @@ private:
         std::uint64_t generation = 0, sequence = 0;
         Clock::time_point heartbeat{}, axes_time{};
         std::set<std::string> keys;
+        // Capture ingestion runs ahead of the serialized adapter worker. Keep
+        // physical edges across cancellation so duplicate downs cannot revive
+        // movement after semantic intent was cleared.
+        std::set<std::string> physical_keys;
         std::array<double, 6> axes{};
-        bool has_axes = false;
+        bool has_axes = false, axes_neutral_required = false;
     };
     mutable std::mutex mutex_;
     v1::ControlProfiles profiles_;

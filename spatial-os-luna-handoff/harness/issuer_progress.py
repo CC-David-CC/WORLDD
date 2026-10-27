@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import select
 import socket
 import struct
 import threading
@@ -106,43 +107,84 @@ class IssuerLifetimeWitness:
 
 class DelayedInfoIssuer(RelayingIssuer):
     """Hold one checked INFO or exact actor credential reply for 4.1 seconds."""
-    def __init__(self, fixture, delayed_operation="info", actor_id=None):
+    def __init__(self, fixture, delayed_operation="info", actor_id=None, delayed_connection=None):
         if delayed_operation not in ("info", "credential_check"):
             raise ValueError("Unsupported checked issuer delay")
         if delayed_operation == "credential_check" and (actor_id is None or len(actor_id) != 32):
             raise ValueError("Credential delay requires one exact actor")
+        if delayed_connection is not None and (not isinstance(delayed_connection,int) or delayed_connection<1):
+            raise ValueError('Invalid delayed connection')
         self.delayed_operation = delayed_operation
         self.delayed_actor_id = actor_id
+        self.delayed_connection = delayed_connection
         self.delay_armed = threading.Event()
         self.delay_entered = threading.Event()
         self.delay_finished = threading.Event()
         self.delay_records = []
+        self.connection_events = []
+        self.connection_sequence = 0
+        self.connection_streams = {}
         super().__init__(fixture, lambda: None)
+
+    def abort_connection(self, connection):
+        with self.status_lock:
+            stream=self.connection_streams.get(connection)
+        if stream is None:raise AssertionError('Selected relay connection is not live')
+        stream.shutdown(socket.SHUT_RDWR)
 
     def relay(self, raw):
         upstream = None
         stream = raw
+        with self.status_lock:
+            self.connection_sequence += 1
+            connection = self.connection_sequence
+        phase = 'handshake'
+        def record(event, **fields):
+            with self.status_lock:
+                if len(self.connection_events)<512:
+                    self.connection_events.append(dict(connection=connection,event=event,
+                        monotonic=time.monotonic(),**fields))
+        record('open')
         try:
-            raw.settimeout(2)
+            raw.settimeout(5)
             stream = self.context.wrap_socket(raw, server_side=True)
             self.streams.append(stream)
+            with self.status_lock:self.connection_streams[connection]=stream
             upstream = self.fixture.connect()
-            def exact(size):
+            def exact(size, *, idle_header=False):
+                nonlocal phase
                 data = b""
+                last_progress = time.monotonic()
                 while len(data) < size:
+                    if not stream.pending() and not select.select([stream],[],[],.5)[0]:
+                        if self.stop.is_set(): raise EOFError()
+                        if (data or not idle_header) and time.monotonic()-last_progress>=5:
+                            raise TimeoutError('Incomplete client frame')
+                        phase = 'upstream_keepalive'
+                        alive = upstream.call(info=issuer.IssuerInfoRequest())
+                        if not alive.HasField('info'): raise AssertionError('Issuer keepalive failed')
+                        record('upstream_keepalive')
+                        phase = 'client_read'
+                        continue
                     part = stream.recv(size-len(data))
                     if not part: raise EOFError()
                     data += part
+                    last_progress = time.monotonic()
                 return data
             while not self.stop.is_set():
-                size = struct.unpack("!I", exact(4))[0]
+                phase = 'client_read'
+                size = struct.unpack("!I", exact(4,idle_header=True))[0]
                 if not 0 < size <= 1048576: raise AssertionError("Excessive INFO relay frame")
                 request = issuer.IssuerRequest.FromString(exact(size))
                 sequence = request.request_id
+                phase = 'upstream_request'
+                record('request',operation=request.WhichOneof('operation'))
                 reply = upstream.request(request)
                 reply.request_id = sequence
                 delay = False
                 selected = request.HasField(self.delayed_operation)
+                if self.delayed_connection is not None and connection != self.delayed_connection:
+                    selected = False
                 if selected and self.delayed_operation == "credential_check":
                     claims = issuer.ActorCredential.FromString(request.credential_check.content.payload)
                     selected = claims.actor_id == self.delayed_actor_id
@@ -152,10 +194,12 @@ class DelayedInfoIssuer(RelayingIssuer):
                             self.delay_armed.clear()
                             delay = True
                 if delay:
+                    phase = 'delay'
                     started = time.monotonic()
-                    record = dict(operation=self.delayed_operation, start_monotonic=started,
+                    delay_record = dict(operation=self.delayed_operation, connection=connection, start_monotonic=started,
                                   reply_sha256=hashlib.sha256(reply.SerializeToString()).hexdigest())
-                    self.delay_records.append(record)
+                    self.delay_records.append(delay_record)
+                    record('delay_entered',operation=self.delayed_operation)
                     self.delay_entered.set()
                     next_upstream_keepalive = started+.5
                     while time.monotonic()-started < 4.1:
@@ -166,18 +210,23 @@ class DelayedInfoIssuer(RelayingIssuer):
                             alive = upstream.call(info=issuer.IssuerInfoRequest())
                             if not alive.HasField("info"): raise AssertionError(alive)
                             next_upstream_keepalive = time.monotonic()+.5
-                    record["end_monotonic"] = time.monotonic()
-                    record["elapsed_seconds"] = record["end_monotonic"]-started
+                    delay_record["end_monotonic"] = time.monotonic()
+                    delay_record["elapsed_seconds"] = delay_record["end_monotonic"]-started
                     send_started = time.monotonic()
+                    phase = 'client_write'
                     stream.sendall(frame(reply))
-                    record["forward_elapsed_seconds"] = time.monotonic()-send_started
+                    delay_record["forward_elapsed_seconds"] = time.monotonic()-send_started
+                    record('delay_forwarded',operation=self.delayed_operation)
                     self.delay_finished.set()
                 else:
+                    phase = 'client_write'
                     stream.sendall(frame(reply))
-        except (OSError, EOFError):
-            pass
+        except (OSError, EOFError) as error:
+            record('closed',phase=phase,error=type(error).__name__)
         except BaseException as error:
+            record('error',phase=phase,error=type(error).__name__)
             self.errors.append(error)
         finally:
+            with self.status_lock:self.connection_streams.pop(connection,None)
             stream.close()
             if upstream: upstream.close()

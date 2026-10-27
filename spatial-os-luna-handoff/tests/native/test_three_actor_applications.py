@@ -26,12 +26,12 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         for actor in actors:actor(workspace_select=core.WorkspaceIdRequest(id=WORKSPACE))
         return producer,peers,actors
 
-    def launch_window(self,actor,index,*,core_events=False):
+    def launch_window(self,actor,index,*,core_events=True):
         output=self.project/('native-'+str(index)+'.jsonl');commands=self.project/('commands-'+str(index));release=self.project/('release-'+str(index));exited=self.project/('exited-'+str(index))
         code=("import subprocess,time\nfrom pathlib import Path\n"
             "out=open('/project/"+output.name+"','w')\n"
-            # The original fixture selects XI2 on the app window. The separate
-            # raw-key fixture instead checks core delivery at the application.
+            # Confined applications use core events. The authorized observer checks XI2.
+            # Explicit XI2 selection remains available for isolation diagnostics.
             "p=subprocess.Popen(['/project/probe',"+("" if core_events else "'--xi2',")+"'--id','m10-app-"+str(index)+"'],stdin=subprocess.PIPE,stdout=out,stderr=out)\n"
             "sent=0\nwhile not Path('/project/"+release.name+"').exists():\n"
             " if p.poll() is not None:\n  Path('/project/"+exited.name+"').write_text(str(p.returncode))\n  raise SystemExit(p.returncode or 1)\n"
@@ -188,19 +188,32 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         receipt=self.mapped(actors[1],application)
         placed=actors[1](application_place=self.placement_request(actors[1],receipt)).application_placement
         self.focus(actors[1],placed.surface)
-        observer=self.native_observer(rows)
-        binding=observer.controlled_devices();native_start=len(observer.events)
         text='abcdefghijklmnopqrstuvwxyz'*12+'abcdefghijklmnopqrst'
         self.assertEqual(len(text),332)
         app_start=len([row for row in rows() if row.get('event')=='key'])
-        action_started=time.monotonic()
-        for offset in range(0,len(text),32):
-            chords=[core.ActorKeyChord(keysyms=[key]) for key in text[offset:offset+32]]
-            actors[1](key_tap_batch=core.ActorKeyTapBatchRequest(chords=chords))
-        action_elapsed=time.monotonic()-action_started
-        rate=len(text)/max(action_elapsed,1e-9)
-        measurement=dict(taps=len(text),actor_actions=(len(text)+31)//32,
-            submission_seconds=action_elapsed,taps_per_second=rate)
+        def submit():
+            started=time.monotonic()
+            for offset in range(0,len(text),32):
+                chords=[core.ActorKeyChord(keysyms=[key]) for key in text[offset:offset+32]]
+                actors[1](key_tap_batch=core.ActorKeyTapBatchRequest(chords=chords))
+            return time.monotonic()-started
+        # XI2 selection suppresses simultaneous core delivery. Test each path
+        # with a full independent batch and require the rate for both batches.
+        app_elapsed=submit()
+        app_rows=self.until(rows,lambda values:len([row for row in values if row.get('event')=='key'])>=app_start+2*len(text))
+        key_rows=[row for row in app_rows if row.get('event')=='key'][app_start:]
+        self.assertEqual(len(key_rows),2*len(text),key_rows[-12:])
+        self.assertEqual([(row['keysym'],row['pressed']) for row in key_rows],
+            [(ord(key),pressed) for key in text for pressed in (True,False)])
+        codes={chr(row['keysym']):row['keycode'] for row in key_rows if row['pressed']}
+        self.assertEqual(set(codes),set(text))
+        observer=self.native_observer(rows)
+        binding=observer.controlled_devices();native_start=len(observer.events)
+        native_elapsed=submit()
+        measurement=dict(taps_per_phase=len(text),actor_actions_per_phase=(len(text)+31)//32,
+            application_submission_seconds=app_elapsed,native_submission_seconds=native_elapsed,
+            application_taps_per_second=len(text)/max(app_elapsed,1e-9),
+            native_taps_per_second=len(text)/max(native_elapsed,1e-9))
         evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
         if evidence:
             path=Path(evidence);path.mkdir(parents=True,exist_ok=True)
@@ -214,14 +227,10 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         self.assertTrue(all(event['device']==binding['keyboard'] and
             binding['devices'].get(event['source'])==(4,binding['keyboard']) and
             event['source'] in binding['enabled_devices'] for event in delivered),delivered[:8])
-        app_rows=self.until(rows,lambda values:len([row for row in values if row.get('event')=='key'])>=app_start+2*len(text))
-        key_rows=[row for row in app_rows if row.get('event')=='key'][app_start:]
-        self.assertEqual(len(key_rows),2*len(text),key_rows[-12:])
-        codes={chr(row['keysym']):row['keycode'] for row in key_rows if row['pressed']}
-        self.assertEqual(set(codes),set(text))
         expected=[(codes[key],pressed) for key in text for pressed in (True,False)]
         self.assertEqual([(event['detail'],event['pressed']) for event in delivered],expected)
-        self.assertGreaterEqual(rate,250,'Agent key taps did not sustain 250 taps per second')
+        self.assertGreaterEqual(measurement['application_taps_per_second'],250,'Application phase did not sustain 250 taps per second')
+        self.assertGreaterEqual(measurement['native_taps_per_second'],250,'Native observer phase did not sustain 250 taps per second')
         for actor in actors:actor(stop=core.ActorStopRequest())
         for peer in peers:peer.close()
         self.shutdown_checked()

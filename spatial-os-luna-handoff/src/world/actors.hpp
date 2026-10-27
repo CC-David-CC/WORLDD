@@ -5,11 +5,13 @@
 #include "broker.pb.h"
 #include "geometry_view.pb.h"
 #include "compositor_native.pb.h"
+#include "native_seat_guardian.pb.h"
 #include <array>
 #include <map>
 #include <set>
 #include <functional>
 #include <exception>
+#include <stdexcept>
 
 namespace spatial {
 namespace broker_wire = workspace::v1;
@@ -17,16 +19,38 @@ class Surfaces;
 class RenderWorker;
 class BrokerClient;
 class NativeInput;
+namespace identity { class NativeSeatGuardianClient; }
 wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path);
 
 // One actor engine serves fixture and monotonic clocks through the same tick.
 class Actors {
 public:
     Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces = nullptr,
-           RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr, NativeInput* revocation_input = nullptr);
+           RenderWorker* renderer = nullptr, BrokerClient* broker = nullptr, NativeInput* revocation_input = nullptr,
+           identity::NativeSeatGuardianClient* native_guardian = nullptr);
     using Authority = std::function<bool(const std::string&, const std::vector<std::string>&)>;
     wire::ActorOpenReply open(const wire::ActorOpenRequest& request, bool require_observation_grant = false, Authority authority = {},
-                              std::optional<spatial::authority::v1::ActorRef> principal = {}, bool local_application_output = true);
+                              std::optional<spatial::authority::v1::ActorRef> principal = {}, bool local_application_output = true,
+                              std::string credential_id = {}, std::string service_incarnation = {},
+                              std::uint64_t authority_generation = 0,std::uint64_t issuer_security_revision = 0);
+    struct NativeSeatAuthority {
+        authority::v1::ActorRef principal;
+        std::string credential_id;
+        std::string actor_entity_id;
+        std::uint64_t actor_instance_id = 0;
+        std::string service_incarnation;
+        std::uint64_t authority_generation = 0;
+        std::string server_id;
+        std::string compositor_credential_id;
+        std::uint64_t seat_id = 0;
+        std::uint64_t issuer_security_revision = 0;
+    };
+    // Trusted runtime only. A pending close retains its exact seat authority.
+    std::optional<NativeSeatAuthority> native_seat_authority(const std::string& actor_id) const;
+    std::optional<identity::guardian::v1::NativeSeatBinding> native_seat_guardian_binding(const std::string& actor_id) const;
+    // Atomic key taps may use the reentrant issuer pump only for an already
+    // focused, leased, guardian-registered native seat and an idle input path.
+    bool guarded_key_tap_ready(const std::string& token) const;
     void consume_sequence(const std::string& token, std::uint64_t sequence);
     void refresh_authority();
     // Trusted session wrapper. Uses the same stop implementation and settles leases.
@@ -59,8 +83,13 @@ public:
     void tick(double monotonic_seconds);
     void flush_input();
     bool cancellation_settled() const;
+    void require_native_seat_guardian(bool required) {
+        if(required&&!native_guardian_)throw std::invalid_argument("Required native seat guardian is unavailable");
+        native_guardian_required_ = required;
+    }
     struct InputWitnessBinding {
         authority::v1::ActorRef principal;
+        NativeSeatAuthority seat_authority;
         std::string actor_entity_id;
         std::uint64_t actor_instance_id = 0;
         render::v1::NativeActorSeatIdentity native;
@@ -88,6 +117,12 @@ private:
         std::set<std::string> grants;
         Authority authority;
         std::optional<spatial::authority::v1::ActorRef> principal;
+        std::string credential_id;
+        std::string service_incarnation;
+        std::uint64_t authority_generation = 0;
+        std::uint64_t issuer_security_revision = 0;
+        std::optional<NativeSeatAuthority> seat_authority;
+        std::optional<identity::guardian::v1::SeatRegistrationReceipt> guardian_registration;
         bool require_observation_grant = false;
         bool local_application_output = true;
         bool base_local_application_output = true;
@@ -179,7 +214,7 @@ private:
     void stop_actor(Actor& actor, bool force_native = false);
     struct PendingStop {
         std::uint64_t serial=0,instance=0,sequence=0;
-        std::string actor,token;
+        std::string actor,token,control_release_id;
         std::optional<std::uint64_t> native;
         bool submitted_close=false,needs_native=false,done=false,abandoned=false;
         std::exception_ptr failure;
@@ -209,6 +244,8 @@ private:
     RenderWorker* renderer_;
     BrokerClient* broker_;
     NativeInput* revocation_input_;
+    identity::NativeSeatGuardianClient* native_guardian_;
+    bool native_guardian_required_ = false;
     std::map<std::string, std::string> leases_;
     std::vector<workspace::v1::ApplicationControlLease> control_releases_;
     bool flushing_input_ = false;

@@ -33,6 +33,8 @@ public:
     std::optional<identity::v1::ParticipantUpdate> poll_participant();
     v1::AuthorityLaunchRecord authorize(const v1::AuthorityLaunchAuthorize& request);
     void submit_participant(identity::v1::ParticipantCommand command);
+    void set_native_fence_handler(std::function<identity::guardian::v1::NativeFenceReceipt(
+        const identity::guardian::v1::NativeFenceIntent&)> handler);
     identity::v1::AuthorityParticipantRuntimeConfig prepare_channel(std::uint32_t target_fd);
     // The supervisor event loop pumps this channel. Failure requires checked cleanup.
     void pump_channel();

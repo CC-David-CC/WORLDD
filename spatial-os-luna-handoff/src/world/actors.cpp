@@ -1,5 +1,7 @@
 #include "world/actors.hpp"
+#include "identity/native_seat_guardian_client.hpp"
 #include "core/stop_trace.hpp"
+#include "identity/native_seat_binding.hpp"
 #include "world/local_view_validation.hpp"
 #include "world/geometry_view_validation.hpp"
 #include "world/workspace_presentations.hpp"
@@ -11,6 +13,7 @@
 #include "core/geometry.hpp"
 #include "core/scene.hpp"
 #include <google/protobuf/text_format.h>
+#include <openssl/sha.h>
 #include <sys/random.h>
 #include <limits>
 #include <algorithm>
@@ -92,9 +95,10 @@ wire::RuntimeConfig load_runtime_config(const std::filesystem::path& path) {
     return result;
 }
 Actors::Actors(WorldStore& store, const wire::RuntimeConfig& config, bool manual_clock, Surfaces* surfaces,
-               RenderWorker* renderer, BrokerClient* broker, NativeInput* revocation_input)
+               RenderWorker* renderer, BrokerClient* broker, NativeInput* revocation_input,
+               identity::NativeSeatGuardianClient* native_guardian)
     : store_(store), surfaces_(surfaces), renderer_(renderer), broker_(broker), revocation_input_(revocation_input),
-      config_(config), manual_clock_(manual_clock) {
+      native_guardian_(native_guardian),config_(config), manual_clock_(manual_clock) {
     for (const auto& entity : store_.actors()) {
         Actor actor; actor.entity = entity; actors_.emplace(entity.id(), std::move(actor));
     }
@@ -264,8 +268,14 @@ std::string Actors::selected_workspace(const Actor& actor) {
     return selected;
 }
 wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool require_observation_grant, Authority authority,
-                                  std::optional<spatial::authority::v1::ActorRef> principal, bool local_application_output) {
+                                  std::optional<spatial::authority::v1::ActorRef> principal, bool local_application_output,
+                                  std::string credential_id, std::string service_incarnation,
+                                  std::uint64_t authority_generation,std::uint64_t issuer_security_revision) {
     require(request.grants_size() <= 64, "Too many grants");
+    require(principal ? (principal->issuer_id().size()==32 && principal->actor_id().size()==32 && credential_id.size()==32 &&
+            service_incarnation.size()==32 && authority_generation>0 && issuer_security_revision<=INT64_MAX) :
+        (credential_id.empty() && service_incarnation.empty() && !authority_generation && !issuer_security_revision),
+        "Invalid actor credential binding");
     const std::set<std::string> allowed{"navigate", "interact", "observe", "world.write", "git.write", "process.launch"};
     std::set<std::string> grants;
     for (const auto& grant : request.grants()) {
@@ -274,7 +284,7 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     }
     auto found = actors_.find(request.id());
     if (found != actors_.end() && (!found->second.token.empty() || found->second.close_pending ||
-            found->second.departure_pending || found->second.pending_stop))
+            found->second.departure_pending || found->second.pending_stop || found->second.seat_authority))
         throw WorldError(wire::IN_USE, "Actor already has a controller");
     const auto token = random_token();
     if (sessions_.contains(token)) throw std::runtime_error("Session entropy collision");
@@ -289,6 +299,9 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     }
     auto& actor = found->second;
     actor.authority = std::move(authority); actor.principal = std::move(principal);
+    actor.credential_id=std::move(credential_id);
+    actor.service_incarnation=std::move(service_incarnation);actor.authority_generation=authority_generation;
+    actor.issuer_security_revision=issuer_security_revision;
     selected_workspace(actor);
     // An existing actor keeps its last valid pose, including a durable restore.
     if (next_witness_instance_id_ == UINT64_MAX) throw std::runtime_error("Actor instance identity exhausted");
@@ -304,6 +317,47 @@ wire::ActorOpenReply Actors::open(const wire::ActorOpenRequest& request, bool re
     actor.aim.Clear(); actor.aim_application.reset();
     sessions_.emplace(token, actor.entity.id());
     wire::ActorOpenReply result; result.set_id(actor.entity.id()); result.set_token(token); return result;
+}
+std::optional<Actors::NativeSeatAuthority> Actors::native_seat_authority(const std::string& actor_id) const {
+    const auto found=actors_.find(actor_id);
+    if(found==actors_.end())return {};
+    return found->second.seat_authority;
+}
+namespace {
+identity::guardian::v1::NativeSeatBinding guardian_binding(const Actors::NativeSeatAuthority& value) {
+    identity::guardian::v1::NativeSeatBinding result;
+    result.set_issuer_id(value.principal.issuer_id()); result.set_actor_id(value.principal.actor_id());
+    result.set_credential_id(value.credential_id); result.set_actor_entity_id(value.actor_entity_id);
+    result.set_actor_session_instance(value.actor_instance_id); result.set_service_incarnation(value.service_incarnation);
+    result.set_authority_generation(value.authority_generation); result.set_native_server_id(value.server_id);
+    result.set_compositor_credential_id(value.compositor_credential_id); result.set_native_seat_id(value.seat_id);
+    identity::validate_native_seat_binding(result);
+    return result;
+}
+}
+std::optional<identity::guardian::v1::NativeSeatBinding> Actors::native_seat_guardian_binding(const std::string& actor_id) const {
+    const auto binding=native_seat_authority(actor_id);
+    if(!binding)return {};
+    return guardian_binding(*binding);
+}
+bool Actors::guarded_key_tap_ready(const std::string& token) const {
+    if(token.empty() || !renderer_ || renderer_->busy() || renderer_->cancellation_pending() ||
+       !broker_ || broker_->busy() || !native_guardian_)return false;
+    const auto session=sessions_.find(token);
+    if(session==sessions_.end())return false;
+    const auto found=actors_.find(session->second);
+    if(found==actors_.end())return false;
+    const auto& actor=found->second;
+    if(actor.token!=token || actor.close_pending || actor.departure_pending || actor.interaction_reset_pending ||
+       !actor.application_input || !actor.application_control || !actor.native.has_focus() ||
+       !actor.seat_authority || !actor.guardian_registration || !actor.principal ||
+       !granted(actor,"observe"))return false;
+    const auto& registration=*actor.guardian_registration;
+    return registration.binding().SerializeAsString()==guardian_binding(*actor.seat_authority).SerializeAsString() &&
+        registration.issuer_security_revision()==actor.issuer_security_revision &&
+        actor.seat_authority->seat_id==actor.native.native_seat_id() &&
+        actor.seat_authority->actor_instance_id==actor.witness_instance_id &&
+        actor.seat_authority->principal.SerializeAsString()==actor.principal->SerializeAsString();
 }
 wire::ActorStateReply Actors::inspect(const std::string& token) {
     const auto& actor = authenticated(token);
@@ -412,15 +466,20 @@ wire::ActorLocalViewState Actors::present_local_view(const std::string& token,
     if (presenting_local_ || !actor.principal || !actor.local_view ||
         actor.local_view->SerializeAsString()!=identity.SerializeAsString() || !granted(actor,"observe"))
         throw WorldError(wire::FORBIDDEN,"Local presentation requires a live attested observer");
+    stop_trace::mark("view_drain_begin");
     drain_foregrounds();
     const auto key=identity.SerializeAsString();
     for (auto& [id,foreground] : foregrounds_) if (id!=key) foreground.clear_pending=true;
     drain_foregrounds();
+    stop_trace::mark("view_projection_begin");
     auto projection=project_observation(actor,true);
+    stop_trace::mark("view_projection_done");
     if (actor.token!=token || !actor.principal)
         throw WorldError(wire::FORBIDDEN,"Actor session changed during foreground preparation");
     broker_wire::AuthorizationFenceRequest query; *query.mutable_principal()=*actor.principal;
+    stop_trace::mark("view_fence_begin");
     projection.fences.push_back(broker_->authorization_fence(query));
+    stop_trace::mark("view_fence_done");
     validate_projection(actor,projection,true);
     auto [entry,inserted]=foregrounds_.try_emplace(key);
     auto& foreground=entry->second;
@@ -439,7 +498,9 @@ wire::ActorLocalViewState Actors::present_local_view(const std::string& token,
             if (!foreground_current(foreground) || (session_current && !session_current()))
                 throw WorldError(wire::FORBIDDEN,"Local foreground authority changed before submission");
         };
+        stop_trace::mark("view_prepare_begin");
         const auto prepared=renderer_->prepare_local_frame(identity,foreground.projection.scene,width,height,check);
+        stop_trace::mark("view_prepare_done");
         refresh_native();validate_projection(actor,foreground.projection,true);check();
         if (!foreground.watch) {
             broker_wire::ObservationWatchAcquire request;*request.mutable_principal()=*actor.principal;
@@ -450,7 +511,9 @@ wire::ActorLocalViewState Actors::present_local_view(const std::string& token,
         if (foreground.watch->presentation_generation()!=prepared.presentation_generation())
             throw WorldError(wire::STALE_TARGET,"Local foreground producer changed");
         check();
+        stop_trace::mark("view_commit_begin");
         const auto committed=renderer_->commit_local_frame(identity,prepared.frame_id(),check);
+        stop_trace::mark("view_commit_done");
         validate_projection(actor,foreground.projection,true);check();
         foreground.displayed=foreground.projection;
         result.set_presented(true);result.set_frame_id(committed.frame_id());
@@ -475,12 +538,16 @@ wire::ActorCloseReply Actors::close(const std::string& token) {
     auto& actor = authenticated(token);
     if (actor.local_view) queue_local_clear(*actor.local_view);
     cancel_object(actor);
+    // Cancel the native seat before waiting on the compositor. It may be
+    // stopped even when no renderer request is currently in flight.
+    const auto seat=actor.seat_authority ? actor.seat_authority->seat_id : actor.native.native_seat_id();
+    if (renderer_ && seat && revocation_input_)
+        revocation_input_->revoke_seat(seat);
     if (renderer_ && renderer_->busy()) {
-        if(actor.native.native_seat_id() && revocation_input_)
-            revocation_input_->revoke_seat(actor.native.native_seat_id());
         actor.close_pending = true; actor.interaction_reset_pending = true; actor.capture_motion_pending = false;
     } else release_input(actor, true);
-    actor.clear_motion(); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset(); actor.token.clear();
+    actor.clear_motion(); actor.expires = now_; actor.grants.clear(); actor.authority = {}; actor.principal.reset();
+    actor.credential_id.clear();actor.service_incarnation.clear();actor.authority_generation=0;actor.token.clear();
     actor.aim.Clear(); actor.aim_application.reset(); actor.keyboard_application.reset();
     actor.application_discoveries.clear();
     actor.local_view.reset(); actor.local_application_output = false; actor.base_local_application_output = false;
@@ -1096,7 +1163,7 @@ std::uint64_t Actors::begin_stop(const wire::ActorActionRequest& request) {
     if(next_stop_==UINT64_MAX)throw std::runtime_error("Actor cancellation sequence exhausted");
     PendingStop stop;stop.serial=next_stop_+1;stop.actor=actor.entity.id();stop.token=actor.token;
     stop.instance=actor.witness_instance_id;stop.sequence=request.seq();
-    stop.needs_native=renderer_ && !actor.native.actor_id().empty();
+    stop.needs_native=renderer_ && (!actor.native.actor_id().empty() || actor.seat_authority.has_value());
     auto [found,inserted]=pending_stops_.emplace(stop.serial,std::move(stop));
     require(inserted,"Duplicate actor cancellation owner");
     try {consume_sequence(request.token(),request.seq());}
@@ -1112,6 +1179,9 @@ std::optional<wire::ActorActionReply> Actors::poll_stop(std::uint64_t ticket) {
     auto& stop=found->second;
     if(stop.failure)std::rethrow_exception(stop.failure);
     if(!stop.done)return {};
+    if(!stop.control_release_id.empty()&&std::any_of(control_releases_.begin(),control_releases_.end(),[&](const auto& lease){
+            return lease.id()==stop.control_release_id;
+        }))return {};
     const auto actor=actors_.find(stop.actor);
     const bool current=actor!=actors_.end() && actor->second.token==stop.token &&
         actor->second.witness_instance_id==stop.instance && actor->second.sequence==stop.sequence;
@@ -1170,6 +1240,7 @@ bool Actors::progress_stops() {
                 }
                 if(stop.submitted_close)actor.native.Clear();else actor.native=std::move(*native);
             }
+            if(actor.application_control)stop.control_release_id=actor.application_control->id();
             finish_release_input(actor,closing);
             if(actor.pending_stop==stop.serial)actor.pending_stop.reset();
             stop.done=true;
@@ -1196,7 +1267,8 @@ void Actors::release_input(Actor& actor, bool close, bool keep_reservation, bool
         actor.close_pending|=close;actor.interaction_reset_pending=true;actor.capture_motion_pending=false;
         return;
     }
-    if (renderer_ && (force_native || !actor.native.actor_id().empty())) {
+    if (renderer_ && (force_native || !actor.native.actor_id().empty() || actor.seat_authority.has_value())) {
+        const auto closing_seat=close ? actor.native.native_seat_id() : 0;
         wire::RendererInputCommand command; command.set_actor_id(actor.entity.id());
         if (close) command.mutable_close(); else command.mutable_cancel();
         stop_trace::mark("native_cancel_submitted");
@@ -1204,6 +1276,7 @@ void Actors::release_input(Actor& actor, bool close, bool keep_reservation, bool
         if (actor.native.has_focus() || actor.native.held_keys_size() || actor.native.held_buttons_size())
             throw std::runtime_error("Native input cancellation was not confirmed");
         stop_trace::mark("native_cancel_checked");
+        if (closing_seat) { stop_trace::Scope trace("native_seat_closed",closing_seat); }
         if (close) actor.native.Clear();
     }
     // Revocation can request closure while the cancellation exchange is waiting.
@@ -1212,6 +1285,7 @@ void Actors::release_input(Actor& actor, bool close, bool keep_reservation, bool
     finish_release_input(actor,close,keep_reservation);
 }
 void Actors::finish_release_input(Actor& actor, bool close, bool keep_reservation) {
+    if(close){actor.seat_authority.reset();actor.guardian_registration.reset();}
     actor.interaction_reset_pending = false;
     actor.close_pending = false;
     actor.capture.Clear(); actor.capture_motion_pending = false;
@@ -1240,7 +1314,6 @@ void Actors::poll_control() {
     }
 }
 void Actors::drain_control_releases() {
-    stop_trace::mark("broker_release_busy",broker_ && broker_->busy());
     if (!broker_ || broker_->busy()) return;
     while (!control_releases_.empty()) {
         const auto lease = control_releases_.front();
@@ -1345,8 +1418,13 @@ Actors::InputWitnessBinding Actors::input_witness_binding(const std::string& id,
     auto active=[&]{return actor.principal && actor.principal->issuer_id().size()==32 && actor.principal->actor_id().size()==32 &&
         !actor.token.empty() && !actor.close_pending && !actor.departure_pending && !actor.interaction_reset_pending &&
         actor.local_application_output && granted(actor,"observe") && actor.witness_instance_id>0;};
-    if(!renderer_ || !broker_ || !active())throw WorldError(wire::FORBIDDEN,"Authenticated active actor required for input witness");
+    if(!renderer_ || !broker_ || !active())
+        throw WorldError(wire::FORBIDDEN,"Authenticated active actor required for input witness");
+    if(!actor.seat_authority)throw WorldError(wire::NOT_FOUND,"Actor has no bound native seat");
+    if(!revocation_input_ || !revocation_input_->scoped_connected())
+        throw WorldError(wire::UNAVAILABLE,"Native seat revocation channel is unavailable");
     const auto token=actor.token;const auto principal=*actor.principal;const auto instance=actor.witness_instance_id;
+    const auto seat_authority=*actor.seat_authority;
     workspace::v1::ApplicationAccessRequest request;*request.mutable_principal()=principal;
     *request.add_applications()=application;
     const auto access=broker_->application_access(request);
@@ -1356,19 +1434,42 @@ Actors::InputWitnessBinding Actors::input_witness_binding(const std::string& id,
     auto native=renderer_->native_actor_seat(id);
     workspace::v1::AuthorizationFenceRequest fence_request;*fence_request.mutable_principal()=principal;
     const auto fence=broker_->authorization_fence(fence_request);
-    if(!active() || actor.token!=token || actor.witness_instance_id!=instance ||
+    if(!active() || actor.token!=token || actor.witness_instance_id!=instance || !actor.seat_authority ||
+       actor.seat_authority->seat_id!=seat_authority.seat_id ||
+       actor.seat_authority->credential_id!=seat_authority.credential_id ||
+       actor.seat_authority->service_incarnation!=seat_authority.service_incarnation ||
+       actor.seat_authority->authority_generation!=seat_authority.authority_generation ||
+       actor.service_incarnation!=seat_authority.service_incarnation ||
+       actor.authority_generation!=seat_authority.authority_generation ||
+       actor.credential_id!=seat_authority.credential_id ||
        actor.principal->SerializeAsString()!=principal.SerializeAsString() ||
        access.incarnation()!=fence.incarnation() || access.epoch()!=fence.epoch())
         throw WorldError(wire::FORBIDDEN,"Input witness actor authority changed");
-    if(native.server_id()!=application.server_id())throw WorldError(wire::STALE_TARGET,"Input witness native server changed");
+    if(native.server_id()!=application.server_id() || native.server_id()!=seat_authority.server_id ||
+        native.native_seat_id()!=seat_authority.seat_id)
+        throw WorldError(wire::STALE_TARGET,"Input witness native seat changed");
     InputWitnessBinding result;result.principal=principal;result.actor_entity_id=id;
-    result.actor_instance_id=instance;result.native=std::move(native);result.fence=fence;result.private_session_token=token;return result;
+    result.seat_authority=seat_authority;result.actor_instance_id=instance;
+    result.native=std::move(native);result.fence=fence;result.private_session_token=token;return result;
 }
 bool Actors::input_witness_current(const InputWitnessBinding& binding) const {
     const auto found=actors_.find(binding.actor_entity_id);
     if(found==actors_.end())return false;
     const auto& actor=found->second;
-    return actor.principal && actor.principal->SerializeAsString()==binding.principal.SerializeAsString() &&
+    return actor.principal && actor.seat_authority && revocation_input_ && revocation_input_->scoped_connected() &&
+        actor.principal->SerializeAsString()==binding.principal.SerializeAsString() &&
+        actor.seat_authority->principal.SerializeAsString()==binding.seat_authority.principal.SerializeAsString() &&
+        actor.credential_id==binding.seat_authority.credential_id &&
+        actor.seat_authority->credential_id==binding.seat_authority.credential_id &&
+        actor.seat_authority->actor_entity_id==binding.seat_authority.actor_entity_id &&
+        actor.seat_authority->actor_instance_id==binding.seat_authority.actor_instance_id &&
+        actor.seat_authority->seat_id==binding.seat_authority.seat_id &&
+        actor.service_incarnation==binding.seat_authority.service_incarnation &&
+        actor.authority_generation==binding.seat_authority.authority_generation &&
+        actor.seat_authority->service_incarnation==binding.seat_authority.service_incarnation &&
+        actor.seat_authority->authority_generation==binding.seat_authority.authority_generation &&
+        actor.seat_authority->server_id==binding.seat_authority.server_id &&
+        actor.seat_authority->compositor_credential_id==binding.seat_authority.compositor_credential_id &&
         !actor.token.empty() && actor.token==binding.private_session_token && actor.witness_instance_id==binding.actor_instance_id &&
         !actor.close_pending && !actor.departure_pending && !actor.interaction_reset_pending &&
         actor.local_application_output && granted(actor,"observe");
@@ -1377,19 +1478,93 @@ void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command)
     const auto stop_sequence=actor.last_stop_sequence;
     const auto instance=actor.witness_instance_id;
     const auto token=actor.token;
+    const auto credential=actor.credential_id;
+    bool prepared_now=false;
     try {
-        stop_trace::mark("native_input_submit_begin");
-        actor.native = renderer_->input(command, [&] {
+        auto check_current = [&] {
             poll_control();
             if(actor.last_stop_sequence!=stop_sequence || actor.witness_instance_id!=instance ||
-                    actor.token!=token || actor.pending_stop)
+                    actor.token!=token || actor.credential_id!=credential || actor.pending_stop)
                 throw WorldError(wire::STALE_TARGET,"Input preparation was superseded by actor cancellation");
+            if(actor.seat_authority && (!actor.principal ||
+                    !revocation_input_ || !revocation_input_->scoped_connected() ||
+                    actor.seat_authority->server_id!=revocation_input_->server_id() ||
+                    actor.seat_authority->compositor_credential_id!=revocation_input_->credential_id() ||
+                    actor.seat_authority->principal.SerializeAsString()!=actor.principal->SerializeAsString() ||
+                    actor.seat_authority->credential_id!=actor.credential_id ||
+                    actor.seat_authority->actor_entity_id!=actor.entity.id() ||
+                    actor.seat_authority->actor_instance_id!=actor.witness_instance_id ||
+                    actor.seat_authority->service_incarnation!=actor.service_incarnation ||
+                    actor.seat_authority->authority_generation!=actor.authority_generation ||
+                    (actor.native.native_seat_id() && actor.seat_authority->seat_id!=actor.native.native_seat_id())))
+                throw WorldError(wire::FORBIDDEN,"Native seat authority changed");
+            if(actor.seat_authority && native_guardian_required_ && (!actor.guardian_registration ||
+                    actor.guardian_registration->binding().SerializeAsString()!=guardian_binding(*actor.seat_authority).SerializeAsString() ||
+                    actor.guardian_registration->issuer_security_revision()!=actor.issuer_security_revision))
+                throw WorldError(wire::FORBIDDEN,"Native seat guardian receipt changed");
             if(command.has_target() && !application_slot_authorized(actor,surfaces_->get(command.target().id()),true))
                 throw WorldError(wire::FORBIDDEN,"Application representation control changed before native submission");
             if (actor.token.empty() || actor.interaction_reset_pending || (actor.application_input &&
                 (!actor.application_control || !broker_->control_active(*actor.application_control) || !granted(actor, "observe"))))
                 throw WorldError(wire::FORBIDDEN, "Input authority changed before native submission");
-        });
+        };
+        if (!actor.native.native_seat_id()) {
+            wire::RendererInputCommand prepare;
+            prepare.set_actor_id(actor.entity.id());
+            prepare.mutable_prepare();
+            auto seat=renderer_->input(prepare,check_current);
+            actor.native=std::move(seat);
+            if (!actor.native.native_seat_id() || actor.native.has_focus() ||
+                actor.native.held_keys_size() || actor.native.held_buttons_size()) {
+                release_input(actor,true);
+                throw std::runtime_error("Native seat preparation returned invalid state");
+            }
+            prepared_now=true;
+            { stop_trace::Scope trace("native_seat_prepared",actor.native.native_seat_id()); }
+            // The wait can dispatch a revocation before the new seat is known.
+            // Close the empty seat before returning a cancellation error.
+            try { check_current(); }
+            catch (...) { release_input(actor,true); throw; }
+        }
+        if(actor.principal && revocation_input_ && !actor.seat_authority) {
+            if(!revocation_input_->scoped_connected() || !actor.native.native_seat_id() || actor.credential_id.size()!=32 ||
+                revocation_input_->server_id().size()!=32 || revocation_input_->credential_id().size()!=32) {
+                release_input(actor,true);
+                throw WorldError(wire::FORBIDDEN,"Native seat authority is incomplete");
+            }
+            NativeSeatAuthority binding;
+            binding.principal=*actor.principal;binding.credential_id=actor.credential_id;
+            binding.actor_entity_id=actor.entity.id();binding.actor_instance_id=actor.witness_instance_id;
+            binding.service_incarnation=actor.service_incarnation;binding.authority_generation=actor.authority_generation;
+            binding.server_id=revocation_input_->server_id();
+            binding.compositor_credential_id=revocation_input_->credential_id();
+            binding.seat_id=actor.native.native_seat_id();
+            std::optional<identity::guardian::v1::SeatRegistrationReceipt> registration;
+            try {
+                const auto encoded=guardian_binding(binding);
+                if(native_guardian_) registration=native_guardian_->register_seat(encoded,actor.issuer_security_revision);
+                else if(native_guardian_required_) throw WorldError(wire::UNAVAILABLE,"Required native seat guardian is unavailable");
+                check_current();
+            }
+            catch (...) { release_input(actor,true); throw; }
+            actor.seat_authority=std::move(binding);
+            actor.guardian_registration=std::move(registration);
+            if(stop_trace::enabled()) {
+                unsigned char digest[SHA256_DIGEST_LENGTH]{};
+                SHA256(reinterpret_cast<const unsigned char*>(actor.credential_id.data()),actor.credential_id.size(),digest);
+                std::uint64_t prefix=0;
+                for(unsigned i=0;i<8;++i)prefix=(prefix<<8)|digest[i];
+                stop_trace::Scope trace("native_seat_authority_bound",actor.seat_authority->seat_id);
+                stop_trace::mark("credential_hash",prefix);
+                stop_trace::mark("actor_instance",actor.witness_instance_id);
+            }
+        }
+        stop_trace::mark("native_input_submit_begin");
+        try { actor.native = renderer_->input(command, check_current); }
+        catch (...) {
+            if (prepared_now) release_input(actor,true);
+            throw;
+        }
         stop_trace::mark("native_input_submit_done");
     } catch (const WorldError& error) {
         if (error.code == wire::FORBIDDEN) { release_input(actor); drain_control_releases(); }

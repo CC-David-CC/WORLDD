@@ -164,6 +164,32 @@ class NativeRawKeyObserver(NativeXI2Observer):
         finally:self.client.stream.setblocking(False)
         self.request(43)
 
+    def pointer_button_state(self,pointer,button):
+        if pointer<=1 or button<1 or button>255:raise ValueError('Invalid pointer or button')
+        head,data=self.request(self.opcode,struct.pack('<HH',0,0),minor=48)
+        count=struct.unpack_from('<H',head,8)[0];offset=0;found=False
+        for _ in range(count):
+            if offset+12>len(data):raise AssertionError('Truncated XI device info')
+            device,use,attachment,classes,nlen,enabled=struct.unpack_from('<HHHHHBx',data,offset)
+            if device==pointer:
+                if found or use!=1:raise AssertionError('Invalid master pointer identity')
+                found=True
+            offset+=12+((nlen+3)//4)*4
+            if offset>len(data):raise AssertionError('Truncated XI device name')
+            for _class in range(classes):
+                if offset+4>len(data):raise AssertionError('Truncated XI class header')
+                length=struct.unpack_from('<H',data,offset+2)[0]*4
+                if length<8 or offset+length>len(data):raise AssertionError('Invalid XI class length')
+                offset+=length
+        if offset!=len(data):raise AssertionError('Trailing XI device data')
+        if not found:return None
+        reply,extra=self.request(self.opcode,struct.pack('<IHH',self.raw_root,pointer,0),minor=40)
+        if len(extra)<24:raise AssertionError('Truncated XI pointer state')
+        mask_size=struct.unpack_from('<H',extra,2)[0]*4
+        if len(extra)!=24+mask_size:raise AssertionError('Invalid XI pointer state length')
+        mask=extra[24:]
+        return bool(button//8<len(mask) and mask[button//8] & (1<<(button%8)))
+
     def _packet(self,deadline,header=None):
         if header is None:header=self._exact(32,deadline)
         if header[0]!=self.GENERIC_EVENT or header[1]!=self.opcode:

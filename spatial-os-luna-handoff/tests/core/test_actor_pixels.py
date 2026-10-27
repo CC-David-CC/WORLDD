@@ -1,5 +1,6 @@
 """Real filtered pixels through authenticated actor sessions and native C clients."""
 import os
+import hashlib
 import select
 import socket
 import struct
@@ -112,15 +113,10 @@ class ActorPixelTests(observation.ApplicationObservationTests):
     def compositor_pid(self):
         children = Path(f'/proc/{self.world_process.proc.pid}/task/{self.world_process.proc.pid}/children').read_text().split()
         expected = (control.access.workspace.WORLD.parent / 'spatialwm').resolve(strict=True)
-        matches = []
-        for value in children:
-            pid = int(value)
-            try:
-                executable = Path(f'/proc/{pid}/exe').resolve(strict=True)
-            except OSError:
-                continue
-            if executable == expected:
-                matches.append(pid)
+        candidates = [(int(value), self.proc_start_ticks(int(value))) for value in children]
+        identities = collect(candidates, protocol=native_witness)
+        digest = hashlib.sha256(expected.read_bytes()).digest()
+        matches = [item.pid for item in identities if item.executable_sha256 == digest]
         self.assertEqual(len(matches), 1, f'Expected one spatialwm child of worldd at {expected}: {matches}')
         return matches[0]
 

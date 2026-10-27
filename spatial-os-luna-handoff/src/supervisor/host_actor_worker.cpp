@@ -298,14 +298,18 @@ void HostActorWorker::complete_failure(std::exception_ptr failure,
     flight_.reset();
     publish(std::move(failure));
 }
-void HostActorWorker::begin_exchange(const Binding& urgent, bool cancellation) {
+void HostActorWorker::begin_exchange(const Binding& urgent, bool cancellation, const char* origin) {
     refresh_context();
     std::lock_guard lock(watch_mutex_);
     if (exchange_serial_ == UINT64_MAX) throw std::runtime_error("Actor worker exchange sequence exhausted");
-    flight_ = Flight{++exchange_serial_, nanoseconds(), binding_, urgent && urgent == binding_ && (cancellation || !urgent->retired())};
+    flight_ = Flight{++exchange_serial_, nanoseconds(), binding_, urgent && urgent == binding_ && (cancellation || !urgent->retired()), origin};
 }
 void HostActorWorker::end_exchange() noexcept {
     std::lock_guard lock(watch_mutex_); flight_.reset();
+}
+void HostActorWorker::set_flight_phase(const char* phase) noexcept {
+    std::lock_guard lock(watch_mutex_);
+    if (flight_) flight_->phase = phase;
 }
 void HostActorWorker::watch() noexcept {
     struct Decision {
@@ -313,6 +317,9 @@ void HostActorWorker::watch() noexcept {
         std::int64_t elapsed_ms=0;
         std::uint64_t diagnostic_time=0;
         bool flight=false,cancellation=false,heartbeat=false,event=false;
+        bool queued_cancellation=false,queued_capture=false;
+        const char* origin="unknown";
+        const char* phase="unknown";
     };
     std::uint64_t logged_serial=0;
     while (!stopping_) {
@@ -327,11 +334,14 @@ void HostActorWorker::watch() noexcept {
                 std::chrono::duration_cast<std::chrono::nanoseconds>(watchdog_limit).count()) {
                 const auto context = flight_->binding;
                 bool queued_heartbeat=false,queued_event=false;
+                bool queued_cancellation=false,queued_capture=false;
                 {
                     std::lock_guard queue_lock(queue_mutex_);
                     for(const auto& work:queue_)if(work.urgent_binding==context &&
                             (work.cancellation || !context->retired())) {
                         if(work.capture_heartbeat)queued_heartbeat=true;else queued_event=true;
+                        queued_cancellation |= work.cancellation;
+                        queued_capture |= bool(work.capture_packet);
                     }
                 }
                 const bool urgent=flight_->urgent || pending_cancel_==context || queued_heartbeat || queued_event;
@@ -341,7 +351,10 @@ void HostActorWorker::watch() noexcept {
                         decision.actor=context->actor_generation;decision.capture=context->capture_generation;
                         decision.elapsed_ms=(nanoseconds()-flight_->started)/1000000;
                         decision.flight=flight_->urgent;decision.cancellation=pending_cancel_==context;
+                        decision.origin=flight_->origin;
+                        decision.phase=flight_->phase;
                         decision.heartbeat=queued_heartbeat;decision.event=queued_event;
+                        decision.queued_cancellation=queued_cancellation;decision.queued_capture=queued_capture;
                         decision.diagnostic_time=nanoseconds();
                         log_decision=true;logged_serial=flight_->serial;
                     }
@@ -360,7 +373,9 @@ void HostActorWorker::watch() noexcept {
                     <<" monotonic_ns="<<decision.diagnostic_time<<" elapsed_ms="<<decision.elapsed_ms<<" actor_generation="<<decision.actor
                     <<" capture_generation="<<decision.capture<<" flight_urgent="<<decision.flight
                     <<" pending_cancel="<<decision.cancellation<<" queued_heartbeat="<<decision.heartbeat
-                    <<" queued_event="<<decision.event<<'\n';
+                    <<" queued_event="<<decision.event<<" queued_cancellation="<<decision.queued_cancellation
+                    <<" queued_capture="<<decision.queued_capture<<" flight_origin="<<decision.origin
+                    <<" flight_phase="<<decision.phase<<'\n';
             }catch(...) {}
         }
         std::unique_lock lock(queue_mutex_);
@@ -394,7 +409,7 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                 }
             }
             if (work.execute) {
-                begin_exchange(work.urgent_binding,work.cancellation);
+                begin_exchange(work.urgent_binding,work.cancellation,work.capture_packet ? "capture" : "host_request");
                 try { work.execute(); }
                 catch (...) { (void)request_cancel(work.urgent_binding); }
                 end_exchange(); ++burst;
@@ -408,25 +423,31 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
             }
             begin_exchange(cancelled,true);
             try {
+                set_flight_phase("deferred_cleanup");
                 (void)controller_.pump_deferred_cleanup();
                 // Compare the actual adopted context, after refresh_context().
                 if (cancelled && cancelled == capture_binding() && controller_.control_available()) {
+                    set_flight_phase("cancel_stop");
                     core::v1::ActorActionRequest stop; stop.mutable_stop();
                     (void)controller_.propose(cancelled->actor_generation, stop);
                     std::lock_guard lock(watch_mutex_);
                     if(flight_ && flight_->binding==cancelled)flight_->release_satisfied=true;
                 }
                 if (Clock::now() >= tick) {
+                    set_flight_phase("controls_tick");
                     const auto capture=capture_binding();
                     if (controller_.control_available() && capture && !capture->retired())
                         (void)controller_.tick_controls(controller_.generation());
                     tick = Clock::now() + interval;
                 }
                 if (Clock::now() >= render) {
-                    const auto pending=controller_.pump_geometry_presentation();
+                    set_flight_phase("geometry_presentation");
+                    const auto pending=controller_.pump_geometry_presentation([this](const char* phase) { set_flight_phase(phase); });
                     render = Clock::now() + (pending?std::chrono::milliseconds(2):interval);
                 }
+                set_flight_phase("controls_presentation");
                 controller_.synchronize_controls_presentation();
+                set_flight_phase("capture_synchronization");
                 synchronize_capture();
             } catch (const std::exception&) {
                 std::cerr << "Actor worker operation failed; checked context remains required\n";

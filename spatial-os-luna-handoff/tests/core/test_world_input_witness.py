@@ -5,10 +5,11 @@ import socket
 import subprocess
 import time
 import unittest
-from pathlib import Path
+import geometry_native_pb2 as process_witness
 import world_input_witness_v2_pb2 as witness
 import test_world_application_control as control
 import test_world_identity as world_fixture
+from geometry_process_identity import scan_fd_targets, start_ticks
 
 
 class WorldInputWitnessTests(control.WorldApplicationControlTests):
@@ -97,11 +98,9 @@ class WorldInputWitnessTests(control.WorldApplicationControlTests):
         self.assertEqual(self.native_device(self.app),self.old_pointer)
         self.assertGreater(reply.compositor_pid,1)
         forbidden={f'socket:[{n}]' for n in self.witness_inodes}
-        targets=[]
-        for p in Path(f'/proc/{reply.compositor_pid}/fd').iterdir():
-            try:targets.append(p.readlink().as_posix())
-            except FileNotFoundError:pass
-        self.assertFalse(forbidden.intersection(targets),'Witness endpoint leaked into the compositor exec')
+        result=scan_fd_targets([(reply.compositor_pid,start_ticks(reply.compositor_pid),sorted(forbidden))],
+            protocol=process_witness)[0]
+        self.assertFalse(result.matched_needles,'Witness endpoint leaked into the compositor exec')
 
     def test_unprimed_actor_is_not_given_a_native_seat(self):
         request=self.prepare(prime_peer=False)
@@ -178,24 +177,17 @@ class WorldInputWitnessTests(control.WorldApplicationControlTests):
         finally:os.close(fd)
         self.assertEqual(self.witness.recv(4097),b'')
         self.assertEqual(self.native_device(self.app),self.old_pointer)
-        targets=[]
-        for p in Path(f'/proc/{self.world_process.proc.pid}/fd').iterdir():
-            try:targets.append(p.readlink().as_posix())
-            except FileNotFoundError:pass
-        self.assertFalse(any('world-witness-unexpected-right' in target for target in targets))
+        matches=scan_fd_targets([(self.world_process.proc.pid,start_ticks(self.world_process.proc.pid),
+            ['world-witness-unexpected-right'])],protocol=process_witness)[0]
+        self.assertFalse(matches.matched_needles)
 
     def test_eof_retires_endpoint_without_stopping_world(self):
         self.prepare();self.witness.close()
         self.assertTrue(self.world_process.management('system.hello'))
-        end=time.monotonic()+2
         forbidden={f'socket:[{n}]' for n in self.witness_inodes}
-        while True:
-            targets=set()
-            for p in Path(f'/proc/{self.world_process.proc.pid}/fd').iterdir():
-                try:targets.add(p.readlink().as_posix())
-                except FileNotFoundError:pass
-            if not targets.intersection(forbidden):break
-            self.assertLess(time.monotonic(),end);time.sleep(.01)
+        matches=scan_fd_targets([(self.world_process.proc.pid,start_ticks(self.world_process.proc.pid),
+            sorted(forbidden))],wait_until_absent_ms=2000,protocol=process_witness)[0]
+        self.assertFalse(matches.matched_needles,'Retired witness socket remains open in worldd')
         self.assertEqual(self.native_device(self.app),self.old_pointer)
 
     def test_binding_channel_cannot_be_rearmed_after_one_reply(self):

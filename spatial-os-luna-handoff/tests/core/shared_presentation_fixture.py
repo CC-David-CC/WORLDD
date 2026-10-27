@@ -52,13 +52,15 @@ class SharedPresentationFixture:
         sent=self.channel.sendmsg([raw],ancillary);self.channel.sendall(raw[sent:])
         reply=self.read();self.fixture.assertEqual(reply.request_id,self.sequence);return reply
 
-    def world_arguments(self):
-        return ['--native-security-fd',str(self.native_fd),'--presentation-fd',str(self.world_channel.fileno()),
+    def world_arguments(self, include_native=True):
+        native = ['--native-security-fd',str(self.native_fd)] if include_native else []
+        return native+['--presentation-fd',str(self.world_channel.fileno()),
             '--presentation-pidfd',str(self.pidfd),'--presentation-pid',str(self.proc.pid),
             '--presentation-owner-pid',str(os.getpid())]
 
-    def world_descriptors(self):
-        return self.native_fd,self.world_channel.fileno(),self.pidfd
+    def world_descriptors(self, include_native=True):
+        native = (self.native_fd,) if include_native else ()
+        return native+(self.world_channel.fileno(),self.pidfd)
 
     def attach(self,world):
         self.world=world;pidfd=os.pidfd_open(world.proc.pid)

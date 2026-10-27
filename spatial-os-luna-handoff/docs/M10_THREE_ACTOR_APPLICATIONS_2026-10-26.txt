@@ -1,0 +1,133 @@
+M10 three-actor application check, unqualified Debug integration payload
+
+The payload archive SHA-256 is
+38128bbb07adb30ff0b47949b7270c9baf82ccd598935e1f142e31f5bf571ef9.
+The payload includes uncommitted changes and is not a frozen gate candidate.
+
+Each host ran nine tests and reported the same five failing methods. One three-actor window test
+reached a human Stop request and received an unavailable or stale shared actor
+context. Three input tests timed out waiting for key events in the confined
+application's core-event probe. The high-rate test first received its expected
+native XI2 key events. A paused-world Stop test did not return while paused.
+These are separate observations; the evidence does not establish one cause.
+
+In the three-actor window test, the host log records a watchdog interruption
+after 356 ms with queued_event=1 and pending_cancel=0. The actor TLS channel
+then closed. The later human Stop received the stale-context response. The
+diagnostic does not distinguish ordinary captured input from a queued Stop call.
+Identify the exact queued work before assigning the trigger.
+
+A separate sb16 rerun used the same payload plus a host binary with diagnostic
+fields only. It reproduced the failure. The watchdog reported a 359 ms flight,
+queued_cancellation=1, and queued_capture=0. The queued work was a cancellation
+request. The trace does not identify the operation already in flight. Evidence:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/integrated-app-watchdog-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/integrated-app-watchdog-01
+
+A second diagnostic rerun reproduced the failure on both hosts. Both watchdog
+traces reported queued_cancellation=1, queued_capture=0, and
+flight_origin=maintenance. The flight lasted 353 ms on sb16 and 355 ms on
+sb16-2. The trace does not yet identify the maintenance operation. Evidence is
+under runs/integrated-app-watchdog2-01 and evidence/integrated-app-watchdog2-01
+on each host.
+
+The third diagnostic run passed on sb16. It reproduced the failure on sb16-2.
+The sb16-2 trace reported queued_cancellation=1 and
+flight_phase=geometry_presentation at 354 ms. The stop waited behind geometry
+presentation before the watchdog interrupted the actor channel. This is a
+timing-dependent failure, not a qualification pass. Evidence is under
+runs/integrated-app-watchdog3-01 and evidence/integrated-app-watchdog3-01.
+
+Another sb16 run reproduced the same geometry-presentation watchdog failure.
+The sb16-2 comparison attempted to enable presentation continuations, but the
+resource delegate did not forward that environment variable to the test service.
+That run used the default path and cannot establish continuation behavior.
+The same applies to the later app-continuation2 diagnostic. Further tracing is
+required inside the presentation step. Evidence is under
+runs/integrated-app-watchdog4-01 on sb16 and runs/integrated-app-continuation-01
+and runs/integrated-app-continuation2-01 on sb16-2, with matching evidence directories.
+
+The corrected comparison injects the flag after resource delegation and asserts
+its presence inside the test service. With presentation continuations enabled,
+the focused window scenario passed once on each host. Evidence is under
+runs/integrated-app-continuation3-01 and the matching evidence directory. This
+does not prove the default path safe or qualify M10.
+
+The payload changed the confined application probe from XI2 to core events.
+The independent XI2 observer selected events on the same window during the
+three failing key tests. The original fixture warns that XI2 selection may take
+events away from a core-only probe. The payload change also removed the original
+XI2 readiness assertion. The source change has therefore been reverted pending
+a secure, independently verified witness arrangement. The XACE application
+extension policy currently hides XInputExtension, so restoring that assertion
+does not establish that the original test can pass. Preserve both security and
+application-delivery checks when resolving the fixture and runtime behavior.
+
+A separate diagnostic on both hosts selected raw XI2 key events on the root window with
+a privileged client, while the confined application selected core events on its
+own window. The unchanged high-rate test observed all 664 press/release events
+through both witnesses and checked their order and actor device identities. It
+then failed its original 250 taps/second floor: 332 taps took about 3.03 seconds
+on sb16 and 3.89 seconds on sb16-2, or 109.43 and 85.24 taps/second. The raw
+witness does not independently identify the
+destination window. The application event witness supplies delivery evidence.
+This diagnostic does not change the locked fixture and is not qualification.
+Evidence is under runs/integrated-files-rawxi-01 and its matching evidence
+directory on each host.
+
+The supplemental source fixture and raw observer were then tested on both hosts
+against a verified overlay of the same payload. Both reached the unchanged rate
+assertion after passing all native and application key-edge assertions. The rate
+was 108.61 taps/second on sb16 and 89.70 on sb16-2. Both tests failed the
+250-tap floor. Evidence is under runs/integrated-files-rawfixture-01 and its
+matching evidence directory on each host.
+
+Optional timing instrumentation measured the same 11 key batches. On sb16,
+the median interval from client request write to world dispatch start was
+247.2 ms. On sb16-2 it was 328.3 ms. Median world dispatch durations were
+25.9 ms and 33.9 ms. Median queue-to-send delays were 0.4 ms and 1.2 ms.
+These measurements locate most delay before dispatch. They do not identify
+which concurrent world operation occupied the scheduler. Evidence is under
+runs/integrated-files-keytrace3-01 and its matching evidence directory.
+
+The next trace captured complete request ingress. All 11 key batches were read
+by a motion-only pump while a primary issuer exchange was pending. Median time
+from client write to ingress was 0.1 ms on sb16 and 0.3 ms on sb16-2. Median
+time from ingress to ordinary dispatch was 252.6 ms and 322.2 ms. The current
+motion-only scheduling rule defers these key batches until the outer issuer
+exchange yields. This trace does not justify executing a nested renderer action:
+checked authorization, cancellation, and independent actor progress still need
+an explicit bounded scheduling design. Evidence is under
+runs/integrated-files-keytrace4-01 and the matching evidence directory.
+
+A new focused native regression held one actor's credential check for about
+4.1 seconds. An already authenticated actor sent a key tap to its focused,
+broker-launched application. Both hosts missed the 250 ms deadline. The actor
+reply had not completed and the independent application witness saw no tap at
+the deadline. The other actor later authenticated successfully. This is a
+failed actor-isolation liveness check, not proof of a security bypass. Evidence
+is under runs/integrated-issuer-key-01 and the matching evidence directory.
+The follow-up records the eventual outcome. On both hosts the accepted tap had
+reached the application by the observation after authentication, about 4.2 seconds
+after submission. It did not timestamp exact delivery. The application recorded
+one press and one release. Evidence is under
+runs/integrated-issuer-key2-01 and the matching evidence directory.
+A third run timestamped the tap's actual reply in its sending thread. The
+replies took 4.149 seconds on sb16 and 4.158 seconds on sb16-2. Neither host
+observed a native key edge at the 250 ms deadline. Both later recorded one
+press and one release. Evidence is under runs/integrated-issuer-key3-01 and
+the matching evidence directory on each host.
+
+The evidence on both hosts is retained under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/integrated-applications-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/integrated-applications-01
+
+Selected follow-up: run the existing real-window, three-actor native device,
+lease denial and control transfer scenario on both hosts with the same rebuilt
+world and compositor used for the peer-health file scenario. Preserve exact
+binary hashes and all receipts. This focused check does not replace the full gate.
+The selected real-window and control-transfer scenario passed on each host
+with world SHA-256 42cf3bb5cb68e168fd0b5e8b07384b36d94bb5bf989e7e13ab0a1730e2e82631
+and compositor SHA-256 0fb0c8a142d74fbdbf5a4262fcc2d8f2c47ae071819468d93229c1d8b28c1149.
+Evidence is runs/integrated-peer-health-three-actor-01-01 and its matching
+evidence directory on each host. This focused run is not a full gate.

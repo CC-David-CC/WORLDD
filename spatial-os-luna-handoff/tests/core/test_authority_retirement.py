@@ -217,7 +217,7 @@ class RetirementTests(fencing.AuthorityFencingTests):
         self.retire_request(); self.peer.close(); self.supervisor.close(); self.stop_daemons()
         secret = (self.state / 'issuer.pem').read_bytes()
         with sqlite3.connect(self.state / 'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=9;')
+            db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_retirement; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=9;')
         before = self.snapshot_all(); command = [str(fencing.launch.registry.sessions.BINARY), '--state-dir', str(self.state)]
         result = run_issuer_migration(command, input=b'', capture_output=True, timeout=4)
         self.assertNotEqual(result.returncode, 0); self.assertIn(b'migration', result.stderr.lower())
@@ -228,13 +228,13 @@ class RetirementTests(fencing.AuthorityFencingTests):
         after = self.snapshot_all(); self.assertEqual({name: after[name] for name in before}, before)
         self.assertEqual(after['authority_retirement'], [])
         self.assertEqual((self.state / 'issuer.pem').read_bytes(), secret)
-        with sqlite3.connect(self.state / 'identity.db') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 11)
+        with sqlite3.connect(self.state / 'identity.db') as db: self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 12)
         self.peer = self.ready(); self.supervisor = self.client(); self.retired()
 
     def test_failed_v9_migration_preserves_original_schema(self):
         self.retire_request(); self.peer.close(); self.supervisor.close(); self.stop_daemons()
         with sqlite3.connect(self.state / 'identity.db') as db:
-            db.executescript('DROP TABLE authority_retirement; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=9; CREATE TABLE authority_retirement(marker INTEGER);')
+            db.executescript('DROP TABLE identity_precommit_obligation; DROP TABLE identity_precommit; DROP TABLE authority_native_guardian; DROP TABLE authority_retirement; DROP TABLE IF EXISTS authority_domains_add_operation; DROP TABLE IF EXISTS authority_participant_history; PRAGMA user_version=9; CREATE TABLE authority_retirement(marker INTEGER);')
         before = self.snapshot_all()
         command = [str(fencing.launch.registry.sessions.BINARY), '--state-dir', str(self.state), '--migrate']
         result = run_issuer_migration(command, input=b'', capture_output=True, timeout=4)

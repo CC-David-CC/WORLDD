@@ -65,11 +65,14 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
     if (command.actor_id().empty() || command.actor_id().size() > 256)
         throw std::invalid_argument("Invalid actor input identity");
     const bool cancel = command.has_cancel() || command.has_close();
+    const bool prepare = command.has_prepare();
     auto found = seats_.find(command.actor_id());
     if (cancel && found == seats_.end()) {
         wire::NativeActorInput result; result.set_actor_id(command.actor_id()); return result;
     }
-    if (!cancel && !command.has_pointer() && !command.has_key() && !command.has_key_tap_batch() &&
+    if (prepare && (command.has_target() || command.has_pixel() || command.keep_capture_position()))
+        throw std::invalid_argument("Seat preparation must not target a surface");
+    if (!cancel && !prepare && !command.has_pointer() && !command.has_key() && !command.has_key_tap_batch() &&
         !command.has_scroll() && !command.has_motion())
         throw std::invalid_argument("Missing renderer input operation");
     std::optional<wire::NativeSurface> target;
@@ -139,6 +142,10 @@ wire::NativeActorInput XInputRouter::execute(const wire::RendererInputCommand& c
     bool tap_started=false;
     try {
         native_input::Request request;
+        if (prepare) {
+            request.mutable_status()->set_id(seat.id);
+            return state(command.actor_id(), seat, checked(request));
+        }
         if (cancel) {
             if (command.has_close()) request.mutable_close()->set_id(seat.id);
             else request.mutable_cancel()->set_id(seat.id);

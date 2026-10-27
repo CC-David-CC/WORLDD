@@ -259,6 +259,21 @@ void create_domains_add_schema(sqlite3* db) {
             "request_sha256 BLOB NOT NULL CHECK(length(request_sha256)=32),request BLOB NOT NULL,receipt BLOB NOT NULL);"
             "PRAGMA user_version=11");
 }
+void create_native_seat_precommit_schema(sqlite3* db) {
+    sql(db, "CREATE TABLE authority_native_guardian(participant_id BLOB NOT NULL,generation INTEGER NOT NULL,"
+            "enabled INTEGER NOT NULL CHECK(enabled IN(0,1)),PRIMARY KEY(participant_id,generation),"
+            "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
+            "CREATE TABLE identity_precommit(intent_id BLOB PRIMARY KEY CHECK(length(intent_id)=32),"
+            "request BLOB NOT NULL,target_kind INTEGER NOT NULL CHECK(target_kind IN(1,2)),"
+            "target_id BLOB NOT NULL CHECK(length(target_id)=32),expected_revision INTEGER NOT NULL CHECK(expected_revision>=0),"
+            "commit_revision INTEGER NOT NULL CHECK(commit_revision>0),state INTEGER NOT NULL CHECK(state IN(1,2)));"
+            "CREATE UNIQUE INDEX identity_one_pending_precommit ON identity_precommit(state) WHERE state=1;"
+            "CREATE TABLE identity_precommit_obligation(intent_id BLOB NOT NULL REFERENCES identity_precommit(intent_id),"
+            "participant_id BLOB NOT NULL,generation INTEGER NOT NULL,service_incarnation BLOB NOT NULL CHECK(length(service_incarnation)=32),"
+            "receipt BLOB,PRIMARY KEY(intent_id,participant_id,generation),"
+            "FOREIGN KEY(participant_id,generation) REFERENCES authority_activation(participant_id,generation));"
+            "PRAGMA user_version=12");
+}
 } // namespace
 
 struct Issuer::Impl {
@@ -314,12 +329,12 @@ struct Issuer::Impl {
         const int opened = sqlite3_open_v2((state / "identity.db").c_str(), &connection,
                                           SQLITE_OPEN_READWRITE | SQLITE_OPEN_NOMUTEX | SQLITE_OPEN_NOFOLLOW, nullptr);
         db.reset(connection); check(opened); check(sqlite3_busy_timeout(db.get(), 2000));
-        sqlite3_int64 schema = 11;
+        sqlite3_int64 schema = 12;
         if (!owner) {
             Query version(db.get(), "PRAGMA user_version"); version.step();
             Query application(db.get(), "PRAGMA application_id"); application.step();
             schema = version.integer(0);
-            storage((schema == 11 || ((schema >= 1 && schema <= 10) && migrate)) && application.integer(0) == application_id,
+            storage((schema == 12 || ((schema >= 1 && schema <= 11) && migrate)) && application.integer(0) == application_id,
                     "Unknown issuer schema; explicit migration is required");
         }
         sql(db.get(), "PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA synchronous=EXTRA");
@@ -337,7 +352,7 @@ struct Issuer::Impl {
             insert.blob(1, random_id()); insert.blob(2, key->public_key()); insert.blob(3, *owner);
             insert.blob(4, policy.SerializeAsString()); insert.step();
             create_enrollment_schema(db.get()); create_security_schema(db.get()); create_bootstrap_schema(db.get());
-            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); create_retirement_schema(db.get()); create_domains_add_schema(db.get()); tx.commit();
+            create_participant_schema(db.get()); create_barrier_schema(db.get()); create_supervisor_schema(db.get()); create_launch_schema(db.get()); create_fence_schema(db.get()); create_retirement_schema(db.get()); create_domains_add_schema(db.get()); create_native_seat_precommit_schema(db.get()); tx.commit();
             storage(fsync(directory.fd) == 0, "Issuer was initialized but directory durability is uncertain; preserve its files");
         }
         { Query integrity(db.get(), "PRAGMA quick_check");
@@ -348,7 +363,7 @@ struct Issuer::Impl {
         storage(identity.issuer_id().size() == 32 && identity.public_key() == key->public_key() && owner_public.size() == 32,
                 "Issuer key does not match its durable identity");
         policy();
-        if (!owner && schema <= 10 && migrate) {
+        if (!owner && schema <= 11 && migrate) {
             Transaction migration(db.get());
             if (schema < 10) {
                 if (schema == 1) create_enrollment_schema(db.get());
@@ -361,7 +376,8 @@ struct Issuer::Impl {
                 if (schema < 9) create_fence_schema(db.get());
                 create_retirement_schema(db.get());
             }
-            create_domains_add_schema(db.get());
+            if (schema < 11) create_domains_add_schema(db.get());
+            create_native_seat_precommit_schema(db.get());
             Query activations(db.get(), "SELECT participant_id,registration FROM authority_activation");
             while (activations.step() == SQLITE_ROW) {
                 v1::AuthorityParticipantRecord old;
@@ -427,15 +443,18 @@ struct Issuer::Impl {
         return context;
     }
     v1::AuthorityActivationState activation(const std::string& participant, std::uint64_t generation = 0) {
-        Query row(db.get(), "SELECT generation,service_incarnation,issuer_incarnation,connection_binding,"
-                            "registration,initial_revision,applied_revision,active FROM authority_activation "
-                            "WHERE participant_id=? AND (?=0 OR generation=?) ORDER BY generation DESC LIMIT 1");
+        Query row(db.get(), "SELECT a.generation,a.service_incarnation,a.issuer_incarnation,a.connection_binding,"
+                            "a.registration,a.initial_revision,a.applied_revision,a.active,COALESCE(g.enabled,0) "
+                            "FROM authority_activation a LEFT JOIN authority_native_guardian g "
+                            "ON g.participant_id=a.participant_id AND g.generation=a.generation "
+                            "WHERE a.participant_id=? AND (?=0 OR a.generation=?) ORDER BY a.generation DESC LIMIT 1");
         row.blob(1, participant); row.integer(2, generation); row.integer(3, generation);
         if (row.step() != SQLITE_ROW) throw WorldError(wire::NOT_FOUND, "Service generation does not exist");
         const auto head = security_revision();
         storage(row.integer(0) > 0 && row.blob(1).size() == 32 && row.blob(2).size() == 32 && row.blob(3).size() == 32 &&
                 row.integer(5) >= 0 && row.integer(6) >= row.integer(5) && static_cast<std::uint64_t>(row.integer(6)) <= head &&
-                (row.integer(7) == 0 || row.integer(7) == 1), "Invalid durable service generation");
+                (row.integer(7) == 0 || row.integer(7) == 1) && (row.integer(8) == 0 || row.integer(8) == 1),
+                "Invalid durable service generation");
         v1::AuthorityActivationState result; result.set_issuer_id(identity.issuer_id());
         result.set_generation(row.integer(0)); result.set_service_incarnation(row.blob(1));
         result.set_issuer_incarnation(row.blob(2)); result.set_connection_binding(row.blob(3));
@@ -443,6 +462,7 @@ struct Issuer::Impl {
         const auto historical = participant_record_at(participant, result.registration().registered_revision());
         storage(result.registration().SerializeAsString() == historical.SerializeAsString(), "Activation registration history mismatch");
         result.set_applied_revision(row.integer(6)); result.set_head_revision(head); result.set_active(row.integer(7) != 0);
+        result.set_native_seat_guardian_enabled(row.integer(8) != 0);
         return result;
     }
     v1::AuthorityActivationState bound_activation(const v1::AuthorityAuthenticationResult& context, std::uint64_t generation) {
@@ -1083,6 +1103,16 @@ struct Issuer::Impl {
         storage(result.actor_id().size() == 32 && (result.kind() == v1::HUMAN || result.kind() == v1::AGENT), "Invalid durable actor identity");
         result.set_actor_revoked(revoked(v1::ACTOR_TARGET, result.actor_id()));
         result.set_active(!result.actor_revoked() && !result.credential_revoked());
+        Query pending(db.get(), "SELECT p.intent_id,p.commit_revision,"
+            "(SELECT COUNT(*) FROM identity_precommit_obligation o WHERE o.intent_id=p.intent_id AND o.receipt IS NULL) "
+            "FROM identity_precommit p WHERE p.state=1 AND p.target_kind=? AND p.target_id=?");
+        pending.integer(1, target.kind()); pending.blob(2, target.id());
+        if (pending.step() == SQLITE_ROW) {
+            storage(pending.blob(0).size()==32 && pending.integer(1)>0 && pending.integer(2)>=0,
+                "Invalid pending identity revocation");
+            result.set_revocation_pending(true); result.set_revocation_intent_id(pending.blob(0));
+            result.set_pending_commit_revision(pending.integer(1)); result.set_pending_fence_count(pending.integer(2));
+        }
         result.set_security_revision(security_revision()); return result;
     }
     v1::IdentityStatus check_credential(const v1::SignedCredential& credential) {
@@ -1109,34 +1139,77 @@ struct Issuer::Impl {
         v1::IdentityReference target; target.set_kind(v1::CREDENTIAL_TARGET); target.set_id(claims.credential_id());
         return identity_status(target);
     }
+    void commit_precommit(const std::string& intent_id) {
+        Query precommit(db.get(), "SELECT request,target_kind,target_id,expected_revision,commit_revision,state "
+            "FROM identity_precommit WHERE intent_id=?");
+        precommit.blob(1,intent_id);
+        storage(precommit.step()==SQLITE_ROW && precommit.blob(0).size()>0 && precommit.blob(2).size()==32 &&
+            precommit.integer(3)>=0 && precommit.integer(4)>0 && (precommit.integer(5)==1 || precommit.integer(5)==2),
+            "Invalid durable identity precommit");
+        const auto request_bytes=precommit.blob(0); const auto kind=precommit.integer(1);
+        const auto target=precommit.blob(2); const auto expected=precommit.integer(3);
+        const auto revision=precommit.integer(4); const auto state=precommit.integer(5);
+        if(state==2) return;
+        Query unfinished(db.get(), "SELECT 1 FROM identity_precommit_obligation WHERE intent_id=? AND receipt IS NULL LIMIT 1");
+        unfinished.blob(1,intent_id);
+        if(unfinished.step()==SQLITE_ROW) throw WorldError(wire::BUSY,"Native seat fences are not complete");
+        v1::IdentityRevoke request;
+        storage(request.ParseFromString(request_bytes) && request.has_target() &&
+            static_cast<int>(request.target().kind())==kind && request.target().id()==target &&
+            request.expected_security_revision()==static_cast<std::uint64_t>(expected), "Invalid stored identity revocation");
+        if(static_cast<std::uint64_t>(security_revision())!=static_cast<std::uint64_t>(expected))
+            throw WorldError(wire::REVISION_CONFLICT,"Security revision changed during native seat preparation");
+        Query update_revision(db.get(),"UPDATE security_state SET revision=? WHERE singleton=1 AND revision=?");
+        update_revision.integer(1,revision);update_revision.integer(2,expected);update_revision.step();
+        storage(sqlite3_changes(db.get())==1,"Revocation lost its security revision");
+        Query insert(db.get(),"INSERT INTO revocation(kind,target_id,revision,reason) VALUES(?,?,?,?)");
+        insert.integer(1,kind);insert.blob(2,target);insert.integer(3,revision);insert.blob(4,request.reason());insert.step();
+        Query barrier(db.get(),"INSERT INTO authority_barrier(revision,participant_count) "
+            "SELECT ?,COUNT(*) FROM authority_activation WHERE active=1");
+        barrier.integer(1,revision);barrier.step();
+        Query obligations(db.get(),"INSERT INTO authority_obligation(revision,participant_id,generation) "
+            "SELECT ?,participant_id,generation FROM authority_activation WHERE active=1");
+        obligations.integer(1,revision);obligations.step();
+        Query complete(db.get(),"UPDATE identity_precommit SET state=2 WHERE intent_id=? AND state=1");
+        complete.blob(1,intent_id);complete.step();
+        storage(sqlite3_changes(db.get())==1,"Identity precommit changed during commit");
+    }
+    void invalidate_pending_auth(const v1::IdentityReference& target) {
+        std::erase_if(pending, [&](const auto& item) {
+            const auto& subject=item.second.authenticated_identity;
+            return target.kind()==v1::ACTOR_TARGET ? subject.actor_id()==target.id() : subject.credential_id()==target.id();
+        });
+    }
     v1::IdentityStatus revoke(const v1::IdentityRevoke& request) {
         Transaction transaction(db.get());
         const auto before = identity_status(request.target());
         if (before.security_revision() != request.expected_security_revision())
             throw WorldError(wire::REVISION_CONFLICT, "Issuer security revision changed");
-        if (!revoked(request.target().kind(), request.target().id())) {
-            storage(before.security_revision() < INT64_MAX, "Issuer security revision limit reached");
-            Query revision(db.get(), "UPDATE security_state SET revision=revision+1 WHERE singleton=1 AND revision=?");
-            revision.integer(1, before.security_revision()); revision.step();
-            storage(sqlite3_changes(db.get()) == 1, "Revocation lost its security revision");
-            Query insert(db.get(), "INSERT INTO revocation(kind,target_id,revision,reason) VALUES(?,?,?,?)");
-            insert.integer(1, request.target().kind()); insert.blob(2, request.target().id());
-            insert.integer(3, before.security_revision()+1); insert.blob(4, request.reason()); insert.step();
-            Query barrier(db.get(), "INSERT INTO authority_barrier(revision,participant_count) "
-                                    "SELECT ?,COUNT(*) FROM authority_activation WHERE active=1");
-            barrier.integer(1, before.security_revision()+1); barrier.step();
-            Query obligations(db.get(), "INSERT INTO authority_obligation(revision,participant_id,generation) "
-                                        "SELECT ?,participant_id,generation FROM authority_activation WHERE active=1");
-            obligations.integer(1, before.security_revision()+1); obligations.step();
+        if (revoked(request.target().kind(), request.target().id())) { transaction.commit(); return before; }
+        Query other(db.get(), "SELECT request FROM identity_precommit WHERE state=1");
+        if (other.step() == SQLITE_ROW) {
+            if (other.blob(0) != request.SerializeAsString())
+                throw WorldError(wire::BUSY, "Another identity revocation is preparing its native seat fences");
+            transaction.commit(); return identity_status(request.target());
         }
-        const auto result = identity_status(request.target()); transaction.commit();
-        // Only committed revocation invalidates pending authentication. Independent credentials survive.
-        std::erase_if(pending, [&](const auto& item) {
-            const auto& subject = item.second.authenticated_identity;
-            return request.target().kind() == v1::ACTOR_TARGET ? subject.actor_id() == request.target().id() :
-                   subject.credential_id() == request.target().id();
-        });
-        return result;
+        storage(before.security_revision() < INT64_MAX, "Issuer security revision limit reached");
+        const auto intent_id = random_id();
+        Query prepare(db.get(), "INSERT INTO identity_precommit VALUES(?,?,?,?,?,?,1)");
+        prepare.blob(1,intent_id); prepare.blob(2,request.SerializeAsString());
+        prepare.integer(3,request.target().kind()); prepare.blob(4,request.target().id());
+        prepare.integer(5,before.security_revision()); prepare.integer(6,before.security_revision()+1); prepare.step();
+        Query obligations(db.get(), "INSERT INTO identity_precommit_obligation(intent_id,participant_id,generation,service_incarnation) "
+            "SELECT ?,a.participant_id,a.generation,a.service_incarnation FROM authority_activation a "
+            "JOIN authority_native_guardian g ON g.participant_id=a.participant_id AND g.generation=a.generation "
+            "WHERE a.active=1 AND g.enabled=1");
+        obligations.blob(1,intent_id); obligations.step();
+        Query count(db.get(), "SELECT COUNT(*) FROM identity_precommit_obligation WHERE intent_id=?");
+        count.blob(1,intent_id); storage(count.step()==SQLITE_ROW && count.integer(0)>=0,"Cannot count native fence obligations");
+        if (count.integer(0)==0) {
+            commit_precommit(intent_id);
+            const auto result=identity_status(request.target()); transaction.commit(); invalidate_pending_auth(request.target()); return result;
+        }
+        const auto result=identity_status(request.target()); transaction.commit(); return result;
     }
     v1::EnrollmentRecord enrollment(const std::string& id) {
         Query query(db.get(), "SELECT e.id,e.intent,e.status,c.signed_credential FROM enrollment e "
@@ -1378,6 +1451,91 @@ v1::AuthorityActivationState Issuer::authority_state(IssuerConnection& connectio
     auto result = impl_->activation(context.registration().participant().id());
     transaction.commit(); return result;
 }
+v1::AuthorityPrecommitBatch Issuer::authority_precommit_read(const v1::AuthorityPrecommitRead& request,
+                                                             IssuerConnection& connection) {
+    validate_message(request);
+    require(request.generation()>0 && request.generation()<=INT64_MAX,"Precommit read requires an active generation");
+    Transaction transaction(impl_->db.get()); const auto& context=impl_->service_context(connection);
+    const auto participant=context.registration().participant().id();
+    const auto activation=impl_->bound_activation(context,request.generation());
+    if(!activation.active() || !activation.native_seat_guardian_enabled())
+        throw WorldError(wire::UNAUTHORIZED,"Precommit reads require an active guardian-backed generation");
+    v1::AuthorityPrecommitBatch result;result.set_issuer_id(impl_->identity.issuer_id());
+    result.set_participant_id(participant);result.set_generation(request.generation());
+    result.set_service_incarnation(context.service_incarnation());
+    Query pending(impl_->db.get(),"SELECT p.intent_id,p.target_kind,p.target_id,p.expected_revision "
+        "FROM identity_precommit p JOIN identity_precommit_obligation o ON o.intent_id=p.intent_id "
+        "WHERE p.state=1 AND o.participant_id=? AND o.generation=? AND o.service_incarnation=? AND o.receipt IS NULL");
+    pending.blob(1,participant);pending.integer(2,request.generation());pending.blob(3,context.service_incarnation());
+    if(pending.step()==SQLITE_ROW){
+        storage(pending.blob(0).size()==32&&pending.blob(2).size()==32&&pending.integer(3)>=0,"Invalid pending native fence intent");
+        auto* intent=result.add_intents();intent->set_intent_id(pending.blob(0));intent->set_issuer_id(impl_->identity.issuer_id());
+        intent->set_target_kind(pending.integer(1)==v1::ACTOR_TARGET?guardian::v1::REVOCATION_ACTOR:guardian::v1::REVOCATION_CREDENTIAL);
+        intent->set_target_id(pending.blob(2));intent->set_expected_security_revision(pending.integer(3));
+        storage(pending.step()==SQLITE_DONE,"Multiple pending identity precommit intents");
+    }
+    transaction.commit();return result;
+}
+v1::AuthorityPrecommitResult Issuer::authority_precommit_ack(const v1::AuthorityPrecommitAck& request,
+                                                             IssuerConnection& connection) {
+    validate_message(request);
+    require(request.generation()>0&&request.generation()<=INT64_MAX&&request.service_incarnation().size()==32&&
+        request.has_receipt()&&request.has_supervisor_proof(),"Precommit acknowledgment is incomplete");
+    const auto& receipt=request.receipt();validate_message(receipt);
+    require(receipt.has_intent()&&receipt.intent().intent_id().size()==32&&receipt.intent().issuer_id().size()==32&&
+        receipt.guardian_incarnation().size()==32&&receipt.registration_generation()>0&&
+        receipt.registration_generation()==request.generation()&&receipt.fenced_seat_count()<=1000000,
+        "Native fence receipt is invalid");
+    Transaction transaction(impl_->db.get());const auto& context=impl_->service_context(connection);
+    const auto participant=context.registration().participant().id();
+    const auto activation=impl_->bound_activation(context,request.generation());
+    if(!activation.active()||!activation.native_seat_guardian_enabled()||
+       request.service_incarnation()!=context.service_incarnation()||receipt.guardian_incarnation()!=context.service_incarnation())
+        throw WorldError(wire::UNAUTHORIZED,"Precommit acknowledgment differs from the active guardian generation");
+    const auto supervision=impl_->supervision_record(participant);
+    v1::SignRequest content;content.set_purpose(v1::AUTHORITY_NATIVE_SEAT_FENCE);
+    content.set_payload(receipt.SerializeAsString());
+    v1::VerifyRequest verification;*verification.mutable_content()=content;
+    *verification.mutable_proof()=request.supervisor_proof();verification.set_expected_public_key(supervision.public_key());
+    if(!verify(verification))throw WorldError(wire::UNAUTHORIZED,"Native fence receipt lacks the registered supervisor signature");
+    Query intent_row(impl_->db.get(),"SELECT target_kind,target_id,expected_revision,state FROM identity_precommit WHERE intent_id=?");
+    intent_row.blob(1,receipt.intent().intent_id());
+    if(intent_row.step()!=SQLITE_ROW||intent_row.integer(3)!=1)
+        throw WorldError(wire::UNAUTHORIZED,"Native fence intent is not pending");
+    guardian::v1::NativeFenceIntent expected;expected.set_intent_id(receipt.intent().intent_id());
+    expected.set_issuer_id(impl_->identity.issuer_id());
+    expected.set_target_kind(intent_row.integer(0)==v1::ACTOR_TARGET?guardian::v1::REVOCATION_ACTOR:guardian::v1::REVOCATION_CREDENTIAL);
+    expected.set_target_id(intent_row.blob(1));expected.set_expected_security_revision(intent_row.integer(2));
+    if(receipt.intent().SerializeAsString()!=expected.SerializeAsString())
+        throw WorldError(wire::UNAUTHORIZED,"Native fence receipt differs from the pending issuer intent");
+    Query obligation(impl_->db.get(),"SELECT receipt FROM identity_precommit_obligation WHERE intent_id=? AND participant_id=? "
+        "AND generation=? AND service_incarnation=?");
+    obligation.blob(1,expected.intent_id());obligation.blob(2,participant);obligation.integer(3,request.generation());
+    obligation.blob(4,context.service_incarnation());
+    if(obligation.step()!=SQLITE_ROW)throw WorldError(wire::UNAUTHORIZED,"No matching native fence obligation exists");
+    const auto encoded=receipt.SerializeAsString();
+    if(!obligation.blob(0).empty()){
+        if(obligation.blob(0)!=encoded)throw WorldError(wire::REVISION_CONFLICT,"Native fence receipt changed on retry");
+    }else{
+        Query save(impl_->db.get(),"UPDATE identity_precommit_obligation SET receipt=? WHERE intent_id=? AND participant_id=? AND generation=? AND receipt IS NULL");
+        save.blob(1,encoded);save.blob(2,expected.intent_id());save.blob(3,participant);save.integer(4,request.generation());save.step();
+        storage(sqlite3_changes(impl_->db.get())==1,"Precommit acknowledgment lost its obligation");
+    }
+    v1::AuthorityPrecommitResult result;result.set_issuer_id(impl_->identity.issuer_id());
+    result.set_participant_id(participant);result.set_generation(request.generation());
+    result.set_service_incarnation(context.service_incarnation());*result.mutable_intent()=expected;
+    Query unfinished(impl_->db.get(),"SELECT 1 FROM identity_precommit_obligation WHERE intent_id=? AND receipt IS NULL LIMIT 1");
+    unfinished.blob(1,expected.intent_id());
+    const bool committed=unfinished.step()==SQLITE_DONE;
+    if(committed){
+        impl_->commit_precommit(expected.intent_id());result.set_committed(true);
+        result.set_committed_revision(expected.expected_security_revision()+1);
+    }
+    transaction.commit();
+    if(committed){v1::IdentityReference target;target.set_kind(expected.target_kind()==guardian::v1::REVOCATION_ACTOR?v1::ACTOR_TARGET:v1::CREDENTIAL_TARGET);
+        target.set_id(expected.target_id());impl_->invalidate_pending_auth(target);}
+    return result;
+}
 v1::ChallengeReply Issuer::authority_launch_begin(const v1::AuthorityLaunchBegin& request, IssuerConnection& connection) {
     if (connection.binding.size() != 32) throw WorldError(wire::FORBIDDEN, "Launch proof requires a TLS connection identity");
     Transaction transaction(impl_->db.get()); const auto binding = impl_->launch_context(request); transaction.commit();
@@ -1458,6 +1616,10 @@ v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActiv
             throw WorldError(wire::FORBIDDEN, "Matching supervisor launch authorization is required");
         if (authorization->generation()) throw WorldError(wire::ALREADY_EXISTS, "Launch authorization was already consumed");
     }
+    if (request.native_seat_guardian_enabled() && !impl_->supervised(participant))
+        throw WorldError(wire::FORBIDDEN, "Native seat guardians require a supervisor-bound service");
+    Query preparing(impl_->db.get(),"SELECT 1 FROM identity_precommit WHERE state=1 LIMIT 1");
+    if(preparing.step()==SQLITE_ROW)throw WorldError(wire::BUSY,"Service activation is blocked by a pending identity revocation");
     Query active(impl_->db.get(), "SELECT 1 FROM authority_activation WHERE participant_id=? AND active=1");
     active.blob(1, participant);
     if (active.step() == SQLITE_ROW) throw WorldError(wire::BUSY, "Service already has an active generation; cleanup is required");
@@ -1476,6 +1638,8 @@ v1::AuthorityActivationState Issuer::authority_activate(const v1::AuthorityActiv
     insert.blob(1, participant); insert.integer(2, generation); insert.blob(3, context.service_incarnation());
     insert.blob(4, context.issuer_incarnation()); insert.blob(5, context.connection_binding());
     insert.blob(6, context.registration().SerializeAsString()); insert.integer(7, head); insert.integer(8, head); insert.step();
+    Query guardian(impl_->db.get(), "INSERT INTO authority_native_guardian VALUES(?,?,?)");
+    guardian.blob(1, participant); guardian.integer(2, generation); guardian.integer(3, request.native_seat_guardian_enabled()); guardian.step();
     if (authorization) {
         Query consume(impl_->db.get(), "UPDATE authority_launch_authorization SET generation=? WHERE authorization_id=? AND generation=0");
         consume.integer(1, generation); consume.blob(2, authorization->authorization_id()); consume.step();
@@ -1519,6 +1683,9 @@ v1::AuthorityActivationState Issuer::authority_release(const v1::AuthorityReleas
         throw WorldError(wire::UNAUTHORIZED, "Service generation is fenced");
     if (state.applied_revision() != request.applied_revision()) throw WorldError(wire::REVISION_CONFLICT, "Release applied revision changed");
     if (!state.active()) { transaction.commit(); return state; }
+    Query precommit(impl_->db.get(),"SELECT 1 FROM identity_precommit_obligation WHERE participant_id=? AND generation=? AND receipt IS NULL LIMIT 1");
+    precommit.blob(1,context.registration().participant().id());precommit.integer(2,request.generation());
+    if(precommit.step()==SQLITE_ROW)throw WorldError(wire::BUSY,"Release is blocked until native revocation fencing completes");
     if (state.applied_revision() != state.head_revision()) throw WorldError(wire::BUSY, "Release has unapplied cancellation effects");
     Query pending(impl_->db.get(), "SELECT 1 FROM authority_obligation WHERE participant_id=? AND generation=? AND revision>? LIMIT 1");
     pending.blob(1, context.registration().participant().id()); pending.integer(2, request.generation()); pending.integer(3, state.applied_revision());

@@ -5,6 +5,7 @@
 #include <X11/Xlibint.h>
 #include <array>
 #include <cstring>
+#include <poll.h>
 #include <stdexcept>
 namespace spatial {
 namespace {
@@ -36,6 +37,18 @@ NativeInput::NativeInput(int sealed_config_fd) : scoped_(std::make_unique<Native
     opcode_ = static_cast<unsigned char>(header[9]);
 }
 NativeInput::~NativeInput() = default;
+bool NativeInput::scoped_connected() const {
+    if (!scoped_ || !scoped_->connected()) return false;
+    short closed_events = POLLERR | POLLHUP | POLLNVAL;
+#ifdef POLLRDHUP
+    closed_events |= POLLRDHUP;
+#endif
+    pollfd socket{scoped_->transport_fd(), closed_events, 0};
+    const auto result = poll(&socket, 1, 0);
+    // A retained descriptor is not evidence that its peer is still alive.
+    // An interrupted or failed check cannot authorize a new native effect.
+    return result >= 0 && !(socket.revents & closed_events);
+}
 const std::string& NativeInput::server_id() const {
     if (!scoped_) throw std::logic_error("Native input has no scoped server identity");
     return scoped_->server_id();
@@ -61,6 +74,13 @@ void NativeInput::revoke_seat(std::uint64_t seat_id) {
     if (reply.code()!=native_input::OK && reply.code()!=native_input::NO_SEAT)
         throw std::runtime_error("Native actor seat revocation was not confirmed");
 }
+void NativeInput::guard_seat(std::uint64_t seat_id) {
+    if (!seat_id) throw std::invalid_argument("Cannot guard an empty native seat identity");
+    native_input::Request request;request.mutable_guard()->set_id(seat_id);
+    if (call(std::move(request)).code()!=native_input::OK)
+        throw std::runtime_error("Native actor seat guardian was not confirmed");
+}
+void NativeInput::disconnect() noexcept {if(scoped_)scoped_->reset();}
 native_input::Reply NativeInput::exchange(const native_input::Request& request) {
     validate_message(request);
     const auto bytes = request.SerializeAsString();

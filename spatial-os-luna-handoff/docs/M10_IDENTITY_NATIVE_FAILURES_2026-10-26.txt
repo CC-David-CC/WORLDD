@@ -1,0 +1,992 @@
+M10 native identity follow-up
+
+The frozen Debug runtime and corrected fixture overlay ran the world-identity suite
+on sb16 and sb16-2. Each host ran 29 tests and reported five failures across two
+test methods. The former closed-log cleanup errors no longer occurred.
+
+Actor identity revocation: the probe log contains a button release, a key release,
+and focus loss. The test timed out waiting for a later sync acknowledgment, then
+its exit-marker-based cleanup could not confirm that the probe stopped. A later pidfd
+check confirmed that the probe launcher exited on both hosts. The probe had been
+launched by the actor whose identity was revoked, so its own execution authority also
+depended on that actor. The revised actor-revocation fixture launches the probe under
+a separate enrolled actor with its own workspace grant. It retains the original
+release and process-survival assertions. The revised scenario and the pidfd witness
+regression passed in Debug on both hosts with the frozen runtime. Recheck them on the
+final integrated candidate.
+
+Issuer loss: the probe log did not record the expected releases before its sync
+timed out. The workspace participant also lost its issuer connection and reported
+an unresolved release. The application process state and the relationship between
+workspace shutdown and native input cleanup remain unresolved. A pidfd check confirmed
+that the probe launcher exited on both hosts. Do not treat the
+actor-revocation releases as proof that issuer-loss cancellation is correct.
+
+The test expects an application to survive a global issuer outage. The workspace
+authority contract says issuer failure disables persistent authority and cancels
+affected execution. The world contract separately requires cancellation of dependent
+sessions and native input. This is a test and contract conflict; the global-loss test
+has not been changed. A correction must independently prove native input cleanup, avoid
+claiming completed revocation without checked obligations, and retain an application
+survival case where the workspace's own authority remains healthy. The exact proposed
+split and independent witness still require review and verification.
+
+With the revised probe owner and pidfd witness, the full Debug identity suite ran
+30 methods on each host. Only the global issuer-loss method failed. It reported one
+test error and one cleanup failure on each host.
+
+Evidence is retained on both hosts under:
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/world-identity-fixtures-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/world-identity-fixtures-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/identity-pidfd-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/identity-pidfd-01
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/identity-pidfd-02
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/identity-pidfd-02
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/runs/world-identity-fixtures-02
+  /home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/evidence/world-identity-fixtures-02
+
+A separate world-only issuer connection loss test passed on both hosts. The
+workspace remained connected to the real issuer. An independent application
+witness recorded key and button release, and its broker-launched process stayed
+alive. A new actor action received UNAVAILABLE. Release was observed in 63 ms
+on sb16 and 94 ms on sb16-2. This does not resolve the global issuer-loss test.
+Evidence is under runs/integrated-issuer-isolated-loss-01 and its matching
+evidence directory on each host.
+
+In the revocation-during-other-actor-authentication scenario, the original
+probe was owned by the revoked actor. A revised fixture gives the probe a
+separate owner and keeps the original release and timing assertions. On both
+hosts, the world.get query before revocation then took about 3.7 seconds and
+returned only after the delayed authentication finished. The test failed before
+it issued revocation, so this run does not prove a revocation failure or pass.
+The movement-only companion test passed on both hosts. Evidence is under
+runs/integrated-issuer-revoke-diag-01 and its matching evidence directory.
+
+A separate native-release scenario avoids querying the world during the delayed
+exchange. On both hosts it revoked the controller while the other actor's
+authentication was still pending. The independent workspace-owned application
+observed key and button release 105 ms and 138 ms after the last motion refresh.
+The delayed authentication returned a superseded authority read. A fresh
+authentication then succeeded on each host. Both supplemental tests passed.
+They do not establish pose stability during the pending exchange, and they do
+not replace the original world-query scenario. Evidence is under
+runs/integrated-issuer-revoke-retry-01 and its matching evidence directory.
+
+For global issuer loss, a separate privileged native witness saw the held key
+release on both hosts. It saw no window-level button-release event. A raw device
+witness saw the key release. The XLibre input path sets POINTER_NORAW for pointer
+events, so missing raw button events do not establish whether a release occurred.
+A subsequent independent XI device query found that the actor's pointer device
+no longer existed on either host.
+The query had first confirmed the button was held before issuer shutdown. This
+does not show a live pointer with a stuck button. It also does not prove an
+explicit button release, and the workspace participant reported unresolved
+release on exit. The supplemental test failed on both hosts. Evidence is under
+runs/integrated-issuer-global-witness2-01, runs/integrated-issuer-global-raw-01,
+and runs/integrated-issuer-global-state2-01 with their matching evidence
+directories. The intermediate state-query attempt failed in fixture setup due to
+an XI reply offset error and is preserved separately.
+
+The corrected supplemental state check required the raw key release and a
+retired or unpressed pointer. Its body assertions succeeded on both hosts. Both
+tests nevertheless failed in fixture cleanup because workspaced exited with its
+participant release unresolved. The tests did not prove a window-level button
+release. Evidence is under runs/integrated-issuer-global-state3-01 and the
+matching evidence directory on each host.
+Selected fixture correction: for the explicit global-issuer-outage case, retain
+and assert the broker's exit code 2 and its unresolved participant-release
+diagnostic. Do not report a completed issuer obligation. Keep the independent
+raw key and pointer-state checks unchanged. The separate world-only issuer-loss
+case still requires the workspace application to survive. Run the corrected
+global-outage case and the isolated-loss case on both hosts. This does not fix
+or waive the separate issuer-commit native-input ordering failure.
+The corrected global-outage and isolated-loss cases passed on both hosts. The
+global case observed the raw key release. On sb16 the pointer remained present
+with the button unpressed; on sb16-2 the pointer device had been removed. The
+broker exited with code 2 and the expected unresolved-release diagnostic on
+both hosts. The isolated-loss case confirmed the real issuer and independent
+application remained alive; releases took 73.8 ms and 70.7 ms respectively.
+Evidence is integrated-global-outage-fixture-01-01 on each host. The test source
+SHA-256 is 41d221f30db91d185e35a841bb41694338e5c42dfee2a0125d8b5478fc8ce766;
+the shared fixture source SHA-256 is
+fe52e6aa21cd28f74233b9ef1e7ff1b6e52c8ed716643ee284803585a85775ec.
+This does not resolve the separate pending-INFO global-outage test or the
+issuer-commit ordering failure.
+Explicit pending-INFO test correction: global issuer loss can revoke the
+workspace application's own execution authority. Replace the old requirement
+that this application survive with an independent raw-key and pointer-state
+witness. Continue to require actual issuer shutdown, cancellation while INFO is
+pending, and rejection of later actor input. Assert the broker's unresolved
+participant release instead of treating it as a successful release. Preserve
+the separate world-only loss test that requires application survival.
+The corrected pending-INFO test and both related outage tests passed on sb16
+and sb16-2. The independent observer saw the held key release and confirmed
+the pointer was unpressed or removed. The pending-INFO case also rejected later
+actor input. The broker reported its unresolved release as required. Evidence
+is in runs/integrated-global-outage-pending-02-01 and the matching evidence
+directory on each host. The test source SHA-256 is
+39533cd8baf1ed264e82d382fda013c7c4f7a5661c087f479fa67426c0db61db.
+This focused result does not resolve the issuer-commit ordering failure.
+Selected first-seat regression: prepare a real application without sending any
+native input. Submit the actor's first pointer press. Use the existing
+fixture-only renderer delay to pause its first input before execution. Confirm
+the request was sent, then stop the compositor and worldd. Commit actor
+credential revocation and resume the compositor while worldd stays stopped. Require the
+independent application to see no button press. Check the revocation barrier
+remains pending. Run on both hosts and preserve failures. This tests the seat
+creation boundary that an independent guardian must cover before first input.
+The first attempt could not reach the intended boundary: stopping the
+compositor before submission also stops the required earlier surface sync.
+Evidence is integrated-issuer-first-pointer-check-02-01 on both hosts. Repeat
+with the existing first-input delay and its marker before stopping it.
+The corrected test reached the intended boundary on both hosts. Both observed
+the first button press after issuer revocation returned, while worldd remained
+stopped. Both revocation barriers remained pending. Evidence is in
+integrated-issuer-first-pointer-check-03-01 on each host. The Debug world hash
+is 9241bb86ace13595bed150fa5a373bc85d2905f2b49d0e13794e602c9bfc3398.
+The participant test source hash is
+3928fc554ebf4c5471f3cec1949489b6a139972f9d408131a63b11d905fb08b5.
+The identity fixture source hash is
+fcee4e17262fa2417ac0fa7a007e1d4eead2ccd9842ce7f63700f5290aecf6ae.
+This is an unqualified fixture-fault test, not a completed revocation.
+The M10 gate now requires this first-input case. Its gate-harness checks passed
+9 of 9 on each host using m10-gate-first-pointer-01. The native case itself
+still fails and remains a qualification blocker.
+Selected implementation increment: split seat allocation from the first input
+effect. The world requests an empty seat after application authorization and
+before submitting input. The compositor returns the checked seat identity
+without generating input. The world rechecks cancellation and authority after
+the allocation. This enables a future independent guardian to register the
+seat before input. It does not itself establish issuer-commit fencing.
+Run native first-input, held-input, cancellation, two-seat control, and the
+strict issuer-commit regressions on both hosts. Run focused memory and thread
+sanitizers. Preserve the strict failures until the guardian is implemented.
+Also revoke while seat allocation itself is delayed. Require the new empty
+seat to be closed and the original pointer press to have no effect. This
+checks cancellation between allocation submission and its checked receipt.
+The Debug seat-preparation increment passed four native checks on each host:
+empty preparation before first pointer delivery, active-world revocation of
+the prepared seat, held-input release, and queued-key cancellation. The strict
+stopped-world first-pointer check still failed on both hosts. The independent
+application received the button press after the issuer commit result. The
+completion barrier remained pending. Evidence is
+integrated-seat-prepare-native-01-01 on each host. The worldd SHA-256 is
+9f372d1662483883f015be4677fe0a497084c32367a1c2804de6a9f12a253079 and
+spatialwm SHA-256 is
+9d6cf3f0ce96e7f12237c265692f802fede58144c2ef21c6dfb96b4134922909.
+This development binary is not qualified and does not supply the guardian.
+The allocation-time revocation check failed on both hosts because its
+cleanup trace marker was dropped by a full diagnostic buffer. The application
+action was rejected and the issuer barrier completed, but the missing marker
+did not prove which seat closed. Evidence is
+integrated-seat-prepare-revoked-01-01 on each host. Add a bounded independent
+trace scope after a checked close. Match its seat ID to the prepared seat ID.
+Repeat the same test without changing its input or revocation requirements.
+The repeated check passed on both hosts. The checked-close scope named the
+same seat as the prepared scope. The application saw no button press, and the
+revocation barrier completed. Evidence is
+integrated-seat-prepare-revoked-02-01 on both hosts. The diagnostic worldd
+SHA-256 is 9b0de2e816737f12be3be1edf58c4a1fcaa4ea4b919ceadc938e1bff109399b3.
+The test source SHA-256 is
+00f5204f05f0d4e5d469a92d00f6eb306f70ed88726284866021040dae920464.
+This does not address stopped-world fencing.
+Review found an invalid preparation reply could leave a compositor seat open.
+The world now retains the actor identity and requests a checked close before
+reporting the invalid reply. Rebuild and repeat the native checks. This is a
+fail-closed path; no malformed-reply fixture has yet proved it.
+Selected malformed-preparation check: enable an explicit fixture-only fault
+that removes the seat ID from the first successful preparation reply. The
+real compositor still creates its real empty seat. Require worldd to return
+an error, close that seat, preserve the initial XI device count, and deliver
+no application button press. Run on both hosts and under focused sanitizers.
+The fault must be rejected unless the compositor uses --fixture-faults.
+This check passed under Debug and ASan/UBSan on both hosts. Under TSan four
+devices remained after the error reply. The TSan world log shows no native
+close request. The actor object was built concurrently with the cleanup edit,
+so it may contain the older branch. Preserve
+integrated-seat-invalid-tsan-01-01 and repeat after rebuilding that object.
+The Debug run is integrated-seat-prepare-invalid-01-01. The ASan/UBSan run is
+integrated-seat-invalid-asan-01-01. Both checks passed on both hosts. The
+ASan/UBSan evidence contains 16 logs per host and no sanitizer diagnostic.
+The Debug worldd SHA-256 is
+328a87f68fe9cb961d82719f6c0a2151b4bc341839a781075cf482a6323e8666;
+the Debug spatialwm SHA-256 is
+e29eebe3396eabfb9b0acd3db08becc8063ed65a28a39d2094db1ac68523c0b2.
+The test source SHA-256 for those runs is
+67173eab0095b07ffd802b42703df60e8b3a1a6d37a48d5f242555f74a1764a2.
+The revised Debug binary ran seven selected native checks on each host. Five
+passed: preparation, revocation during preparation, revocation after
+preparation, held-input release, and queued-key cancellation after world
+consumption. Both stopped-world issuer-commit checks failed on both hosts.
+Evidence is integrated-seat-prepare-native-03-01 on each host. The revised
+worldd SHA-256 is
+48c95d214dc0649710199b2e8afa7cd48b07f95ab1f223fe3dbb041c7f4289c2.
+The five active-world checks passed under ASan/UBSan on both hosts. Forty
+retained logs per host contained no address, leak, or undefined-behavior
+diagnostic. Evidence is integrated-seat-prepare-asan-01-01 on each host. The
+instrumented worldd SHA-256 is
+1939833aa272d82d0f8dd174395a7b72e0f15378a5af7567ad50999bf618e4a2;
+the instrumented spatialwm SHA-256 is
+a580fc6c5dbf00127457efdc35da981241e6998205243948cf33b7c30a08c2eb.
+These focused checks do not resolve the two stopped-world failures.
+The same five checks passed under TSan on both hosts. Forty retained logs per
+host contained no ThreadSanitizer diagnostic. The process-only setarch wrapper
+disabled ASLR for the instrumented world and its compositor child. Evidence is
+integrated-seat-prepare-tsan-01-01 on each host. The instrumented worldd
+SHA-256 is 1fe26acb1e8dd1a9e94f83d570ed4efa4b5827bd25c807bb7a9bf452bbe5d305;
+the instrumented spatialwm SHA-256 is
+6a7a61f414b739dd98bc7c96ed18ad25196c72f2e2c2da90c6122445c963e258.
+Correction: the TSan actor object was compiled while actors.cpp was edited.
+Its timestamp is newer than the source, so an incremental build did not
+rebuild it. These five passes prove the tested binary, not the final source.
+Force a rebuild and rerun focused TSan checks.
+After an explicit actor-object rebuild, all six selected TSan checks passed
+on both hosts, including malformed preparation and device cleanup. Each host
+retained 48 logs without ThreadSanitizer diagnostics. Evidence is
+integrated-seat-invalid-tsan-02-01. The instrumented worldd SHA-256 is
+15a804800bcf1e70c4d0da81e27ad76656425ccca33be2c5776ec8c8ee86732b,
+and spatialwm SHA-256 is
+11a33066593660820fbe5c5367a0447b58fb6aaffac1df73918ab68b7a017585.
+The test source SHA-256 is
+ec58d7c620587f33c1fa69abb62af0510832856dd4c8c2bb15a32f18012526e6.
+The updated M10 selector harness passed 9 of 9 on both hosts under
+m10-gate-invalid-seat-02. This validates selector coverage, not qualification.
+Selected guardian feasibility check: delay a prepared actor's first pointer
+before execution, then stop both worldd and spatialwm. Commit credential
+revocation. From an independent X client, require a different compositor
+credential to be denied seat revocation. Require the owning compositor
+credential to revoke the exact prepared seat. Resume spatialwm while worldd
+remains stopped and require the application to see no button press. Then
+resume worldd and require the revocation barrier to settle. Run on both hosts.
+This manually supplies the guardian action. It does not implement automatic
+issuer-to-guardian delivery or close the commit-to-fence interval.
+The first run passed on sb16. On sb16-2 the native fence and no-click checks
+passed, but the test expected an error reply after resuming worldd. The world
+instead dropped that reply and closed the revoked actor channel; the retained
+log records credential_revocation. Preserve the failed run and repeat while
+accepting either the checked error or this exact revocation-driven EOF. Still
+require the world to remain alive, the barrier to complete, and no click.
+Evidence is integrated-independent-seat-fence-01-01 on each host.
+The second run passed on sb16. On sb16-2 the native fence and no-click checks
+passed, but the world reported auxiliary issuer failure after it was stopped
+for the 2.5-second observation. Its participant barrier remained unresolved.
+Evidence is integrated-independent-seat-fence-02-01. Repeat with the existing
+fixture delay set to 800 ms and a 1.1-second no-click observation. Also check
+the independent application after the world reply and completed barrier.
+The revised feasibility check passed on both hosts. Each different compositor
+credential was denied, and each matching credential successfully fenced the
+prepared seat. The independent application saw no button press during the
+observation or after barrier completion. Evidence is
+integrated-independent-seat-fence-03-01 on both hosts. The test source SHA-256
+is 25b99d1c0278e56519bb609bf2b97c3a9ceef8ba8286c10d706bb29579832584.
+This test manually performs the fence. It does not prove automatic guardian
+registration, issuer synchronization, or a completed M10 security fix.
+Guardian implementation constraints from this witness:
+- Register the issuer, actor, credential, actor-session instance, native
+  server incarnation, compositor credential, and exact prepared seat together.
+- Complete registration before the first pointer request is submitted. Reject
+  stale or mismatched registration receipts without producing input.
+- Keep the guardian outside worldd. Retain an independently checked native
+  connection and issuer feed. Fence matching seats on actor or credential
+  revocation, without fencing unrelated seats.
+- Treat guardian disconnect, feed failure, and uncertain native fencing as
+  unresolved authority. Do not acknowledge completed cancellation or allow
+  new input from the affected actor.
+- Fence the affected native seats before the issuer reports the strong
+  revocation result. To guarantee no effect after the durable commit itself,
+  establish the fence before commit and prevent new affected registrations
+  during that interval. Keep the revocation intent durable across failure.
+  Do not block issuer processing needed for guardian acknowledgement.
+- Recover seat registrations and unresolved fences across supervisor failure.
+  Bind receipts to exact server and process incarnations. Never reuse an old
+  receipt for a new seat or actor session.
+The current independent test uses a second connection with the compositor's
+full credential. It is a trusted test client, not an actor interface. Any
+production guardian holding that credential has compositor authority and
+requires explicit lifecycle and confidentiality protection.
+The M10 gate now includes the independent-fence capability check. Its gate
+harness passed 9 of 9 on both hosts under m10-gate-independent-fence-01.
+The two automatic stopped-world revocation tests remain required and failing.
+Selected guardian-binding increment: retain the credential ID from the
+issuer-checked session in the actor. Bind a prepared native seat to that
+credential, actor identity, actor-session instance, server identity, and native
+compositor credential before submitting its first input. Reject mismatches
+before a later input effect. Clear bindings only with their checked seat close.
+These in-world bindings do not provide independent fencing by themselves.
+Run existing authenticated native input, two-seat transfer, cancellation,
+revocation, and focused sanitizer checks on both hosts. Keep the stopped-world
+tests required and failing until the independent guardian is connected.
+The first-pointer check also compares a diagnostic hash of the bound credential
+to the real authenticated credential before delivery. Run the private witness
+cases for two real principals, an unprimed actor, and a closed actor. The hash
+is diagnostic evidence only; authorization uses exact credential bytes.
+The private witness run caused root-owned Python bytecode caches in the Debug
+payload. The following launcher rejected those unlisted files before testing.
+The initial unprivileged cleanup failed. On each host, a machine-specific sudo
+script checked the exact path and manifest, removed 22 generated .pyc files,
+and recovered 174430 bytes. Scripts, failure summaries, and receipts are
+cleanup-payload-bytecode-<host>.py and matching logs in the M10 artifact root.
+The corrected launcher excludes only mutable .pyc and .pyo inventory entries,
+as required by the selected bytecode policy. Source and binary hashes remain
+checked. The prior deployment receipt is unchanged.
+The local syntax check created three bytecode files in the development
+checkout. Removed exactly tests/core/__pycache__/test_world_participant_native.
+cpython-312.pyc, tests/native/__pycache__/test_scoped_input.cpython-312.pyc,
+and tests/native/__pycache__/test_native_seat_capacity.cpython-312.pyc. The
+removal recovered 81530 bytes.
+The Debug binding increment passed six active-world native checks on both
+hosts. The first-pointer test matched the issuer-checked credential hash to
+the prepared seat before delivery. The same run retained both stopped-world
+failures. Evidence is integrated-seat-authority-native-01-01 on each host.
+The Debug worldd SHA-256 is
+a51fd72bc872dcc7621357f512f60a64ec70882f3f3bea89fbee3c650b9168d5.
+Three private witness checks passed on both hosts, including the two-principal
+join, unprimed actor, and closed actor cases. Evidence is
+integrated-seat-authority-witness-01-01. The two-seat transfer and slow-renderer
+movement checks also passed on both hosts, under integrated-seat-authority-
+two-seat-01-01 and integrated-seat-authority-motion-01-01 respectively.
+Six ASan/UBSan native checks passed on both hosts with no diagnostic in 48
+retained logs per host. Evidence is integrated-seat-authority-asan-01-01.
+The instrumented worldd SHA-256 is
+3b46b1ee45667de098cbbb7644a6113345e8d1e55206482f677dcd5c760e50af.
+The same six cases passed TSan on both hosts, with no diagnostic in 48 logs
+per host. Evidence is integrated-seat-authority-tsan-01-01. The instrumented
+worldd SHA-256 is
+602819f8f1723e9741f645dbf8b3f37fc7ae369c91aa17515be64534e58d10d3.
+These results do not establish automatic independent revocation.
+Selected integration check: run the existing human-and-two-scripted-actor
+native application test against the revised Debug world and compositor on
+both hosts. Require real windows and distinct native devices. Preserve all
+existing fixture assertions. This focused run does not replace the full gate.
+The preparation operation changes the locked core.proto. The acceptance guard
+currently reports that schema as changed. A descriptor comparison against
+the exact HEAD version found only the empty RendererInputPrepare message and
+RendererInputCommand.prepare field 17 in the existing operation oneof. All
+other baseline descriptors matched byte for byte after those additions were
+removed. Evidence is seat-prepare-schema-check-01 in the M10 artifact root.
+The baseline descriptor SHA-256 is
+0259d3871a23e62e1e81837798da056c87cb861a56b63b33c5f302d5f42822e2,
+and the candidate descriptor SHA-256 is
+15d1bcd719f9492acd7a7af07c666d21ee47e8e962bd7c818564c2f2fdd88a87.
+The lock is unchanged. Its explicit reviewed migration and independent
+reproducible protobuf generation remain required before qualification.
+Review added checks that an existing binding still names the same native
+server and compositor credential, and that the local scoped revocation
+channel is not already closed. This detects known local channel closure only;
+it does not prove the peer or issuer is currently responsive. Rebuild and
+repeat the affected native and sanitizer checks before using the new source.
+The revised Debug candidate passed six active-world checks and failed both
+required stopped-world revocation cases on each host. The three selected
+private witness checks passed on both hosts. Evidence is
+integrated-seat-authority-native-02-01 and
+integrated-seat-authority-witness-02-01. Debug worldd SHA-256 is
+7df2e252372a6bbc90b8008455b8f481803dfd34b8dc06780503b36e4184fa35.
+The six active-world checks also passed under ASan/UBSan and TSan on both
+hosts, each with 48 retained logs and no sanitizer diagnostic. Evidence is
+integrated-seat-authority-asan-02-01 and integrated-seat-authority-tsan-02-01.
+The ASan/UBSan worldd SHA-256 is
+639104e0dc1880f0233a616285202044d7a0d07fb14d6bede8afc7f96db1e3a3;
+the TSan worldd SHA-256 is
+42a22dd903550583125b6205fadd8165a6d6040a7f73e51e6a464e5165e53576.
+The revised two-seat transfer and slow-renderer movement checks passed on both
+hosts under integrated-seat-authority-two-seat-02-01 and
+integrated-seat-authority-motion-02-01. The local actor-stop-owner CTest also
+passed after rebuilding its probe. These are focused checks, not the gate.
+Selected local-channel check: revoke the native compositor credential through
+the real server. Require the scoped input owner to report that its connection
+is closed after the failed request. Require the independent survivor to remain
+usable. This checks known local closure; it is not a silent-peer health probe.
+The scoped native owner test passed on both hosts. The revoked owner returned
+UNAVAILABLE with its channel marked closed, while the independent owner stayed
+usable. Evidence is integrated-scoped-channel-loss-01-01. The test and probe
+SHA-256 values are
+7d5289898959c3c8c80be8fbe25618fff84e0b81555b52b66226bd398f5b352d and
+d4933601b62bc8ebf4a1f8de8bbe3b18c9e37b3064096e95ebf43cd1167b89dd.
+An end-to-end world test that isolates this one channel remains unrun.
+Native-seat capacity finding: the current extension sets MAX_SEATS to 32 and
+allocates four X devices per seat. The checked XLibre source sets MAXDEVICES to
+256. The 256-actor navigation run did not allocate 256 native seats. Measure
+the actual limit on both hosts. Check that exhaustion does not leak devices and
+that a released seat permits another allocation. Do not treat 32 as a required
+upper bound or raise it without accounting for X devices and applications.
+The measurement passed on both hosts. Each allocated 31 additional seats
+before RESOURCE_LIMIT; the scoped-input probe had already opened one survivor
+seat, for 32 total. Each allocation added four native devices. Closing one
+permitted a replacement, and closing all measured seats restored the original
+device count. Evidence is integrated-native-seat-capacity-01-01 on each host.
+The test source SHA-256 is
+0c72d8a3a23466f0557c136ceab93176a43ef555a9f9b0ceb642c2f575219464.
+This does not establish capacity for 256 simultaneous application seats.
+The capacity test is registered as native-seat-capacity in CTest. A local
+inventory check found that registration; the two native host runs above remain
+the execution evidence.
+The existing slow-renderer fixture now delays input command four, rather than
+three. Seat preparation adds one command before the original first click.
+The delayed operation remains the same focused key tap. Run the unchanged
+movement and native-input assertions against the new candidate on both hosts.
+The slow-renderer movement check passed on both hosts with the adjusted
+command index. Evidence is integrated-seat-prepare-motion-01-01 on each host.
+The test source SHA-256 is
+3329dfc0f5535c7468215c8d38a6a2eea3cd87aefb1e03473251ca14b3126fa3.
+The seat-preparation gate-harness checks passed 9 of 9 on both hosts under
+m10-gate-seat-prepare-01. Sanitizer and two-seat checks remain pending.
+The two-seat control-transfer check passed on both hosts with the newer
+diagnostic world. It observed distinct native pointer devices and reused the
+same seat after control was reacquired. Evidence is
+integrated-seat-prepare-two-seat-01-01 on each host. Sanitizers remain pending.
+Selected regression: pause the production compositor before a focused key tap,
+while another actor's credential check is delayed. Confirm the world has read
+the key frame before revocation. Revoke the controller, resume the compositor,
+and require the independent application witness to see no revoked key press.
+Require release of the previously held key and button. Run this on both hosts
+with the diagnostic world binary and record its source and binary hashes. This
+tests the cancellation boundary during a competing authentication; it does not
+prove that the key normally completes within the liveness deadline.
+
+Result: one selected regression ran and passed on sb16 and sb16-2. Both hosts
+returned UNAUTHORIZED for the queued request. Each independent application saw
+release of its held key and button, and neither saw the revoked F1 key event.
+The delayed credential check was still pending when revocation was requested.
+The fixture resumed the stopped compositor in a finally block. The diagnostic
+world SHA-256 was 46acc5b3eab18d392636231f3799f2483d7f9187d827d27197c398606be81182.
+The test source SHA-256 was 6c439160a53b784780d2a941baf4e7ac6ba303153e4d5965216b4b3c679e6744.
+Logs and native observations are in runs/integrated-queued-revoke-01-01 and
+evidence/integrated-queued-revoke-01-01 under the M10 liveness artifact directory
+on each host. This uses an unqualified diagnostic overlay. It does not prove
+revocation safety for every scheduling interleaving or qualify M10.
+
+Selected liveness regression: while another actor's credential check is delayed,
+send a focused key tap from the authenticated actor. Confirm the world read that
+key before sending regular movement refreshes on the same actor channel. Require
+the world to advance during the refresh window, not merely accept writes. This
+checks whether a queued discrete event hides later motion from the scheduler. Run
+it on both hosts with the diagnostic world and preserve timing and native input
+evidence. This extends the existing idle-channel motion check; it does not replace it.
+
+Result: the first attempt failed during fixture setup because its overlay lacked
+the process-scope helper. It ran no input scenario. The corrected attempt ran the
+selected regression and failed on both hosts: zero of 15 movement refreshes were
+processed during the 1.20 second sending window, while the other authentication
+remained pending. The later trace contains all 16 refreshes, including the final
+zero command, processed in a burst after the pending key began dispatch. The first
+late refresh was processed about 4.13 seconds after key ingress on sb16 and 4.11
+seconds after key ingress on sb16-2. This proves the earlier idle-channel motion
+pass did not cover a discrete request at the front of the same channel. It also
+shows stale movement can reach the world after the source sent newer intent. The
+trace alone does not establish the resulting displacement or its duration.
+
+The tested diagnostic world SHA-256 was
+34cf7ece5d0d3e38715f1a95c249a8a979acdc8f534836742bf2679adf5047ba.
+The test source SHA-256 was
+decafff861e5906e0b2a42ed3dd96bc32d69c5f5606fe3df95e27f7ae186ccc1.
+Logs are under runs/integrated-motion-behind-key-01-01 and -02, with matching
+evidence directories, in the M10 liveness artifact directory on each host.
+This diagnostic build is not a frozen qualification candidate.
+
+
+Current seat-authority candidate follow-up
+The native three-actor application fixture previously requested XI2 from a
+confined application. The isolation contract hides XI2 from that application.
+The fixture now requests core events there and keeps its separate authenticated
+XI2 observer, including device and source checks. The human and two scripted
+actors application scenario passed on both hosts. It exercised three real
+windows, native input identities, lease denial, and control transfer.
+The fixture SHA-256 is bc6ace5f40f7a234e8a6beebc8580a88aa69e1eeb3b6b83c70c0312ca982082d.
+Evidence is in runs/integrated-seat-authority-three-actor-02-01 and the matching
+ evidence directory under the M10 liveness artifact directory on each host.
+World SHA-256 is 7df2e252372a6bbc90b8008455b8f481803dfd34b8dc06780503b36e4184fa35.
+This focused result does not qualify M10 or resolve stopped-world revocation.
+
+Selected next check: repeat the previously failing movement-behind-key test on
+this world on each host. It requires timely movement while another actor's
+credential exchange remains pending and a focused key precedes the refreshes.
+Preserve both timing records and failed evidence. The result is not a full gate.
+Both hosts passed the selected movement-behind-key check on the current world.
+Each processed all 15 refreshes before the 1.2-second window ended while the
+other authentication remained pending. Maximum processed gaps were 85.6 ms on
+sb16 and 88.9 ms on sb16-2, below the 250 ms input expiry. Evidence is under
+runs/integrated-seat-authority-behind-key-01-01 and its matching evidence directory.
+This measures the selected key case, not every possible queued operation.
+
+Selected next check: run the native high-rate key batch test on both hosts.
+It requires 332 ordered press and release edges at both the application and
+independent observer, matching the controlled devices, at 250 taps per second.
+This evaluates the user's high-rate input concern on the current candidate.
+The first high-rate run failed on both hosts: the core application received no
+key events while the supervisor's XI2 observer selected the same window. The
+fixture now sends one complete 332-tap batch for core application events, then
+another complete batch for XI2 device events. It checks exact order and 250 taps
+per second in each phase. Retest both hosts with the same world and preserve the
+first failure. This separates the conflicting witnesses without dropping either.
+The separated-witness run failed the 250 taps/second requirement on both hosts.
+Both completed the exact application and XI2 edge and device assertions before
+failing the rate assertion. Application and native rates were 110.1 and 108.1
+on sb16, and 89.6 and 90.7 on sb16-2. The result is under
+runs/integrated-seat-authority-key-rate-02-01 and its matching evidence directory.
+The fixture SHA-256 was ef55ffd9206df4ee928969fafe37a28e26299efb2f75cafd5c6f496a89193be0.
+Selected next check: repeat the same two phases with existing input timing traces.
+Use traces to locate the delay without changing authorization or thresholds.
+The traced run reproduced the rate failure on both hosts. Both again completed
+all required edge and device assertions before the rate failure. For all 22
+matched batches per host, an issuer exchange was pending when the world read the
+key batch. Median read-to-dispatch delay was 245.7 ms on sb16 and 295.2 ms on
+sb16-2; observed ranges were 223.1–264.3 ms and 266.5–347.4 ms respectively.
+This identifies scheduling delay before dispatch as a major contributor. It does
+not identify the issuer operation or prove its root cause. Existing code permits
+movement refresh during issuer waits but defers key batches. Removing that guard
+without a safe concurrency design could violate revocation and input ordering.
+Traces and receipts are in runs/integrated-seat-authority-key-rate-03-01 and its
+matching evidence directory on each host. The external trace analysis script is
+analyze-key-batch-trace-01.py in the M10 liveness artifact directory.
+Selected diagnostic: run the same high-rate test with operation-level issuer
+trace scopes. Correlate credential checks, actor status, and other exchanges with
+key ingress. The change only adds opt-in timing labels and the connection choice.
+Preserve exact binaries and hashes. This run is not qualification evidence.
+Operation-trace run 04 stopped in setup on both hosts because its new binary
+directory lacked the storage broker helper link. No input scenario ran. Restore
+all helper links from the verified candidate and repeat as run 05.
+Operation-trace run 05 reproduced the high-rate failure on both hosts. Every
+key ingress overlapped a credential check, but the median check itself took only
+11.3 ms on sb16 and 12.9 ms on sb16-2. The remainder must be investigated;
+issuer overlap alone does not establish the cause. Evidence is in
+runs/integrated-seat-authority-key-rate-05-01 and its matching evidence directory.
+Selected next diagnostic: time local-view credential and presentation phases
+around the same high-rate test. Keep the same assertions and source candidate
+apart from opt-in trace labels. Run on both hosts.
+Local-view trace run 06 again failed the high-rate check. Its captured 14
+local-view operations did not overlap any of the 22 key arrivals on either
+host. Median local-view durations were 92.5 ms and 103.2 ms. This evidence does
+not identify presentation as the observed key wait. Scope output can be bounded,
+so the result applies only to captured traces. Evidence is under
+runs/integrated-seat-authority-key-rate-06-01 and its matching evidence directory.
+Selected next diagnostic: trace geometry-view request and construction timings
+in the same high-rate scenario on both hosts. This labels existing behavior only.
+Geometry trace run 07 reproduced the rate failure on sb16. No geometry-view
+scope appeared in its retained world log, so that path did not explain the
+captured wait. Selected next diagnostic: record the world request and action
+case around dispatch and correlate it with key ingress. Use the same full
+high-rate test on both hosts. Trace output is bounded and opt-in.
+Correction to the run 06 conclusion: its trace buffer dropped some scope end
+markers when busy. The overlap script therefore omitted long presentations.
+In run 08 the first key arrived during a local-view credential check, then the
+view entered presentation. Key dispatch started 218 ms after ingress on sb16
+and 283 ms after ingress on sb16-2. A new view began after that dispatch on sb16.
+This supports presentation scheduling as the immediate delay but does not prove
+all phases or a safe concurrency fix. The earlier zero-overlap conclusion is
+invalid. Evidence and key-neighborhood-01.py remain in the artifact directory.
+Selected next diagnostic: retain scope end markers even when the bounded trace
+buffer fills, then repeat the same high-rate test on both hosts. The trace change
+does not alter runtime authority, input, or deadlines.
+Run 09 retained the presentation end markers and reproduced the rate failure on
+both hosts. All 22 key arrivals overlapped local presentation. Median remaining
+presentation time at key ingress was 244.5 ms on sb16 and 305.1 ms on sb16-2.
+The ranges were 219.9–252.4 ms and 277.6–372.6 ms respectively. This establishes
+that the current synchronous local presentation blocks these queued key batches.
+It does not show that dispatching input reentrantly inside presentation is safe.
+Evidence: runs/integrated-seat-authority-key-rate-09-01 and matching evidence,
+plus analyze-view-overlap-02.py under the M10 liveness artifact directory.
+The unqualified diagnostic world SHA-256 is
+9ade308649dda14bb0ac518749e349c714e42132430065330edd823b87d0ea18.
+
+Presentation and input scheduling requirements for the repair
+The world management handler currently calls local_view_control synchronously.
+That call reads issuer status, builds a projection, obtains broker fences, and
+prepares and commits a compositor frame before returning. Component waits pump
+movement but do not dispatch normal key batches. The renderer also owns one
+in-flight stream, so simply reentering an input call can collide with that owner.
+
+The repair must represent presentation as an owned continuation with bounded
+work per scheduler turn. It must allow other actors' input to advance without
+sharing mutable stack references across a yield. Retain the exact world, actor,
+view, service incarnation, authority generation, projection, and producer frame
+identity. Recheck the session, observation rights, broker fences, and producer
+identity before each consequential submission and before publishing the frame.
+A rejected or cancelled continuation must discard its draft and must not publish
+pixels or mutate another actor's state. Handle compositor loss, broker loss,
+revocation, shutdown, and a newer selected view as terminal or explicit retry
+outcomes. Do not replay uncertain input or silently extend input expiry.
+
+The compositor protocol must serialize its existing stream safely, or provide a
+separately authorized input route with independent lifetime and ordering. Merely
+moving a blocking call to a thread does not make Actors, broker, or renderer
+state thread-safe. A presentation continuation must also coexist with the pending
+independent native-seat revocation guardian; it cannot replace that security fix.
+
+Required regressions include the 332-tap test at its unchanged 250-tap threshold,
+a key arriving at each presentation phase, unrelated actor movement throughout,
+revocation and control transfer at each yield, stale view and frame rejection,
+compositor and broker loss, and proof that failed drafts have no visible effect.
+Run the selected cases on both hosts, then sanitizer and full frozen gates.
+Selected next diagnostic: time projection, broker fence, compositor prepare,
+and compositor commit inside local presentation during the same high-rate test.
+Suppress the repeated broker-busy diagnostic mark so those phase timestamps fit
+in the bounded trace. This does not modify scheduling or authority behavior.
+Run 10 measured complete local presentation phases on both hosts. Median total
+was 245.5 ms on sb16 and 296.0 ms on sb16-2. Median compositor prepare was
+1.9/4.3 ms and commit was 1.5/3.4 ms respectively. Projection took 32.8/41.1 ms;
+the explicit broker fence took 23.0/25.8 ms. The intervals after the fence,
+between prepare and commit, and after commit each took about 51–71 ms median.
+Those intervals include additional native refresh and authority validation; they
+are not isolated measurements of any single call. The high-rate test failed on
+both hosts. Evidence is runs/integrated-seat-authority-key-rate-10-01 and its
+matching evidence directory; analyze-view-phases-01.py records the calculation.
+These results show that merely making compositor I/O asynchronous cannot remove
+most of the observed synchronous presentation time. The continuation must also
+break up projection, broker checks, and validation while preserving their fences.
+Selected native regression: close the scoped compositor credential at XLibre,
+then inspect channel health before sending another native request. Require the
+owner to reject the dead peer without exiting. Also run existing independent
+owner and seat-close checks on both hosts. This does not implement the guardian
+or prove revocation safety when the world is stopped.
+The first peer-health regression failed on both hosts before revocation. The
+new check polled the existing socket_fd accessor, which is the pinned socket
+path descriptor, not the connected transport. The correction uses a separate
+transport_fd accessor. Repeat the same three native tests on both hosts.
+Preserve run 01 as failure evidence. This check detects a locally observable
+closed peer only; it is not a liveness proof against silent peer failure.
+Corrected peer-health run 02 passed all three selected native tests on both
+hosts, including detection before another request, unaffected independent owner,
+and normal seat close. Evidence is runs/integrated-scoped-peer-health-02-01 and
+its matching evidence directory on each host. Probe SHA-256 is
+bf59cdf1fc5be507e675049160587cf4ec925124f1f1f8f2d323cb9a5ee6c50f.
+This is a focused native probe, not an end-to-end world test or qualification.
+Selected world-level regression for the peer-health change: repeat the eight
+native seat, preparation, cancellation, and issuer-commit scenarios against
+rebuilt world and compositor binaries on both hosts. This checks callers of the
+changed channel health boundary. The two stopped-world issuer-commit cases were
+previously failing and must remain reported as failures unless actually fixed.
+World peer-health run 01 stopped during setup on both hosts: its new candidate
+directory lacked the process-scope helper. None of the eight native scenarios
+ran. Restore verified helper links and repeat as run 02; preserve run 01.
+World peer-health run 02 executed all eight selected scenarios on both hosts.
+Six passed per host. The queued key and first pointer after issuer commit while
+worldd is stopped failed on both hosts, reproducing the existing guardian gap.
+This confirms ordinary active-world behavior for the selection, not isolated
+loss of the world's revocation connection. World SHA-256 was
+42cf3bb5cb68e168fd0b5e8b07384b36d94bb5bf989e7e13ab0a1730e2e82631;
+compositor SHA-256 was
+0fb0c8a142d74fbdbf5a4262fcc2d8f2c47ae071819468d93229c1d8b28c1149.
+Evidence is runs/integrated-peer-health-world-native-02-01 and its matching
+evidence directory on each host. The candidate remains unqualified.
+Selected sanitizer checks for scoped peer health: build the native input probe
+with ASan/UBSan and TSan, then run the three peer-close, independent-owner, and
+seat-close tests on both hosts. Check sanitizer logs as well as test results.
+This targets descriptor lifetime and failure handling in the changed native path.
+The scoped peer-health tests passed 3/3 on each host with ASan/UBSan and TSan
+instrumented probes. Retained test logs contained no ASan, UBSan, leak, or
+TSan diagnostic. TSan used the existing process-only setarch wrapper. XLibre
+and other fixture helpers were not rebuilt with these sanitizers. Evidence is
+runs/integrated-scoped-peer-health-{asan,tsan}-01-01 and matching evidence on
+each host. Probe SHA-256 values are
+d23f7b9de525e0f47246e23206fcf2abaaf50da27893965961a4ddd137cc8982 (ASan)
+and 9b1ec2ee4f43da3641fdf6e29ba6e3fb1a96aa30986ace4f9de3878480c3a841 (TSan).
+These focused checks do not qualify M10 or resolve the guardian gap.
+Selected navigation check: on both hosts use the current world, compositor,
+and regenerated Python core binding to run independent human/two-agent motion,
+A-to-B-to-A world transitions with denied admission, and human motion during a
+second actor's authentication. Keep retained movement and presentation flags
+asserted in the test. This is focused evidence, not a full gate.
+The selected generated-core navigation check passed 3/3 on both hosts. It used
+world SHA-256 42cf3bb5cb68e168fd0b5e8b07384b36d94bb5bf989e7e13ab0a1730e2e82631,
+compositor SHA-256 0fb0c8a142d74fbdbf5a4262fcc2d8f2c47ae071819468d93229c1d8b28c1149,
+and Python core binding SHA-256 d9a0fca18d2514f2cd365658fe9d26166dc3d4c1ae0c53c39d817f42749a6273.
+Evidence is runs/integrated-generated-core-navigation-01-01 and the matching
+evidence directory on each host. This does not resolve input throughput or the
+stopped-world revocation gap and does not qualify M10.
+
+Broker continuation constraint: BrokerClient holds one pending request on its
+channel and rejects recursive exchange. The retained broker can serve multiple
+supervisor-admitted ControlChannels owners, but their bindings currently reject
+reuse of the same participant generation and the owner stream is single-flight.
+Adding a worker thread around the existing BrokerClient would still serialize
+input behind presentation and could race its pending pointer and lease state.
+A continuation design must either multiplex independently authenticated requests
+with correlated replies and bounded fairness, or extend supervisor admission for
+separate purpose-bound channels with explicit revocation and lifetime ownership.
+The broker must continue processing cancellation and unrelated actor checks while
+one request waits. Preserve reply validation, lease and watch event ordering,
+backpressure, uncertain-effect handling, and close-on-transport-failure behavior.
+This is an implementation constraint, not a completed scheduling repair.
+
+Guardian protocol draft: proto/spatial/identity/v1/native_seat_guardian.proto
+records exact seat bindings, idempotent registration receipts, and precommit
+fence intents and receipts. It contains identifiers, not native cookies. It is
+an unimplemented private protocol draft. It grants no authority, changes no
+revocation or input behavior, and is not an acceptance contract. The issuer,
+supervisor, recovery, authentication, and native fence integration remain to be
+implemented and reviewed. Before use, prove durable intent serialization,
+matching-registration exclusion, all-guardian coverage, crash recovery, and
+fail-closed behavior. Do not claim the two stopped-world tests pass from this.
+Selected check: compile the draft descriptor with the pinned protoc, verify all
+field numbers and required binding identities, and rerun the existing lock guard.
+Draft descriptor compilation and the exact binding/intent field-number check
+passed with protoc 3.21.12. The existing acceptance lock guard also passed; it
+did not run acceptance tests. Schema SHA-256 is
+45114f72fd92b54d853f705bcd42e0f1cfa157964126b04a41db748ab86a2eb6;
+descriptor SHA-256 is
+11a8071cbe69d0ae1833e18eaa79cc2353773eceea724e51cb47de190f5c1659.
+The descriptor is retained under guardian-proto-draft-01 in the M10 liveness
+artifact directory. Bindings and production integration have not been generated.
+Selected guardian-binding increment: generate C++ and Python code from the draft
+schema, validate every binding field before retaining a prepared native seat,
+and provide a private trusted-runtime accessor for the exact checked binding.
+Run the focused malformed-binding unit check and active native-seat integration
+checks on both hosts. Recheck the acceptance lock and source hygiene. This does
+not register with an independent guardian or fence revocation; the stopped-world
+security tests remain required and failing. Do not qualify M10 from this step.
+The draft now has C++ and Python generation targets. The world converts its
+retained seat authority into the checked binding before the first native effect,
+and exposes a trusted-runtime accessor for a future guardian. The shape check
+rejects missing IDs, invalid entity names, and zero instance, generation, or
+seat values. It is not authentication or a guardian registration receipt.
+The focused binding unit test passed locally; the acceptance lock guard and
+source whitespace check passed. World binary SHA-256 is
+ec7325893634cfe5d283125d1cd077717ef6a71388f9268aa352d0121d8e0957.
+The two-host active native-seat integration run remains in progress. Full clean
+Protobuf reproducibility, independent transport, issuer intent, and guardian
+lifecycle remain unimplemented and unqualified.
+Guardian-binding native integration run 01 passed all six cases on sb16-2.
+On sb16, five passed and the native release deadline case failed at 422 ms
+against the unchanged 250 ms limit. The independent probe recorded both key
+and button release; its events lack timestamps, so the logs do not establish
+which stage caused the delay. Preserve the failure. Rerun that exact case on
+sb16 with the same binary and test, and retain its result separately. This
+repeat does not erase the original failure or establish general liveness.
+The isolated sb16 release-deadline rerun passed once with the same binaries.
+The original 422 ms failure remains unresolved. Its evidence is under
+runs/integrated-guardian-binding-native-01-01; the rerun is under
+runs/integrated-guardian-binding-release-01-01, with matching evidence directories.
+A single rerun does not establish a reliable deadline or qualify the candidate.
+
+Selected guardian ledger increment: use a dedicated SQLite-backed primitive to
+persist exact seat registrations, fence intents, and per-seat obligations.
+Test registration idempotency and conflicts, matching actor exclusion, unrelated
+registration, exact obligations, confirmed fence, and database reopen recovery.
+The primitive stays unintegrated and does not authenticate clients, connect to
+XLibre, commit issuer revocation, release intents, or produce guardian receipts.
+No successful test may be presented as proof of stopped-world revocation safety.
+Selected expanded ledger check: race registration against a matching fence over
+independent SQLite connections. Require the winning registration to appear in
+the obligation set, or the registration to be rejected by the pending intent.
+Also check duplicate server-seat rejection and credential-specific fencing while
+another credential remains registrable. Repeat the binding and ledger tests.
+The expanded binding and ledger tests passed locally. The ledger intentionally
+keeps all intents blocking registrations; it has no release, issuer commit,
+retirement, or compaction path yet. It must not be used as a production
+revocation service until those semantics and crash recovery are implemented.
+Selected sanitizer checks: build the ledger regression with ASan/UBSan and TSan,
+run it on both required hosts, and inspect each output for sanitizer diagnostics.
+This tests only the ledger prototype, not the native X fence or issuer protocol.
+The expanded ledger prototype regression passed on both hosts with the
+ASan/UBSan and TSan instrumented test executables. Both command and wrapper
+exit statuses were zero, and their stderr logs were empty. The TSan test used
+process-only setarch. SQLite and other system libraries were not instrumented.
+Evidence is runs/integrated-guardian-ledger-{asan,tsan}-01 on each host.
+The ledger is still unintegrated. Restart coverage reopens a local SQLite file;
+it does not simulate power loss, storage corruption, issuer restart, guardian
+process recovery, or a real X server fence. It does not retire intents or compact
+records. Its caller must enforce private storage, authentication, durable SQLite
+configuration, checked native replies, and issuer coordination before production.
+A review found that recovered ledger registrations validated only their binding,
+not the full registration envelope. The prototype now applies the same envelope
+validation on recovery and insertion. Selected check: rebuild and rerun the
+binding and ledger regressions, including sanitizer variants on both hosts.
+Prior sanitizer evidence applies only to the preceding prototype version.
+The corrected envelope-validation version passed the local binding and ledger
+checks, including rejection of an unknown field in retained registration data.
+ASan/UBSan and TSan test executables passed on both hosts with command and
+wrapper status zero and empty stderr. Evidence is runs/integrated-guardian-ledger-
+{asan,tsan}-02 on each host. Exact executable SHA-256 values are
+20e55e7a575c20400d3208bbea6530136c4b2cac433bcdb723387494e56a4351 (ASan) and
+2e0bae0a5b6db179065773cab7c4f8a58ea06213087c710bdf0d6f21e319b49f (TSan).
+TSan used process-only setarch; system SQLite is not instrumented. This is not
+an issuer, guardian, XLibre, recovery, or M10 qualification result.
+Selected storage hardening: require a writable file database, full synchronous
+mode, and a persistent journal. Identify and version the dedicated database.
+Reject an unsupported or damaged existing schema rather than recreating a
+missing obligation table. Test in-memory, unsafe durability settings, restart,
+and missing-table rejection, along with the existing race and identity checks.
+This is still a prototype and does not prove filesystem power-loss behavior.
+The expanded storage and ledger checks passed locally. Selected follow-up:
+build ASan/UBSan and TSan variants and run the same test on both hosts, with
+empty sanitizer logs and successful command and wrapper statuses required.
+The storage-hardened ledger checks passed locally and under ASan/UBSan and TSan
+on both hosts. All command and wrapper statuses were zero; stderr was empty.
+Evidence is runs/integrated-guardian-ledger-{asan,tsan}-03 on each host.
+The exact executable hashes are fa9220597c5fe1ff87a4412c729623624a6b4cf68a35f001a136ef06ed19cf55
+(ASan) and d358099aa35b246625f50117354a80a12e3a766f76a24b8946ade89549ab18bf
+(TSan). TSan used process-only setarch; system SQLite was not instrumented.
+The tests exercise SQLite reopen, not a power cut. The ledger remains isolated
+from the issuer, supervisor, X server, and M10 production path.
+
+Selected native guardian prototype: connect the checked ledger to a separate
+scoped NativeInput owner. Before each registration and native fence, check the
+exact server and compositor credential identifiers. Persist the intent before
+fencing; record an obligation only after a checked XLibre response. Each step
+handles at most one seat. Run an independent real X server test on both hosts:
+reject a foreign guardian, keep its failed obligation pending, fence the matching
+seat, reject later input on that seat, and keep a separate seat usable. This
+prototype is not supervised, is not connected to issuer commits, and does not
+prove automatic revocation or M10 qualification.
+The selected real-XLibre guardian probe passed on sb16 and sb16-2. It uses three
+separate X connections inside one test process, not an independent supervised
+guardian. Probe SHA-256 is 5a34be422ea8d1ab51c30e58ffb13b28af09f222586817c1ebfc232d05ba4310.
+Evidence is runs/integrated-native-guardian-prototype-01-01 and its matching
+evidence directory on each host. The issuer and world are not connected to the
+prototype; no revocation commit or stopped-world safety claim follows.
+Selected follow-up: instrument the same native guardian probe with ASan/UBSan
+and TSan and run the real-XLibre test on both hosts. Preserve exact binary pins
+and inspect sanitizer output. No full M10 qualification is implied.
+The real-XLibre guardian prototype passed the selected test on both hosts in
+ASan/UBSan and TSan builds. No sanitizer marker appeared in retained logs. TSan
+used process-only setarch; XLibre and system SQLite were not instrumented.
+Evidence is runs/integrated-native-guardian-{asan,tsan}-01-01 and matching
+evidence directories on each host. Probe SHA-256 values are
+992aa9647045cdd577c88d4ba0943053d8fb2cd0b5f48ab24da6aa2fc5818aac (ASan) and
+64eb0f214269c78539a0f41810a960c14d863873d78ea062f5784785b6c519c8 (TSan).
+The test uses three connections in one probe process. It does not test a
+supervised guardian, issuer precommit, world registration, crash recovery, or
+automatic revocation. The stopped-world failure remains open.
+
+Selected process-boundary test: launch a separate test-only guardian with its
+own sealed native configuration and SQLite ledger. Register an exact real X
+seat, stop its owner process, fence through the still-running guardian, resume
+the owner, and require XLibre to reject later key input. The independent
+surviving input owner must remain usable. Run the same focused case on both
+hosts. The test pipe is not an authenticated production transport; the fixture
+actor and intent are not issuer proofs. This does not test issuer commit timing.
+The separate-process native test passed on both hosts with worker SHA-256
+827f55e1aaa58dd53293936c03cf4722c555b5aab07cbb5e546d85af21c2d024.
+Evidence is runs/integrated-native-guardian-process-01-01 and its matching
+evidence directory on each host. The test stopped the seat owner, not worldd
+and the compositor, and used fixture identities and an unauthenticated test pipe.
+It does not establish issuer precommit safety or production guardian recovery.
+Selected follow-up: rerun this real-XLibre process-boundary case with an
+ASan/UBSan or TSan instrumented guardian on both hosts, checking guardian logs.
+The separate-process real-XLibre test passed on both hosts with ASan/UBSan and
+TSan instrumented guardian workers. Retained logs contained no sanitizer marker.
+The owner probe, XLibre, and system SQLite were not instrumented; TSan used
+process-only setarch. Evidence is runs/integrated-native-guardian-process-
+{asan,tsan}-01-01 and matching evidence directories on each host. Worker hashes:
+23e08a05656944e0b7a3507a5aa68bc641d0ffaabebb477b5625beb40545ae35 (ASan),
+d789158e6d7ff5dd45641dc02a47f2362cf78aa691ec94c21967bba4021b5f6b (TSan).
+This remains a test-only process and does not connect issuer commit or world
+registration. It does not resolve the stopped-world revocation failures.
+
+Selected checked-channel prototype: replace the test-only guardian pipe with the
+existing credential-checked local PresentationStream in a separate test worker.
+Run two real-XLibre checks on both hosts: a stopped owner is fenced by a message
+from the pinned peer, and a different process holding the inherited socket is
+rejected before registration. Require the other native owner to remain usable.
+The fixture chooses the peer identity and does not represent production
+supervisor or issuer authentication. It is not a revocation completion proof.
+Both checked-channel prototype tests passed on each host. The worker hash is
+76abd424bad70ca7585066bd6f4790dffde6b41e8d561813648a262267168da2; evidence
+is runs/integrated-native-guardian-channel-01-01 and matching evidence on each
+host. The negative test sent a registration from a different process using the
+inherited endpoint; the worker rejected it and the original seat stayed usable.
+This pins one test peer, not distinct authorized issuer and world roles. The
+prototype still accepts a fixture-chosen intent and cannot serve production.
+Selected follow-up: run the same two checked-channel cases with ASan/UBSan and
+TSan instrumented workers on both hosts and inspect retained logs.
+The two checked-channel cases passed on both hosts with ASan/UBSan and TSan
+instrumented workers. No sanitizer marker appeared in retained logs. TSan used
+process-only setarch; the owner, XLibre, and system SQLite were not instrumented.
+Evidence is runs/integrated-native-guardian-channel-{asan,tsan}-01-01 and its
+matching evidence on each host. Worker SHA-256 values are
+92afd9d7c358d4c05996aa892d004f1ac4dbf420cbbb1a3e4f5f84c78725784a (ASan) and
+eac0216536cce3d772d75d5e8d93ba21056ae32469512efc547d7e10b7185ea2 (TSan).
+These tests are not issuer authentication, automatic guardian supervision,
+world registration, or revocation completion evidence.
+
+Selected two-role guardian prototype: use separate private checked channels
+for world registration and issuer fence commands. Extend the draft schema with
+versioned request and reply envelopes; transport identity assigns the role.
+On each host, run a real-XLibre case with distinct fixture processes and a
+stopped seat owner. Reject a fence on the world channel and registration on
+the issuer channel, and verify the unaffected seat. These are fixture-chosen
+roles, not production issuer authentication or a commit barrier. Preserve all
+failure evidence and do not claim M10 qualification.
+The three two-role prototype cases passed on each host. The real-XLibre test
+used a stopped seat owner, separate fixture world and issuer processes, and a
+separate guardian process. Cross-role operations were rejected. Worker SHA-256
+is 4ac851a855f25b9977901d54443a43bca03ccadbeeaba85b5cc5d95b3797546c.
+Evidence is runs/integrated-native-guardian-roles-01-01 and matching evidence.
+Roles are fixture-pinned process IDs, not issuer-signed authentication. The
+world, issuer, and supervisor production paths remain unconnected.
+Selected follow-up: run these three cases with ASan/UBSan and TSan guardian
+workers on both hosts and check retained logs for sanitizer diagnostics.
+All three two-role cases passed on both hosts with ASan/UBSan and TSan workers.
+No sanitizer marker appeared in retained logs. TSan used process-only setarch;
+the owner, XLibre, issuer fixture, and system SQLite were not instrumented.
+Evidence is runs/integrated-native-guardian-roles-{asan,tsan}-01-01 and matching
+evidence directories on each host. Worker SHA-256 values are
+f881793a61bc737d55f2f32dcd3ef093825e797080a41c4c77971c914e48439f (ASan) and
+03571d9ba261cc7921bed8f99df68cb93936765a5c44fee89784cf36c48ffcf1 (TSan).
+This does not implement issuer authentication, registration admission, durable
+precommit coordination, supervisor lifecycle, or M10 qualification.
+
+Selected guardian dispatcher increment: extract role and binding checks into a
+reusable runtime component. Bind world registration to issuer, service
+incarnation, and authority generation. Bind fence commands to issuer identity.
+Require monotonic request IDs per role and generate registration IDs using
+cryptographic entropy. Run real-XLibre role checks on both hosts, including
+wrong incarnation and wrong issuer rejection. The component relies on its caller
+for authenticated transport and lifecycle; it is not wired into production.
+The first dispatcher integration passed five real-XLibre role/context tests on
+both hosts. Add a repeated request on the same checked world channel and require
+rejection without changing the native seat. Run all six selected tests on both
+hosts with the same dispatcher checks. Earlier evidence remains preserved.
+All six dispatcher role, context, replay, and native-fence cases passed on both
+hosts. The fixture worker SHA-256 is
+1eea810baade3879d3fed4da5e6778886881ca814f0416c49e63406a47ec4595.
+Evidence is runs/integrated-native-guardian-dispatch-02-01 and matching evidence
+on each host. The dispatcher still depends on authenticated caller-supplied
+roles and world context; the production supervisor and issuer do not use it.
+Selected follow-up: run the same six cases on both hosts with ASan/UBSan and
+TSan workers, and retain the original results and sanitizer logs.
+The six dispatcher cases passed on both hosts with ASan/UBSan and TSan workers;
+no sanitizer marker appeared in retained logs. TSan used process-only setarch;
+the owner, XLibre, issuer fixture, and system SQLite were not instrumented.
+Evidence is runs/integrated-native-guardian-dispatch-{asan,tsan}-01-01 and its
+matching evidence on each host. Worker SHA-256 values are
+6c5d4fdf4d30cf7389f06acb5a4cccb85463ebe32b905d89781c07070e8dabf2 (ASan) and
+2236f8b24f29854a62c163e91adec5c9c23838aa1a43f683a83a7af91c7e3760 (TSan).
+The dispatcher is currently linked only into the test worker. It has no
+production supervisor, world, or issuer integration and is not M10 qualification.
+
+Selected guardian service increment: extract the checked two-channel loop into
+an owned reusable component. It handles at most one request per role per pump,
+checks the pinned sender through PresentationStream, and delegates context,
+sequence, and native fencing to the existing dispatcher. Run the real-XLibre
+role cases on both hosts, including a different process sending through the
+world endpoint. An exception requires service teardown. This is not wired to
+production supervisors, world registration, or issuer precommit coordination.
+The extracted service passed seven selected real-XLibre cases on both hosts.
+Review found its constructor did not reject identical role senders and could
+leave channel descriptors unowned if context validation failed. It now owns
+both before validation and requires distinct external role processes and FDs.
+Selected follow-up: rerun the seven cases plus same-process role rejection on
+both hosts. This remains a fixture, not production supervisor integration.
+All eight selected service cases passed on both hosts. Worker SHA-256 is
+8086c316a59b402ed216422709d1f98917130338fd73d3b7784afc02b2e77d87.
+Evidence is runs/integrated-native-guardian-service-02-01 and matching evidence.
+Selected follow-up: run the eight cases on both hosts with ASan/UBSan and TSan
+instrumented workers. The service is still test-linked and not a production
+issuer barrier or supervisor integration.
+
+Selected before execution: guardian role native fixture on both hosts, Debug and instrumented ASan/UBSan and TSan workers. Verify wrong-role failure permanently rejects service reuse, while existing role, replay, and real-seat fencing checks still pass.
+
+Guardian service failure fixture: Debug, ASan/UBSan worker, and TSan worker each completed eight native role checks on sb16 and sb16-2, command exit 0. These are focused fixture checks; the issuer and production supervision are not integrated. Evidence: spatial-artifacts/m10-liveness-followup-20261026/runs/integrated-native-guardian-service-fail-{01,asan-01,tsan-01}-01 on each host. Only the guardian worker was instrumented in sanitizer runs.
+
+Selected before execution: ledger regression on both hosts, Debug, ASan/UBSan and TSan. Verify 64 matching seats drain one at a time with accurate counts; malformed retained records fail closed. Repeat native guardian role fixture to verify real X seat fencing and role rejection remain intact. These are focused checks, not qualification or a scalability benchmark.
+
+Bounded guardian ledger result: 64-seat drain and malformed-binding rejection passed on sb16 and sb16-2 in Debug, ASan/UBSan and TSan. Eight native role and X-seat checks also passed in each configuration on both hosts. Evidence: runs/integrated-guardian-ledger-{debug,asan,tsan}-bounded-01 and runs/integrated-native-guardian-service-bounded{,-asan,-tsan}-01-01 under spatial-artifacts/m10-liveness-followup-20261026 on each host. Sanitizers instrument the ledger or guardian worker, not the X server or system SQLite. The indexed count still scans pending obligations on each step. Inserting all matching obligations also holds one transaction. Neither behavior proves high-scale throughput. Production supervision and issuer integration remain unimplemented.
+
+Selected guardian-lifetime reproducer: register an otherwise valid native seat through the independent guardian, SIGKILL that guardian, and require later owner input to be forbidden. Run on both hosts against the current server and worker before adding server guardian ownership. This checks loss of the enforcement process, not issuer precommit completion.
+
+Guardian-lifetime reproducer failed on both hosts: killing the registered guardian left later owner key requests at NO_FOCUS instead of FORBIDDEN. Evidence: runs/integrated-native-guardian-lifetime-before-01-01 on each host. This is a new lifetime requirement for our extension, not an upstream XLibre vulnerability claim.
+Selected repair: add private input operation 13 (guard) to bind a seat to one independent connection using the exact same issued compositor credential. Server-side guardian disconnect permanently revokes that seat and releases held input. Registration acknowledges only after this binding succeeds. Guardian service failure and destruction close the dedicated native connection. Existing fields, operations, and locked acceptance assertions remain unchanged.
+Selected checks: native guardian-death reproducer, role/replay rejection regressions, cross-credential guard denial, owner/self guard denial, takeover denial, idempotent binding, owner close before guardian close, and held-input release with an independent application witness. Run both hosts, then focused server and worker sanitizers. Issuer precommit and supervised production integration remain pending.
+
+Selected follow-up: keep the failed guardian service and process alive in a test-only driver, then use its independent owner to prove the registered seat is already forbidden. This prevents process teardown from masking missing cleanup after a caught exception. Rebuild the driver in Debug, ASan/UBSan and TSan and run the new case plus related role checks on both hosts.

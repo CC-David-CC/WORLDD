@@ -40,7 +40,11 @@ public:
     }
     ~Scope() noexcept {
         if(!role_)return;
-        mark("end");active=previous_;
+        // Always retain the closing timestamp, even when a busy scope fills
+        // the diagnostic buffer. The displaced event remains counted as lost.
+        if(count_ == 32) { events_[31]={"end",now(),0}; ++dropped_; }
+        else mark("end");
+        active=previous_;
         char output[8192];std::size_t used=0;
         for(unsigned n=0;n<count_;++n) {
             const auto& e=events_[n];const int size=std::snprintf(output+used,sizeof(output)-used,

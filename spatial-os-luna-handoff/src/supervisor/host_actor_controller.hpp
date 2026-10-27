@@ -59,7 +59,7 @@ public:
     identity::v1::HostGeometryStatus geometry_status(std::uint64_t generation) const;
     void start_geometry_presentation();
     void enable_presentation_continuations();
-    bool pump_geometry_presentation();
+    bool pump_geometry_presentation(const std::function<void(const char*)>& trace = {});
     bool pump_deferred_cleanup();
     std::string current_world() const;
 
