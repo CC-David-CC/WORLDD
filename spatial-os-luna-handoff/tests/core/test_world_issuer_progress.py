@@ -332,6 +332,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
 
     def test_four_authentications_wait_without_blocking_authenticated_actor(self):
         import concurrent.futures
+        import re
         extras=[]
         for index in range(3):
             key,public=self.key('m10-queued-auth-'+str(index))
@@ -340,7 +341,8 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             extras.append((record,key,public,self.claims(record,self.info)))
         self.additional_auth_profiles=[(item[3].actor_id,['navigate']) for item in extras]
         self.auth_test_peer_count=5
-        world,peer,other_peer,probe=self.pending_other_actor_auth_with_native_input()
+        with patch.dict(os.environ,SPATIAL_TRACE_STOP='1'):
+            world,peer,other_peer,probe=self.pending_other_actor_auth_with_native_input()
         before=peer.call(inspect=session.WorldSessionInspect()).state.pose.position.x
         with probe.condition:offset=len(probe.events)
         proof_lock=threading.Lock()
@@ -352,37 +354,66 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             with proof_lock:proof=self.proof(challenge.challenge,key,public)
             return channel.call(complete=issuer.AuthenticationComplete(nonce=challenge.challenge.nonce,proof=proof))
         self._info_relay.delay_armed.set()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        with probe.condition:offset=len(probe.events)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
             first=pool.submit(authenticate_isolated,other_peer,self.second_record,self.second_key,self.second_public)
             self.assertTrue(self._info_relay.delay_entered.wait(3),'Slow credential check did not start')
             waiting=[pool.submit(authenticate_isolated,world.peers[index+2],record,key,public)
                 for index,(record,key,public,_) in enumerate(extras)]
-            started=time.monotonic()
-            reply=peer.act(key_tap_batch=core.ActorKeyTapBatchRequest(
+            key_started=time.monotonic()
+            key_action=pool.submit(peer.act,key_tap_batch=core.ActorKeyTapBatchRequest(
                 chords=[core.ActorKeyChord(keysyms=['F1'])]))
-            key_elapsed=time.monotonic()-started
-            events=[probe.wait(lambda row:row.get('event')=='key' and row.get('keysym')==65470 and row.get('pressed'),after=offset,timeout=1),
-                    probe.wait(lambda row:row.get('event')=='key' and row.get('keysym')==65470 and not row.get('pressed'),after=offset,timeout=1)]
             movement=core.ActorInputRequest(axes=[1,0,0,0,0,0]);refreshes=[];started=time.monotonic()
             while time.monotonic()-started<1.0:
-                peer.motion_refresh(movement);refreshes.append(time.monotonic());time.sleep(.08)
-            peer.motion_refresh(core.ActorInputRequest(axes=[0,0,0,0,0,0]))
+                refreshes.append((peer.motion_refresh(movement),time.monotonic()));time.sleep(.08)
+            zero_refresh=peer.motion_refresh(core.ActorInputRequest(axes=[0,0,0,0,0,0]))
+            receipts={}
+            receipt_pattern=re.compile(r'role=world_motion_refresh id=(\d+) .* phase=refresh_sequence mono_ns=(\d+)')
+            receipt_deadline=time.monotonic()+.2
+            while time.monotonic()<receipt_deadline and not self._info_relay.delay_finished.is_set():
+                output=Path(world.log.name).read_text()
+                receipts={int(match.group(1)):int(match.group(2))/1e9 for match in receipt_pattern.finditer(output)}
+                if all(request in receipts for request,_ in refreshes) and zero_refresh in receipts:break
+                time.sleep(.005)
+            refresh_receipts=[receipts[request] for request,_ in refreshes if request in receipts]
+            refresh_gaps=[later-earlier for earlier,later in zip(refresh_receipts,refresh_receipts[1:])]
+            pending_check_time=time.monotonic()
             pending=not self._info_relay.delay_finished.is_set()
+            key_still_queued=not key_action.done()
+            with probe.condition:
+                early_key_events=[row for row in probe.events[offset:] if row.get('event')=='key' and row.get('keysym')==65470]
             self.assertTrue(self._info_relay.delay_finished.wait(6),'Slow credential check did not finish')
             opened=[first.result(timeout=8)]+[future.result(timeout=8) for future in waiting]
+            reply=key_action.result(timeout=8)
+            key_elapsed=time.monotonic()-key_started
+            probe.wait(lambda row:row.get('event')=='key' and row.get('keysym')==65470 and row.get('pressed'),after=offset,timeout=1)
+            probe.wait(lambda row:row.get('event')=='key' and row.get('keysym')==65470 and not row.get('pressed'),after=offset,timeout=1)
+            with probe.condition:
+                events=[row for row in probe.events[offset:] if row.get('event')=='key' and row.get('keysym')==65470]
         self.assertTrue(all(result.HasField('opened') for result in opened),opened)
         ids=[result.opened.actor_id for result in opened]
         self.assertEqual(len(set(ids)),4,'Queued authentications did not produce distinct actors')
         after=peer.call(inspect=session.WorldSessionInspect()).state.pose.position.x
+        refresh_send_times=[sent for _,sent in refreshes]
         self.write_observations(dict(stage='four_queued_authentications',key_elapsed_seconds=key_elapsed,
+            key_deferred_without_guardian=key_still_queued,early_key_events=early_key_events,
             info_pending_during_actor_work=pending,movement_refresh_count=len(refreshes),
-            maximum_refresh_gap_seconds=max((b-a for a,b in zip(refreshes,refreshes[1:])),default=None),
+            movement_refresh_receipts=len(refresh_receipts),
+            maximum_refresh_send_gap_seconds=max((b-a for a,b in zip(refresh_send_times,refresh_send_times[1:])),default=None),
+            maximum_processed_refresh_gap_seconds=max(refresh_gaps,default=None),
+            zero_refresh_processed_before_pending_check=receipts.get(zero_refresh,0)<=pending_check_time,
             displacement_x=after-before,distinct_authenticated_actors=len(set(ids)),key_events=events))
         self.assertTrue(reply.HasField('action') and reply.action.accepted,reply)
-        self.assertLess(key_elapsed,.25,'Focused key waited for queued authentications')
+        self.assertTrue(key_still_queued,'Unguarded key bypassed issuer serialization')
+        self.assertEqual(early_key_events,[],'Unguarded key reached the application before authorization completed')
+        self.assertEqual([row['pressed'] for row in events],[True,False],events)
         self.assertTrue(pending,'Slow authentication ended before the movement window')
         self.assertGreaterEqual(len(refreshes),10)
-        self.assertTrue(all(b-a<.25 for a,b in zip(refreshes,refreshes[1:])),refreshes)
+        self.assertEqual(len(refresh_receipts),len(refreshes),'World did not process every movement refresh during authentication')
+        self.assertIn(zero_refresh,receipts,'World did not process the zero-intent refresh during authentication')
+        self.assertLessEqual(receipts[zero_refresh],pending_check_time,
+            'World processed zero intent only after authentication ended')
+        self.assertTrue(all(gap<.25 for gap in refresh_gaps),refresh_gaps)
         self.assertGreater(after-before,.25,'Authenticated actor did not move during queued authentications')
         self.assertTrue(peer.act(stop=core.ActorStopRequest()).action.accepted)
         self.released(world,probe)
@@ -786,8 +817,10 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
 
     def test_actor_revocation_releases_native_input_during_other_actor_authentication(self):
         import concurrent.futures
+        import re
         self.independent_probe_owner=True
-        world,peer,other_peer,probe=self.pending_other_actor_auth_with_native_input()
+        with patch.dict(os.environ,SPATIAL_TRACE_STOP='1'):
+            world,peer,other_peer,probe=self.pending_other_actor_auth_with_native_input()
         actor_id=self._native_actor_id
         with probe.condition:offset=len(probe.events)
         before_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
@@ -799,38 +832,45 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             self.assertTrue(self._info_relay.delay_entered.wait(3),'Other actor did not enter the delayed credential check')
             started=time.monotonic();refreshes=[]
             while time.monotonic()-started<.4:
-                peer.motion_refresh(movement);refreshes.append(time.monotonic())
-                time.sleep(.08)
-            query_started=time.monotonic()
-            moving_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
-            query_completed=time.monotonic()
-            pending_after_query=not self._info_relay.delay_finished.is_set()
-            self.write_observations(dict(stage='pre_revocation_movement_query',
-                movement_query_seconds=query_completed-query_started,
-                other_actor_authentication_pending_after_query=pending_after_query,
-                actor_moved_before_revocation=moving_pose-before_pose))
-            self.assertTrue(pending_after_query,'Movement query waited until other actor authentication finished')
+                refreshes.append(peer.motion_refresh(movement));time.sleep(.08)
+            moving_state=peer.call(inspect=session.WorldSessionInspect()).state
+            moving_pose=moving_state.pose.position.x
+            pending_after_inspect=not self._info_relay.delay_finished.is_set()
+            self.assertTrue(pending_after_inspect,
+                'Live actor inspection waited until other actor authentication finished')
             self.assertGreater(moving_pose-before_pose,.08,'Actor did not move before revocation')
-            peer.motion_refresh(movement)
             last_refresh=time.monotonic()
+            # Use the live actor channel: the management pipe is serviced by
+            # worldd's outer loop and cannot observe this issuer wait.
             self.revoke(kind=issuer.ACTOR_TARGET)
             revoke_ack=time.monotonic()
             released=self.independent_release(probe,offset)
             still_pending=not self._info_relay.delay_finished.is_set()
-            stopped_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
-            time.sleep(.12)
-            final_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
-            self.assertTrue(still_pending,'Other actor authentication finished before revocation was observed')
+            self.assertTrue(still_pending,'Other actor authentication finished before native release')
             self.assertLess(revoke_ack-last_refresh,.25,'Revocation exceeded the native input expiry window')
             self.assertLess(released['observed_monotonic']-last_refresh,.25,
                 'Native input release arrived only after ordinary movement expiry')
-            self.assertEqual(stopped_pose,final_pose,'Revoked actor continued moving after native release')
             self.assertTrue(self._info_relay.delay_finished.wait(6),'Other actor authentication did not recover')
             authenticated=authentication.result(timeout=3)
         self.assertTrue(authenticated.HasField('opened'),authenticated)
+        output=Path(world.log.name).read_text()
+        receipts={int(match.group(1)):int(match.group(2))/1e9 for match in re.finditer(
+            r'role=world_motion_refresh id=(\d+) .* phase=refresh_sequence mono_ns=(\d+)',output)}
+        processed=[receipts[request] for request in refreshes if request in receipts and
+            receipts[request]<=released['observed_monotonic']]
+        processed_gaps=[later-earlier for earlier,later in zip(processed,processed[1:])]
+        self.assertGreaterEqual(len(processed),4,
+            'World did not process sustained movement refreshes during the pending authentication')
+        self.assertTrue(all(gap<.25 for gap in processed_gaps),processed_gaps)
+        stopped_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
+        time.sleep(.12)
+        final_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
+        self.assertEqual(stopped_pose,final_pose,'Revoked actor continued moving after native release')
         self.write_observations(dict(stage='actor_revocation_during_other_actor_authentication',
             actor_moved_before_revocation=moving_pose-before_pose,
-            refresh_count=len(refreshes)+1,
+            refresh_count=len(refreshes),processed_refreshes_before_native_release=len(processed),
+            maximum_processed_refresh_gap_seconds=max(processed_gaps,default=None),
+            inspection_completed_during_authentication=pending_after_inspect,
             last_refresh_to_revoke_ack_seconds=revoke_ack-last_refresh,
             last_refresh_to_native_release_seconds=released['observed_monotonic']-last_refresh,
             native_release=released,other_actor_authentication_pending_at_release=still_pending,

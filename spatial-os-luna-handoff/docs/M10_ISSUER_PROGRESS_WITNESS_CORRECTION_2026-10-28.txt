@@ -1,0 +1,41 @@
+M10 issuer-progress witness correction, 2026-10-28
+
+Status: test correction in progress. No qualification claim.
+
+The frozen Debug candidate's world-issuer-progress test exposed two witness
+setup problems on sb16. This correction preserves the actor authorization,
+movement expiry, and native input release requirements. It does not change
+acceptance.lock.json or any locked acceptance case.
+
+The four-authentication case launches worldd directly with native security
+input, but without the production native-seat guardian descriptor. The
+production guard therefore refuses to dispatch a key tap during another
+actor's unresolved authentication. A sibling case explicitly requires that
+fail-closed behavior. The four-auth case now queues the same key tap and
+checks that it remains undelivered, while sending movement refreshes for one
+second during four concurrent authentications. It checks movement timing and
+displacement, then verifies one balanced key press and release after
+authentication completes.
+
+The native revocation case previously called privileged world.get while
+worldd was servicing a synchronous issuer wait. That query uses the outer
+management loop and cannot run from the issuer wait callback. The revised
+case reads pose through the already authenticated actor session while issuer
+work is pending. It records production world_motion_refresh receipts, commits
+revocation, measures release in the independent native application, then
+checks that pose stays stable after release.
+
+The full frozen run also showed that sb16-2 needs over 210 seconds for the
+27-case suite. The suite now has a 300-second CTest deadline and a 330-second
+native service limit. These outer limits allow all cases to report; the
+per-operation liveness assertions remain unchanged.
+
+Affected CTest: world-issuer-progress. Focused methods:
+- test_four_authentications_wait_without_blocking_authenticated_actor
+- test_actor_revocation_releases_native_input_during_other_actor_authentication
+
+The focused tests have not run after this correction. The existing two-host
+gate remains active against frozen source 6269bd4 and is unaffected by this
+worktree. Run the two methods on both hosts, inspect their receipts and native
+logs, then run related issuer, movement, revocation, guardian, and session
+checks before freezing a replacement candidate.

@@ -2209,11 +2209,25 @@ if(BUILD_TESTING)
         set_tests_properties(native-security-identity PROPERTIES TIMEOUT 180
             ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}")
         function(add_native_identity_fixture_test name script timeout)
+            set(test_arguments ${ARGN})
+            set(resource_delegate_options --native)
+            if(test_arguments)
+                list(GET test_arguments 0 resource_argument)
+                if(resource_argument MATCHES "^NATIVE_RUNTIME_SECONDS=([0-9]+)$")
+                    set(resource_runtime_seconds "${CMAKE_MATCH_1}")
+                    if(resource_runtime_seconds LESS 1 OR resource_runtime_seconds GREATER 900)
+                        message(FATAL_ERROR "NATIVE_RUNTIME_SECONDS must be between 1 and 900")
+                    endif()
+                    list(REMOVE_AT test_arguments 0)
+                    list(APPEND resource_delegate_options --runtime-seconds "${resource_runtime_seconds}")
+                endif()
+            endif()
             add_test(NAME "${name}" COMMAND "${Python3_EXECUTABLE}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py" --native -- "${Python3_EXECUTABLE}" -B
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_resource_delegate.py"
+                ${resource_delegate_options} -- "${Python3_EXECUTABLE}" -B
                 "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_adapter_resources.py" ${m08_adapter_resource_profile_argument} -- "${Python3_EXECUTABLE}" -B
                 "${CMAKE_CURRENT_SOURCE_DIR}/tools/with_test_display.py" -- "${Python3_EXECUTABLE}" -B
-                "${CMAKE_CURRENT_SOURCE_DIR}/${script}" ${ARGN})
+                "${CMAKE_CURRENT_SOURCE_DIR}/${script}" ${test_arguments})
             set_tests_properties("${name}" PROPERTIES TIMEOUT "${timeout}" RUN_SERIAL TRUE
                 ENVIRONMENT "PYTHONDONTWRITEBYTECODE=1;PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR};SPATIAL_XPROBE=$<TARGET_FILE:spatial-xprobe>;SPATIAL_TEST_XSERVER=$ENV{SPATIAL_TEST_XSERVER};SPATIAL_SECURITY_EVIDENCE=$ENV{SPATIAL_SECURITY_EVIDENCE};ASAN_OPTIONS=detect_leaks=1:abort_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
         endfunction()
@@ -2249,7 +2263,10 @@ if(BUILD_TESTING)
         add_custom_target(world-issuer-progress-fixture DEPENDS identityd spatial-issuer-client worldd spatialwm spatial-xprobe
             python-protobuf issuer-python-protobuf key-python-protobuf grants-python-protobuf world-session-python-protobuf
             security-python-protobuf compositor-python-protobuf)
-        add_native_identity_fixture_test(world-issuer-progress tests/core/test_world_issuer_progress.py 210
+        # This 27-case suite exceeds 210 seconds on sb16-2. Preserve each case
+        # deadline and allow the suite and its service wrapper to finish.
+        add_native_identity_fixture_test(world-issuer-progress tests/core/test_world_issuer_progress.py 300
+            NATIVE_RUNTIME_SECONDS=330
             $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)
         add_native_identity_fixture_test(actor-stop-progress tests/core/test_actor_stop_progress.py 120
             $<TARGET_FILE:identityd> $<TARGET_FILE:spatial-issuer-client> $<TARGET_FILE:worldd>)

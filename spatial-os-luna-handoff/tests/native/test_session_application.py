@@ -536,18 +536,23 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertFalse(any(row.get('event') in ('key', 'button') and row.get('pressed')
                              for row in initial_rows), initial_rows)
 
-        # A release on an empty seat prepares it and obtains the guardian's
-        # checked binding receipt without delivering a pressed input.
+        # A scroll prepares the seat and obtains the guardian's checked
+        # binding receipt without leaving a key or pointer button held.
         registration_offset = self.logpath.stat().st_size
-        prepared = self.act(pointer=core.ActorPointerRequest(button=1, pressed=False))
+        scroll_offset = len(self.events())
+        prepared = self.act(scroll=core.ActorScrollRequest(steps_y=1))
         self.assertTrue(prepared.accepted, prepared)
         deadline = time.monotonic() + 3
         while 'role=native_seat_authority_bound' not in self.logpath.read_text(errors='replace')[registration_offset:]:
             self.assertLess(time.monotonic(), deadline, 'World did not retain the checked guardian seat receipt')
             time.sleep(.005)
-        prepared_rows = self.events()
-        self.assertFalse(any(row.get('event') == 'button' and row.get('pressed') for row in prepared_rows),
-                         prepared_rows)
+        scroll_rows = self.until(
+            self.events,
+            lambda rows: [row['pressed'] for row in rows[scroll_offset:]
+                if row.get('event') == 'button' and row.get('button') == 4] == [True, False])
+        wheel_events = [row['pressed'] for row in scroll_rows[scroll_offset:]
+            if row.get('event') == 'button' and row.get('button') == 4]
+        self.assertEqual(wheel_events, [True, False])
 
         def identity_status():
             operation = identity.IssuerOperation(identity_read=target)

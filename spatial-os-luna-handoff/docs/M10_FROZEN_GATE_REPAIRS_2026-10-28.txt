@@ -1,0 +1,40 @@
+M10 frozen candidate gate repair notes, 2026-10-28
+
+Candidate 6269bd42c19b6d8b842fddbd87ad59c21d55f6ae remains unqualified.
+These are test-fixture and gate-runner repairs. They do not change the locked
+acceptance cases or production authorization rules.
+
+This candidate includes production NativeSeatGuardian supervision, worldd seat
+registration, and issuer precommit fencing. The relevant launch, supervisor,
+world, and issuer code is present. The stopped-world first-pointer acceptance
+case currently fails during its invalid setup action, before it reaches the
+revocation assertions. The repaired test must still prove the full production
+path on both hosts.
+
+CTest #32, workspace-file-action-storage-owner-btrfs, failed on both hosts.
+The persisted Git worker record names a cgroup from an earlier transient test
+service. That cgroup path no longer exists, and its device/inode differs from
+the current service parent. The broker rejects the stale record. Rerun this
+case with a new, separately provisioned Btrfs volume on each host.
+
+CTest #234, world-issuer-progress, failed two assertions on sb16. One expected
+an unguarded key tap to pass during issuer authentication, despite the sibling
+test requiring that same configuration to defer key taps. The other queried
+worldd's outer management pipe during a synchronous issuer wait. Use the live
+actor channel to witness movement and keep the key tap deferred until the
+issuer exchange finishes. sb16-2 hit the suite's 210-second CTest timeout
+after 23 of 27 methods. The revised suite uses a 300-second CTest timeout and
+a 330-second bounded native service limit. Per-operation assertions remain
+unchanged.
+
+CTest #284 session-resources, #286 session-application, and #288
+session-guardian-precommit-first-pointer failed the same supervised first-
+pointer case on sb16. The setup issued a release for a button that was not
+held. The actor correctly rejected the invalid transition. Use a non-zero
+scroll to obtain the checked seat-registration receipt, then test the queued
+first button press across issuer precommit revocation.
+
+All source changes are on an isolated repair branch. The frozen deployment
+remains untouched. Syntax and the CMake runtime-argument construction were
+checked locally. Focused host runs, sanitizers, and a replacement full gate
+remain pending.
