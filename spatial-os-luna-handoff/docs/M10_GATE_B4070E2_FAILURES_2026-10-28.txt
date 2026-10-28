@@ -22,3 +22,15 @@ Stop call. Earlier M10 evidence recorded a related 350 ms watchdog interruption,
 but this run lacks stop traces and does not prove that cause. The editor test
 now enables the existing stop trace before launching its actors. Capture the
 flight phase and timing on both hosts before changing production behavior.
+
+sb16 CTest 284, session-resources, has two fixture failures. The supervised
+key-tap liveness case stops the broker without first issuing its required
+stop-world operation. The guardian case correctly receives UNAUTHORIZED for a
+queued action after revocation, but its helper requires an action reply. The
+follow-up now stops the world before the broker and checks the exact denial.
+It retains the assertion that the queued key never reaches the application.
+
+Selected retest after the active gate releases both hosts: rerun the full
+session-resources registration in Debug. Its 15 methods cover supervised key
+liveness, independent guardian fencing, native input release, and ordered
+cleanup. Preserve the full gate receipts; the current candidate remains failed.

@@ -402,6 +402,8 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertEqual([row.get('pressed') for row in witnessed], [True, False], witnessed)
         self.assertTrue(self.act(stop=core.ActorStopRequest()).accepted)
         self.released()
+        cleanup = self.request(stop_world=self.owner).cleanup
+        self.assertEqual(cleanup.stage, launch.OWNED_SCOPES_STOPPED)
         self.finish_session()
 
     def test_supervisor_guardian_fences_input_before_issuer_commits_revocation(self):
@@ -443,8 +445,12 @@ class SessionApplicationTests(existing.SessionActorTests):
                 time.sleep(.005)
             event_offset = len(self.events())
             log_offset = self.logpath.stat().st_size
-            queued_action = pool.submit(self.act, key_tap_batch=core.ActorKeyTapBatchRequest(
-                chords=[core.ActorKeyChord(keysyms=['F1'])]))
+            self.action_sequence += 1
+            queued_request = session.WorldSessionRequest(protocol_version=1,
+                action=core.ActorActionRequest(seq=self.action_sequence,
+                    key_tap_batch=core.ActorKeyTapBatchRequest(
+                        chords=[core.ActorKeyChord(keysyms=['F1'])])))
+            queued_action = pool.submit(self.actor_call, self.stream, queued_request)
             deadline = time.monotonic() + 3
             while 'role=renderer_input_sent' not in self.logpath.read_text(errors='replace')[log_offset:]:
                 self.assertLess(time.monotonic(), deadline, 'World did not queue the native key request to its compositor')
@@ -501,6 +507,7 @@ class SessionApplicationTests(existing.SessionActorTests):
             resume(world_pid)
             denied = queued_action.result(timeout=10)
             self.assertTrue(denied.HasField('error'), denied)
+            self.assertEqual(denied.error.code, core.UNAUTHORIZED, denied)
             final_rows = self.events()
             self.assertFalse(any(row.get('event') == 'key' and row.get('keysym') == 65470
                                  for row in final_rows[event_offset:]), final_rows[event_offset:])
