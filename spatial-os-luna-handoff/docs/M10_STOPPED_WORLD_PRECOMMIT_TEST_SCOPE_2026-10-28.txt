@@ -1,0 +1,57 @@
+M10 stopped-world precommit test scope, 2026-10-28
+
+Status: UNQUALIFIED. Replacement production-supervisor checks are not run yet.
+
+Finding
+
+The failed `world-participant-native` cases start worldd directly. They pass a
+native compositor credential, but do not use AuthorityLaunch or its independent
+guardian channel. The issuer records precommit obligations only for active
+generations that registered a native guardian. These direct fixtures therefore
+let IdentityRevoke commit without a native fence. Their queued X events then
+reach the application after both worldd and spatialwm resume.
+
+On sb16, both cases failed in candidate b4070e2. The issuer barrier remained
+pending with two participants. The independent application probe recorded one
+F1 press and release, plus one pointer press. XLibre delivered requests it had
+already received. This does not isolate an XLibre defect. It also does not prove
+the production supervisor path is safe.
+
+Contract correction
+
+Stopped-world precommit is a production-supervisor contract. Do not use direct
+worldd component fixtures to claim or test that contract. Replace the direct
+worldd key and pointer cases with exact supervisor-launched cases. Keep the
+existing supervisor key case. Add a first-pointer case that starts without a
+registered native seat. Confirm each requested renderer input was newly queued
+by checking trace bytes written after that action began.
+
+The direct fixture cases were removed from the mandatory M10 selector set. The
+new supervisor cases preserve the key and first-pointer obligations. The existing
+M10 fixture still tests seat preparation, server fencing, and cancellation in
+the direct worldd component path. Production native sessions must continue to
+use AuthorityLaunch and its guardian registration.
+
+Required verification
+
+1. The supervised queued-key test proves the issuer stays pending while the X
+   server cannot perform the fence. It then proves the key never reaches the app.
+2. The supervised first-pointer test starts with no input reservation. A
+   release-only pointer request prepares the empty seat. Its trace proves the
+   checked guardian binding was retained without a pressed input. The test then
+   queues the first pointer press while spatialwm is stopped. It proves guardian
+   fencing precedes issuer commit and the press never reaches the app.
+3. Run both cases in Debug and ASan/UBSan on sb16 and sb16-2.
+4. Rerun the full frozen-candidate gate after integration. Do not count the
+   current b4070e2 failure as passing evidence.
+
+Development check on middle-child
+
+- Debug CMake configure succeeded in the external artifact directory
+  `m10-supervised-native-precommit-20261028/build-debug`.
+- The focused production binaries and dependencies built successfully in 202
+  Ninja steps.
+- CTest lists both supervised guardian regressions. The development tree has
+  312 registered tests.
+- The supervised regressions have not run yet. The full b4070e2 gates are still
+  using both required test hosts.

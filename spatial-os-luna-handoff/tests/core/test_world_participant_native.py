@@ -116,59 +116,6 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
         self.assertEqual(world.proc.returncode,0)
         self.assertEqual(self.world_activations(),[(1,1,0)])
 
-    def test_issuer_commit_prevents_queued_native_key_while_world_is_stopped(self):
-        with patch.dict(os.environ, {'SPATIAL_TRACE_STOP':'1'}):
-            world,peer,probe=self.held()
-        compositor=self.compositor(world)
-        log=Path(world.log.name)
-        world.log.flush()
-        offset_bytes=log.stat().st_size
-        with probe.condition:offset=len(probe.events)
-        world_stopped=False
-        compositor_stopped=False
-        try:
-            os.kill(compositor,signal.SIGSTOP);compositor_stopped=True
-            deadline=time.monotonic()+1
-            while time.monotonic()<deadline:
-                status=Path(f'/proc/{compositor}/status').read_text()
-                if any(line.startswith('State:') and 'T' in line.split()[1] for line in status.splitlines()):break
-                time.sleep(.005)
-            self.assertTrue(any(line.startswith('State:') and 'T' in line.split()[1] for line in status.splitlines()))
-            peer.sequence+=1;peer.action_sequence+=1
-            request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
-                action=core.ActorActionRequest(seq=peer.action_sequence,key_tap_batch=core.ActorKeyTapBatchRequest(
-                    chords=[core.ActorKeyChord(keysyms=['F1'])])))
-            peer.stream.sendall(frame(request))
-            deadline=time.monotonic()+2
-            while 'role=renderer_input_sent' not in log.read_text()[offset_bytes:] and time.monotonic()<deadline:time.sleep(.005)
-            self.assertIn('role=renderer_input_sent',log.read_text()[offset_bytes:],
-                'World did not submit the native input request before revocation')
-            os.kill(world.proc.pid,signal.SIGSTOP);world_stopped=True
-            deadline=time.monotonic()+1
-            while time.monotonic()<deadline:
-                status=Path(f'/proc/{world.proc.pid}/status').read_text()
-                if any(line.startswith('State:') and 'T' in line.split()[1] for line in status.splitlines()):break
-                time.sleep(.005)
-            self.assertTrue(any(line.startswith('State:') and 'T' in line.split()[1] for line in status.splitlines()))
-            self.revoke_now();ack=time.monotonic()
-            barrier=self.barrier()
-            self.assertFalse(barrier.complete,'Revocation completion was acknowledged while worldd was stopped')
-            self.assertFalse(any(row.get('keysym')==65470 for row in probe.input_events(after=offset)))
-            os.kill(compositor,signal.SIGCONT);compositor_stopped=False
-            try:probe.wait(lambda row:row.get('event')=='key' and row.get('keysym')==65470,after=offset,timeout=.5)
-            except AssertionError:pass
-            with probe.condition:
-                events=[row for row in probe.events[offset:] if row.get('event')=='key' and row.get('keysym')==65470]
-            target=Path(os.environ.get('SPATIAL_SECURITY_EVIDENCE',str(self.root)))/'queued-key-while-world-stopped.json'
-            target.write_text(json.dumps(dict(revocation_ack_monotonic=ack,barrier_pending=barrier.pending_count,
-                world_stopped=True,forbidden_key_events=events),sort_keys=True,indent=2)+'\n')
-            target.chmod(0o600)
-            self.assertIsNone(probe.proc.poll(),'Independent input witness exited')
-            self.assertEqual(events,[],'Queued key reached the application after issuer revocation commit')
-        finally:
-            if compositor_stopped:os.kill(compositor,signal.SIGCONT)
-            if world_stopped:os.kill(world.proc.pid,signal.SIGCONT)
-
     def test_first_pointer_prepares_empty_seat_before_delivery(self):
         import concurrent.futures
         import hashlib
@@ -290,65 +237,6 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
         self.assertFalse(any(row.get('event')=='button' and row.get('pressed')
                              for row in probe.input_events(after=offset)))
         world.close();self.assertEqual(world.proc.returncode,0)
-
-    def test_issuer_commit_prevents_first_pointer_while_world_is_stopped(self):
-        self.setup_native_input_workspace()
-        marker=self.root/'first-pointer-delay-entered'
-        environment={'SPATIAL_TEST_RENDER_INPUT_DELAY_MS':'2000',
-            'SPATIAL_TEST_RENDER_INPUT_DELAY_COMMAND':'2',
-            'SPATIAL_TEST_RENDER_INPUT_DELAY_MARKER':str(marker),
-            'SPATIAL_TRACE_STOP':'1'}
-        with patch.dict(os.environ,environment):
-            world,peer,probe=self.held(fixture_faults=True,hold_native_input=False)
-        compositor=self.compositor(world)
-        log=Path(world.log.name);world.log.flush();offset_bytes=log.stat().st_size
-        with probe.condition:offset=len(probe.events)
-        world_stopped=False;compositor_stopped=False
-        try:
-            peer.sequence+=1;peer.action_sequence+=1
-            request=session.WorldSessionRequest(protocol_version=1,request_id=peer.sequence,
-                action=core.ActorActionRequest(seq=peer.action_sequence,
-                    pointer=core.ActorPointerRequest(button=1,pressed=True)))
-            peer.stream.sendall(frame(request))
-            deadline=time.monotonic()+2
-            while 'role=renderer_input_sent' not in log.read_text()[offset_bytes:] and time.monotonic()<deadline:
-                time.sleep(.005)
-            self.assertIn('role=renderer_input_sent',log.read_text()[offset_bytes:])
-            while not marker.exists() and time.monotonic()<deadline:time.sleep(.005)
-            self.assertTrue(marker.exists(),'Compositor did not enter first-input delay')
-            os.kill(compositor,signal.SIGSTOP);compositor_stopped=True
-            deadline=time.monotonic()+1
-            while time.monotonic()<deadline:
-                if any(line.startswith('State:') and 'T' in line.split()[1]
-                       for line in Path(f'/proc/{compositor}/status').read_text().splitlines()):break
-                time.sleep(.005)
-            else:self.fail('Compositor did not stop')
-            os.kill(world.proc.pid,signal.SIGSTOP);world_stopped=True
-            deadline=time.monotonic()+1
-            while time.monotonic()<deadline:
-                if any(line.startswith('State:') and 'T' in line.split()[1]
-                       for line in Path(f'/proc/{world.proc.pid}/status').read_text().splitlines()):break
-                time.sleep(.005)
-            else:self.fail('World did not stop')
-            self.revoke_now();ack=time.monotonic()
-            barrier=self.barrier()
-            self.assertFalse(barrier.complete,'Revocation completed while worldd was stopped')
-            self.assertFalse(any(row.get('event')=='button' and row.get('pressed')
-                                 for row in probe.input_events(after=offset)))
-            os.kill(compositor,signal.SIGCONT);compositor_stopped=False
-            try:probe.wait(lambda row:row.get('event')=='button' and row.get('pressed'),after=offset,timeout=2.5)
-            except AssertionError:pass
-            with probe.condition:
-                events=[row for row in probe.events[offset:] if row.get('event')=='button' and row.get('pressed')]
-            target=Path(os.environ.get('SPATIAL_SECURITY_EVIDENCE',str(self.root)))/'first-pointer-while-world-stopped.json'
-            target.write_text(json.dumps(dict(revocation_ack_monotonic=ack,barrier_pending=barrier.pending_count,
-                world_stopped=True,forbidden_button_events=events),sort_keys=True,indent=2)+'\n')
-            target.chmod(0o600)
-            self.assertIsNone(probe.proc.poll(),'Independent input witness exited')
-            self.assertEqual(events,[],'First pointer press reached the application after issuer revocation commit')
-        finally:
-            if compositor_stopped:os.kill(compositor,signal.SIGCONT)
-            if world_stopped:os.kill(world.proc.pid,signal.SIGCONT)
 
     def test_independent_compositor_credential_fences_prepared_seat(self):
         import re

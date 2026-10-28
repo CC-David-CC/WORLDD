@@ -237,7 +237,7 @@ class SessionApplicationTests(existing.SessionActorTests):
             stream.write(' '.join(map(str, [name, self.probe_sequence, *args])) + '\n')
         return self.until(self.events, lambda rows: any(r.get('event') == 'ack' and r.get('seq') == self.probe_sequence for r in rows))
 
-    def held_application(self):
+    def held_application(self, *, prepare_native_input=True):
         self.coordinator, self.owner, self.world_record = self.ready()
         self.assert_private_channels_stay_in_coordinator(self.coordinator)
         self.stream = self.connect_actor()
@@ -283,14 +283,19 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertTrue(confinement['no_new_privs']); self.assertFalse(confinement['host_file_visible'])
         self.assertNotEqual(confinement['mnt'], os.readlink('/proc/self/ns/mnt'))
         self.management('surface.place', id=surface['id'], room=self.management('world.info')['entry_room'], pose=pose((0, 0, -2)), size=[1, 1])
-        self.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1)))
-        self.act(pointer=core.ActorPointerRequest(button=1, pressed=True))
-        self.act(key=core.ActorKeyRequest(keysym='Shift_L', pressed=True))
-        self.until(self.events, lambda rows: all(any(r.get('event') == name and r.get('pressed') for r in rows) for name in ('key', 'button')))
+        if prepare_native_input:
+            self.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1)))
+            self.act(pointer=core.ActorPointerRequest(button=1, pressed=True))
+            self.act(key=core.ActorKeyRequest(keysym='Shift_L', pressed=True))
+            self.until(self.events, lambda rows: all(any(r.get('event') == name and r.get('pressed') for r in rows) for name in ('key', 'button')))
         state = self.request(inspect=self.owner).owner
-        self.assertFalse(state.channel_fenced); self.assertEqual(len(state.reservations), 1)
-        self.lease = state.reservations[0]
-        self.assertEqual(self.lease.application, self.app); self.assertEqual(self.lease.principal, self.principal)
+        self.assertFalse(state.channel_fenced)
+        if prepare_native_input:
+            self.assertEqual(len(state.reservations), 1)
+            self.lease = state.reservations[0]
+            self.assertEqual(self.lease.application, self.app); self.assertEqual(self.lease.principal, self.principal)
+        else:
+            self.assertEqual(list(state.reservations), [])
         self.check_active_participants()
 
     def check_active_participants(self):
@@ -437,10 +442,11 @@ class SessionApplicationTests(existing.SessionActorTests):
                 self.assertLess(time.monotonic(), deadline, 'X server and compositor must stop before queued input')
                 time.sleep(.005)
             event_offset = len(self.events())
+            log_offset = self.logpath.stat().st_size
             queued_action = pool.submit(self.act, key_tap_batch=core.ActorKeyTapBatchRequest(
                 chords=[core.ActorKeyChord(keysyms=['F1'])]))
             deadline = time.monotonic() + 3
-            while 'role=renderer_input_sent' not in self.logpath.read_text(errors='replace'):
+            while 'role=renderer_input_sent' not in self.logpath.read_text(errors='replace')[log_offset:]:
                 self.assertLess(time.monotonic(), deadline, 'World did not queue the native key request to its compositor')
                 time.sleep(.005)
             self.assertFalse(queued_action.done(), 'Queued key unexpectedly completed while its compositor was stopped')
@@ -500,6 +506,123 @@ class SessionApplicationTests(existing.SessionActorTests):
                                  for row in final_rows[event_offset:]), final_rows[event_offset:])
         finally:
             resume(server_pid)
+            resume(compositor_pid)
+            resume(world_pid)
+            pool.shutdown(wait=True, cancel_futures=True)
+        stopped_world = self.request(stop_world=self.owner).cleanup
+        self.assertEqual(stopped_world.stage, launch.OWNED_SCOPES_STOPPED)
+        self.finish_session()
+
+    def test_supervisor_guardian_fences_first_pointer_before_issuer_commits_revocation(self):
+        with patch.dict(os.environ, {'SPATIAL_TRACE_STOP': '1'}):
+            self.held_application(prepare_native_input=False)
+        world_pid = self.world_ids.worldd_pid
+        compositor_pid = self.world_ids.spatialwm_pid
+        server_pid = self.server.pid
+        self.issuer.peer.close()
+        self.issuer.peer = self.issuer.connect()
+        owner_peer = self.issuer.peer
+        target = identity.IdentityReference(kind=identity.ACTOR_TARGET, id=self.claims.actor_id)
+        aim = self.act(aim=core.ActorAimRequest(direction=core.Vec3(z=-1)))
+        self.assertTrue(aim.accepted, aim)
+        initial_rows = self.events()
+        self.assertFalse(any(row.get('event') in ('key', 'button') and row.get('pressed')
+                             for row in initial_rows), initial_rows)
+
+        # A release on an empty seat prepares it and obtains the guardian's
+        # checked binding receipt without delivering a pressed input.
+        registration_offset = self.logpath.stat().st_size
+        prepared = self.act(pointer=core.ActorPointerRequest(button=1, pressed=False))
+        self.assertTrue(prepared.accepted, prepared)
+        deadline = time.monotonic() + 3
+        while 'role=native_seat_authority_bound' not in self.logpath.read_text(errors='replace')[registration_offset:]:
+            self.assertLess(time.monotonic(), deadline, 'World did not retain the checked guardian seat receipt')
+            time.sleep(.005)
+        prepared_rows = self.events()
+        self.assertFalse(any(row.get('event') == 'button' and row.get('pressed') for row in prepared_rows),
+                         prepared_rows)
+
+        def identity_status():
+            operation = identity.IssuerOperation(identity_read=target)
+            reply = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer, operation))
+            self.assertTrue(reply.HasField('identity_status'), reply)
+            return reply.identity_status
+
+        def stopped(pid):
+            state = next(line.split()[1] for line in Path(f'/proc/{pid}/status').read_text().splitlines()
+                         if line.startswith('State:'))
+            return state == 'T'
+
+        def resume(pid):
+            try: os.kill(pid, signal.SIGCONT)
+            except ProcessLookupError: pass
+
+        self.addCleanup(resume, world_pid)
+        self.addCleanup(resume, compositor_pid)
+        self.addCleanup(resume, server_pid)
+        queued_action = None
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        try:
+            os.kill(compositor_pid, signal.SIGSTOP)
+            deadline = time.monotonic() + 2
+            while not stopped(compositor_pid):
+                self.assertLess(time.monotonic(), deadline, 'Compositor did not stop before first pointer input')
+                time.sleep(.005)
+            event_offset = len(self.events())
+            log_offset = self.logpath.stat().st_size
+            queued_action = pool.submit(self.act, pointer=core.ActorPointerRequest(button=1, pressed=True))
+            deadline = time.monotonic() + 3
+            while 'role=renderer_input_sent' not in self.logpath.read_text(errors='replace')[log_offset:]:
+                self.assertLess(time.monotonic(), deadline,
+                    'World did not queue the first pointer request to its compositor')
+                time.sleep(.005)
+            self.assertFalse(queued_action.done(), 'First pointer unexpectedly completed while compositor was stopped')
+
+            os.kill(world_pid, signal.SIGSTOP)
+            deadline = time.monotonic() + 2
+            while not stopped(world_pid):
+                self.assertLess(time.monotonic(), deadline, 'worldd did not stop with the first pointer outstanding')
+                time.sleep(.005)
+
+            before = identity_status()
+            self.assertTrue(before.active)
+            revoke = identity.IssuerOperation(identity_revoke=identity.IdentityRevoke(
+                target=target, expected_security_revision=before.security_revision,
+                reason='M10 supervised first-pointer precommit regression'))
+            prepared = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer, revoke))
+            self.assertTrue(prepared.HasField('identity_status'), prepared)
+            pending = prepared.identity_status
+            self.assertTrue(pending.revocation_pending, pending)
+            self.assertEqual(pending.security_revision, before.security_revision)
+            self.assertEqual(pending.pending_commit_revision, before.security_revision + 1)
+            self.assertTrue(pending.active)
+            self.assertTrue(stopped(world_pid), 'worldd must remain stopped during the first-pointer fence')
+            self.assertTrue(stopped(compositor_pid), 'Compositor must retain the first pointer until after fencing')
+            self.assertFalse(stopped(server_pid), 'X server must remain live for the independent guardian fence')
+
+            committed = self.until(identity_status,
+                lambda status: status.actor_revoked and not status.revocation_pending)
+            self.assertEqual(committed.security_revision, before.security_revision + 1)
+            self.assertTrue(stopped(world_pid), 'Guardian fencing must not depend on worldd recovery')
+            self.assertTrue(stopped(compositor_pid), 'Guardian fencing must leave the pointer queued')
+            self.assertFalse(stopped(server_pid), 'Guardian must fence the seat through the live X server')
+            rows = self.events()[event_offset:]
+            self.assertFalse(any(row.get('event') == 'button' and row.get('pressed') for row in rows), rows)
+            barrier = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer,
+                identity.IssuerOperation(barrier_read=identity.AuthorityBarrierRead(
+                    revision=committed.security_revision)))).authority_barrier
+            self.assertEqual(barrier.target, target)
+            self.assertGreater(barrier.pending_count, 0,
+                'Postcommit settlement remains separate from the native first-pointer fence')
+
+            resume(compositor_pid)
+            resume(world_pid)
+            denied = queued_action.result(timeout=10)
+            self.assertTrue(denied.HasField('error'), denied)
+            final_rows = self.events()[event_offset:]
+            self.assertFalse(any(row.get('event') == 'button' and row.get('pressed') for row in final_rows), final_rows)
+            self.assertIsNone(self.coordinator.poll(), 'Supervisor must remain alive after first-pointer fencing')
+        finally:
             resume(compositor_pid)
             resume(world_pid)
             pool.shutdown(wait=True, cancel_futures=True)
