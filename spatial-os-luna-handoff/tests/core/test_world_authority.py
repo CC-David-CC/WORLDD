@@ -356,7 +356,7 @@ class WorldAuthorityTests(WorldIdentityFixture):
             (target/(self._testMethodName+'-progress.json')).write_text(json.dumps({
                 'input_expiry_seconds': .25, 'refresh_count': len(refreshes),
                 'maximum_refresh_gap_seconds': max(gaps), 'movement_during_authentication': moving_pose-before_pose,
-                'revoked_grant_id': child.id, 'motion_stopped': stopped_pose == final_pose,
+                'revoked_grant_id_hex': child.id.hex(), 'motion_stopped': stopped_pose == final_pose,
                 'other_actor_authentication_pending_at_revocation': still_pending,
                 'unrelated_actor_authenticated': authenticated.opened.actor_id}, sort_keys=True, indent=2)+'\n')
         world.close(); self.assertEqual(world.proc.returncode, 0)

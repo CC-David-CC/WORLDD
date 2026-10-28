@@ -1,0 +1,16 @@
+M10 frozen gate failures, 2026-10-28
+
+Candidate: b4070e2639a3059ab2684ba5203f86c4421f15d6
+Status: IN PROGRESS; NOT QUALIFIED.
+
+sb16-2 CTest 237, world-authority, reported an error in
+test_navigation_revocation_stops_motion_during_other_actor_authentication.
+The test completed its movement and revocation assertions, then failed while
+writing its progress receipt. `child.id` is bytes, which `json.dumps` rejects.
+The failure is test evidence serialization, not a demonstrated runtime defect.
+The follow-up changes the receipt field to `revoked_grant_id_hex` and calls
+`child.id.hex()`.
+
+The fixed test has not yet run on either host. The active frozen gate must finish
+before another test run uses either host. Rebuild and rerun this focused case on
+both hosts, then run the complete required matrix on a new frozen candidate.
