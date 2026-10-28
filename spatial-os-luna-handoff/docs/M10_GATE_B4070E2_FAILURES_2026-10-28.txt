@@ -14,3 +14,11 @@ The follow-up changes the receipt field to `revoked_grant_id_hex` and calls
 The fixed test has not yet run on either host. The active frozen gate must finish
 before another test run uses either host. Rebuild and rerun this focused case on
 both hosts, then run the complete required matrix on a new frozen candidate.
+
+sb16 CTest 265, three-actor-editor-terminal-native, passed the terminal workflow
+but failed while stopping actors after the real-editor workflow. The host actor
+worker returned `Actor result lost its interruption barrier` from the checked
+Stop call. Earlier M10 evidence recorded a related 350 ms watchdog interruption,
+but this run lacks stop traces and does not prove that cause. The editor test
+now enables the existing stop trace before launching its actors. Capture the
+flight phase and timing on both hosts before changing production behavior.

@@ -86,6 +86,12 @@ class ThreeActorEditorTerminalTests(application.ThreeActorApplicationTests):
         self.shutdown_checked()
 
     def test_human_and_two_agents_type_and_save_real_editor_files(self):
+        previous_trace=os.environ.get('SPATIAL_TRACE_STOP')
+        os.environ['SPATIAL_TRACE_STOP']='1'
+        def restore_stop_trace():
+            if previous_trace is None:os.environ.pop('SPATIAL_TRACE_STOP',None)
+            else:os.environ['SPATIAL_TRACE_STOP']=previous_trace
+        self.addCleanup(restore_stop_trace)
         producer,peers,actors,target=self.prepare_cabinet()
         for index,actor in enumerate(actors):
             name='editor-'+str(index)+'.txt'
