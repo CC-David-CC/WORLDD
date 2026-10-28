@@ -832,14 +832,16 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             self.assertTrue(self._info_relay.delay_entered.wait(3),'Other actor did not enter the delayed credential check')
             started=time.monotonic();refreshes=[]
             while time.monotonic()-started<.4:
-                refreshes.append(peer.motion_refresh(movement));time.sleep(.08)
+                request=peer.motion_refresh(movement)
+                refreshes.append((request,time.monotonic()))
+                time.sleep(.08)
             moving_state=peer.call(inspect=session.WorldSessionInspect()).state
             moving_pose=moving_state.pose.position.x
             pending_after_inspect=not self._info_relay.delay_finished.is_set()
             self.assertTrue(pending_after_inspect,
                 'Live actor inspection waited until other actor authentication finished')
             self.assertGreater(moving_pose-before_pose,.08,'Actor did not move before revocation')
-            last_refresh=time.monotonic()
+            last_refresh=refreshes[-1][1]
             # Use the live actor channel: the management pipe is serviced by
             # worldd's outer loop and cannot observe this issuer wait.
             self.revoke(kind=issuer.ACTOR_TARGET)
@@ -856,7 +858,7 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
         output=Path(world.log.name).read_text()
         receipts={int(match.group(1)):int(match.group(2))/1e9 for match in re.finditer(
             r'role=world_motion_refresh id=(\d+) .* phase=refresh_sequence mono_ns=(\d+)',output)}
-        processed=[receipts[request] for request in refreshes if request in receipts and
+        processed=[receipts[request] for request,_ in refreshes if request in receipts and
             receipts[request]<=released['observed_monotonic']]
         processed_gaps=[later-earlier for earlier,later in zip(processed,processed[1:])]
         self.assertGreaterEqual(len(processed),4,
