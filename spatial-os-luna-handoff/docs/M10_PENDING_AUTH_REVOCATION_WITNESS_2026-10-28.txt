@@ -1,0 +1,15 @@
+M10 pending-authentication revocation witness correction
+
+Status: UNQUALIFIED. Focused tests and review are pending.
+
+The test revokes an actor while its credential check is pending. The previous
+witness required an established-channel credential_revocation lifecycle line.
+The channel is not authenticated yet. Its absence does not show that the world
+missed the issuer update. The 9d3aab8 sb16 log records revocation_received at
+revision 1 while that credential reply remains pending.
+
+The revised witness requires the world to receive the exact positive revision
+returned by the issuer. The test still requires the delayed credential request
+to fail or its channel to close. It does not accept a successful challenge.
+A companion authenticated-channel revocation test remains unchanged. Run both
+on both hosts, including the sanitizer profile, before accepting this change.

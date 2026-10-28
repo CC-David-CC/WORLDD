@@ -1,0 +1,15 @@
+M10 simultaneous key witness correction
+
+Status: UNQUALIFIED. Host and sanitizer checks are pending.
+
+The delayed atomic tap and explicit long hold tests select XI2 device events
+on the application window before reading the application's core X events.
+That selection suppresses the core delivery the same tests require. The
+high-rate test already avoids combining those selections on one window.
+
+Both tests now use the existing supervisor-only root raw-key observer. The
+separate application client still verifies delivery to its own window. The
+raw witness still verifies the actor keyboard and source device, every required
+edge, and the long-hold release. A raw event alone does not prove its target.
+Existing XI2 window-delivery tests remain unchanged. Run both changed cases,
+XI2 window checks, and the high-rate test on both hosts in Debug and ASan/UBSan.

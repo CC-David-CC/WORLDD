@@ -117,7 +117,8 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
         self.assertEqual(self.world_activations(),[(1,1,0)])
 
     def test_issuer_commit_prevents_queued_native_key_while_world_is_stopped(self):
-        world,peer,probe=self.held()
+        with patch.dict(os.environ, {'SPATIAL_TRACE_STOP':'1'}):
+            world,peer,probe=self.held()
         compositor=self.compositor(world)
         log=Path(world.log.name)
         world.log.flush()
@@ -295,7 +296,8 @@ class WorldParticipantNativeTests(WorldParticipantFixture):
         marker=self.root/'first-pointer-delay-entered'
         environment={'SPATIAL_TEST_RENDER_INPUT_DELAY_MS':'2000',
             'SPATIAL_TEST_RENDER_INPUT_DELAY_COMMAND':'2',
-            'SPATIAL_TEST_RENDER_INPUT_DELAY_MARKER':str(marker)}
+            'SPATIAL_TEST_RENDER_INPUT_DELAY_MARKER':str(marker),
+            'SPATIAL_TRACE_STOP':'1'}
         with patch.dict(os.environ,environment):
             world,peer,probe=self.held(fixture_faults=True,hold_native_input=False)
         compositor=self.compositor(world)

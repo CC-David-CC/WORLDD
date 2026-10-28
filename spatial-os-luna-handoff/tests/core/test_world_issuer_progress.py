@@ -406,8 +406,15 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             self.assertFalse(self._info_relay.delay_finished.is_set(),'Credential delay ended before revocation')
             deadline=time.monotonic()+2
             log=Path(world.log.name)
-            while 'reason=credential_revocation' not in log.read_text() and time.monotonic()<deadline:time.sleep(.005)
-            self.assertIn('reason=credential_revocation',log.read_text(),'World did not consume the actor revocation')
+            revision=result.identity_status.security_revision
+            self.assertGreater(revision, 0)
+            def consumed_revocation():
+                return any('role=world' in line and 'stage=revocation_received' in line and
+                    f'target_revision={revision}' in line.split() for line in log.read_text().splitlines())
+            while not consumed_revocation() and time.monotonic()<deadline:time.sleep(.005)
+            self.assertTrue(consumed_revocation(),'World did not consume the issuer revocation revision')
+            self.assertFalse(self._info_relay.delay_finished.is_set(),
+                'Credential check finished before world consumed revocation')
             self.assertTrue(self._info_relay.delay_finished.wait(6),'Credential check did not finish')
             try:
                 reply=authentication.result(timeout=3)
@@ -1015,8 +1022,9 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             info_still_pending_at_motion_receipt=not self._info_relay.delay_finished.is_set(),
             motion_reply=reply.WhichOneof('outcome')))
         self.assertTrue(reply.HasField('action') and reply.action.accepted,reply)
-        self.assertTrue(self._info_relay.delay_finished.is_set())
-        self.assertGreaterEqual(elapsed,4.0)
+        self.assertFalse(self._info_relay.delay_finished.is_set(),
+            'Checked movement waited for unrelated issuer INFO')
+        self.assertLess(elapsed,.25,'Checked movement exceeded input expiry')
         self.assertIsNone(probe.proc.poll())
         self.assertTrue(peer.act(stop=core.ActorStopRequest()).action.accepted)
         world.close();self.assertEqual(world.proc.returncode,0)

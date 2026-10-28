@@ -670,7 +670,21 @@ class StorageContentionTests(existing.NativeStorageSessionTests):
             reason='bounded storage contention regression'))
         result=self.issuer_operation(client,operation)
         self.assertTrue(result.HasField('identity_status'),result)
-        return result.identity_status.security_revision
+        status=result.identity_status
+        if status.revocation_pending:
+            self.assertEqual(status.pending_commit_revision,status.security_revision+1)
+            expected=status.pending_commit_revision
+            def identity_status():
+                reply=self.issuer_operation(client,issuer.IssuerOperation(identity_read=operation.identity_revoke.target))
+                self.assertTrue(reply.HasField('identity_status'),reply)
+                return reply.identity_status
+            status=self.until(identity_status,lambda value:not value.revocation_pending and
+                (value.actor_revoked if kind==issuer.ACTOR_TARGET else value.credential_revoked))
+            self.assertEqual(status.security_revision,expected)
+        self.assertFalse(status.revocation_pending,status)
+        self.assertTrue(status.actor_revoked if kind==issuer.ACTOR_TARGET else status.credential_revoked,status)
+        self.assertGreater(status.security_revision,0)
+        return status.security_revision
 
     def barrier(self, client, revision):
         reply=self.issuer_operation(client,issuer.IssuerOperation(barrier_read=issuer.AuthorityBarrierRead(revision=revision)))

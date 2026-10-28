@@ -1,0 +1,12 @@
+M10 checked movement during issuer INFO witness
+
+Status: UNQUALIFIED. Focused host and sanitizer checks are pending.
+
+The existing test confirms retained movement is disabled by default. Its timing
+assertion also required checked movement to wait four seconds for unrelated
+issuer INFO. That contradicts the requested movement liveness requirement.
+
+The revised test retains the disabled-default check and requires an accepted
+checked movement action within 250 ms while the INFO reply remains pending.
+The separate default-disabled retained-refresh test still requires that an
+unavailable retained refresh has no motion effect. Run both on both hosts.

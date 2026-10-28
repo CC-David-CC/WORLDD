@@ -89,7 +89,7 @@ struct Channel {
     bool in_dispatch = false, output_copy_status_request = false;
     bool motion_reply = false;
     bool stop_reply = false;
-    bool cooperative_inspect_reply = false;
+    bool cooperative_issuer_reply = false;
     std::optional<PendingActorStop> stopping;
     bool stop_diagnostic_reply = false;
     bool key_batch_diagnostic_reply = false;
@@ -287,7 +287,7 @@ struct IdentitySessions::Impl {
         channel.needs_observation = false; channel.needs_geometry_observation = false; channel.view_id.clear();
         channel.local_view_attested = false;
         channel.credential_revision.reset(); channel.motion_reply = false;channel.stop_reply=false;
-        channel.cooperative_inspect_reply=false;
+        channel.cooperative_issuer_reply=false;
         channel.key_batch_diagnostic_reply = false;
         channel.motion_sequence = 0;
         // Swap queued bytes out before cancellation callbacks can re-enter.
@@ -1344,7 +1344,7 @@ struct IdentitySessions::Impl {
         if(channel.fd.value<0 || !channel.output.empty())return;
         std::ostringstream output;write_frame(output,reply);channel.output=output.str();channel.sent=0;
         channel.output_request_id=operation.request;channel.stop_reply=true;channel.motion_reply=false;
-        channel.cooperative_inspect_reply=false;
+        channel.cooperative_issuer_reply=false;
         channel.stop_diagnostic_reply=stop_trace::enabled();
         channel.needs_observation=false;channel.needs_geometry_observation=false;
         channel.output_copy_status_request=false;channel.output_revocation_denial=false;
@@ -1392,7 +1392,7 @@ struct IdentitySessions::Impl {
                 if(channel.departure || channel.pending || channel.prepared ||
                         channel.needs_observation || channel.needs_geometry_observation ||
                         (!channel.output.empty() && !channel.motion_reply && !channel.stop_reply &&
-                         !channel.cooperative_inspect_reply) ||
+                         !channel.cooperative_issuer_reply) ||
                         (channel.token.empty() && !channel.stop_reply))continue;
             }
             auto drop = [&](const char* reason) {
@@ -1449,7 +1449,7 @@ struct IdentitySessions::Impl {
                     channel.output_copy_status_request = false;
                     channel.output_revocation_denial = false;
                     channel.output_transport_write_attempted = false;
-                    channel.motion_reply = false;channel.stop_reply=false;channel.cooperative_inspect_reply=false;
+                    channel.motion_reply = false;channel.stop_reply=false;channel.cooperative_issuer_reply=false;
                 }
             }
             if (channel.tls && channel.output.empty()) {
@@ -1598,7 +1598,7 @@ struct IdentitySessions::Impl {
             std::ostringstream output; write_frame(output, reply); channel.output = output.str(); channel.sent = 0;
             channel.output_request_id = reply.request_id();
             channel.stop_reply=pure_stop(candidate);
-            channel.cooperative_inspect_reply=issuer_wait_operation && candidate.has_inspect();
+            channel.cooperative_issuer_reply=issuer_wait_operation;
             channel.stop_diagnostic_reply=stopping && stop_trace::enabled();
             channel.key_batch_diagnostic_reply=key_batch && stop_trace::enabled();
             stop_trace::mark("reply_queued");

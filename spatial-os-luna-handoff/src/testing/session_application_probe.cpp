@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <cstring>
 #include <csignal>
+#include <cstdlib>
 #include <set>
 #include <map>
 
@@ -47,12 +48,18 @@ int main(int argc, char** argv) {
         coordinator.start_presentation(binary/"spatialwm",argv[6],std::stoi(argv[5]));
 #endif
         report(coordinator.broker_launch());
+        unsigned actor_count = 1;
+        if (const auto* requested = std::getenv("SPATIAL_TEST_SESSION_ACTOR_CHANNELS")) {
+            if (std::strcmp(requested, "2") != 0)
+                throw std::runtime_error("Invalid session actor channel count");
+            actor_count = 2;
+        }
         auto owner = coordinator.start_world(std::string(argv[3]) + ".owned", load(argv[3]),
-            std::stoi(argv[4]), listener, 1, world_id);
+            std::stoi(argv[4]), listener, actor_count, world_id);
         close(listener); report(coordinator.world_launch(owner));
         spatial::identity::tls_detail::Fd delivery(delivery_fd);
-        const auto transfer_actor = [&](const spatial::workspace::v1::ControlOwner& target) {
-            spatial::identity::tls_detail::Fd actor(coordinator.take_actor_channel(target, 0));
+        const auto transfer_actor = [&](const spatial::workspace::v1::ControlOwner& target, unsigned index = 0) {
+            spatial::identity::tls_detail::Fd actor(coordinator.take_actor_channel(target, index));
             spatial::supervisor::v1::AuthorityLaunchReply actor_binding; actor_binding.set_protocol_version(1);
             *actor_binding.mutable_control_owner() = target;
             auto actor_packet = actor_binding.SerializeAsString(); iovec data{actor_packet.data(), actor_packet.size()};
@@ -66,6 +73,7 @@ int main(int argc, char** argv) {
                 throw std::runtime_error("Cannot transfer fixture actor endpoint");
         };
         transfer_actor(owner);
+        if (actor_count == 2) transfer_actor(owner, 1);
         spatial::supervisor::v1::AuthorityLaunchReply binding; binding.set_protocol_version(1);
         *binding.mutable_control_owner() = owner; spatial::write_frame(std::cout, binding);
         spatial::core::v1::Request identities; identities.set_protocol_version(1); identities.set_request_id(45);

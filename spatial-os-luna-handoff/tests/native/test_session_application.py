@@ -1,6 +1,7 @@
 """Real actor, authority, broker, compositor, and confined application recovery."""
 import json
 import os
+import concurrent.futures
 from pathlib import Path
 import select
 import shutil
@@ -9,6 +10,7 @@ import socket
 import array
 import sqlite3
 import subprocess
+import sys
 import time
 import unittest
 from unittest.mock import patch
@@ -64,6 +66,7 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.claims = self.issuer.claims(self.actor, self.issuer.info)
         self.principal = grants.ActorRef(issuer_id=self.claims.issuer_id, actor_id=self.claims.actor_id)
         self.coordinator_sequence = self.action_sequence = self.probe_sequence = 0
+        self.actor_channels_remaining = 1
         self.execution = self.root / 'execution'
         self.actor_receiver, self.actor_delivery = socket.socketpair(type=socket.SOCK_SEQPACKET)
         self.addCleanup(self.actor_receiver.close); self.addCleanup(self.actor_delivery.close)
@@ -80,7 +83,9 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.assertEqual((level, kind), (socket.SOL_SOCKET, socket.SCM_RIGHTS))
         descriptors = array.array('i'); descriptors.frombytes(data); self.assertEqual(len(descriptors), 1)
         stream = socket.socket(fileno=descriptors[0]); stream.settimeout(3); self.addCleanup(stream.close)
-        self.actor_receiver.close()
+        self.actor_channels_remaining -= 1
+        if self.actor_channels_remaining == 0:
+            self.actor_receiver.close()
         return stream
 
     def config_file(self, name, value):
@@ -326,16 +331,23 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.second_claims = self.issuer.claims(second_record, self.issuer.info)
         self.second_principal = grants.ActorRef(issuer_id=self.second_claims.issuer_id,
             actor_id=self.second_claims.actor_id)
-        from harness.issuer_progress import DelayedInfoIssuer
+        # The relay imports a core fixture that consumes the worldd argument.
+        # Native test entry points have already consumed their binary arguments.
+        worldd = scopes.PROBE.with_name('worldd')
+        with patch.object(sys, 'argv', [sys.argv[0], str(worldd)]):
+            from harness.issuer_progress import DelayedInfoIssuer
         self._info_relay = DelayedInfoIssuer(self.issuer, delayed_operation='credential_check',
             actor_id=self.second_claims.actor_id)
         original_config_file = self.issuer.config_file
         def relayed_config_file(endpoint_port=None, **overrides):
             return original_config_file(endpoint_port=endpoint_port or self._info_relay.port, **overrides)
         self.issuer.config_file = relayed_config_file
-        self.held_application()
+        self.actor_channels_remaining = 2
+        with patch.dict(os.environ, {'SPATIAL_TEST_SESSION_ACTOR_CHANNELS': '2'}):
+            self.held_application()
 
         other = self.connect_actor()
+        other.settimeout(10)
         other_sequence = 0
         def other_call(**operation):
             nonlocal other_sequence
@@ -388,8 +400,10 @@ class SessionApplicationTests(existing.SessionActorTests):
         self.finish_session()
 
     def test_supervisor_guardian_fences_input_before_issuer_commits_revocation(self):
-        self.held_application()
+        with patch.dict(os.environ, {'SPATIAL_TRACE_STOP': '1'}):
+            self.held_application()
         world_pid = self.world_ids.worldd_pid
+        compositor_pid = self.world_ids.spatialwm_pid
         server_pid = self.server.pid
         self.issuer.peer.close()
         self.issuer.peer = self.issuer.connect()
@@ -407,17 +421,33 @@ class SessionApplicationTests(existing.SessionActorTests):
                          if line.startswith('State:'))
             return state == 'T'
 
-        for pid in (server_pid, world_pid):
-            os.kill(pid, signal.SIGSTOP)
         def resume(pid):
             try: os.kill(pid, signal.SIGCONT)
             except ProcessLookupError: pass
         self.addCleanup(resume, world_pid)
+        self.addCleanup(resume, compositor_pid)
         self.addCleanup(resume, server_pid)
+        queued_action = None
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         try:
+            os.kill(server_pid, signal.SIGSTOP)
+            os.kill(compositor_pid, signal.SIGSTOP)
             deadline = time.monotonic() + 2
-            while not all(stopped(pid) for pid in (server_pid, world_pid)):
-                self.assertLess(time.monotonic(), deadline, 'X server and worldd must stop before revocation')
+            while not all(stopped(pid) for pid in (server_pid, compositor_pid)):
+                self.assertLess(time.monotonic(), deadline, 'X server and compositor must stop before queued input')
+                time.sleep(.005)
+            event_offset = len(self.events())
+            queued_action = pool.submit(self.act, key_tap_batch=core.ActorKeyTapBatchRequest(
+                chords=[core.ActorKeyChord(keysyms=['F1'])]))
+            deadline = time.monotonic() + 3
+            while 'role=renderer_input_sent' not in self.logpath.read_text(errors='replace'):
+                self.assertLess(time.monotonic(), deadline, 'World did not queue the native key request to its compositor')
+                time.sleep(.005)
+            self.assertFalse(queued_action.done(), 'Queued key unexpectedly completed while its compositor was stopped')
+            os.kill(world_pid, signal.SIGSTOP)
+            deadline = time.monotonic() + 2
+            while not stopped(world_pid):
+                self.assertLess(time.monotonic(), deadline, 'worldd did not stop with its native request outstanding')
                 time.sleep(.005)
 
             before = identity_status()
@@ -433,31 +463,46 @@ class SessionApplicationTests(existing.SessionActorTests):
             self.assertEqual(pending.pending_commit_revision, before.security_revision + 1)
             self.assertTrue(pending.active)
             self.assertTrue(stopped(world_pid), 'worldd must remain stopped during the native fence')
+            self.assertTrue(stopped(compositor_pid), 'Compositor must retain the queued request until after commit')
             rows = self.events()
             self.assertFalse(any(row.get('event') in ('key', 'button') and not row.get('pressed') for row in rows), rows)
+            self.assertFalse(any(row.get('event') == 'key' and row.get('keysym') == 65470
+                                 for row in rows[event_offset:]), rows[event_offset:])
 
             pending = identity_status()
             self.assertTrue(pending.revocation_pending, pending)
             self.assertEqual(pending.security_revision, before.security_revision)
-        finally:
             resume(server_pid)
 
-        def released(rows):
-            return all(any(row.get('event') == event and not row.get('pressed') for row in rows)
-                       for event in ('key', 'button'))
-        release_rows = self.until(self.events, released)
-        self.assertTrue(stopped(world_pid), 'Guardian release must not depend on worldd recovery')
-        committed = self.until(identity_status, lambda status: status.actor_revoked and not status.revocation_pending)
-        self.assertEqual(committed.security_revision, before.security_revision + 1)
-        barrier = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer,
-            identity.IssuerOperation(barrier_read=identity.AuthorityBarrierRead(
-                revision=committed.security_revision)))).authority_barrier
-        self.assertEqual(barrier.target, target)
-        self.assertGreater(barrier.pending_count, 0,
-            'Postcommit participant settlement remains separate from native precommit fencing')
-        self.assertTrue(released(release_rows))
-        self.assertIsNone(self.coordinator.poll(), 'Supervisor must remain alive after guardian fencing')
-        resume(world_pid)
+            def released(rows):
+                return all(any(row.get('event') == event and not row.get('pressed') for row in rows)
+                           for event in ('key', 'button'))
+            release_rows = self.until(self.events, released)
+            self.assertTrue(stopped(world_pid), 'Guardian release must not depend on worldd recovery')
+            self.assertTrue(stopped(compositor_pid), 'Guardian fencing must leave the compositor request queued')
+            committed = self.until(identity_status, lambda status: status.actor_revoked and not status.revocation_pending)
+            self.assertEqual(committed.security_revision, before.security_revision + 1)
+            barrier = self.issuer.execute(owner_peer, self.issuer.challenge(owner_peer,
+                identity.IssuerOperation(barrier_read=identity.AuthorityBarrierRead(
+                    revision=committed.security_revision)))).authority_barrier
+            self.assertEqual(barrier.target, target)
+            self.assertGreater(barrier.pending_count, 0,
+                'Postcommit participant settlement remains separate from native precommit fencing')
+            self.assertTrue(released(release_rows))
+            self.assertIsNone(self.coordinator.poll(), 'Supervisor must remain alive after guardian fencing')
+
+            resume(compositor_pid)
+            resume(world_pid)
+            denied = queued_action.result(timeout=10)
+            self.assertTrue(denied.HasField('error'), denied)
+            final_rows = self.events()
+            self.assertFalse(any(row.get('event') == 'key' and row.get('keysym') == 65470
+                                 for row in final_rows[event_offset:]), final_rows[event_offset:])
+        finally:
+            resume(server_pid)
+            resume(compositor_pid)
+            resume(world_pid)
+            pool.shutdown(wait=True, cancel_futures=True)
         stopped_world = self.request(stop_world=self.owner).cleanup
         self.assertEqual(stopped_world.stage, launch.OWNED_SCOPES_STOPPED)
         self.finish_session()

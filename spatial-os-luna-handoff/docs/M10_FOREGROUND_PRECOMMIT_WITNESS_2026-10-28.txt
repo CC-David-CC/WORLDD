@@ -1,0 +1,14 @@
+M10 foreground revocation precommit witness
+
+Status: UNQUALIFIED. Native host and sanitizer checks are pending.
+
+Issuer revocation may first return a pending intent with the actor still active.
+The guardian must fence affected native input before the issuer commits that
+intent. The previous foreground test treated the initial reply as a commit.
+
+The revised test accepts either an immediate commit or a pending intent. For
+an intent it checks the next revision and waits for signed identity status to
+show actual revocation and no pending intent. It then retains the original
+completion barrier, obligation, black-pixel, and observation-watch assertions.
+No pending response counts as completed revocation. Run this case and the
+independent stopped-world guardian precommit case on both hosts.

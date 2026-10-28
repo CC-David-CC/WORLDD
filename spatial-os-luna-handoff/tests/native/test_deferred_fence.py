@@ -112,6 +112,19 @@ class DeferredFenceTests(existing.StoppedBrokerDependencyTests):
         try:
             committed = self.issuer.execute(peer, challenge)
             self.assertTrue(committed.HasField('identity_status'), committed)
+            status = committed.identity_status
+            if status.revocation_pending:
+                self.assertEqual(status.pending_commit_revision, 1)
+                def identity_status():
+                    query = identity.IssuerOperation(identity_read=operation.identity_revoke.target)
+                    reply = self.issuer.execute(peer, self.issuer.challenge(peer, query))
+                    self.assertTrue(reply.HasField('identity_status'), reply)
+                    return reply.identity_status
+                status = self.until(identity_status, lambda value:
+                    value.credential_revoked and not value.revocation_pending)
+            self.assertTrue(status.credential_revoked, status)
+            self.assertFalse(status.revocation_pending, status)
+            self.assertEqual(status.security_revision, 1)
             before = self.barrier(); self.preserve('pending-before', before)
             self.assertEqual((before.participant_count, before.pending_count, before.complete), (2, 2, False))
             self.assertTrue(all(item.applied_revision == 0 and not item.complete for item in before.obligations))

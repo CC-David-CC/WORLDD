@@ -1,0 +1,14 @@
+M10 operator revocation and precommit witness
+
+Status: UNQUALIFIED. Both hosts and sanitizer checks are pending.
+
+The previous operator tests expected native input to remain held after issuer
+commit while the world was stopped. The guardian precommit contract requires
+native fencing before that commit. This test now requires key and button
+release while the world remains paused and still requires the command and
+participant completion barrier to remain pending until settlement or recovery.
+
+The separate supervisor guardian precommit test independently stops the X
+server and world and proves the issuer does not commit before native fencing.
+The operator timeout, checked recovery, application survival, lease cleanup,
+and completed barrier assertions remain required. Run both groups on both hosts.

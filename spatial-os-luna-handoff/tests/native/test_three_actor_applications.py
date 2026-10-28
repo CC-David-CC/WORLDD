@@ -241,7 +241,7 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         receipt=self.mapped(actors[1],application)
         placed=actors[1](application_place=self.placement_request(actors[1],receipt)).application_placement
         self.focus(actors[1],placed.surface)
-        observer=self.native_observer(rows)
+        observer=self.native_observer(rows,raw_keys=True)
         binding=observer.controlled_devices();native_start=len(observer.events)
         app_start=len([row for row in rows() if row.get('event')=='key'])
 
@@ -283,7 +283,7 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         receipt=self.mapped(actors[1],application)
         placed=actors[1](application_place=self.placement_request(actors[1],receipt)).application_placement
         self.focus(actors[1],placed.surface)
-        observer=self.native_observer(rows)
+        observer=self.native_observer(rows,raw_keys=True)
         binding=observer.controlled_devices();native_start=len(observer.events)
 
         pressed=peers[0].act(key=core.ActorKeyRequest(keysym='a',pressed=True))

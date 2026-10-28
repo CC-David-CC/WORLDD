@@ -1,0 +1,14 @@
+M10 deferred fence recovery and precommit witness
+
+Status: UNQUALIFIED. Both host and sanitizer checks remain pending.
+
+The deferred-fence recovery test needs a committed revocation and two pending
+participant obligations before killing the issuer. A pending guardian intent
+has not created the revision-one completion barrier yet. The old fixture read
+that barrier immediately and received NOT_FOUND.
+
+The corrected fixture checks the intended revision and waits for a signed
+identity read confirming credential revocation before checking the original
+pending-obligation barrier. It still stops the same world and broker, kills the
+issuer, and exercises exact recovery and retirement. The separate guardian
+precommit regression checks interruption before the commit.

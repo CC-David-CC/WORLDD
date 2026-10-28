@@ -268,9 +268,23 @@ class LocalForegroundTests(baseline.SessionApplicationTests):
         self.addCleanup(peer.close)
         revoked = self.issuer.execute(peer, self.issuer.challenge(peer, operation))
         self.assertTrue(revoked.HasField('identity_status'), revoked)
-        self.assertFalse(revoked.identity_status.active)
-        self.assertTrue(revoked.identity_status.actor_revoked)
-        revision = revoked.identity_status.security_revision
+        status = revoked.identity_status
+        if status.revocation_pending:
+            self.assertTrue(status.active, status)
+            self.assertEqual(status.pending_commit_revision, status.security_revision + 1)
+            expected_revision = status.pending_commit_revision
+            def identity_status():
+                query = identity.IssuerOperation(identity_read=operation.identity_revoke.target)
+                reply = self.issuer.execute(peer, self.issuer.challenge(peer, query))
+                self.assertTrue(reply.HasField('identity_status'), reply)
+                return reply.identity_status
+            status = self.until(identity_status, lambda value:
+                value.actor_revoked and not value.active and not value.revocation_pending)
+            self.assertEqual(status.security_revision, expected_revision)
+        self.assertFalse(status.active, status)
+        self.assertTrue(status.actor_revoked, status)
+        self.assertFalse(status.revocation_pending, status)
+        revision = status.security_revision
         self.assertGreater(revision, 0)
         # IdentityStatus confirms the policy commit. The signed completion barrier
         # is the existing production acknowledgement for distributed cleanup.

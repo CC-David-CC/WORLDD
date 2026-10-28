@@ -1,0 +1,13 @@
+M10 storage contention revocation witness
+
+Status: UNQUALIFIED. Native host and sanitizer checks are pending.
+
+The storage contention fixture used the initial revocation response's current
+security revision as a barrier revision. A pending guardian precommit response
+keeps the previous revision, which can be zero. Zero is not a valid barrier.
+
+The helper now checks the pending next revision and waits for a signed identity
+read proving the requested actor or credential revocation committed. It checks
+that exact revision before reading the barrier. The storage write, native input,
+application lifetime, checked cleanup, and completion assertions remain intact.
+Run all affected contention cases on both hosts and with sanitizers.
