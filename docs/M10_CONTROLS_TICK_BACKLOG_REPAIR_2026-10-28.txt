@@ -1,0 +1,38 @@
+M10 controls-tick input backlog repair
+Date: 2026-10-28
+Status: focused middle-child checks pass; production host verification and full M10 gate remain pending.
+
+Source
+- Branch: m10/supervised-native-precommit-coverage-20261028
+- Base commit: 0ed2deae2917cfa46b9f1cce6606f27e8aa046d6 (unqualified)
+- Changed: spatial-os-luna-handoff/src/supervisor/host_actor_worker.cpp
+- Regression: spatial-os-luna-handoff/src/testing/host_actor_controller_probe.cpp
+
+Failure
+The b4070e2 full gate exposed this watchdog trace on a real three-actor file workflow:
+`flight_origin=maintenance flight_phase=controls_tick queued_event=1 queued_capture=1 queued_cancellation=0`.
+A routine captured key release queued behind a slow movement action made the watchdog shut down the authenticated actor channel. Controls then became unavailable.
+
+Repair
+The worker now lets ordinary captured input wait through a slow `controls_tick`.
+The capture receiver still updates `MotionIntent` before queueing each event.
+The authenticated client continues its one-way movement refresh while the action reply is pending.
+When the queued event has expired, the adapter clears the stale intent and sends checked Stop.
+The worker keeps watchdog urgency for actor flights, queued host requests, explicit cancellation, F12, button release, and source disconnect.
+The 350 ms watchdog and 250 ms motion expiry remain unchanged.
+
+Focused evidence
+The deterministic regression blocks a real ActorSessionClient input exchange for 450 ms.
+It queues a movement-key release and checks repeated refresh, zero intent, checked Stop, and retained actor availability.
+A paired case queues F12 and confirms the exact actor channel still trips the watchdog.
+
+On middle-child, the Debug build and three focused CTests passed: `host-actor-controller`, `host-actor-worker`, and `host-actor-shared-control`.
+The ASan/UBSan build and `host-actor-worker` CTest passed.
+The new tests run in the worker CTest.
+Receipts are under `/home/dflanag3/spatial-artifacts/m10-supervised-native-precommit-20261028/runs/input-liveness-controls-tick-01/`.
+
+Limits and next checks
+These are local component checks. They do not prove native release timing on either test host.
+Deploy this source to sb16 and sb16-2. Rerun the real three-actor file workflow, editor/terminal input, movement expiry, cancellation/revocation, and related session suites.
+Then rebuild one frozen candidate and rerun the complete Debug, sanitizer, harness, and acceptance gate on both hosts.
+M10 remains unqualified until that frozen two-host gate passes.

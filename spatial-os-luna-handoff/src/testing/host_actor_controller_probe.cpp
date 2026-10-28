@@ -8,6 +8,8 @@
 #include <future>
 #include <signal.h>
 #include <limits>
+#include <optional>
+#include <poll.h>
 #include <sys/socket.h>
 
 namespace {
@@ -455,6 +457,36 @@ control::v1::CapturedDeviceEvent worker_packet(const supervisor::HostActorWorker
     else event->mutable_heartbeat();
     return packet;
 }
+pb::WorldSessionRequest receive_any(int fd) {
+    std::array<unsigned char,4> header{};
+    transfer(fd,reinterpret_cast<char*>(header.data()),header.size(),false);
+    const auto size=(std::uint32_t(header[0])<<24)|(std::uint32_t(header[1])<<16)|
+        (std::uint32_t(header[2])<<8)|header[3];
+    check(size>0 && size<=max_frame_bytes,"bad worker request size");
+    std::string body(size,'\0');transfer(fd,body.data(),body.size(),false);
+    pb::WorldSessionRequest request;
+    check(request.ParseFromString(body),"bad worker request protobuf");
+    validate_message(request);
+    check(request.protocol_version()==1,"bad worker request version");
+    return request;
+}
+std::optional<pb::WorldSessionRequest> try_receive_any(int fd,std::chrono::milliseconds timeout) {
+    pollfd descriptor{fd,POLLIN,0};
+    const auto ready=poll(&descriptor,1,static_cast<int>(timeout.count()));
+    check(ready>=0,"worker fixture poll failed");
+    if(!ready)return {};
+    return receive_any(fd);
+}
+control::v1::CapturedDeviceEvent worker_key_packet(
+        const supervisor::HostActorWorker::Binding& binding,std::uint64_t packet_sequence,
+        std::uint64_t event_sequence,const std::string& keysym,bool pressed,bool connected=false) {
+    auto packet=worker_packet(binding,packet_sequence,connected);
+    packet.mutable_event()->set_event_sequence(event_sequence);
+    if(connected)packet.mutable_event()->mutable_connected()->set_kind(control::v1::KEYBOARD);
+    else {packet.mutable_event()->mutable_key()->set_keysym(keysym);
+        packet.mutable_event()->mutable_key()->set_pressed(pressed);}
+    return packet;
+}
 control::v1::CapturedDeviceEvent worker_mouse_motion_packet(
         const supervisor::HostActorWorker::Binding& binding,std::uint64_t sequence,double dx,double dy,
         bool connected=false) {
@@ -860,6 +892,114 @@ void worker_heartbeat_only_wait_keeps_real_cancellation(unsigned cause) {
     }
     producer.reset();host.reset();
 }
+void worker_controls_tick_keeps_actor_and_motion_live_with_queued_release() {
+    Fixture fixture;Endpoint source(fixture,3s);
+    std::promise<void> input_started,release_input,stop_seen;
+    auto release=release_input.get_future().share();
+    std::atomic<bool> physical_release_posted{false};
+    std::atomic<unsigned> observed_refreshes{0};
+    std::atomic<std::int64_t> maximum_refresh_gap_ms{0};
+    std::atomic<bool> observed_zero_after_release{false};
+    source.start([&](int fd) {
+        handshake(fd,fixture,false,false,[](auto& reply) {
+            reply.mutable_opened()->set_retained_movement_enabled(true);
+        });
+        const auto input=receive(fd,pb::WorldSessionRequest::kControlAction,3);
+        check(input.control_action().seq()==1 && input.control_action().has_input(),
+            "Controls tick did not produce the expected movement action");
+        input_started.set_value();
+        const auto deadline=std::chrono::steady_clock::now()+450ms;
+        auto previous=std::chrono::steady_clock::now();
+        std::chrono::milliseconds max_gap{0};unsigned refreshes=0;bool zero_after_release=false;
+        while(std::chrono::steady_clock::now()<deadline) {
+            auto request=try_receive_any(fd,10ms);
+            if(!request)continue;
+            check(request->has_motion_refresh(),"Unexpected actor operation while controls tick was pending");
+            const auto now=std::chrono::steady_clock::now();
+            if(refreshes)max_gap=std::max(max_gap,std::chrono::duration_cast<std::chrono::milliseconds>(now-previous));
+            previous=now;++refreshes;
+            const auto& motion=request->motion_refresh().input();
+            bool zero=true;for(const auto axis:motion.axes())zero=zero && axis==0;
+            if(physical_release_posted.load() && zero)zero_after_release=true;
+        }
+        check(release.wait_for(1s)==std::future_status::ready,"Test did not release the blocked controls action");
+        observed_refreshes.store(refreshes);
+        maximum_refresh_gap_ms.store(max_gap.count());
+        observed_zero_after_release.store(zero_after_release);
+        auto reply=reply_for(3);auto* outcome=reply.mutable_control_action();
+        outcome->set_sequence(1);outcome->mutable_accepted()->set_accepted(true);send_reply(fd,reply);
+        pb::WorldSessionRequest stop;
+        do {stop=receive_any(fd);} while(stop.has_motion_refresh());
+        check(stop.has_control_action() && stop.control_action().seq()==2 && stop.control_action().has_stop(),
+            "Expired queued release did not produce a checked Stop");
+        reply=reply_for(stop.request_id());outcome=reply.mutable_control_action();outcome->set_sequence(2);
+        outcome->mutable_accepted()->set_accepted(true);send_reply(fd,reply);stop_seen.set_value();closed(fd);
+    });
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
+        const auto binding=worker.capture_binding();const auto interrupt=binding->interrupt.lock();
+        check(worker.post_device(binding,worker_key_packet(binding,1,1,"",false,true)),
+            "Keyboard source did not connect");
+        worker.call([]{});
+        check(worker.post_device(binding,worker_key_packet(binding,2,2,"w",true)),
+            "Movement key press was not queued");
+        check(input_started.get_future().wait_for(1s)==std::future_status::ready,
+            "Controls tick did not enter its slow world exchange");
+        std::this_thread::sleep_for(35ms);
+        check(worker.post_device(binding,worker_key_packet(binding,3,3,"w",false)),
+            "Movement key release was not queued");
+        physical_release_posted.store(true);
+        std::this_thread::sleep_for(420ms);
+        check(!interrupt->requested() && !binding->retired(),
+            "Queued capture during controls_tick retired the authenticated actor");
+        release_input.set_value();
+        worker.call([]{});
+        check(stop_seen.get_future().wait_for(1s)==std::future_status::ready,
+            "Queued stale release did not complete its checked Stop");
+        check(host->control_available() && !interrupt->requested(),
+            "Slow controls tick left actor control unavailable");
+        if(observed_refreshes.load()<2 || maximum_refresh_gap_ms.load()>=250 || !observed_zero_after_release.load())
+            throw std::runtime_error("Slow controls tick refresh evidence count="+
+                std::to_string(observed_refreshes.load())+" max_gap_ms="+
+                std::to_string(maximum_refresh_gap_ms.load())+" zero_after_release="+
+                std::to_string(observed_zero_after_release.load()));
+        const bool clean=worker.shutdown();
+        check(clean,"Controls tick regression left capture cleanup unresolved");
+    }
+    producer.reset();host.reset();source.finish();
+}
+void worker_controls_tick_keeps_explicit_cancel_watchdog_urgent() {
+    Fixture fixture;Endpoint source(fixture,2s);std::promise<void> input_started;
+    source.start([&](int fd) {
+        handshake(fd,fixture);
+        const auto input=receive(fd,pb::WorldSessionRequest::kControlAction,3);
+        check(input.control_action().seq()==1 && input.control_action().has_input(),
+            "Controls tick did not enter the cancellation watchdog case");
+        input_started.set_value();closed(fd);
+    });
+    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+    {
+        supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
+        const auto binding=worker.capture_binding();const auto interrupt=binding->interrupt.lock();
+        check(worker.post_device(binding,worker_key_packet(binding,1,1,"",false,true)),
+            "Keyboard source did not connect for cancellation test");
+        worker.call([]{});
+        check(worker.post_device(binding,worker_key_packet(binding,2,2,"w",true)),
+            "Movement key press was not queued for cancellation test");
+        check(input_started.get_future().wait_for(1s)==std::future_status::ready,
+            "Controls tick did not become pending before cancellation");
+        check(worker.post_device(binding,worker_key_packet(binding,3,3,"F12",true)),
+            "Explicit cancel key was not queued");
+        const auto deadline=std::chrono::steady_clock::now()+1200ms;
+        while(!interrupt->requested() && std::chrono::steady_clock::now()<deadline)
+            std::this_thread::sleep_for(5ms);
+        check(interrupt->requested() && binding->retired(),
+            "Explicit cancellation failed to keep the watchdog urgent during controls_tick");
+        check(worker.shutdown(),"Explicit cancellation left capture cleanup unresolved");
+    }
+    producer.reset();host.reset();source.finish();
+}
 void worker_pending_capture_retirement_keeps_root_calls_available() {
     Fixture fixture;Endpoint source(fixture,2s);
     source.start([&](int fd){handshake(fd,fixture);
@@ -1135,6 +1275,8 @@ int main(int argc, char** argv) {
             worker_heartbeat_only_wait_keeps_real_cancellation(1);std::cout<<"PASS worker-heartbeat-only-wait-then-fresh-key-watchdog\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(2);std::cout<<"PASS worker-heartbeat-only-wait-then-real-source-silence\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(3);std::cout<<"PASS worker-heartbeat-only-wait-then-malformed-source-heartbeat\n";
+            worker_controls_tick_keeps_actor_and_motion_live_with_queued_release();std::cout<<"PASS worker-controls-tick-motion-live-and-queued-release\n";
+            worker_controls_tick_keeps_explicit_cancel_watchdog_urgent();std::cout<<"PASS worker-controls-tick-explicit-cancel-watchdog\n";
             worker_pending_capture_retirement_keeps_root_calls_available();std::cout<<"PASS worker-pending-capture-retirement-keeps-root-calls-available\n";
             worker_shutdown_cannot_publish_a_cached_nonvoid_result();std::cout<<"PASS worker-shutdown-interrupted-cached-nonvoid-result\n";
             return 0;

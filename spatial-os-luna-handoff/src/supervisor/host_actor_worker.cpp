@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <string_view>
 
 namespace spatial::supervisor {
 namespace {
@@ -129,7 +130,11 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
             (void)request_cancel(binding); return false;
         }
     }
-    Work work; work.capture_heartbeat = packet.event().has_heartbeat();
+    const auto& event=packet.event();
+    const bool capture_cancellation=event.has_disconnected() ||
+        (event.has_key() && event.key().pressed() && event.key().keysym()=="F12") ||
+        (event.has_button() && !event.button().pressed());
+    Work work; work.capture_heartbeat = event.has_heartbeat();work.cancellation=capture_cancellation;
     work.capture_motion = packet.event().has_motion() || packet.event().has_axes();
     work.capture_relative_motion = packet.event().has_motion();
     if (work.capture_motion) {
@@ -335,6 +340,7 @@ void HostActorWorker::watch() noexcept {
                 const auto context = flight_->binding;
                 bool queued_heartbeat=false,queued_event=false;
                 bool queued_cancellation=false,queued_capture=false;
+                bool queued_host_event=false;
                 {
                     std::lock_guard queue_lock(queue_mutex_);
                     for(const auto& work:queue_)if(work.urgent_binding==context &&
@@ -342,9 +348,19 @@ void HostActorWorker::watch() noexcept {
                         if(work.capture_heartbeat)queued_heartbeat=true;else queued_event=true;
                         queued_cancellation |= work.cancellation;
                         queued_capture |= bool(work.capture_packet);
+                        queued_host_event |= !work.capture_packet && !work.capture_heartbeat;
                     }
                 }
-                const bool urgent=flight_->urgent || pending_cancel_==context || queued_heartbeat || queued_event;
+                const bool controls_tick=flight_->origin==std::string_view("maintenance") &&
+                    flight_->phase==std::string_view("controls_tick");
+                // Capture ingress observes movement before queueing it. Let that
+                // buffered input reach the checked stale-event/Stop path after a
+                // slow controls tick; unrelated ordinary capture must not retire
+                // the actor's authenticated channel. Explicit cancellation,
+                // host requests, and an urgent flight retain watchdog behavior.
+                const bool queued_event_urgent=queued_event &&
+                    !(controls_tick && queued_capture && !queued_host_event && !queued_cancellation);
+                const bool urgent=flight_->urgent || pending_cancel_==context || queued_heartbeat || queued_event_urgent;
                 if (urgent) if (const auto interrupt = context->interrupt.lock()) {
                     if(!interrupt->requested() && logged_serial!=flight_->serial) {
                         decision.serial=flight_->serial;

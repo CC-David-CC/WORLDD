@@ -341,3 +341,12 @@ This changes only the outer test-service limit. Workspace and application budget
 The bounded override regression is in storage-owner-fixture-tooling. The full M10 candidate
 must carry this source and explicitly set the override for Debug and ASan/UBSan qualification.
 This test-harness correction is unqualified until reviewed and run on both hosts.
+
+2026-10-28 slow controls-tick capture backlog repair
+The b4070e2 gate reproduced actor-session retirement when a queued captured key release arrived during a slow maintenance controls tick.
+HostActorWorker now preserves ordinary capture backlog during that flight. MotionIntent still updates at ingress; stale gestures reach checked Stop.
+Explicit cancellation, button release, source disconnect, host requests, urgent actor flights, and both watchdog/expiry limits remain enforced.
+The deterministic controls-tick regression checks movement refresh, zero-intent release, checked Stop, actor availability, and F12 watchdog urgency.
+Middle-child Debug checks pass3/3. ASan/UBSan worker check passes1/1.
+See docs/M10_CONTROLS_TICK_BACKLOG_REPAIR_2026-10-28.txt for source pins, receipts, and limits.
+Both native test-host reruns and the complete frozen two-host gate remain pending. M10 is UNQUALIFIED.
