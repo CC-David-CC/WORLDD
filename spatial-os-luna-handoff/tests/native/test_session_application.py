@@ -183,16 +183,9 @@ class SessionApplicationTests(existing.SessionActorTests):
         result = subprocess.run([config.launch.executable, '--state-dir', str(self.root / 'world'),
             '--init-authority', str(self.config_file('world-seed', seed))], capture_output=True, timeout=8)
         self.assertEqual(result.returncode, 0, result.stderr)
-        admitted_actor_ids = [self.claims.actor_id]
-        actor_grants = [session.WorldActorGrants(actor_id=self.claims.actor_id,
-            grants=['navigate', 'interact', 'observe'])]
-        second = getattr(self, 'second_claims', None)
-        if second:
-            admitted_actor_ids.append(second.actor_id)
-            actor_grants.append(session.WorldActorGrants(actor_id=second.actor_id, grants=['navigate']))
         policy = session.WorldIdentityConfig(protocol_version=1, issuer_client_config=str(self.issuer.config_file()),
             participant_runtime_config=config.child_participant_config, admission=session.EXPLICIT_ACTORS,
-            admitted_actor_ids=admitted_actor_ids, actor_grants=actor_grants, authority_directory=str(directory))
+            authority_directory=str(directory))
         self.config_file('actor-identity', policy)
         runtime = core.RuntimeConfig()
         text_format.Parse(Path(config.launch.executable).with_name('runtime.textproto').read_text(), runtime)

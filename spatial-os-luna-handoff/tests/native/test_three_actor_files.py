@@ -26,6 +26,12 @@ WORKSPACE='workspace-one'
 class ThreeActorFileTests(existing.ScriptedActorTests):
     def setUp(self):
         super().setUp();self.local_paths={};self.read_only_second=False
+        self.presentation_continuations_override=True
+
+    def prepare(self, **options):
+        config, descriptors = super().prepare(**options)
+        self.assertTrue(config.enable_presentation_continuations)
+        return config, descriptors
 
     def config_file(self,name,value):
         if isinstance(value,world.WorldAuthoritySeed) and name.startswith('scripted-world-seed'):

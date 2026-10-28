@@ -1,0 +1,12 @@
+M10 three-actor presentation selection, 2026-10-28
+
+The M10 three-actor scenarios explicitly enable presentation continuations in
+their production host-session configuration. An unqualified gate run showed
+that synchronous foreground refresh occupied the actor worker while stop was
+queued. The watchdog interrupted the actor connection after 742 and 787 ms.
+
+The continuation path retains checked actor, view, owner, and presentation
+identities. Existing authorization, retirement, failure, and timing checks
+remain required. This selection does not change the host configuration default.
+It does not establish qualification. Run the combined scenarios and the related
+presentation, revocation, cancellation, and sanitizer checks on both hosts.

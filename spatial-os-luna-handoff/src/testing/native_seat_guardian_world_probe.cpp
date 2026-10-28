@@ -17,8 +17,24 @@
 #include <unistd.h>
 namespace g=spatial::identity::guardian::v1;
 void need(bool value,const char* message){if(!value)throw std::runtime_error(message);}
+std::string decode_id(const std::string& text){
+    need(text.size()==64,"Invalid encoded ID length");
+    auto digit=[](char c)->unsigned {
+        if(c>='0'&&c<='9')return c-'0';
+        if(c>='a'&&c<='f')return c-'a'+10;
+        throw std::runtime_error("Invalid encoded ID digit");
+    };
+    std::string result;result.reserve(32);
+    for(std::size_t i=0;i<text.size();i+=2)result.push_back(static_cast<char>((digit(text[i])<<4)|digit(text[i+1])));
+    return result;
+}
 int main(int argc,char** argv){
     try{
+        if(argc==3&&std::string(argv[1])=="--check-id-codec"){
+            const auto id=decode_id(argv[2]);
+            need(id==std::string("\0\xff",2)+std::string(30,'x'),"Binary ID changed in transport");
+            return 0;
+        }
         need(argc==6,"Expected sealed compositor config, ledger path, native server ID, compositor credential ID, and seat ID");
         const int config=std::stoi(argv[1]);const auto parent=getpid();
         const int seat=std::stoi(argv[5]);need(seat>0,"Invalid native seat ID");
@@ -57,8 +73,8 @@ int main(int argc,char** argv){
             g::NativeSeatBinding binding;binding.set_issuer_id(std::string(32,'i'));binding.set_actor_id(std::string(32,'a'));
             binding.set_credential_id(std::string(32,'c'));binding.set_actor_entity_id("identity:guardian-world-probe");
             binding.set_actor_session_instance(1);binding.set_service_incarnation(std::string(32,'s'));
-            binding.set_authority_generation(1);binding.set_native_server_id(argv[3]);
-            binding.set_compositor_credential_id(argv[4]);binding.set_native_seat_id(static_cast<std::uint64_t>(seat));
+            binding.set_authority_generation(1);binding.set_native_server_id(decode_id(argv[3]));
+            binding.set_compositor_credential_id(decode_id(argv[4]));binding.set_native_seat_id(static_cast<std::uint64_t>(seat));
             const auto receipt=client.register_seat(binding,17);
             need(receipt.binding().SerializeAsString()==binding.SerializeAsString()&&receipt.issuer_security_revision()==17,
                 "Guardian client returned a mismatched checked receipt");

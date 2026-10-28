@@ -1,0 +1,11 @@
+M10 tap-rate requirement change, 2026-10-28
+
+David changed the required sustained rate from 250 to 100 key taps per second.
+The application witness and independent native witness each retain a separate
+100-tap-per-second minimum. The same batches, ordering, event counts, device
+identity, and delivery assertions remain required.
+
+This replaces the 250-tap floor described in earlier M10 documents. Historical
+measurements and failure reports remain evidence of their original runs. They
+do not establish a pass under this revised requirement. The changed candidate
+must pass the required tests on both hosts and the full frozen-candidate gate.

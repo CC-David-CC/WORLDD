@@ -229,8 +229,8 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
             event['source'] in binding['enabled_devices'] for event in delivered),delivered[:8])
         expected=[(codes[key],pressed) for key in text for pressed in (True,False)]
         self.assertEqual([(event['detail'],event['pressed']) for event in delivered],expected)
-        self.assertGreaterEqual(measurement['application_taps_per_second'],250,'Application phase did not sustain 250 taps per second')
-        self.assertGreaterEqual(measurement['native_taps_per_second'],250,'Native observer phase did not sustain 250 taps per second')
+        self.assertGreaterEqual(measurement['application_taps_per_second'],100,'Application phase did not sustain 100 taps per second')
+        self.assertGreaterEqual(measurement['native_taps_per_second'],100,'Native observer phase did not sustain 100 taps per second')
         for actor in actors:actor(stop=core.ActorStopRequest())
         for peer in peers:peer.close()
         self.shutdown_checked()

@@ -32,14 +32,18 @@ class ActorStopProgressTests(existing.WorldIssuerProgressTests):
         world,peer,probe,offset=self.pending_info_with_native_input()
         moved=peer.act(input=core.ActorInputRequest(axes=[1,0,0,0,0,0]))
         self.assertTrue(moved.HasField('action') and moved.action.accepted,moved)
-        self.assertTrue(self._info_relay.delay_finished.is_set())
+        self.assertFalse(self._info_relay.delay_finished.is_set(),
+            'Unrelated INFO finished before the stop was exercised')
         stopped=peer.act(stop=core.ActorStopRequest())
         self.assertTrue(stopped.HasField('action') and stopped.action.accepted,stopped)
         released=self.independent_release(probe,offset)
         state=peer.call(inspect=existing.session.WorldSessionInspect()).state
         self.assertEqual(list(state.axes),[0]*6)
         self.assertFalse(state.held_keys);self.assertFalse(state.held_buttons)
+        self.assertFalse(self._info_relay.delay_finished.is_set(),
+            'Stop and native release waited for unrelated INFO')
         self.write_observations(dict(queued_capture_motion_retired=True,independent_native_release=released))
+        self.assertTrue(self._info_relay.delay_finished.wait(5))
         world.close();self.assertEqual(world.proc.returncode,0)
 
 

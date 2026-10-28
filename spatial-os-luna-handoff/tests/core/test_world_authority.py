@@ -310,6 +310,11 @@ class WorldAuthorityTests(WorldIdentityFixture):
         owner, moving, authenticating = world.peers
         opened = self.authenticate_second(moving).opened
         actor_id = opened.actor_id
+        def actor_x():
+            reply = moving.call(inspect=session.WorldSessionInspect())
+            self.assertTrue(reply.HasField('state'), reply)
+            self.assertEqual(reply.state.id, actor_id)
+            return reply.state.pose.position.x
         before_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
         self.assertTrue(self.navigation(moving).action.accepted)
         relay.credential_delay_armed.set()
@@ -324,15 +329,15 @@ class WorldAuthorityTests(WorldIdentityFixture):
                     moving.motion_refresh(request)
                     refreshes.append(time.monotonic())
                     time.sleep(.08)
-                moving_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+                moving_pose = actor_x()
                 self.assertGreater(moving_pose-before_pose, .08, 'Actor did not move during unrelated authentication')
                 self.assertFalse(relay.credential_delay_finished.is_set(), 'Authentication delay ended before grant revocation')
                 revoked = self.revoke_grant(owner, child)
                 self.assertTrue(revoked.HasField('grant'), revoked)
                 self.denied(self.navigation(moving), core.FORBIDDEN)
-                stopped_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+                stopped_pose = actor_x()
                 time.sleep(.12)
-                final_pose = world.management('world.get', id=actor_id)['pose']['p'][0]
+                final_pose = actor_x()
                 gaps = [later-earlier for earlier, later in zip(refreshes, refreshes[1:])]
                 still_pending = not relay.credential_delay_finished.is_set()
                 self.assertTrue(still_pending, 'Authentication delay ended before revocation stopped movement')
@@ -343,6 +348,8 @@ class WorldAuthorityTests(WorldIdentityFixture):
             self.assertTrue(relay.credential_delay_finished.wait(3), 'Unrelated actor authentication did not recover')
             authenticated = authentication.result(timeout=3)
         self.assertTrue(authenticated.HasField('opened'), authenticated)
+        self.assertEqual(world.management('world.get', id=actor_id)['pose']['p'][0], final_pose,
+            'Management witness disagreed with the stopped actor pose')
         evidence = os.environ.get('SPATIAL_SECURITY_EVIDENCE')
         if evidence:
             target = Path(evidence); target.mkdir(parents=True, exist_ok=True)
