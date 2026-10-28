@@ -59,3 +59,17 @@ The new measured closures contain 51 executable and dependency files across 44 o
 /home/dflanag3/spatial-artifacts/m10-shared-actions-20261023/candidate-cb8b9bd/protobuf-toolchain-environment-r1.json
 Add ubuntu-noble-20261025 as a third complete reviewed profile. Keep both previous profiles and the legacy default contract unchanged. Add measured inputs to the deterministic regression fixture.
 Before preparation, run the toolchain profile, tool-change, and output-binding tests. Run the M06 deployed-gate static suite. Then prepare the candidate and verify both independent Protobuf generation rounds. Qualification remains UNQUALIFIED.
+
+2026-10-28 M10 preparation follow-up:
+The e852cec preparation refused before compilation because the measured CMake
+closure matched none of the reviewed profiles. Protoc and Ninja still matched
+the 2026-10-25 profile. Two CMake dependencies changed: libbrotlicommon and
+libbrotlidec. All 44 owning Debian packages passed dpkg -V with empty output.
+The measured complete profile and package checks are retained at
+/home/dflanag3/spatial-artifacts/m10-liveness-followup-20261026/protobuf-toolchain-environment-e852cec-20261028.json
+(SHA-256 2ad5c9bd2845e4f06db4955b36b1b3a44231e4bf4b7270375cad04eda7c2cb05).
+Add ubuntu-noble-20261028 as a fourth complete profile. Keep previous profiles
+and the generation contract unchanged. The selected checks are
+`tools/test_verify_protobuf_reproducibility.py` and
+`tools/test_m06_deployed_gate_static.py`; preparation stays blocked until both
+pass and the new profile is selected exactly.
