@@ -919,10 +919,6 @@ class WorldIdentityTests(WorldIdentityFixture):
         world,peer,probe=self.held();self.revoke(pb.ACTOR_TARGET);self.released(world,probe)
         self.denied(peer.act(observe=core.ActorObserveRequest()),core.UNAUTHORIZED)
 
-    def test_issuer_failure_cancels_live_control_and_does_not_kill_application(self):
-        world,peer,probe=self.held();self.stop_daemons();self.released(world,probe)
-        self.denied(peer.act(key=core.ActorKeyRequest(keysym='a',pressed=True)),core.UNAVAILABLE)
-
     def test_excessive_frame_closes_actor_channel_and_releases_input(self):
         world,peer,probe=self.held();peer.stream.sendall(struct.pack('!I',1048577))
         self.released(world,probe)

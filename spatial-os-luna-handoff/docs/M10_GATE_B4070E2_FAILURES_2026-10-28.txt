@@ -34,3 +34,14 @@ Selected retest after the active gate releases both hosts: rerun the full
 session-resources registration in Debug. Its 15 methods cover supervised key
 liveness, independent guardian fencing, native input release, and ordered
 cleanup. Preserve the full gate receipts; the current candidate remains failed.
+
+sb16 and sb16-2 CTest 230, world-identity, also fail the old
+test_issuer_failure_cancels_live_control_and_does_not_kill_application case.
+It stops the shared issuer, then expects its workspace-owned application to
+survive and deliver a release. Global issuer failure also removes that
+application's execution authority, so this expectation conflicts with the
+workspace contract. The M10 gate already has separate cases: global issuer
+loss uses an independent native keyboard and pointer-state witness, and
+world-only issuer connection loss requires the workspace application to live.
+The contradictory duplicate is removed. The selected replacement checks remain
+required in M10_CASES; their exact outcomes are checked in the full run.
