@@ -29,10 +29,14 @@ unchanged.
 
 CTest #284 session-resources, #286 session-application, and #288
 session-guardian-precommit-first-pointer failed the same supervised first-
-pointer case on sb16. The setup issued a release for a button that was not
-held. The actor correctly rejected the invalid transition. Use a non-zero
+pointer case on both hosts. The setup issued a release for a button that was
+not held. The actor correctly rejected the invalid transition. Use a non-zero
 scroll to obtain the checked seat-registration receipt, then test the queued
 first button press across issuer precommit revocation.
+
+The three-actor real-file, real-application, raw-input, and editor-terminal
+checks passed on both hosts in Debug. These are partial workflow evidence; the
+full candidate remains failed and ASan-UBSan did not run on sb16.
 
 All source changes are on an isolated repair branch. The frozen deployment
 remains untouched. Syntax and the CMake runtime-argument construction were
