@@ -45,11 +45,12 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
             self.keyboard_active = False
         return reply
 
-    def status(self, generation=0):
+    def status(self, generation=0, *, require_available=True):
         reply = self.shared('controls_status', generation)
         self.assertTrue(reply.accepted, reply)
         self.assertTrue(reply.HasField('controls'), reply)
-        self.assertTrue(reply.controls.available, reply)
+        if require_available:
+            self.assertTrue(reply.controls.available, reply)
         return reply.controls
 
     def event(self, generation=0, epoch=None, **fields):

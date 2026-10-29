@@ -134,12 +134,14 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
 
     def wait_processed(self, sequence, generation=0):
         deadline = time.monotonic() + 5
+        last_status = None
         while time.monotonic() < deadline:
-            status = self.status(generation)
+            status = self.status(generation, require_available=False)
+            last_status = status
             self.assertFalse(status.capture_retired, status)
-            if status.processed_capture_sequence >= sequence:
+            if status.processed_capture_sequence >= sequence and status.available:
                 return status
-        self.fail('Capture was not checked through its output barrier')
+        self.fail('Capture and controls did not settle through the output barrier: %r' % last_status)
 
     def test_continuous_capture_navigation_menu_and_f12(self):
         self.ready_host()

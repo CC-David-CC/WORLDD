@@ -1,0 +1,17 @@
+M10 native control flush ordering, 2026-10-29
+
+The sb16-2 full Debug gate once observed controls unavailable while the
+three-actor files scenario was waiting for the released key to reach its
+processed-capture barrier. The test helper asserted availability before it
+checked that barrier, so it could reject a valid drain interval.
+
+A focused rerun passed. It processed the key release and reported controls
+available. The original failed run stopped at the first unavailable status and
+did not observe later recovery.
+
+The test now waits until the expected capture sequence is processed and
+controls are available before continuing. It keeps the existing five-second
+bound, capture-retirement assertion, and all action and authorization checks.
+If the sequence does not drain or controls remain unavailable afterward, the
+test still fails with the last status. It sends no later action before this
+barrier. This change does not make input available early or weaken revocation.
