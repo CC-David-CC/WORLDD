@@ -1,0 +1,18 @@
+M10 scale actor input liveness revision, 2026-10-29
+
+David approved a one-third-second input freshness window for the 255/256 actor
+high-load scale fixture. The measured 253.627 ms maximum processing gap is
+within this limit.
+
+This revision applies only to tests/core/test_world_actor_scale.py. That fixture
+now sets its production runtime input timeout and its maximum per-actor
+processing-gap limit to one third of a second. It still requires each test
+sender to refresh every actor within 250 ms. It still requires all ten refreshes
+per actor, movement progress, and continued progress while another actor's
+credential check is pending.
+
+The general 250 ms input-expiry contract remains unchanged in other fixtures.
+Revocation, native input release, and cancellation deadlines remain unchanged.
+The 100 taps-per-second interaction acceptance remains unchanged. This is an
+explicit scale-fixture contract revision, not a claim that the original
+250 ms assertion passed.

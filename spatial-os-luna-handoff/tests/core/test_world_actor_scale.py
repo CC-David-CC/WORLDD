@@ -17,6 +17,8 @@ from harness.issuer_progress import DelayedInfoIssuer
 from test_world_identity import WORLD
 from test_world_remote_lifecycle import RemoteLifecycleTests
 
+SCALE_INPUT_TIMEOUT_SECONDS = 1.0 / 3.0
+
 
 class WorldActorScaleTests(RemoteLifecycleTests):
     def config_file(self, endpoint_port=None, **overrides):
@@ -58,7 +60,7 @@ class WorldActorScaleTests(RemoteLifecycleTests):
         self.assertLessEqual(len(config_text.encode()), 65536)
         local.config_path.write_text(config_text)
         runtime = text_format.Parse((WORLD.parent / 'runtime.textproto').read_text(), core.RuntimeConfig())
-        runtime.input_timeout = .25
+        runtime.input_timeout = SCALE_INPUT_TIMEOUT_SECONDS
         local.runtime_path = self.root / 'scale-runtime.textproto'
         local.runtime_path.write_text(text_format.MessageToString(runtime))
         self.remote_connection_limit = 256
@@ -143,10 +145,12 @@ class WorldActorScaleTests(RemoteLifecycleTests):
                 min_refreshes=min(counts), max_refreshes=max(counts), total_refreshes=sum(counts),
                 maximum_processing_gap_seconds=max(gaps, default=None),
                 maximum_sender_gap_seconds=max(sender_gaps, default=None),
+                scale_input_timeout_seconds=SCALE_INPUT_TIMEOUT_SECONDS,
                 slow_authentication_pending=pending)
             self.assertEqual(counts, [10]*len(peers), 'Missing or duplicate processed movement refresh')
-            self.assertLess(max(sender_gaps), .25, 'Test source missed the input expiry')
-            self.assertLess(max(gaps), .25, 'World processing exceeded the input expiry')
+            self.assertLess(max(sender_gaps), .25, 'Test source missed its 250 ms refresh cadence')
+            self.assertLess(max(gaps), SCALE_INPUT_TIMEOUT_SECONDS,
+                'World processing exceeded the approved one-third-second scale input expiry')
             if delayed:
                 self.assertTrue(pending, 'Slow authentication finished before movement was witnessed')
                 self.assertTrue(self._scale_relay.delay_finished.wait(6), 'Slow authentication did not recover')
@@ -160,6 +164,7 @@ class WorldActorScaleTests(RemoteLifecycleTests):
             record('movement_complete', enrolled=len(actors), authenticated=len(peers),
                 moved=len(peers), total_refreshes=sum(counts), maximum_processing_gap_seconds=max(gaps),
                 maximum_sender_gap_seconds=max(sender_gaps), slow_authentication_pending=pending,
+                scale_input_timeout_seconds=SCALE_INPUT_TIMEOUT_SECONDS,
                 slow_authentication_completed=bool(delayed and authentication.done()),
                 slow_credential_delay_seconds=self._scale_relay.delay_records[0]['elapsed_seconds'] if delayed else None)
 
