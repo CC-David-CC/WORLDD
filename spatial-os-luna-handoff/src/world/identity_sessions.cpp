@@ -83,6 +83,7 @@ struct Channel {
     bool needs_observation = false;
     bool needs_geometry_observation = false;
     bool local_view_attested = false;
+    bool issuer_transport_unavailable = false;
     std::uint64_t cancellation_generation = 0;
     CancellationCause cancellation_cause = CancellationCause::other;
     std::uint64_t active_request_id = 0, output_request_id = 0;
@@ -184,9 +185,12 @@ struct IdentitySessions::Impl {
     pb::WorldIdentityConfig config;
     std::unique_ptr<identity::IssuerClient> client;
     std::unique_ptr<identity::IssuerClient> auxiliary_client;
+    std::function<void()> issuer_tick;
     std::function<void()> auxiliary_tick;
     std::atomic<bool> auxiliary_maintenance_done{false};
+    std::atomic<bool> auxiliary_transport_lost{false};
     std::exception_ptr auxiliary_maintenance_error;
+    std::string auxiliary_maintenance_diagnostic;
     pb::IssuerReply auxiliary_maintenance_reply;
     std::jthread auxiliary_maintenance;
     std::unique_ptr<identity::ParticipantRuntime> participant;
@@ -218,6 +222,8 @@ struct IdentitySessions::Impl {
     world_diagnostic::LastSuccessfulExchange last_successful_exchange;
     bool ready = false, broken = false, ticking = false;
     bool issuer_exchange_in_progress = false;
+    bool primary_reconnect_pending = false;
+    bool primary_reconnect_in_progress = false;
     bool diagnostic_service_failure_logged = false;
     std::optional<std::pair<std::uint64_t, bool>> diagnostic_cancellation_state;
 
@@ -276,6 +282,8 @@ struct IdentitySessions::Impl {
     void disconnect(Channel& channel, const char* reason = "unspecified",
                     CancellationCause cause = CancellationCause::other) {
         lifecycle_diagnostic(channel, reason);
+        if (std::strcmp(reason, "auxiliary_issuer_transport_lost") == 0)
+            channel.issuer_transport_unavailable = true;
         ++channel.cancellation_generation;
         const auto stopping=channel.stopping;channel.stopping.reset();
         if(stopping)actors.abandon_stop(stopping->ticket);
@@ -503,21 +511,25 @@ struct IdentitySessions::Impl {
         poll_authority();
         queue_progress();
         try { maintain_auxiliary(); } catch (const WorldError&) { fail(); }
-        // Keep the action issuer connection alive during component waits too.
-        // The polling guard has ended, so this call's progress callbacks still
-        // detect controller loss and consume revocations while INFO is pending.
-        if (!broken && participant && !issuer_exchange_in_progress &&
+        // Keep the primary issuer connection alive, but let its INFO call use
+        // the existing progress callback. Skip it while auxiliary maintenance
+        // runs so a server-side idle close can be repaired first.
+        if (!broken && participant && !issuer_exchange_in_progress && !auxiliary_exchange_in_progress &&
                 Clock::now()-last_exchange >= std::chrono::seconds(1)) {
             pb::IssuerRequest request; request.mutable_info();
             try { exchange(std::move(request)); }
             catch (const WorldError&) { fail(); }
         }
-        if (!broken && !issuer_exchange_in_progress) {
-            try { maintain_auxiliary(); }
-            catch (const WorldError&) { fail(); }
-        }
     }
     void maintain_auxiliary() {
+        if (auxiliary_transport_lost.exchange(false,std::memory_order_acq_rel)) {
+            // A failed auxiliary channel immediately fences its current actor
+            // sessions. Recovery may restore future admission, never old input.
+            for (auto& channel : channels)
+                if (channel->fd.value >= 0 && !channel->token.empty())
+                    disconnect(*channel,"auxiliary_issuer_transport_lost");
+        }
+        bool auxiliary_reconnected = false;
         if (auxiliary_maintenance.joinable()) {
             if (!auxiliary_maintenance_done.load(std::memory_order_acquire)) return;
             auxiliary_maintenance.join();
@@ -525,10 +537,17 @@ struct IdentitySessions::Impl {
             auxiliary_exchange_in_progress=false;
             if (auxiliary_maintenance_error) {
                 std::cerr << "World auxiliary issuer maintenance failed "
-                    << auxiliary_client->failure_diagnostic() << std::endl;
+                    << auxiliary_maintenance_diagnostic << std::endl;
                 auxiliary_maintenance_error=nullptr;
+                auxiliary_maintenance_diagnostic.clear();
                 fail();
                 throw WorldError(wire::UNAVAILABLE, "World auxiliary issuer connection failed");
+            }
+            if (!auxiliary_maintenance_diagnostic.empty()) {
+                std::cerr << "World auxiliary issuer INFO reconnected after "
+                    << auxiliary_maintenance_diagnostic << std::endl;
+                auxiliary_reconnected=true;
+                auxiliary_maintenance_diagnostic.clear();
             }
             const auto& reply=auxiliary_maintenance_reply;
             if (!reply.has_info() || reply.info().issuer_id()!=issuer.issuer_id() ||
@@ -539,12 +558,31 @@ struct IdentitySessions::Impl {
             auxiliary_maintenance_reply.Clear();
             last_aux_exchange=Clock::now();
             last_successful_exchange.record_success(last_aux_exchange);
+            if (auxiliary_reconnected) primary_reconnect_pending=true;
+        }
+        if (primary_reconnect_pending && !issuer_exchange_in_progress && !primary_reconnect_in_progress) {
+            // Both TLS sockets may expire while worldd is suspended. A fresh
+            // auxiliary INFO above verified the configured issuer identity, so
+            // replace the stale primary transport without retrying any action.
+            primary_reconnect_pending=false;
+            primary_reconnect_in_progress=true;
+            try {
+                auto replacement=std::make_unique<identity::IssuerClient>(config.issuer_client_config(),issuer_tick);
+                client=std::move(replacement);
+                last_exchange=Clock::now();
+                primary_reconnect_in_progress=false;
+            } catch (...) {
+                primary_reconnect_in_progress=false;
+                fail();
+                throw WorldError(wire::UNAVAILABLE,"Primary world issuer connection failed");
+            }
         }
         if (broken || closing || !auxiliary_client || !auxiliary_tick || auxiliary_exchange_in_progress ||
                 Clock::now()-last_aux_exchange < std::chrono::seconds(1)) return;
         auxiliary_exchange_in_progress=true;
         auxiliary_maintenance_done.store(false,std::memory_order_relaxed);
         auxiliary_maintenance_error=nullptr;
+        auxiliary_maintenance_diagnostic.clear();
         auxiliary_maintenance_reply.Clear();
         try {
             auxiliary_maintenance=std::jthread([this](std::stop_token stop) {
@@ -555,7 +593,25 @@ struct IdentitySessions::Impl {
                     stop_trace::Scope trace("world_auxiliary_info",0);
                     pb::IssuerRequest request;request.set_protocol_version(1);request.mutable_info();
                     auxiliary_maintenance_reply=auxiliary_client->call(std::move(request));
-                } catch (...) { auxiliary_maintenance_error=std::current_exception(); }
+                } catch (...) {
+                    auxiliary_maintenance_diagnostic=auxiliary_client->failure_diagnostic();
+                    auxiliary_transport_lost.store(true,std::memory_order_release);
+                    try {
+                        // INFO has no side effect. Reopen only this failed
+                        // read-only channel, then verify the same issuer before
+                        // resuming authority progress.
+                        auto replacement=std::make_unique<identity::IssuerClient>(
+                            config.issuer_client_config(), [stop] {
+                                if (stop.stop_requested()) throw std::runtime_error("Auxiliary maintenance stopped");
+                            });
+                        pb::IssuerRequest request;request.set_protocol_version(1);request.mutable_info();
+                        auxiliary_maintenance_reply=replacement->call(std::move(request));
+                        auxiliary_client=std::move(replacement);
+                    } catch (...) {
+                        auxiliary_maintenance_error=std::current_exception();
+                        auxiliary_maintenance_diagnostic+="; reconnect failed";
+                    }
+                }
                 auxiliary_maintenance_done.store(true,std::memory_order_release);
             });
         } catch (...) {
@@ -887,6 +943,7 @@ struct IdentitySessions::Impl {
         const auto opened=actors.open(open,true,std::move(check),actor,!channel.tls,pending.claims.credential_id(),
             participant->service_incarnation(),generation,status.security_revision());
         channel.token=opened.token();channel.credential=pending.begin.credential();channel.claims=pending.claims;
+        channel.issuer_transport_unavailable=false;
         channel.motion_sequence=0;
         channel.credential_revision=status.security_revision();
         channel.view_id=random_binding(); channel.view_sequence=0;
@@ -1167,6 +1224,8 @@ struct IdentitySessions::Impl {
                 }else *reply.mutable_opened()=activate(channel,*pending,status);
             } else if (request.has_inspect() || request.has_action() || request.has_control_action() || request.has_grants() || request.has_delegate() || request.has_revoke() ||
                        request.has_bootstrap_bind() || request.has_bootstrap_revoke() || request.has_bootstrap_apply()) {
+                if (channel.issuer_transport_unavailable && (request.has_action() || request.has_control_action()))
+                    throw WorldError(wire::UNAVAILABLE, "Actor session was fenced after issuer transport loss");
                 if (channel.token.empty()) throw WorldError(wire::UNAUTHORIZED, "Channel has no authenticated actor");
                 const auto actor = principal(channel.claims);
                 // Only the strict gate above can authorize retained movement.
@@ -1651,12 +1710,13 @@ IdentitySessions::~IdentitySessions() {
 }
 void IdentitySessions::set_tick(std::function<void()> callback) {
     auto shared_callback=std::make_shared<std::function<void()>>(std::move(callback));
-    impl_->client->set_tick([this, shared_callback] {
+    impl_->issuer_tick=[this, shared_callback] {
         impl_->pump(true);
         if(*shared_callback)(*shared_callback)();
         impl_->pump(true);
         impl_->maintain_auxiliary();
-    });
+    };
+    impl_->client->set_tick(impl_->issuer_tick);
     impl_->auxiliary_tick=[this, shared_callback] {
         impl_->pump(true,true);
         if(*shared_callback)(*shared_callback)();

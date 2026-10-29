@@ -2175,7 +2175,11 @@ void Actors::flush_input() {
     progress_stops();
     poll_control();
     refresh_authority();
-    if (flushing_input_ || (renderer_ && renderer_->busy())) return;
+    if (flushing_input_) return;
+    // Broker control release is independent of the renderer stream. Drain it
+    // during frame exchanges so a checked Stop does not wait for presentation.
+    drain_control_releases();
+    if (renderer_ && renderer_->busy()) return;
     flushing_input_ = true;
     struct Reset { bool& value; ~Reset() { value = false; } } reset{flushing_input_};
     // Tick also runs while waiting on compositor I/O. Submit deferred motion only

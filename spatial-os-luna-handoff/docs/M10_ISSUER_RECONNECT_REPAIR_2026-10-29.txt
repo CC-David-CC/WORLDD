@@ -1,0 +1,62 @@
+M10 issuer reconnect and focused gate repair, 2026-10-29
+
+Status: focused checks pass. M10 remains unqualified.
+
+Source branch: m10/stop-presentation-liveness-20261029
+Base commit: 5f02ebb4a9b2508a13d51f0e64cd4d64ce871af5
+Frozen candidate 5f02ebb4-01 remains unchanged and unqualified.
+
+The auxiliary issuer INFO reconnect repair initially caused unbounded primary
+TLS reconnects. Constructing the replacement primary client synchronously ran
+its progress callback. That callback reentered auxiliary maintenance before the
+pending reconnect state cleared. One isolated failure produced 475 relay
+threads and exhausted the native service task limit.
+
+The repair guards primary reconnect reentry and only replaces the primary
+read-only transport after auxiliary INFO verifies the configured issuer. It
+does not retry issuer mutations. If the auxiliary transport fails, worldd
+fences active actor sessions and releases native input before recovery. Further
+actions on that fenced channel return UNAVAILABLE. Fresh authentication clears
+the temporary channel condition; prior actor input is never resumed.
+
+Focused checks used the production test harness on sb16 and sb16-2. Each host
+ran against the same Debug worldd hash
+b3a30dd924c53e13a0742c0823bc6b91321cc471985a1e27bd78a77fbd58a04c and ASan/
+UBSan worldd hash
+5785bfb7429b641535a6c694e7b101f4db8eaf57878f94efabeda1c72d85a83c.
+
+Passed on both hosts:
+
+- world-issuer-progress: 27 tests in Debug and 27 under ASan/UBSan.
+- actor-stop-lifetime: 3 tests in Debug.
+- world-participant-native: 7 tests in Debug.
+- three-actor-editor-terminal: 2 tests in Debug.
+- session-operator-revocation: 3 tests in Debug, including the updated
+  3000 ms barrier observation window.
+- workspace-file-action-storage-owner-btrfs: 1 test in Debug with a newly
+  provisioned Btrfs volume per host.
+
+The auxiliary INFO connection-loss test independently observed balanced native
+key and button releases within 12 ms, UNAVAILABLE on a later actor action, and
+no forbidden key press. The complete issuer-progress suite passed after this
+repair without the earlier thread growth.
+
+Evidence is retained under
+/home/dflanag3/spatial-artifacts/m10-supervised-native-precommit-20261028/runs/
+focused-issuer-progress-repair-20261029,
+focused-issuer-progress-asan-20261029,
+focused-stop-issuer-final-20261029,
+focused-participant-issuer-final-20261029,
+focused-three-actor-current-20261029,
+focused-operator-current-20261029, and
+focused-storage-current-20261029.
+
+The first five operator-revocation launch attempts failed before test execution
+because the ad hoc launcher used the wrong test path or omitted sibling import
+paths. Attempt 06 ran all three tests and passed on both hosts. These setup
+receipts remain beside the successful attempt.
+
+The next step is to commit this reviewed source increment, build and verify one
+replacement frozen candidate, then run the full required Debug and ASan/UBSan
+gates on both hosts. Physical-input, 100-tap-per-second, and any other gate
+requirements remain pending. Focused passes do not qualify M10.

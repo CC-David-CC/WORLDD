@@ -152,7 +152,9 @@ class OperatorRevocationTests(application.SessionApplicationTests):
 
     def test_pending_timeout_resumes_without_another_revocation(self):
         self.pause_world()
-        command = self.start_command(wait=300); self.committed(command)
+        # Leave time for the independent issuer and barrier reads to observe
+        # the durable commit before this command reaches its pending timeout.
+        command = self.start_command(wait=3000); self.committed(command)
         result = self.finish_command(command, identity.REVOCATION_COMMITTED)
         self.assertEqual(result.error.code, core.TIMEOUT)
         self.assertGreater(result.barrier.pending_count, 0)
