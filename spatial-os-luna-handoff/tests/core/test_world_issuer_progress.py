@@ -823,7 +823,9 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             world,peer,other_peer,probe=self.pending_other_actor_auth_with_native_input()
         actor_id=self._native_actor_id
         with probe.condition:offset=len(probe.events)
-        before_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
+        before_state=peer.call(inspect=session.WorldSessionInspect()).state
+        before_pose=before_state.pose.position.x
+        before_management_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
         movement=core.ActorInputRequest(axes=[1,0,0,0,0,0])
         self.assertTrue(peer.act(input=movement).action.accepted)
         self._info_relay.delay_armed.set()
@@ -837,7 +839,16 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
                 time.sleep(.08)
             moving_state=peer.call(inspect=session.WorldSessionInspect()).state
             moving_pose=moving_state.pose.position.x
+            moving_management_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
             pending_after_inspect=not self._info_relay.delay_finished.is_set()
+            self.write_observations(dict(stage='movement_before_revocation',
+                movement_refresh_count=len(refreshes),movement_refresh_ids=[request for request,_ in refreshes],
+                movement_refresh_gaps_seconds=[later[1]-earlier[1] for earlier,later in zip(refreshes,refreshes[1:])],
+                pose_before_actor_inspect=before_pose,pose_before_management=before_management_pose,
+                pose_during_actor_inspect=moving_pose,pose_during_management=moving_management_pose,
+                displacement_actor_inspect=moving_pose-before_pose,
+                displacement_management=moving_management_pose-before_management_pose,
+                authentication_pending_during_pose_reads=pending_after_inspect))
             self.assertTrue(pending_after_inspect,
                 'Live actor inspection waited until other actor authentication finished')
             self.assertGreater(moving_pose-before_pose,.08,'Actor did not move before revocation')

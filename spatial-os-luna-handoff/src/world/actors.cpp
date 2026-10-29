@@ -1578,6 +1578,25 @@ void Actors::send_input(Actor& actor, const wire::RendererInputCommand& command)
         else actor.keyboard_application.reset();
     }
 }
+bool Actors::retained_native_binding_current(const Actor& actor) const {
+    if(actor.token.empty() || actor.close_pending || actor.departure_pending || actor.pending_stop ||
+       actor.interaction_reset_pending || !actor.principal || !actor.application_input ||
+       !actor.application_control || !actor.seat_authority || !revocation_input_ ||
+       !revocation_input_->scoped_connected())return false;
+    const auto& seat=*actor.seat_authority;
+    if(actor.credential_id.size()!=32 || seat.credential_id!=actor.credential_id ||
+       seat.actor_entity_id!=actor.entity.id() || seat.actor_instance_id!=actor.witness_instance_id ||
+       seat.service_incarnation!=actor.service_incarnation || seat.authority_generation!=actor.authority_generation ||
+       seat.principal.SerializeAsString()!=actor.principal->SerializeAsString() ||
+       seat.server_id!=revocation_input_->server_id() ||
+       seat.compositor_credential_id!=revocation_input_->credential_id() ||
+       actor.native.server_id()!=seat.server_id || actor.native.native_seat_id()!=seat.seat_id ||
+       !granted(actor,"observe"))return false;
+    if(native_guardian_required_ && (!native_guardian_ || !actor.guardian_registration ||
+       actor.guardian_registration->binding().SerializeAsString()!=guardian_binding(seat).SerializeAsString() ||
+       actor.guardian_registration->issuer_security_revision()!=actor.issuer_security_revision))return false;
+    return true;
+}
 std::string Actors::control_group(const wire::SurfaceRecord& surface) const {
     return surfaces_->control_group(surface);
 }
@@ -1701,7 +1720,9 @@ void Actors::route_input(Actor& actor, const wire::ActorActionRequest& request) 
     if (request.has_scroll()) require(request.scroll().has_steps_y() && request.scroll().steps_y() >= -64 &&
         request.scroll().steps_y() <= 64, "Expected scroll steps within [-64,64]");
     const bool cached_keyboard=request.has_key() || request.has_key_tap_batch();
-    if(!cached_keyboard || !actor.native.has_focus() || !actor.application_control || !actor.application_input) {
+    const bool retained_pointer_binding=!cached_keyboard && retained_native_binding_current(actor);
+    if((!cached_keyboard && !retained_pointer_binding) ||
+       (cached_keyboard && (!actor.native.has_focus() || !actor.application_control || !actor.application_input))) {
         stop_trace::mark("input_route_sync_begin");
         refresh_native();
         stop_trace::mark("input_route_sync_done");

@@ -226,6 +226,7 @@ private:
     void drain_control_releases();
     void preflight_input_authority(Actor& actor, const workspace::v1::ApplicationRef& application);
     void authorize_input(Actor& actor, const wire::SurfaceHandle& target);
+    bool retained_native_binding_current(const Actor& actor) const;
     void finish_input(Actor& actor);
     void send_input(Actor& actor, const wire::RendererInputCommand& command);
     wire::AimHit input_target(Actor& actor, bool captured = true);

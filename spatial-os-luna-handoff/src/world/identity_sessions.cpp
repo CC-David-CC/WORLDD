@@ -687,12 +687,23 @@ struct IdentitySessions::Impl {
         observed_revision = std::max(observed_revision, status.security_revision());
     }
     pb::IdentityStatus current(pb::SignedCredential credential, pb::ActorCredential claims) {
-        pb::IssuerRequest request; *request.mutable_credential_check() = credential;
-        const auto request_revision = observed_revision;
-        const auto status = exchange(std::move(request)).identity_status(); identity_matches(status, claims, request_revision);
-        if (!status.active() || status.actor_revoked() || status.credential_revoked())
-            throw WorldError(wire::UNAUTHORIZED, "Actor credential is revoked");
-        return status;
+        // A concurrent revocation can advance the global security revision
+        // while this actor's credential check is in flight. Re-read this exact
+        // credential at the newer revision; never accept the stale result.
+        for(unsigned attempt=0;attempt<3;++attempt) {
+            pb::IssuerRequest request; *request.mutable_credential_check() = credential;
+            const auto request_revision = observed_revision;
+            try {
+                const auto status = exchange(std::move(request)).identity_status();
+                identity_matches(status, claims, request_revision);
+                if (!status.active() || status.actor_revoked() || status.credential_revoked())
+                    throw WorldError(wire::UNAUTHORIZED, "Actor credential is revoked");
+                return status;
+            } catch(const SupersededAuthorityRead&) {
+                if(attempt==2)throw;
+            }
+        }
+        throw SupersededAuthorityRead();
     }
     void current(Channel& channel) {
         const auto status=current(channel.credential,channel.claims);
