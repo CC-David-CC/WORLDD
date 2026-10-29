@@ -1590,7 +1590,7 @@ bool Actors::retained_native_binding_current(const Actor& actor) const {
        seat.principal.SerializeAsString()!=actor.principal->SerializeAsString() ||
        seat.server_id!=revocation_input_->server_id() ||
        seat.compositor_credential_id!=revocation_input_->credential_id() ||
-       actor.native.server_id()!=seat.server_id || actor.native.native_seat_id()!=seat.seat_id ||
+       actor.native.native_seat_id()!=seat.seat_id ||
        !granted(actor,"observe"))return false;
     if(native_guardian_required_ && (!native_guardian_ || !actor.guardian_registration ||
        actor.guardian_registration->binding().SerializeAsString()!=guardian_binding(seat).SerializeAsString() ||
