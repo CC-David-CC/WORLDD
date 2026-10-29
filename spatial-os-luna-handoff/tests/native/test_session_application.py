@@ -582,7 +582,11 @@ class SessionApplicationTests(existing.SessionActorTests):
                 time.sleep(.005)
             event_offset = len(self.events())
             log_offset = self.logpath.stat().st_size
-            queued_action = pool.submit(self.act, pointer=core.ActorPointerRequest(button=1, pressed=True))
+            self.action_sequence += 1
+            request = session.WorldSessionRequest(protocol_version=1,
+                action=core.ActorActionRequest(seq=self.action_sequence,
+                    pointer=core.ActorPointerRequest(button=1, pressed=True)))
+            queued_action = pool.submit(self.actor_call, self.stream, request)
             deadline = time.monotonic() + 3
             while 'role=renderer_input_sent' not in self.logpath.read_text(errors='replace')[log_offset:]:
                 self.assertLess(time.monotonic(), deadline,
@@ -631,6 +635,7 @@ class SessionApplicationTests(existing.SessionActorTests):
             resume(world_pid)
             denied = queued_action.result(timeout=10)
             self.assertTrue(denied.HasField('error'), denied)
+            self.assertIn(denied.error.code, (core.UNAUTHORIZED, core.STALE_TARGET), denied)
             final_rows = self.events()[event_offset:]
             self.assertFalse(any(row.get('event') == 'button' and row.get('pressed') for row in final_rows), final_rows)
             self.assertIsNone(self.coordinator.poll(), 'Supervisor must remain alive after first-pointer fencing')

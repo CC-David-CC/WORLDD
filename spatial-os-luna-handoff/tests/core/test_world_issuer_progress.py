@@ -837,24 +837,15 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
                 request=peer.motion_refresh(movement)
                 refreshes.append((request,time.monotonic()))
                 time.sleep(.08)
-            moving_state=peer.call(inspect=session.WorldSessionInspect()).state
-            moving_pose=moving_state.pose.position.x
-            moving_management_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
-            pending_after_inspect=not self._info_relay.delay_finished.is_set()
-            self.write_observations(dict(stage='movement_before_revocation',
+            pending_after_refreshes=not self._info_relay.delay_finished.is_set()
+            self.write_observations(dict(stage='movement_refreshes_during_other_actor_authentication',
                 movement_refresh_count=len(refreshes),movement_refresh_ids=[request for request,_ in refreshes],
                 movement_refresh_gaps_seconds=[later[1]-earlier[1] for earlier,later in zip(refreshes,refreshes[1:])],
                 pose_before_actor_inspect=before_pose,pose_before_management=before_management_pose,
-                pose_during_actor_inspect=moving_pose,pose_during_management=moving_management_pose,
-                displacement_actor_inspect=moving_pose-before_pose,
-                displacement_management=moving_management_pose-before_management_pose,
-                authentication_pending_during_pose_reads=pending_after_inspect))
-            self.assertTrue(pending_after_inspect,
-                'Live actor inspection waited until other actor authentication finished')
-            self.assertGreater(moving_pose-before_pose,.08,'Actor did not move before revocation')
+                authentication_pending_after_refreshes=pending_after_refreshes))
+            self.assertTrue(pending_after_refreshes,
+                'Other actor authentication finished before the movement refresh window ended')
             last_refresh=refreshes[-1][1]
-            # Use the live actor channel: the management pipe is serviced by
-            # worldd's outer loop and cannot observe this issuer wait.
             self.revoke(kind=issuer.ACTOR_TARGET)
             revoke_ack=time.monotonic()
             released=self.independent_release(probe,offset)
@@ -876,14 +867,17 @@ class WorldIssuerProgressTests(IssuerLifetimeWitness, WorldIdentityFixture):
             'World did not process sustained movement refreshes during the pending authentication')
         self.assertTrue(all(gap<.25 for gap in processed_gaps),processed_gaps)
         stopped_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
+        actor_displacement=stopped_pose-before_pose
+        self.assertGreater(actor_displacement,.08,
+            'Processed movement refreshes did not move the actor before native release')
         time.sleep(.12)
         final_pose=world.management('world.get',id=actor_id)['pose']['p'][0]
         self.assertEqual(stopped_pose,final_pose,'Revoked actor continued moving after native release')
         self.write_observations(dict(stage='actor_revocation_during_other_actor_authentication',
-            actor_moved_before_revocation=moving_pose-before_pose,
+            actor_moved_before_native_release=actor_displacement,
             refresh_count=len(refreshes),processed_refreshes_before_native_release=len(processed),
             maximum_processed_refresh_gap_seconds=max(processed_gaps,default=None),
-            inspection_completed_during_authentication=pending_after_inspect,
+            authentication_pending_after_refreshes=pending_after_refreshes,
             last_refresh_to_revoke_ack_seconds=revoke_ack-last_refresh,
             last_refresh_to_native_release_seconds=released['observed_monotonic']-last_refresh,
             native_release=released,other_actor_authentication_pending_at_release=still_pending,

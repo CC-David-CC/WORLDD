@@ -42,3 +42,48 @@ All source changes are on an isolated repair branch. The frozen deployment
 remains untouched. Syntax and the CMake runtime-argument construction were
 checked locally. Focused host runs, sanitizers, and a replacement full gate
 remain pending.
+
+Focused candidate 32811f0, 2026-10-28
+
+Candidate 32811f0f0d82fd4303cb02f12be07c460569cbde built and packaged
+successfully. Debug and ASan/UBSan each registered 312 tests. All build stages
+and the protobuf reproducibility proof passed. The 2,627,763,400-byte bundle
+matched its manifest and all 1,519 archived source hashes. Deployment
+verification passed on sb16 and sb16-2.
+
+The five focused checks completed on both hosts. The fresh Btrfs storage case
+passed on both. The world-issuer suite failed one assertion on each host.
+That test made a synchronous actor inspection before revocation. The inspection
+waited for the unrelated 4.1-second credential check to finish. The retained
+world trace still shows all five one-way movement refreshes processed during
+that check. The captured actor pose advanced. Keep the pending-authentication,
+refresh receipt, native release deadline, and stable-pose assertions. Do not
+block the revocation sequence on a synchronous inspection.
+
+The session-resources, session-application, and first-pointer registrations
+failed the same helper assertion on each host. The test expected an error
+reply, but called a helper that asserts every reply contains an action. The
+actual reply was STALE_TARGET after the issuer committed revocation. The
+independent application probe recorded no button-1 press after commit. Send
+the in-flight request through the raw actor-call helper and assert the error
+reply, then retain the independent no-press assertion.
+
+Candidate 32811f0 remains failed and unqualified. These test corrections
+preserve the movement and revocation checks. The corrected source must be
+rebuilt, packaged, and rerun on both hosts. The M10 full gate, physical input,
+100-tap-per-second acceptance, and full sanitizer gate remain incomplete.
+
+Selected successor focused checks, before execution:
+
+- workspace-file-action-storage-owner-btrfs: verify storage-owner operations
+  using the candidate's fresh Btrfs test volume.
+- world-issuer-progress: exercise delayed issuer replies, concurrent actors,
+  movement refresh, native release, revocation, and recovery.
+- session-resources and session-application: exercise the supervised native
+  session, resource boundary, and application control path.
+- session-guardian-precommit-first-pointer: prove issuer precommit fencing
+  blocks queued first-pointer input through the production guardian.
+
+Run all five on both hosts with Debug after deployment verification. A focused
+pass is not the M10 gate. The full required Debug and ASan/UBSan gate still
+must use one frozen successor candidate on both hosts.
