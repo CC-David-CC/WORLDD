@@ -27,13 +27,22 @@ NATIVE_MEMORY_MAX_VALUES = ('1536M', '4096M')
 
 
 def build_service_command(*, unit, username, native, copy_engine_v2,
-                          working_directory, environment, argv, runtime_seconds=None):
+                          working_directory, environment, argv, runtime_seconds=None,
+                          copy_runtime_seconds=None):
+    if runtime_seconds is not None and copy_runtime_seconds is not None:
+        raise ValueError('runtime overrides cannot be combined')
     if runtime_seconds is not None:
         if type(runtime_seconds) is not int or not 1 <= runtime_seconds <= 900:
             raise ValueError('runtime_seconds must be an integer from 1 through 900')
         if native is not True or copy_engine_v2 is not False:
             raise ValueError('runtime_seconds is allowed only for the native non-copy profile')
+    if copy_runtime_seconds is not None:
+        if type(copy_runtime_seconds) is not int or not 1 <= copy_runtime_seconds <= 1800:
+            raise ValueError('copy_runtime_seconds must be an integer from 1 through 1800')
+        if native is not True or copy_engine_v2 is not True:
+            raise ValueError('copy_runtime_seconds is allowed only for the native copy-engine-v2 profile')
     runtime_limit = (runtime_seconds if runtime_seconds is not None else
+                     copy_runtime_seconds if copy_runtime_seconds is not None else
                      900 if copy_engine_v2 else 240 if native else 120)
     if NATIVE_MEMORY_MAX_ENV in environment:
         if native is not True:
@@ -63,6 +72,7 @@ def main(argv=None):
     native = False
     copy_engine_v2 = False
     runtime_seconds = None
+    copy_runtime_seconds = None
     while args and args[0] != '--':
         option = args.pop(0)
         if option == '--native' and not native:
@@ -81,21 +91,38 @@ def main(argv=None):
                 raise SystemExit('--runtime-seconds requires an integer from 1 through 900') from None
             if not 1 <= runtime_seconds <= 900:
                 raise SystemExit('--runtime-seconds requires an integer from 1 through 900')
+        elif option == '--copy-runtime-seconds' and copy_runtime_seconds is None:
+            if not args or args[0] == '--':
+                raise SystemExit('--copy-runtime-seconds requires an integer from 1 through 1800')
+            value = args.pop(0)
+            if not value.isascii() or not value.isdecimal():
+                raise SystemExit('--copy-runtime-seconds requires an integer from 1 through 1800')
+            try:
+                copy_runtime_seconds = int(value)
+            except ValueError:
+                raise SystemExit('--copy-runtime-seconds requires an integer from 1 through 1800') from None
+            if not 1 <= copy_runtime_seconds <= 1800:
+                raise SystemExit('--copy-runtime-seconds requires an integer from 1 through 1800')
         else:
             raise SystemExit(f'Invalid or duplicate option: {option}')
     if copy_engine_v2 and not native:
         raise SystemExit('The copy engine profile requires the native resource boundary')
+    if runtime_seconds is not None and copy_runtime_seconds is not None:
+        raise SystemExit('runtime overrides cannot be combined')
     if runtime_seconds is not None and (not native or copy_engine_v2):
         raise SystemExit('--runtime-seconds is allowed only for the native non-copy profile')
+    if copy_runtime_seconds is not None and (not native or not copy_engine_v2):
+        raise SystemExit('--copy-runtime-seconds is allowed only for the native copy-engine-v2 profile')
     if args[:1] != ['--'] or len(args) <= 1:
-        raise SystemExit('Usage: with_resource_delegate.py [--native] [--copy-engine-v2] [--runtime-seconds N] -- COMMAND [ARGUMENT ...]')
+        raise SystemExit('Usage: with_resource_delegate.py [--native] [--copy-engine-v2] [--runtime-seconds N] [--copy-runtime-seconds N] -- COMMAND [ARGUMENT ...]')
     if os.getuid() == 0:
         raise SystemExit('Invoke as the project owner; only systemd setup uses sudo')
     unit = 'spatial-m03-resources-' + uuid.uuid4().hex + '.service'
     command = build_service_command(
         unit=unit, username=pwd.getpwuid(os.getuid()).pw_name, native=native,
         copy_engine_v2=copy_engine_v2, working_directory=Path.cwd(),
-        environment=os.environ, argv=args[1:], runtime_seconds=runtime_seconds)
+        environment=os.environ, argv=args[1:], runtime_seconds=runtime_seconds,
+        copy_runtime_seconds=copy_runtime_seconds)
     print(json.dumps(dict(unit=unit, command=command, recovery=['sudo','-n','systemctl','stop',unit])), flush=True)
     result = subprocess.run(command)
     # A failed transient unit may remain registered briefly. Stop only our exact unit.

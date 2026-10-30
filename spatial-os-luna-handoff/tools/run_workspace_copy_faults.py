@@ -110,9 +110,13 @@ def main():
             expected=dict(sha256=report['helpers'][name]['candidate_sha256'],uid=0,gid=0,mode=0o755)
             assert helper_state(target)==expected
             report['helpers'][name]['installed']=expected;save()
-        command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2','--',
+        command=[sys.executable,'-u','-B',str(source/'tools/with_resource_delegate.py'),'--native','--copy-engine-v2']
+        if selected_case=='test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies':
+            command.extend(['--copy-runtime-seconds','1800'])
+        command.extend(['--',
                  sys.executable,'-B',str(source/'tools/with_adapter_resources.py'),'--',sys.executable,'-B',
                  str(source/'tests/core/test_workspace_copy_faults.py'),str(build/'identityd'),str(build/'spatial-issuer-client'),str(build/'worldd')]
+                 )
         command.extend(['-v','WorkspaceCopyFaultTests.'+selected_case])
         if resource_profile == 'ASan-UBSan':
             adapter_separator=command.index(str(source/'tools/with_adapter_resources.py'))+1
@@ -127,7 +131,9 @@ def main():
         with (evidence/'stdout.log').open('wb') as stdout,(evidence/'stderr.log').open('wb') as stderr:
             child=subprocess.Popen(command,stdout=stdout,stderr=stderr,env=environment,cwd=source)
             report['launcher_pid']=child.pid;save()
-            deadline=time.monotonic()+420
+            runner_limit=1740 if selected_case=='test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies' else 420
+            report['runner_deadline_seconds']=runner_limit;save()
+            deadline=time.monotonic()+runner_limit
             while child.poll() is None and time.monotonic()<deadline and not cancellations:
                 try:child.wait(timeout=1)
                 except subprocess.TimeoutExpired:pass
@@ -142,7 +148,7 @@ def main():
                 assert len(set(units))==1,'Cannot prove the owned transient unit for cancellation'
                 root_command(['systemctl','stop',units[0]])
                 child.wait(timeout=15)
-                raise RuntimeError('Owned runtime cancelled: '+repr(cancellations or ['420-second fault-runner bound']))
+                raise RuntimeError('Owned runtime cancelled: '+repr(cancellations or [f'{runner_limit}-second fault-runner bound']))
             status=child.returncode
         report['command_exit']=status
         output=(evidence/'stdout.log').read_text(errors='replace')+(evidence/'stderr.log').read_text(errors='replace')

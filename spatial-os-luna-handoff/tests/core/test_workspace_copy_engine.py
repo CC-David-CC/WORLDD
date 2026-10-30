@@ -405,18 +405,22 @@ class WorkspaceCopyEngineTests(IssuerLifetimeWitness,fixtures.WorkspaceAuthority
         with closing(sqlite3.connect(self.execution/'execution.db')) as db:
             rows=db.execute('SELECT key,state_id,contract FROM configured_application_states WHERE workspace=? ORDER BY key',(workspace,)).fetchall()
         return {key:(self.execution/'applications'/identity,storage.ApplicationStateContract.FromString(contract)) for key,identity,contract in rows}
-    def wait_state_writes(self,paths,minimum=10):
-        deadline=time.monotonic()+10
+    def wait_state_writes(self,paths,minimum=10,timeout=10):
+        started=time.monotonic();deadline=started+timeout
         while True:
-            ready=True
-            for root,contract in paths.values():
+            pending={}
+            for key,(root,contract) in paths.items():
                 for domain in contract.subdomains:
-                    file=root/('data' if domain==storage.PERSISTENT_DATA else 'config')/'counter'
-                    try:ready=ready and int(file.read_text())>=minimum
-                    except (FileNotFoundError,ValueError):ready=False
-            if ready:return
-            self.assertLess(time.monotonic(),deadline,'Actual applications did not update declared persistent data/config')
-            time.sleep(.02)
+                    name='data' if domain==storage.PERSISTENT_DATA else 'config'
+                    file=root/name/'counter'
+                    try:value=int(file.read_text())
+                    except (FileNotFoundError,ValueError):value=None
+                    if value is None or value<minimum:pending[f'{key}:{name}']=value
+            if not pending:return time.monotonic()-started
+            now=time.monotonic()
+            if now>=deadline:
+                self.fail(f'Actual applications did not update declared persistent data/config within {timeout:.1f}s; pending={pending}')
+            time.sleep(min(.02,deadline-now))
     def application_tree(self,root):
         return {str(path.relative_to(root)):path.read_bytes() for path in root.rglob('*') if path.is_file()}
     def copy_to_completion(self,peer,request,owned,on_frozen=None):

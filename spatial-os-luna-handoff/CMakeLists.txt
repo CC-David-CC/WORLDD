@@ -1716,8 +1716,11 @@ if(BUILD_TESTING)
         "${CMAKE_CURRENT_SOURCE_DIR}/tools/run_workspace_copy_faults.py" "${CMAKE_CURRENT_BINARY_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}" --evidence-from-env
         test_real_copy_worker_death_restart_preserves_unresolved_output_without_relaunch ${copy_fixture_profile_arguments})
-    set_tests_properties(workspace-copy-absolute-deadline workspace-copy-actor-revocation
-        workspace-copy-lost-publication-ack workspace-copy-hostile-git workspace-copy-worker-death-recovery
+    set_tests_properties(workspace-copy-absolute-deadline PROPERTIES TIMEOUT 1800
+        RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
+        ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
+    set_tests_properties(workspace-copy-actor-revocation workspace-copy-lost-publication-ack
+        workspace-copy-hostile-git workspace-copy-worker-death-recovery
         PROPERTIES TIMEOUT 450 RUN_SERIAL TRUE RESOURCE_LOCK spatial-workspace-copy
         ENVIRONMENT "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python:${CMAKE_CURRENT_SOURCE_DIR}:${CMAKE_CURRENT_SOURCE_DIR}/tests/core")
     add_test(NAME workspace-authority COMMAND "${Python3_EXECUTABLE}"

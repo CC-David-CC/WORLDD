@@ -249,6 +249,37 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
         self.assertIn('MemorySwapMax=0', bounded)
         self.assertIn('TasksMax=256', bounded)
 
+    def test_delegate_copy_runtime_override_is_explicit_and_bounded(self):
+        path = SOURCE/'tools/with_resource_delegate.py'
+        spec = importlib.util.spec_from_file_location('fixture_delegate_copy_runtime', path)
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        base = dict(unit='fixture', username='fixture', native=True, copy_engine_v2=True,
+                    working_directory=self.root, environment={}, argv=['true'])
+        default = module.build_service_command(**base)
+        extended = module.build_service_command(**base, copy_runtime_seconds=1800)
+        self.assertEqual([item for item in extended if not item.startswith('RuntimeMaxSec=')],
+                         [item for item in default if not item.startswith('RuntimeMaxSec=')])
+        self.assertIn('RuntimeMaxSec=1800', extended)
+        self.assertIn('RuntimeMaxSec=900', default)
+        invalid = (
+            ({'native':False,'copy_engine_v2':True,'copy_runtime_seconds':1800}, 'native copy-engine-v2'),
+            ({'native':True,'copy_engine_v2':False,'copy_runtime_seconds':1800}, 'native copy-engine-v2'),
+            ({'native':True,'copy_engine_v2':True,'copy_runtime_seconds':True}, 'integer'),
+            ({'native':True,'copy_engine_v2':True,'copy_runtime_seconds':1801}, 'integer'),
+            ({'native':True,'copy_engine_v2':True,'runtime_seconds':600,'copy_runtime_seconds':1800}, 'cannot be combined'),
+        )
+        for options, message in invalid:
+            with self.subTest(options=options), self.assertRaisesRegex(ValueError, message):
+                module.build_service_command(**dict(base, **options))
+
+    def test_absolute_copy_deadline_fixture_has_scoped_extended_budget(self):
+        cmake = (SOURCE/'CMakeLists.txt').read_text()
+        self.assertRegex(cmake, r'set_tests_properties\(workspace-copy-absolute-deadline PROPERTIES TIMEOUT 1800')
+        self.assertRegex(cmake, r'set_tests_properties\(workspace-copy-actor-revocation workspace-copy-lost-publication-ack[\s\S]+?PROPERTIES TIMEOUT 450')
+        runner = (SOURCE/'tools/run_workspace_copy_faults.py').read_text()
+        self.assertRegex(runner, r"selected_case=='test_absolute_copy_budget_expires_across_real_subtimeout_owner_replies'[\s\S]{0,140}copy-runtime-seconds.*1800")
+        self.assertIn('runner_limit=1740 if selected_case==', runner)
+
     def test_delegate_forwards_explicit_m10_test_settings_without_unlisted_environment(self):
         path = SOURCE/'tools/with_resource_delegate.py'
         spec = importlib.util.spec_from_file_location('fixture_delegate_m10_settings', path)
@@ -335,6 +366,10 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             (['--native','--runtime-seconds','901','--','true'], 'requires an integer'),
             (['--runtime-seconds','600','--','true'], 'native non-copy'),
             (['--native','--copy-engine-v2','--runtime-seconds','600','--','true'], 'native non-copy'),
+            (['--native','--copy-runtime-seconds'], 'requires an integer'),
+            (['--native','--copy-engine-v2','--copy-runtime-seconds','1801','--','true'], 'requires an integer'),
+            (['--native','--copy-runtime-seconds','1800','--','true'], 'native copy-engine-v2'),
+            (['--native','--copy-engine-v2','--runtime-seconds','600','--copy-runtime-seconds','1800','--','true'], 'cannot be combined'),
         )
         for arguments, message in cases:
             with self.subTest(arguments=arguments), \
@@ -353,6 +388,7 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             (['--native','--runtime-seconds','600','--','true'], 'RuntimeMaxSec=600'),
             (['--native','--','true'], 'RuntimeMaxSec=240'),
             (['--native','--copy-engine-v2','--','true'], 'RuntimeMaxSec=900'),
+            (['--native','--copy-engine-v2','--copy-runtime-seconds','1800','--','true'], 'RuntimeMaxSec=1800'),
             (['--','true'], 'RuntimeMaxSec=120'),
         )
         for arguments, expected_runtime in cases:
