@@ -4,6 +4,7 @@ import importlib.util
 import io
 import os
 from pathlib import Path
+import re
 import select
 import socket
 import broker_pb2 as broker
@@ -283,6 +284,21 @@ class StorageOwnerFixtureToolingTests(unittest.TestCase):
             options = dict(base, native=(False if message == 'only for native' else True))
             with self.subTest(environment=environment), self.assertRaisesRegex(ValueError, message):
                 module.build_service_command(**options, environment=environment)
+
+    def test_three_actor_application_ctests_raise_only_their_native_memory_cap(self):
+        source = (SOURCE/'CMakeLists.txt').read_text()
+        memory = re.search(r'if\(SPATIAL_SANITIZERS\)\s+set\(_m10_native_memory_environment "([^"]+)"\)\s+endif\(\)', source)
+        self.assertIsNotNone(memory)
+        self.assertEqual(memory.group(1), ';SPATIAL_TEST_NATIVE_MEMORY_MAX=4096M')
+        for test in ('three-actor-applications-native', 'three-actor-editor-terminal-native'):
+            with self.subTest(test=test):
+                match = re.search(r'set_tests_properties\('+re.escape(test)+
+                    r' PROPERTIES TIMEOUT 600\s+ENVIRONMENT "([^"]+)"\)', source)
+                self.assertIsNotNone(match, test)
+                self.assertIn('${_m10_native_memory_environment}', match.group(1))
+        files = re.search(r'set_tests_properties\(three-actor-files-native PROPERTIES TIMEOUT 600\s+ENVIRONMENT "([^"]+)"\)', source)
+        self.assertIsNotNone(files)
+        self.assertNotIn('SPATIAL_TEST_NATIVE_MEMORY_MAX=', files.group(1))
 
     def test_delegate_runtime_override_rejects_invalid_profile_type_and_range(self):
         path = SOURCE/'tools/with_resource_delegate.py'
