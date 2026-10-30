@@ -1,0 +1,34 @@
+M10 shared-control heartbeat fixture correction, 2026-10-30
+
+Status: FIXTURE CORRECTION. No runtime source change.
+
+The corrected navigation case passed under ASan/UBSan on both hosts with a
+five-second slow-command gap. It ran once per host against the existing
+0a26c6c8 runtime. Test source SHA256:
+3289afe40d2ccab3a99d25e48908f2da8b5edb837c38e9ef22b6dba25b1b25ba
+Evidence:
+- sb16: runs/slow-gap-5s-sb16-asan-01 (one test, 14.565 seconds)
+- sb16-2: runs/slow-gap-5s-sb16-2-asan-01 (one test, 17.251 seconds)
+The full replacement candidate gate remains required.
+
+The navigation test sends both input and heartbeat packets through the
+synchronous HostControl request/reply channel. A slow host operation blocks
+that fixture from sending its next heartbeat. The production native capture
+path uses a separate private seqpacket receiver and continues heartbeats while
+the host handles the request.
+
+Keep the 250 ms gesture age, 350 ms source-silence timeout, and watchdog
+unchanged. Update the navigation test to use the existing independent capture
+fixture. Hold movement through a five-second slow-command gap while heartbeats
+continue. Five seconds represents a slow command and exceeds the source-silence
+timeout by more than fourteen times. Keep an explicit silence case and require
+capture retirement, input release, and rejection of an old event. Other tests
+retain coverage of fresh capture epochs after world transitions.
+
+Affected gate cases: host-shared-controls-native and
+host-continuous-capture-native. This corrects test transport fidelity. It does
+not change production behavior, weaken source-loss checks, or change acceptance
+contracts.
+
+Run the focused cases on sb16 and sb16-2 before freezing a new candidate.
+Then include the changed fixture in the full M10 gate on both hosts.

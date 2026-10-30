@@ -1,0 +1,21 @@
+M10 first-pointer denial reply-close disposition, 2026-10-30
+
+David authorizes a narrowly scoped qualification exception for the intermittent
+reply-close race in the production guardian first-pointer revocation test.
+This exception applies only if every other required M10 gate case passes on
+both qualification hosts in Debug and ASan/UBSan.
+
+The affected test queues a first pointer action, commits issuer revocation,
+and resumes the stopped world. The test has observed EOF while waiting for the
+denial reply. Its independent application witness has observed no button-1
+press after the revocation commit, and the precommit guardian fencing checks
+have completed before that point. The reply-close condition is a control-channel
+availability limitation. It is not permission to relax the native input fence.
+
+Keep the acceptance test unchanged. Preserve and report its failed result and
+full evidence. Do not hide the failure, retry it until green, or count it as a
+pass. The exception does not cover any late input, missed native release,
+incomplete guardian fence, failed barrier, or other test failure. If the full
+gate has no other failure, M10 may be recorded as qualified with this known
+reply-close limitation and an explicit exception entry. Otherwise M10 remains
+unqualified.

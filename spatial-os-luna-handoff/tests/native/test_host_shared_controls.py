@@ -2,6 +2,7 @@
 import os
 import select
 import signal
+import socket
 import struct
 import time
 import unittest
@@ -22,6 +23,15 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
         self.preferences = directory / 'controls.pb'
         config.shared_actor_controls = True
         config.controls_preferences_path = str(self.preferences)
+        if getattr(self, 'independent_capture_requested', False):
+            self.capture_peers = []
+            for _ in range(4):
+                producer, consumer = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+                self.capture_peers.append(producer)
+                self.addCleanup(producer.close)
+                descriptor = consumer.detach()
+                config.trusted_capture_fds.append(descriptor)
+                descriptors.append(descriptor)
         return config, descriptors
 
     def shared(self, operation, generation=0, value=None):
@@ -78,9 +88,39 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
         self.assertTrue(reply.accepted, reply)
 
     def key(self, keysym, pressed=True, generation=0):
+        producer = getattr(self, 'capture_producer', None)
+        if producer is not None:
+            sequence = producer.key(keysym, pressed)
+            self.wait_capture_processed(sequence, generation)
+            return self.status(generation)
         reply = self.event(generation, key=controls.DeviceKey(keysym=keysym, pressed=pressed))
         self.assertTrue(reply.accepted, reply)
         return reply.controls
+
+    def start_independent_capture(self, generation=0):
+        # Import lazily to keep this fixture independent of the capture suite's
+        # class hierarchy while reusing its real private transport producer.
+        from test_host_continuous_capture import IndependentProducer
+        state = self.status(generation)
+        self.assertTrue(state.capture_active, state)
+        self.assertGreater(state.capture_source_slot, 0)
+        self.epoch = state.capture_generation
+        producer = IndependentProducer(self.capture_peers[state.capture_source_slot - 1], self.epoch)
+        self.capture_producer = producer
+        self.keyboard_active = False
+        self.addCleanup(producer.close)
+        self.wait_capture_processed(2, generation)
+        return producer
+
+    def wait_capture_processed(self, sequence, generation=0):
+        deadline = time.monotonic() + 5
+        last_status = None
+        while time.monotonic() < deadline:
+            last_status = self.status(generation, require_available=False)
+            self.assertFalse(last_status.capture_retired, last_status)
+            if last_status.processed_capture_sequence >= sequence and last_status.available:
+                return last_status
+        self.fail('Capture and controls did not settle through the output barrier: %r' % last_status)
 
     def state(self, generation=0):
         if getattr(self, 'keyboard_active', False):
@@ -101,16 +141,23 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
         self.assert_checked_cleanup()
 
     def test_navigation_menu_persistence_and_fresh_input_barrier(self):
+        self.independent_capture_requested = True
         initial = self.ready_host()
-        self.connect_keyboard()
+        producer = self.start_independent_capture()
         self.assertEqual(self.status().active_profile, 'level-click')
         self.key('w')
         self.assertTrue(self.shared('controls_tick').accepted)
         moving = self.state()
         self.assertEqual(list(moving.axes), [0, 0, -1, 0, 0, 0])
         self.assertEqual(moving.translation_frame, core.LEVEL_TRANSLATION)
-        time.sleep(.06)
-        self.assertNotEqual(self.state().pose.position, initial.inspection.state.pose.position)
+        # Slow actor commands may leave longer gaps than the source timeout.
+        # A live independent capture must preserve held movement across them.
+        time.sleep(5.0)
+        producer.check()
+        after_slow_gap = self.state()
+        self.assertEqual(list(after_slow_gap.axes), [0, 0, -1, 0, 0, 0])
+        self.assertNotEqual(after_slow_gap.pose.position, initial.inspection.state.pose.position)
+        self.assertFalse(self.status().capture_retired)
         self.stop()
         stopped = self.state()
         self.assertEqual(list(stopped.axes), [0] * 6)
@@ -139,21 +186,23 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
         self.key('w')
         self.assertTrue(self.shared('controls_tick').accepted)
         self.assertEqual(list(self.state().axes), [0, 0, -1, 0, 0, 0])
-        # A living capture sends heartbeats. Silence must stop and retire it.
-        self.keyboard_active = False
-        time.sleep(.5)
+        # A living capture sends heartbeats independently of root requests.
+        # Real silence retires the capture binding and must stop held motion.
+        producer.silence()
+        deadline = time.monotonic() + 3
+        expired_status = self.status(require_available=False)
+        while not expired_status.capture_retired and time.monotonic() < deadline:
+            time.sleep(.02)
+            expired_status = self.status(require_available=False)
+        self.assertTrue(expired_status.capture_retired, expired_status)
+        self.assertFalse(expired_status.capture_active, expired_status)
         expired = self.state()
         self.assertEqual(list(expired.axes), [0] * 6)
-        time.sleep(.04)
         self.assertEqual(self.state().pose, expired.pose)
         stale = self.event(key=controls.DeviceKey(keysym='w', pressed=True))
         self.assertFalse(stale.accepted, stale)
-        self.assertIn('Stale or unknown device event', stale.detail)
+        self.assertIn('capture binding', stale.detail.lower())
         self.assertTrue(self.status().available)
-        self.connect_keyboard()
-        self.key('w')
-        self.assertTrue(self.shared('controls_tick').accepted)
-        self.assertEqual(list(self.state().axes), [0, 0, -1, 0, 0, 0])
         self.stop()
         self.shutdown_checked()
 

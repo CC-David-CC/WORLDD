@@ -124,12 +124,16 @@ class DelayedInfoIssuer(RelayingIssuer):
         self.connection_events = []
         self.connection_sequence = 0
         self.connection_streams = {}
+        self.expected_aborted_connections = set()
         super().__init__(fixture, lambda: None)
 
     def abort_connection(self, connection):
         with self.status_lock:
             stream=self.connection_streams.get(connection)
-        if stream is None:raise AssertionError('Selected relay connection is not live')
+            if stream is None:raise AssertionError('Selected relay connection is not live')
+            if connection not in self.expected_aborted_connections and len(self.expected_aborted_connections)>=16:
+                raise AssertionError('Too many explicitly aborted relay connections')
+            self.expected_aborted_connections.add(connection)
         stream.shutdown(socket.SHUT_RDWR)
 
     def relay(self, raw):
@@ -174,7 +178,11 @@ class DelayedInfoIssuer(RelayingIssuer):
             while not self.stop.is_set():
                 phase = 'client_read'
                 size = struct.unpack("!I", exact(4,idle_header=True))[0]
-                if not 0 < size <= 1048576: raise AssertionError("Excessive INFO relay frame")
+                if not 0 < size <= 1048576:
+                    with self.status_lock:
+                        abort_requested = connection in self.expected_aborted_connections
+                    raise AssertionError(f"Excessive INFO relay frame: connection={connection}, "
+                                         f"size={size}, abort_requested={abort_requested}")
                 request = issuer.IssuerRequest.FromString(exact(size))
                 sequence = request.request_id
                 phase = 'upstream_request'
@@ -224,7 +232,7 @@ class DelayedInfoIssuer(RelayingIssuer):
         except (OSError, EOFError) as error:
             record('closed',phase=phase,error=type(error).__name__)
         except BaseException as error:
-            record('error',phase=phase,error=type(error).__name__)
+            record('error',phase=phase,error=type(error).__name__,detail=str(error))
             self.errors.append(error)
         finally:
             with self.status_lock:self.connection_streams.pop(connection,None)

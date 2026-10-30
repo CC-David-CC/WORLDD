@@ -1,0 +1,29 @@
+M10 issuer relay abort handling, 2026-10-30
+
+Status: DIAGNOSTIC INSTRUMENTATION. Test harness only.
+
+The sb16 ASan gate failed while the auxiliary-INFO loss test cleaned up its
+relay. That test deliberately shuts down TLS connection 2. The relay then
+rejected a malformed frame header. The actor had already released native
+input, returned UNAVAILABLE, and delivered no forbidden key.
+
+The saved progress record shows the selected connection was 2, but relay
+cleanup did not save the failing worker's connection ID or parsed header.
+Track the exact connection selected for deliberate shutdown. Report the
+connection ID, header value, phase, and abort status on a parse error. Keep the
+error fatal until evidence identifies its source. Keep the native release,
+denied action, and no-input assertions.
+
+This does not change worldd or production issuer behavior. Preserve the failed
+gate report. Five isolated runs of the connection-loss method passed on each
+host under ASan/UBSan. The full 27-test issuer-progress suite then passed on
+sb16 under ASan/UBSan in 223.207 seconds. Its relay diagnostic recorded zero
+errors and zero failed cases. The earlier malformed-frame error did not
+recur, so its specific cause remains unproven. Keep the added connection and
+header details fatal and available if the error recurs. The full candidate
+gate must still exercise the suite on both hosts.
+
+The repeated isolated runs and full-suite diagnostic are preserved under
+`/home/dflanag3/spatial-artifacts/m10-revocation-denial-reply-20261030/runs/`
+on their respective hosts. The full suite was run on sb16; the replacement
+candidate gate must provide the complete suite evidence on sb16 and sb16-2.
