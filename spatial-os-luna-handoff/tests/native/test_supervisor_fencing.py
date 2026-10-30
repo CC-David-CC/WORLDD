@@ -24,6 +24,7 @@ class LostActivationReplyRelay:
         self.typed_storage_error = typed_storage_error
         self.stop_event = threading.Event()
         self.activation_committed = threading.Event()
+        self.release_activation_reply = threading.Event()
         self.errors = []
         self.stream = None
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -45,7 +46,7 @@ class LostActivationReplyRelay:
                 try: raw, _ = self.listener.accept(); break
                 except socket.timeout: continue
             else: return
-            raw.settimeout(3)
+            raw.settimeout(30)
             self.stream = self.context.wrap_socket(raw, server_side=True)
             upstream = self.fixture.connect()
             def exact(size):
@@ -68,6 +69,8 @@ class LostActivationReplyRelay:
                             reply.request_id == request_id):
                         raise AssertionError('Upstream activation did not return the exact active service generation')
                     self.activation_committed.set()
+                    if not self.release_activation_reply.wait(30):
+                        raise AssertionError('Test did not release the committed activation reply')
                     if self.typed_storage_error:
                         reply.Clear(); reply.protocol_version = 1; reply.request_id = request_id
                         reply.error.code = core.STORAGE_ERROR
@@ -84,7 +87,7 @@ class LostActivationReplyRelay:
             if upstream: upstream.close()
 
     def close(self):
-        self.stop_event.set(); self.listener.close()
+        self.stop_event.set(); self.release_activation_reply.set(); self.listener.close()
         if self.stream:
             try: self.stream.shutdown(socket.SHUT_RDWR)
             except OSError: pass
@@ -134,12 +137,13 @@ class SupervisorStopBeforeActivationTests(supervisor.AuthoritySupervisorTests):
         runtime_path.write_text(text_format.MessageToString(runtime))
         proc, channel = self.running(config)
         self.command(1, activate=identity.AuthorityActivate(synchronized_revision=0))
+        self.assertTrue(relay_peer.activation_committed.wait(30), 'Issuer activation did not commit before reply handling')
+        self.issuer.supervisor_key.write_bytes(self.issuer.signer.read_bytes())
+        relay_peer.release_activation_reply.set()
         failed = self.child_update(proc, 'error')
         self.assertEqual(failed.request_id, 1)
         if typed_storage_error:
             self.assertEqual(failed.error.code, core.STORAGE_ERROR)
-        self.assertTrue(relay_peer.activation_committed.wait(2), 'Issuer activation did not commit before reply handling')
-        self.issuer.supervisor_key.write_bytes(self.issuer.signer.read_bytes())
         reply = self.control(channel, stop=launch.AuthorityLaunchQuery())
         self.assertEqual(reply.request_id, 77)
         self.assertTrue(reply.HasField('error'), reply)
