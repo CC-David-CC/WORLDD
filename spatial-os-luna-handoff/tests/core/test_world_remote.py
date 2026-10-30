@@ -102,7 +102,9 @@ class RemoteWorldTests(BootstrapWorldFixture):
         self.assertTrue(self.authenticate(peer).HasField('opened'))
 
     def test_remote_private_admission_remains_separate_from_valid_identity(self):
-        world=self.remote_world();actor=self.enroll_bootstrap(name='remote-guest',profile='empty-v1')
+        # Enrollment uses the fixture issuer's short-idle TLS connection.
+        actor=self.enroll_bootstrap(name='remote-guest',profile='empty-v1')
+        world=self.remote_world()
         peer=world.connect(self);reply=self.authenticate_bootstrap(peer,actor)
         self.assertTrue(reply.HasField('error'),reply);self.assertEqual(reply.error.code,core.FORBIDDEN)
         self.assertEqual(len(world.management('world.list')['entities']),1)
