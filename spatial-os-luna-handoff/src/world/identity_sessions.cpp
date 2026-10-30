@@ -361,7 +361,7 @@ struct IdentitySessions::Impl {
                     channel.output_revocation_denial = true;
                     channel.output_transport_write_attempted = write_attempted;
                     channel.sent = queued_sent;
-                    lifecycle_diagnostic(channel, "disconnect_preserve_copy_status_denial");
+                    lifecycle_diagnostic(channel, "disconnect_preserve_revocation_denial");
                 } else {
                     lifecycle_diagnostic(channel, "disconnect_drop_output");
                     channel.output_request_id = 0;
@@ -1647,11 +1647,13 @@ struct IdentitySessions::Impl {
             stop_trace::mark("dispatch_returned");
             if (channel.fd.value < 0 || channel.departure) continue;
             bool copy_status_denial = false;
+            bool identity_revocation_denial = false;
             if (cancellation != channel.cancellation_generation && !reply.has_closed() &&
                     !(self_revocation_receipt && reply.has_grant())) {
                 const auto id = reply.request_id();
                 const bool identity_denial = channel.cancellation_cause == CancellationCause::identity_revocation &&
                     (!reply.has_error() || reply.error().code() == wire::FORBIDDEN || reply.error().code() == wire::UNAUTHORIZED);
+                identity_revocation_denial = identity_denial;
                 const auto code = identity_denial ?
                     wire::UNAUTHORIZED : (reply.has_error() ? reply.error().code() : wire::UNAUTHORIZED);
                 reply.Clear(); reply.set_protocol_version(1); reply.set_request_id(id);
@@ -1674,7 +1676,8 @@ struct IdentitySessions::Impl {
             stop_trace::mark("reply_queued");
             channel.motion_reply=pure_movement(candidate);
             channel.output_copy_status_request = copy_status_request && !copy_status_denial;
-            channel.output_revocation_denial = copy_status_denial;
+            channel.output_revocation_denial = copy_status_denial ||
+                (identity_revocation_denial && reply.has_error() && reply.error().code() == wire::UNAUTHORIZED);
             channel.output_transport_write_attempted = false;
             lifecycle_diagnostic(channel, "reply_queued");
             channel.output_started = Clock::now();
