@@ -24,7 +24,11 @@ on middle-child. Python syntax checks and git diff --check pass. The
 stopped-compositor observation allowance is 350 ms per David’s approval;
 runtime input expiry remains 250 ms. Native retests on both hosts and a
 replacement full gate remain pending. No replacement candidate is frozen. M10 remains unqualified.
-See `docs/M10_DISPATCH_RECEIPT_REVISION_2026-10-31.md` for current evidence.
+Repair source is committed and pushed as
+`5566612dc5ca9f6f25c55cc80ef68dec2805cb32`. David paused the goal after
+requesting a handoff. See `docs/M10_DISPATCH_RECEIPT_REVISION_2026-10-31.md`
+for the repair contract and `docs/M10_HANDOFF_PAUSED_2026-10-31.md` for the
+resume checklist.
 
 ## 2026-10-30: M10 presentation-dispatch repair is in progress
 
@@ -44,7 +48,7 @@ The ThreadSanitizer build passed the focused controller, worker, and shared-cont
 Native evidence and binary hashes are under `spatial-artifacts/m10-presentation-dispatch-liveness-20261030/native-diagnostic-fixed-receipt-01`.
 ThreadSanitizer evidence is under `spatial-artifacts/m10-presentation-dispatch-liveness-20261030/runs/tsan-presentation-thread-02`.
 No replacement candidate is frozen, and no full gate is active.
-The next step reviews and commits the repair, builds and freezes one candidate, then runs the full two-host gate.
+The 2026-10-31 status above supersedes the planned source review and commit.
 M10 remains unqualified. Read `docs/M10_PRESENTATION_DISPATCH_LIVENESS_REPAIR_2026-10-30.md` for evidence and limits.
 
 ## 2026-10-25: M10 gate setup correction is in progress

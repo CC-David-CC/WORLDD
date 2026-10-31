@@ -33,8 +33,9 @@ Worktree:
 `/home/dflanag3/src/m10-presentation-dispatch-second-pass-20261031/spatial-os-luna-handoff`
 
 Branch: `m10/presentation-dispatch-second-pass-20261031`, based on the frozen
-candidate. All repair changes are uncommitted. The candidate package and its
-evidence were not changed.
+candidate. Repair commit `5566612dc5ca9f6f25c55cc80ef68dec2805cb32` is pushed
+to the matching origin branch. The candidate package and its evidence were not
+changed. This repair checkpoint is unqualified.
 
 The host reports three separate progress receipts:
 
@@ -114,11 +115,12 @@ The next native checks exercise production capture, real actor progress during h
    scripted-actor-native, three-actor-files-native, three-actor-applications-native,
    three-actor-raw-input-native, and host-visible-controls-native on both sb16 and
    sb16-2. Preserve each independent witness and result.
-2. Resolve any remaining production failure. Do not change acceptance assertions
-   to obtain a pass.
-3. Review the complete diff, run repository_data_guard.py, and commit the coherent
-   repair.
-4. Build and freeze one replacement candidate.
+2. Resolve any production failure. Do not change acceptance assertions to obtain
+   a pass.
+3. Review all changes, run `repository_data_guard.py`, and push a coherent
+   repair checkpoint.
+4. Build and freeze one replacement candidate from the reviewed source. No
+   replacement candidate is currently frozen.
 5. Run the full required Debug and ASan/UBSan gate on both hosts against that same
    frozen candidate. Run required cross-host checks and retain source pins,
    manifests, receipts, and concise result summaries.
