@@ -1,3 +1,24 @@
+## 2026-10-30: M10 presentation-dispatch repair is in progress
+
+Frozen candidate `bc902621c25e1f9f6d4b0b8f1d91f29a314de5ca` completed its two-host gate.
+Both sb16 profiles passed. Sb16-2 passed Debug and failed one ASan/UBSan case: `three-actor-files-native`.
+That trace showed local geometry presentation holding up actor input until the watchdog expired.
+The repair moves steady-state presentation to its own thread and rechecks actor context before publishing.
+The lock-order correction passes the focused controller, worker, and shared-control tests in Debug and ASan/UBSan.
+The clean ASan worker test also passed three consecutive repeats.
+Debug and ASan/UBSan production `spatial-host-session` builds now pass on middle-child.
+The failed frozen candidate and its evidence remain unchanged.
+The focused shared-files regression passed on both hosts in Debug.
+The full seven-test `three-actor-files-native` class passed on both hosts in Debug and ASan/UBSan.
+An initial ASan attempt omitted the sibling `spatialwm`; all seven fixture setup failures are preserved separately.
+The corrected ASan run passed all seven tests on each host.
+The ThreadSanitizer build passed the focused controller, worker, and shared-control tests 3/3 with no race report.
+Native evidence and binary hashes are under `spatial-artifacts/m10-presentation-dispatch-liveness-20261030/native-diagnostic-fixed-receipt-01`.
+ThreadSanitizer evidence is under `spatial-artifacts/m10-presentation-dispatch-liveness-20261030/runs/tsan-presentation-thread-02`.
+No replacement candidate is frozen, and no full gate is active.
+The next step reviews and commits the repair, builds and freezes one candidate, then runs the full two-host gate.
+M10 remains unqualified. Read `docs/M10_PRESENTATION_DISPATCH_LIVENESS_REPAIR_2026-10-30.md` for evidence and limits.
+
 ## 2026-10-25: M10 gate setup correction is in progress
 
 Candidate 9bac4d3 built and verified on sb16 and sb16-2. It did not pass the static gate.

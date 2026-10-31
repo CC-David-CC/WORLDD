@@ -81,6 +81,7 @@ private:
     struct LocalTarget {workspace::v1::ControlOwner owner;core::v1::ActorLocalViewIdentity identity;};
     std::optional<LocalTarget> local_target_;
     std::vector<LocalTarget> retiring_targets_;
+    std::uint64_t retiring_generation_ = 0;
     struct LocalFrame {
         SessionCoordinator::LocalPresentationTicket ticket;
         std::uint64_t actor_generation, capture_generation;

@@ -119,6 +119,7 @@ struct World {
 };
 }
 struct SessionCoordinator::Impl {
+    mutable std::recursive_mutex api_mutex;
     const pid_t creator = getpid();
     std::filesystem::path executable;
     SessionBroker broker;
@@ -257,27 +258,34 @@ struct SessionCoordinator::Impl {
         return reply.state(); // ControlAdmin already validated the complete reply against this exact request.
     }
 };
+std::unique_lock<std::recursive_mutex> SessionCoordinator::lock_api() const {
+    return std::unique_lock<std::recursive_mutex>(impl_->api_mutex);
+}
 SessionCoordinator::SessionCoordinator(const std::filesystem::path& executable, const std::filesystem::path& path,
     v1::AuthoritySupervisorConfig config, int native)
     : impl_(std::make_unique<Impl>(executable, path, std::move(config), native)) {}
 SessionCoordinator::~SessionCoordinator() = default;
 void SessionCoordinator::start_presentation(const std::filesystem::path& executable,const std::filesystem::path& path,int native){
+    auto api=lock_api();
     auto& state=*impl_;state.live();
     require(!state.presentation && state.worlds.empty(),"Start presentation before any world launches");
     state.presentation=std::make_unique<PresentationOwner>(executable,path,native);
 }
 render::v1::PresentationState SessionCoordinator::select_world(const workspace::v1::ControlOwner& owner){
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find(owner);
     require(state.presentation && world.presentation_attached && world.world_identity_checked && !world.stopped && !world.failed,
         "World presentation is not available");world.supervisor->live();
     return state.presentation->select(world.presentation);
 }
 render::v1::PresentationState SessionCoordinator::inspect_presentation(const workspace::v1::ControlOwner& owner){
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find_owned(owner);
     require(state.presentation && world.presentation_attached && !world.presentation_retired,"No retained world presentation");
     return state.presentation->inspect(world.presentation);
 }
 render::v1::GeometryPresentationTarget SessionCoordinator::attach_geometry(const identity::v1::ActorGeometryView& view){
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     validate_geometry_view(view);require(state.presentation_generation!=UINT64_MAX,"Presentation generation exhausted");
     render::v1::GeometryPresentationTarget target;target.set_protocol_version(1);target.set_world_id(view.world_id());
@@ -297,20 +305,25 @@ render::v1::GeometryPresentationTarget SessionCoordinator::attach_geometry(const
     return target;
 }
 render::v1::GeometryPresentationState SessionCoordinator::select_geometry(const render::v1::GeometryPresentationTarget& target){
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
     return state.presentation->select_geometry(target);
 }
 render::v1::GeometryPresentationState SessionCoordinator::publish_geometry(const render::v1::GeometryPresentationTarget& target,
-    const identity::v1::ActorGeometryView& view){auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
+    const identity::v1::ActorGeometryView& view){
+    auto api=lock_api();
+    auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
     return state.presentation->publish_geometry(target,view);}
 render::v1::GeometryPresentationState SessionCoordinator::retire_geometry(const render::v1::GeometryPresentationTarget& target){
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     const auto found=state.geometry_targets.find(target.presentation_generation());require(found!=state.geometry_targets.end() && found->second.SerializeAsString()==target.SerializeAsString(),"Unknown geometry target");
     auto result=state.presentation->retire_geometry(target);state.geometry_targets.erase(found);return result;
 }
 void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner& owner){
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find_owned(owner);
     require(world.stopped && world.record.stage()==v1::OWNED_SCOPES_STOPPED &&
         world.record.has_process_stopped() && world.record.has_native_stopped(),
@@ -326,6 +339,7 @@ void SessionCoordinator::recover_presentation(const workspace::v1::ControlOwner&
 }
 core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity,std::uint32_t width,std::uint32_t height) {
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find(owner);
     require(!world.local_frame,"Local presentation continuation owns the world channel");
     validate_local_view_identity(identity);
@@ -366,6 +380,7 @@ core::v1::ActorLocalViewState SessionCoordinator::present_local_actor(const work
 SessionCoordinator::LocalPresentationTicket SessionCoordinator::begin_present_local_actor(
     const workspace::v1::ControlOwner& owner,const core::v1::ActorLocalViewIdentity& identity,
     std::uint32_t width,std::uint32_t height) {
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
     if(width || height)validate_render_extent(width,height);
     require(!world.local_frame && !world.exchange,"Local presentation operation already in progress");
@@ -389,6 +404,7 @@ SessionCoordinator::LocalPresentationTicket SessionCoordinator::begin_present_lo
 }
 SessionCoordinator::LocalPresentationProgress SessionCoordinator::local_presentation_progress(
         const LocalPresentationTicket& ticket) const {
+    auto api=lock_api();
     auto& world=impl_->find_owned(ticket.owner);const auto& frame=impl_->frame(world,ticket);
     const auto stage=frame.stage==World::LocalFrame::Bind?LocalPresentationStage::bind:
         frame.stage==World::LocalFrame::Select?LocalPresentationStage::select:LocalPresentationStage::present;
@@ -396,6 +412,7 @@ SessionCoordinator::LocalPresentationProgress SessionCoordinator::local_presenta
 }
 std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_local_actor(
         const LocalPresentationTicket& ticket,unsigned maximum_steps) {
+    auto api=lock_api();
     require(maximum_steps>=1 && maximum_steps<=3,"Invalid local presentation poll budget");
     auto& state=*impl_;auto& world=state.find(ticket.owner);auto& frame=state.frame(world,ticket);
     require(!frame.cancelled,"Local presentation operation was cancelled");
@@ -442,6 +459,7 @@ std::optional<core::v1::ActorLocalViewState> SessionCoordinator::poll_present_lo
     }
 }
 void SessionCoordinator::cancel_present_local_actor(const LocalPresentationTicket& ticket) {
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find_owned(ticket.owner);auto& frame=state.frame(world,ticket);
     frame.cancelled=true;world.invalidate_local_attestations();
     // Draining may confirm effects already sent. It never starts the next stage.
@@ -453,6 +471,7 @@ void SessionCoordinator::cancel_present_local_actor(const LocalPresentationTicke
 }
 void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity) {
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find(owner);validate_local_view_identity(identity);
     require(!world.local_retirements.contains(identity.SerializeAsString()),"Local actor retirement already has a continuation owner");
     if(world.local_frame)cancel_present_local_actor(world.local_frame->ticket);
@@ -477,6 +496,7 @@ void SessionCoordinator::retire_local_actor(const workspace::v1::ControlOwner& o
 }
 void SessionCoordinator::defer_retire_local_actor(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity,LocalRetirementKind kind) {
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find_owned(owner);validate_local_view_identity(identity);
     const auto key=identity.SerializeAsString();const auto target=world.local_targets.find(key);
     if(target==world.local_targets.end())return;
@@ -500,6 +520,7 @@ void SessionCoordinator::defer_retire_local_actor(const workspace::v1::ControlOw
 }
 SessionCoordinator::LocalRetirementProgress SessionCoordinator::local_retirement_progress(
         const workspace::v1::ControlOwner& owner,const core::v1::ActorLocalViewIdentity& identity) const {
+    auto api=lock_api();
     validate_local_view_identity(identity);
     const auto& world=impl_->find_owned(owner);const auto key=identity.SerializeAsString();
     LocalRetirementProgress result;
@@ -513,10 +534,12 @@ SessionCoordinator::LocalRetirementProgress SessionCoordinator::local_retirement
 }
 bool SessionCoordinator::local_retirement_pending(const workspace::v1::ControlOwner& owner,
         const core::v1::ActorLocalViewIdentity& identity) const {
+    auto api=lock_api();
     const auto& world=impl_->find_owned(owner);
     return world.local_retirements.contains(identity.SerializeAsString());
 }
 void SessionCoordinator::defer_present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view) {
+    auto api=lock_api();
     auto& state=*impl_;state.owned();validate_message(view);
     require(generation>0 && state.presentation,"Missing retained controls presentation");
     const auto same=[&](const auto& item){return item && item->generation==generation &&
@@ -526,6 +549,7 @@ void SessionCoordinator::defer_present_controls(std::uint64_t generation,const c
     state.queued_controls=Impl::ControlsOutput{generation,view,{}};
 }
 bool SessionCoordinator::stop_capture_progress(std::uint64_t generation) {
+    auto api=lock_api();
     auto& state=*impl_;state.owned();require(generation>0 && state.presentation,"Missing capture retirement owner");
     auto& pending=state.capture_retirements.try_emplace(generation).first->second;
     if(!pending.failure.empty())throw std::runtime_error(pending.failure);
@@ -533,6 +557,7 @@ bool SessionCoordinator::stop_capture_progress(std::uint64_t generation) {
     state.capture_retirements.erase(generation);return true;
 }
 bool SessionCoordinator::deferred_cleanup_pending() const {
+    auto api=lock_api();
     auto& state=*impl_;state.owned();
     if(state.queued_controls || state.controls_output || !state.capture_retirements.empty())return true;
     for(const auto& [key,world]:state.worlds){(void)key;
@@ -540,6 +565,7 @@ bool SessionCoordinator::deferred_cleanup_pending() const {
     return false;
 }
 bool SessionCoordinator::pump_deferred_cleanup(unsigned maximum_steps) {
+    auto api=lock_api();
     auto& state=*impl_;state.owned();require(maximum_steps>=1 && maximum_steps<=16,"Invalid cleanup poll budget");
     // Complete our existing compositor exchanges before another owner can send.
     if(state.controls_output && state.controls_failure.empty())try {
@@ -672,6 +698,7 @@ bool SessionCoordinator::pump_deferred_cleanup(unsigned maximum_steps) {
     return deferred_cleanup_pending();
 }
 void SessionCoordinator::drain_deferred_native() {
+    auto api=lock_api();
     auto& state=*impl_;const auto deadline=Clock::now()+std::chrono::seconds(10);
     auto pending=[&]{
         if(state.presentation->pending() || state.controls_output || state.queued_controls)return true;
@@ -691,6 +718,7 @@ void SessionCoordinator::drain_deferred_native() {
     }
 }
 void SessionCoordinator::drain_deferred_administration() {
+    auto api=lock_api();
     auto& state=*impl_;const auto deadline=Clock::now()+std::chrono::seconds(5);
     while(state.broker.administrative().pending()) {
         require(Clock::now()<deadline,"Deferred administrative cleanup remains unconfirmed");
@@ -698,14 +726,17 @@ void SessionCoordinator::drain_deferred_administration() {
     }
 }
 void SessionCoordinator::clear_presentation(){
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     state.presentation->clear_selection();
 }
 core::v1::PixelExtent SessionCoordinator::native_viewport() const {
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     return state.presentation->native_viewport();
 }
 void SessionCoordinator::present_controls(std::uint64_t generation,const control::v1::ControlMenuView& view){
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     for(auto& [key,world]:state.worlds){(void)key;state.drain_local_selection(*world);}
     drain_deferred_native();
@@ -713,6 +744,7 @@ void SessionCoordinator::present_controls(std::uint64_t generation,const control
     state.last_controls=Impl::ControlsOutput{generation,view,{}};
 }
 void SessionCoordinator::stop_presentation(){
+    auto api=lock_api();
     auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");
     for(const auto& [key,world]:state.worlds){
         (void)key;require(!world->presentation_attached || world->presentation_retired,"World presentation cleanup remains unconfirmed");
@@ -725,15 +757,18 @@ void SessionCoordinator::stop_presentation(){
     state.presentation->shutdown();state.presentation.reset();
 }
 void SessionCoordinator::start_capture(std::uint64_t generation,const control::v1::NativeCaptureConfig& config,int endpoint){
+    auto api=lock_api();
     auto& state=*impl_;state.live();require(bool(state.presentation),"No host presentation owner");
     state.presentation->start_capture(generation,config,endpoint);
 }
 void SessionCoordinator::stop_capture(std::uint64_t generation){
+    auto api=lock_api();
     auto& state=*impl_;state.owned();require(bool(state.presentation),"No host presentation owner");
     state.presentation->stop_capture(generation);
 }
 workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesystem::path& path,
     v1::AuthoritySupervisorConfig config, int native, int actor_listener, unsigned local_actor_channels,const std::string& world_id) {
+    auto api=lock_api();
     auto& state = *impl_; state.live(); validate_message(config);
     require(config.has_compositor_native_target_fd() && !config.has_broker_native_target_fd() &&
         config.inherited_source_fds_size() == 0 && config.launch().inherited_fds_size() == 0,
@@ -870,6 +905,7 @@ workspace::v1::ControlOwner SessionCoordinator::start_world(const std::filesyste
     }
 }
 int SessionCoordinator::take_actor_channel(const workspace::v1::ControlOwner& owner, unsigned index) {
+    auto api=lock_api();
     auto& world = impl_->find(owner);
     require(!world.failed && !world.stopped, "Session world is not available");
     world.supervisor->live();
@@ -877,18 +913,22 @@ int SessionCoordinator::take_actor_channel(const workspace::v1::ControlOwner& ow
     return std::exchange(world.actors[index]->value, -1);
 }
 const v1::AuthorityLaunchRecord& SessionCoordinator::world_launch(const workspace::v1::ControlOwner& owner) const {
+    auto api=lock_api();
     return impl_->find(owner).record;
 }
 workspace::v1::ControlOwnerState SessionCoordinator::inspect_world(const workspace::v1::ControlOwner& owner) {
+    auto api=lock_api();
     impl_->find(owner); return impl_->administrative(owner);
 }
 core::v1::Reply SessionCoordinator::world_call(const workspace::v1::ControlOwner& owner,const core::v1::Request& supplied) {
+    auto api=lock_api();
     auto& state=*impl_;auto& world=state.find(owner);
     require(!world.local_frame,"Local presentation continuation owns the world channel");
     const auto token=state.begin_world(world,supplied,Clock::now()+std::chrono::seconds(10));
     for(;;){if(auto reply=state.poll_world(world,token))return std::move(*reply);::poll(nullptr,0,2);}
 }
 v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::ControlOwner& owner) {
+    auto api=lock_api();
     auto& state = *impl_; auto& world = state.find_owned(owner);
     require(!world.stopped, "Session world already stopped");
     world.invalidate_local_attestations();
@@ -902,8 +942,9 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop_world(const workspace::v1::Co
     if(world.presentation_attached)recover_presentation(owner);
     return world.record;
 }
-BrokerClient& SessionCoordinator::root() { impl_->live(); return impl_->broker.root(); }
+BrokerClient& SessionCoordinator::root() { auto api=lock_api(); impl_->live(); return impl_->broker.root(); }
 workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspace::v1::ControlOwner& owner) {
+    auto api=lock_api();
     auto& state = *impl_; auto& world = state.find(owner);
     // Stopped state requires SessionLaunch to validate both owned cleanup receipts.
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
@@ -920,6 +961,7 @@ workspace::v1::ControlOwnerState SessionCoordinator::recover_world(const workspa
     return recovered;
 }
 identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const workspace::v1::ControlOwner& owner) {
+    auto api=lock_api();
     auto& world = impl_->find_owned(owner);
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED && world.dependent,
         "Retirement requires retained durable world cleanup");
@@ -932,6 +974,7 @@ identity::v1::AuthorityRetirementState SessionCoordinator::retire_world(const wo
     return result;
 }
 v1::AuthorityDependentCleanup SessionCoordinator::recover_world_after_broker_stop(const workspace::v1::ControlOwner& owner) {
+    auto api=lock_api();
     auto& state = *impl_; auto& world = state.find_owned(owner);
     require(world.stopped && world.record.stage() == v1::OWNED_SCOPES_STOPPED,
         "Dependency recovery requires checked world cleanup");
@@ -940,10 +983,11 @@ v1::AuthorityDependentCleanup SessionCoordinator::recover_world_after_broker_sto
     world.dependent = journal.record_stopped_broker_recovery(world.record, broker);
     return *world.dependent;
 }
-const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { impl_->live(); return impl_->broker.launch(); }
-v1::AuthorityLaunchRecord SessionCoordinator::stop_broker() { impl_->owned(); return impl_->broker.stop(); }
-identity::v1::AuthorityRetirementState SessionCoordinator::retire_broker() { impl_->owned(); return impl_->broker.retire(); }
+const v1::AuthorityLaunchRecord& SessionCoordinator::broker_launch() const { auto api=lock_api(); impl_->live(); return impl_->broker.launch(); }
+v1::AuthorityLaunchRecord SessionCoordinator::stop_broker() { auto api=lock_api(); impl_->owned(); return impl_->broker.stop(); }
+identity::v1::AuthorityRetirementState SessionCoordinator::retire_broker() { auto api=lock_api(); impl_->owned(); return impl_->broker.retire(); }
 v1::AuthorityLaunchRecord SessionCoordinator::stop() {
+    auto api=lock_api();
     auto& state = *impl_; state.owned();
     for (const auto& [key, world] : state.worlds) {
         (void)key; require(world->stopped || !world->supervisor, "Stop retained world scopes before the session broker");
@@ -951,6 +995,7 @@ v1::AuthorityLaunchRecord SessionCoordinator::stop() {
     return state.broker.stop();
 }
 std::vector<std::string> SessionCoordinator::stop_retained_worlds() {
+    auto api=lock_api();
     auto& state = *impl_; state.owned();
     std::vector<std::string> unresolved;
     for (auto& [key, entry] : state.worlds) {

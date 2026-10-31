@@ -7,6 +7,7 @@
 #include <vector>
 #include <optional>
 #include <cstdint>
+#include <mutex>
 
 namespace spatial { class BrokerClient; }
 namespace spatial::supervisor {
@@ -93,6 +94,7 @@ public:
     // Empty means every world has checked stop receipts and no retained presentation.
     std::vector<std::string> stop_retained_worlds();
 private:
+    std::unique_lock<std::recursive_mutex> lock_api() const;
     void drain_deferred_native();
     void drain_deferred_administration();
     struct Impl;

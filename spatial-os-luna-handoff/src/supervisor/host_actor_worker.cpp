@@ -3,6 +3,7 @@
 #include <chrono>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <string_view>
@@ -28,10 +29,13 @@ HostActorWorker::HostActorWorker(HostActorController& controller,CaptureStart st
     worker_ = std::thread([this, ready = std::move(ready)]() mutable { run(std::move(ready)); });
     try {
         future.get();
+        presentation_worker_ = std::thread([this] { run_presentation(); });
         watchdog_ = std::thread([this] { watch(); });
     } catch (...) {
         stop();
         if (worker_.joinable()) worker_.join();
+        if (presentation_worker_.joinable()) presentation_worker_.join();
+        if (watchdog_.joinable()) watchdog_.join();
         throw;
     }
 }
@@ -41,6 +45,7 @@ HostActorWorker::~HostActorWorker() {
 bool HostActorWorker::shutdown() noexcept {
     stop();
     if (worker_.joinable()) worker_.join();
+    if (presentation_worker_.joinable()) presentation_worker_.join();
     if (watchdog_.joinable()) watchdog_.join();
     return capture_cleanup_complete_.load();
 }
@@ -152,16 +157,16 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
         try {
         if (!current(binding) || !controller_.control_available()) return;
         try { (void)device_event(binding, packet); }
-        catch (const std::exception&) {
+        catch (const std::exception& error) {
             // Malformed current capture is terminal for that binding. A stale
             // binding cannot enter this path or cancel an adopted actor.
             (void)request_cancel(binding);
-            std::cerr << "Captured actor input retired its binding\n";
+            std::cerr << "Captured actor input retired its binding: " << error.what() << '\n';
         }
-        controller_.synchronize_controls_presentation();
         synchronize_capture();
         if(!complete([&] {
-            if(binding_==binding && !binding->retired())binding->processed_sequence_.store(packet.packet_sequence());
+            if(binding_==binding && !binding->retired())
+                binding->dispatched_sequence_.store(packet.packet_sequence(),std::memory_order_release);
         },true))settle_context();
         }catch(...) {
             // Failure ownership remains bound even when liveness traffic is nonurgent.
@@ -316,6 +321,54 @@ void HostActorWorker::set_flight_phase(const char* phase) noexcept {
     std::lock_guard lock(watch_mutex_);
     if (flight_) flight_->phase = phase;
 }
+void HostActorWorker::run_presentation() noexcept {
+    const auto* trace_method=std::getenv("SPATIAL_TEST_METHOD");
+    const bool trace_pending=trace_method && std::string_view(trace_method)=="presentation-liveness-trace";
+    auto pending_since=Clock::time_point{};
+    auto last_pending_report=Clock::time_point{};
+    while (!stopping_) {
+        bool pending = false;
+        bool cleanup_before=false,frame_pending=false,cleanup_after=false;
+        const char* phase="start";
+        const auto presentation_binding=capture_binding();
+        const auto presentation_sequence=presentation_binding ?
+            presentation_binding->dispatched_sequence_.load(std::memory_order_acquire) : 0;
+        try {
+            controller_.synchronize_controls_presentation();
+            cleanup_before = controller_.pump_deferred_cleanup();
+            frame_pending = controller_.pump_geometry_presentation([&](const char* value){phase=value;});
+            cleanup_after = controller_.pump_deferred_cleanup();
+            pending = cleanup_before || frame_pending || cleanup_after;
+            // Only acknowledge input whose state preceded this presentation
+            // cycle. A later dispatch needs a later output receipt.
+            if (!pending && presentation_binding && current(presentation_binding))
+                presentation_binding->processed_sequence_.store(presentation_sequence,std::memory_order_release);
+        } catch (const std::exception& error) {
+            pending = true;
+            std::cerr << "Host presentation work remains pending: " << error.what() << '\n';
+        } catch (...) {
+            pending = true;
+            std::cerr << "Host presentation work remains pending after an unknown failure\n";
+        }
+        const auto now=Clock::now();
+        if(pending) {
+            if(pending_since==Clock::time_point{})pending_since=now;
+            if(trace_pending && now-pending_since>=std::chrono::milliseconds(250) &&
+                (last_pending_report==Clock::time_point{} || now-last_pending_report>=std::chrono::milliseconds(250))) {
+                std::cerr<<"Host presentation trace elapsed_ms="
+                    <<std::chrono::duration_cast<std::chrono::milliseconds>(now-pending_since).count()
+                    <<" cleanup_before="<<cleanup_before<<" frame_pending="<<frame_pending
+                    <<" cleanup_after="<<cleanup_after<<" phase="<<phase
+                    <<" dispatched="<<(presentation_binding?presentation_binding->dispatched_sequence_.load(std::memory_order_acquire):0)
+                    <<" processed="<<(presentation_binding?presentation_binding->processed_sequence_.load(std::memory_order_acquire):0)
+                    <<" binding_current="<<current(presentation_binding)<<'\n';
+                last_pending_report=now;
+            }
+        } else {pending_since=Clock::time_point{};last_pending_report=Clock::time_point{};}
+        std::unique_lock lock(queue_mutex_);
+        changed_.wait_for(lock, pending ? std::chrono::milliseconds(2) : interval);
+    }
+}
 void HostActorWorker::watch() noexcept {
     struct Decision {
         std::uint64_t serial=0,actor=0,capture=0;
@@ -401,16 +454,16 @@ void HostActorWorker::watch() noexcept {
 void HostActorWorker::run(std::promise<void> ready) noexcept {
     bool announced = false;
     try {
-        refresh_context();controller_.synchronize_controls_presentation();synchronize_capture();
+        refresh_context();synchronize_capture();
         ready.set_value(); announced = true;
-        auto tick = Clock::now(), render = tick;
+        auto tick = Clock::now();
         unsigned burst = 0;
         while (!stopping_) {
             Work work;
             {
                 std::unique_lock lock(queue_mutex_);
                 if (queue_.empty() && !cancel_pending_)
-                    changed_.wait_until(lock, std::min(tick, render), [this] {
+                    changed_.wait_until(lock, tick, [this] {
                         return stopping_ || cancel_pending_ || !queue_.empty();
                     });
                 if (stopping_) break;
@@ -439,8 +492,6 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
             }
             begin_exchange(cancelled,true);
             try {
-                set_flight_phase("deferred_cleanup");
-                (void)controller_.pump_deferred_cleanup();
                 // Compare the actual adopted context, after refresh_context().
                 if (cancelled && cancelled == capture_binding() && controller_.control_available()) {
                     set_flight_phase("cancel_stop");
@@ -456,13 +507,6 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                         (void)controller_.tick_controls(controller_.generation());
                     tick = Clock::now() + interval;
                 }
-                if (Clock::now() >= render) {
-                    set_flight_phase("geometry_presentation");
-                    const auto pending=controller_.pump_geometry_presentation([this](const char* phase) { set_flight_phase(phase); });
-                    render = Clock::now() + (pending?std::chrono::milliseconds(2):interval);
-                }
-                set_flight_phase("controls_presentation");
-                controller_.synchronize_controls_presentation();
                 set_flight_phase("capture_synchronization");
                 synchronize_capture();
             } catch (const std::exception&) {

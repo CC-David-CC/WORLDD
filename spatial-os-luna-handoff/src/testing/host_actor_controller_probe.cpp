@@ -690,27 +690,39 @@ void worker_queue_empty_cancellation_has_its_own_watchdog_urgency() {
 void worker_presentation_receipt_cannot_publish_after_actor_interruption() {
     Fixture fixture;Endpoint source(fixture,2s);
     source.start([&](int fd) {
-        handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);
+        handshake(fd,fixture);
+        controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);
+        shutdown(fd,SHUT_RDWR);
     });
-    std::promise<void> presenting;
+    std::promise<void> presenting,presentation_release;
+    auto release=presentation_release.get_future().share();
+    std::atomic<bool> first_presentation{false};
     auto host=shared_host(source,fixture,[](const auto&) {},[&](auto,const auto& view) {
-        if(view.visible()) {presenting.set_value();std::this_thread::sleep_for(500ms);}
+        if(view.visible() && !first_presentation.exchange(true)) {presenting.set_value();release.wait();}
     });
     {
         supervisor::HostActorWorker worker(*host);const auto binding=worker.capture_binding();const auto pin=binding->interrupt.lock();
+        struct ReleaseBeforeWorkerJoin {std::promise<void>& value;~ReleaseBeforeWorkerJoin(){try{value.set_value();}catch(...){}}} release_before_join{presentation_release};
         check(worker.post_device(binding,worker_packet(binding,1,true)),"Publication test capture did not connect");
         worker.call([] {});
-        auto opening=worker.submit([&] {
-            auto packet=worker_packet(binding,2);packet.mutable_event()->mutable_key()->set_keysym("F10");
-            packet.mutable_event()->mutable_key()->set_pressed(true);
-            return worker.device_event(binding,packet).menu_open();
-        },binding);
+        const auto first_receipt_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<first_receipt_deadline)
+            std::this_thread::sleep_for(1ms);
+        check(binding->processed_sequence()==1,"Initial capture output did not settle before the blocked-frame check");
+        check(worker.post_device(binding,worker_key_packet(binding,2,2,"F10",true)),
+            "Menu input was not queued while presentation was available");
         check(presenting.get_future().wait_for(1s)==std::future_status::ready,"Menu publication did not reach its real host callback");
-        source.finish(); // Exact actor EOF occurs during the blocked presentation receipt.
-        bool rejected=false;
-        try {(void)opening.get();}catch(const std::exception&) {rejected=true;}
-        check(rejected && pin->requested(),"A healthy result escaped after actor interruption during presentation");
-        check(!worker.call([&] {return host->control_available();}),"Interrupted presentation retained healthy actor status");
+        check(binding->processed_sequence()==1,"Capture receipt advanced before native output settled");
+        source.finish(); // The independent actor endpoint now closes during the blocked output.
+        auto interrupted=worker.submit([&] {return host->inspect(0);},binding);
+        bool rejected=false;try{(void)interrupted.get();}catch(const std::exception&){rejected=true;}
+        check(rejected && pin->requested(),"A failed actor endpoint published a healthy result during presentation");
+        check(binding->processed_sequence()==1 && !host->control_available(),
+            "Interrupted presentation advanced its output receipt or retained actor authority");
+        presentation_release.set_value();
+        std::this_thread::sleep_for(30ms);
+        check(binding->processed_sequence()==1,"Late native output advanced a receipt for the interrupted actor");
+        check(worker.shutdown(),"Interrupted presentation lost capture cleanup");
     }
     host.reset();
 }
@@ -894,8 +906,10 @@ void worker_heartbeat_only_wait_keeps_real_cancellation(unsigned cause) {
 }
 void worker_controls_tick_keeps_actor_and_motion_live_with_queued_release() {
     Fixture fixture;Endpoint source(fixture,3s);
-    std::promise<void> input_started,release_input,stop_seen;
+    std::promise<void> input_started,release_input,stop_seen,presentation_entered,presentation_release,presentation_returned;
     auto release=release_input.get_future().share();
+    auto release_presentation=presentation_release.get_future().share();
+    std::atomic<bool> presentation_started{false};
     std::atomic<bool> physical_release_posted{false};
     std::atomic<unsigned> observed_refreshes{0};
     std::atomic<std::int64_t> maximum_refresh_gap_ms{0};
@@ -935,10 +949,16 @@ void worker_controls_tick_keeps_actor_and_motion_live_with_queued_release() {
         reply=reply_for(stop.request_id());outcome=reply.mutable_control_action();outcome->set_sequence(2);
         outcome->mutable_accepted()->set_accepted(true);send_reply(fd,reply);stop_seen.set_value();closed(fd);
     });
-    auto host=shared_host(source,fixture);std::unique_ptr<control::DeviceStream> producer;
+    auto host=shared_host(source,fixture,[](const auto&) {},[&](auto,const auto&) {
+        if(!presentation_started.exchange(true)) {
+            presentation_entered.set_value();release_presentation.wait();presentation_returned.set_value();
+        }
+    });std::unique_ptr<control::DeviceStream> producer;
     {
         supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
         const auto binding=worker.capture_binding();const auto interrupt=binding->interrupt.lock();
+        check(presentation_entered.get_future().wait_for(1s)==std::future_status::ready,
+            "Presentation worker did not enter the held output callback");
         check(worker.post_device(binding,worker_key_packet(binding,1,1,"",false,true)),
             "Keyboard source did not connect");
         worker.call([]{});
@@ -964,6 +984,9 @@ void worker_controls_tick_keeps_actor_and_motion_live_with_queued_release() {
                 std::to_string(observed_refreshes.load())+" max_gap_ms="+
                 std::to_string(maximum_refresh_gap_ms.load())+" zero_after_release="+
                 std::to_string(observed_zero_after_release.load()));
+        presentation_release.set_value();
+        check(presentation_returned.get_future().wait_for(1s)==std::future_status::ready,
+            "Presentation callback did not resume after its output gate opened");
         const bool clean=worker.shutdown();
         check(clean,"Controls tick regression left capture cleanup unresolved");
     }
@@ -1226,10 +1249,14 @@ void worker_capture_eof_and_malformed_are_bound() {
 }
 void worker_capture_progress_waits_for_output_barrier() {
     Fixture fixture;Endpoint source(fixture,2s);
-    source.start([&](int fd){handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);closed(fd);});
-    std::promise<void> presenting;
+    source.start([&](int fd){handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);
+        shutdown(fd,SHUT_RDWR);});
+    std::promise<void> presenting,presentation_release;
+    auto release=presentation_release.get_future().share();
+    std::atomic<bool> first_presentation{false};
+    struct Release {std::promise<void>& value;~Release(){try{value.set_value();}catch(...){}}} recovery{presentation_release};
     auto host=shared_host(source,fixture,[](const auto&){},[&](auto,const auto& view){
-        if(view.visible()){presenting.set_value();std::this_thread::sleep_for(500ms);}
+        if(view.visible() && !first_presentation.exchange(true)){presenting.set_value();release.wait();}
     });
     std::unique_ptr<control::DeviceStream> producer;
     {
@@ -1242,8 +1269,14 @@ void worker_capture_progress_waits_for_output_barrier() {
         producer->emit(event,std::chrono::steady_clock::now());
         check(presenting.get_future().wait_for(1s)==std::future_status::ready,"Output test did not reach the presentation callback");
         check(binding->processed_sequence()==1,"Raw capture reception acknowledged unfinished native output");
-        source.finish();worker.call([]{});
-        check(binding->processed_sequence()==1 && !host->control_available(),"Interrupted output published a processed capture receipt");
+        source.finish();
+        auto interrupted=worker.submit([&] {return host->inspect(0);},binding);
+        bool rejected=false;try{(void)interrupted.get();}catch(const std::exception&){rejected=true;}
+        check(rejected && binding->retired() && !host->control_available(),
+            "Interrupted output retained actor authority or published a healthy host request");
+        check(binding->processed_sequence()==1,"Interrupted output published a processed capture receipt");
+        presentation_release.set_value();std::this_thread::sleep_for(30ms);
+        check(binding->processed_sequence()==1,"Late presentation advanced an interrupted capture receipt");
         check(worker.shutdown(),"Interrupted output lost capture retirement");
     }
     producer.reset();host.reset();

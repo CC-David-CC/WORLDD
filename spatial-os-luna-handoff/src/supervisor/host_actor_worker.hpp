@@ -34,6 +34,7 @@ public:
         friend class HostActorWorker;
         std::atomic<bool> retired_{false};
         std::atomic<std::uint64_t> processed_sequence_{0};
+        std::atomic<std::uint64_t> dispatched_sequence_{0};
         std::atomic<std::uint64_t> observed_sequence_{0};
         std::atomic<bool> capture_active_{false};
         std::atomic<std::uint32_t> source_slot_{0};
@@ -80,7 +81,6 @@ public:
                     (*owned)();
                     stop_trace::mark("operation_returned");
                     settle_context();stop_trace::mark("settlement_returned");
-                    controller_.synchronize_controls_presentation();stop_trace::mark("controls_returned");
                     synchronize_capture();stop_trace::mark("capture_returned");
                     if(!complete([&] {promise->set_value();},true)) {
                         stop_trace::mark("publication_interrupted");
@@ -91,7 +91,6 @@ public:
                     auto result = (*owned)();
                     stop_trace::mark("operation_returned");
                     settle_context();stop_trace::mark("settlement_returned");
-                    controller_.synchronize_controls_presentation();stop_trace::mark("controls_returned");
                     synchronize_capture();stop_trace::mark("capture_returned");
                     if(!complete([&] {promise->set_value(std::move(result));},true)) {
                         stop_trace::mark("publication_interrupted");
@@ -102,7 +101,7 @@ public:
             } catch (...) {
                 stop_trace::mark("failed");
                 const auto failure = std::current_exception();
-                try { settle_context(); controller_.synchronize_controls_presentation(); } catch (...) {}
+                try { settle_context(); } catch (...) {}
                 complete_failure(failure,[&](std::exception_ptr error) {promise->set_exception(error);});
             }
         };
@@ -142,6 +141,7 @@ private:
     bool enqueue(Work);
     bool current(const Binding&) const;
     void run(std::promise<void> ready) noexcept;
+    void run_presentation() noexcept;
     void watch() noexcept;
     void refresh_context();
     void settle_context();
@@ -168,6 +168,6 @@ private:
     std::optional<Flight> flight_;
     std::uint64_t exchange_serial_ = 0;
     std::atomic<bool> stopping_{false}, failed_{false}, cancel_pending_{false};
-    std::thread worker_, watchdog_;
+    std::thread worker_, presentation_worker_, watchdog_;
 };
 }

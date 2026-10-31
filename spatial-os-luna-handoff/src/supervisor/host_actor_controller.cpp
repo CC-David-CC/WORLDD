@@ -264,8 +264,9 @@ void HostActorController::defer_foreground_locked(bool release_binding) {
             release_binding?SessionCoordinator::LocalRetirementKind::context:SessionCoordinator::LocalRetirementKind::presentation);
         if(std::none_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& old){
                 return old.owner.SerializeAsString()==local_target_->owner.SerializeAsString() &&
-                    old.identity.SerializeAsString()==local_target_->identity.SerializeAsString();}))
-            retiring_targets_.push_back(*local_target_);
+                    old.identity.SerializeAsString()==local_target_->identity.SerializeAsString();})) {
+            retiring_targets_.push_back(*local_target_);++retiring_generation_;
+        }
         local_frame_.reset();
         if(release_binding)local_target_.reset();
         return;
@@ -279,11 +280,26 @@ void HostActorController::defer_foreground_locked(bool release_binding) {
 }
 bool HostActorController::pump_deferred_cleanup() {
     std::unique_lock lock(mutex_,std::try_to_lock);
-    if(!lock.owns_lock() || !session_)return false;
-    const bool pending=session_->pump_deferred_cleanup();
-    std::erase_if(retiring_targets_,[&](const auto& target){
-        return !session_->local_retirement_pending(target.owner,target.identity);
-    });
+    if(!lock.owns_lock())return true;
+    if(!session_)return false;
+    auto* session=session_;
+    const auto targets=retiring_targets_;
+    const auto retirement_generation=retiring_generation_;
+    lock.unlock();
+    const bool pending=session->pump_deferred_cleanup();
+    std::vector<std::string> settled;
+    settled.reserve(targets.size());
+    for(const auto& target:targets)
+        if(!session->local_retirement_pending(target.owner,target.identity))
+            settled.push_back(target.identity.SerializeAsString());
+    lock.lock();
+    if(retiring_generation_==retirement_generation && !settled.empty()) {
+        const auto previous=retiring_targets_.size();
+        std::erase_if(retiring_targets_,[&](const auto& target){
+            return std::find(settled.begin(),settled.end(),target.identity.SerializeAsString())!=settled.end();
+        });
+        if(retiring_targets_.size()!=previous)++retiring_generation_;
+    }
     return pending;
 }
 void HostActorController::clear_foreground_locked() {
@@ -373,63 +389,133 @@ void HostActorController::enable_presentation_continuations() {
 }
 bool HostActorController::pump_geometry_presentation(const std::function<void(const char*)>& trace) {
     if (trace) trace("geometry_deferred_cleanup");
-    (void)pump_deferred_cleanup();
+    const bool cleanup_pending=pump_deferred_cleanup();
     if (trace) trace("geometry_lock");
     std::unique_lock lock(mutex_, std::try_to_lock);
-    if (!lock.owns_lock() || transitioning_ || control_fenced_ || !session_ || !current_client_) return false;
-    try {
-        const auto destination=destinations_.find(current_world_);
-        if(presentation_continuations_ && shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
-            if (trace) trace("geometry_view_identity");
-            const auto identity=current_client_->local_view_identity();
-            if(std::any_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& target){
-                    return target.identity.SerializeAsString()==identity.SerializeAsString();}))return true;
-            if(!local_target_ || local_target_->identity.SerializeAsString()!=identity.SerializeAsString()) {
-                if (trace) trace("geometry_retire_foreground");
-                if(!retire_foreground_locked())throw std::runtime_error("Previous foreground retirement is unconfirmed");
-                local_target_=LocalTarget{*destination->second.owner,identity};
-            }
-            if(local_frame_ && (local_frame_->actor_generation!=generation_ ||
-                    local_frame_->capture_generation!=capture_generation_ ||
-                    local_frame_->ticket.identity.SerializeAsString()!=identity.SerializeAsString() ||
-                    local_frame_->ticket.owner.SerializeAsString()!=local_target_->owner.SerializeAsString())) {
-                if (trace) trace("geometry_cancel_frame");
-                session_->cancel_present_local_actor(local_frame_->ticket);
-                local_frame_.reset();
-            }
-            if (trace) trace("geometry_begin_frame");
-            if(!local_frame_)local_frame_=LocalFrame{
-                session_->begin_present_local_actor(local_target_->owner,identity,0,0),generation_,capture_generation_};
-            const auto pending=*local_frame_;
-            if (trace) trace("geometry_poll_frame");
-            auto result=session_->poll_present_local_actor(pending.ticket);
-            if(!result)return true;
-            local_frame_.reset();
-            // No completion may update projection or status after its exact
-            // actor, capture, view, owner, or producer has changed.
-            require(!transitioning_ && !control_fenced_ && current_client_ && !current_client_->failed() &&
-                pending.actor_generation==generation_ && pending.capture_generation==capture_generation_ && local_target_ &&
-                pending.ticket.identity.SerializeAsString()==current_client_->local_view_identity().SerializeAsString() &&
-                pending.ticket.owner.SerializeAsString()==local_target_->owner.SerializeAsString() &&
-                pending.ticket.presentation_generation==result->presentation_generation(),
-                "Local presentation completion lost its actor context");
-            if (trace) trace("geometry_publish_frame");
-            publish_local_frame_locked(identity,*result);
-        }else {
-            if (trace) trace("geometry_refresh_foreground");
-            refresh_foreground_locked();
+    if(!lock.owns_lock())return true;
+    if(transitioning_ || control_fenced_ || !session_ || !current_client_)return cleanup_pending;
+    // The host compositor has one in-flight presentation exchange. Finish
+    // queued controls or retirement work before beginning another local frame.
+    // An existing frame still owns its exact ticket and must be polled below.
+    if(cleanup_pending && !local_frame_)return true;
+    const auto destination=destinations_.find(current_world_);
+    if(shared_enabled_ && destination!=destinations_.end() && destination->second.owner) {
+        if(trace)trace("geometry_view_identity");
+        const auto identity=current_client_->local_view_identity();
+        const auto identity_bytes=identity.SerializeAsString();
+        const auto owner=*destination->second.owner;
+        const auto actor_generation=generation_;
+        const auto capture_generation=capture_generation_;
+        if(std::any_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& target){
+                return target.identity.SerializeAsString()==identity_bytes;})) {
+            if(trace)trace("geometry_wait_retirement");
+            return true;
         }
+        std::optional<LocalTarget> retired_target;
+        if(local_target_ && (local_target_->identity.SerializeAsString()!=identity_bytes ||
+                local_target_->owner.SerializeAsString()!=owner.SerializeAsString())) {
+            retired_target=*local_target_;
+            local_target_=LocalTarget{owner,identity};
+            local_frame_.reset();
+            if(std::none_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& old){
+                    return old.identity.SerializeAsString()==retired_target->identity.SerializeAsString() &&
+                        old.owner.SerializeAsString()==retired_target->owner.SerializeAsString();})) {
+                retiring_targets_.push_back(*retired_target);
+                ++retiring_generation_;
+            }
+        }else if(!local_target_)local_target_=LocalTarget{owner,identity};
+        if(retired_target) {
+            if(trace)trace("geometry_retire_previous_target");
+            lock.unlock();
+            try {session_->defer_retire_local_actor(retired_target->owner,retired_target->identity,
+                    SessionCoordinator::LocalRetirementKind::presentation);}
+            catch (...) {std::lock_guard retry(mutex_);control_fenced_=true;}
+            return true;
+        }
+        if(local_frame_ && (local_frame_->actor_generation!=actor_generation ||
+                local_frame_->capture_generation!=capture_generation ||
+                local_frame_->ticket.identity.SerializeAsString()!=identity_bytes ||
+                local_frame_->ticket.owner.SerializeAsString()!=owner.SerializeAsString())) {
+            if(trace)trace("geometry_cancel_stale_context");
+            const auto stale=local_frame_->ticket;
+            local_frame_.reset();
+            lock.unlock();
+            try {session_->cancel_present_local_actor(stale);}catch(...){}
+            return true;
+        }
+        std::optional<SessionCoordinator::LocalPresentationTicket> ticket;
+        if(local_frame_)ticket=local_frame_->ticket;
+        lock.unlock();
+
+        std::optional<core::v1::ActorLocalViewState> result;
+        std::string failure;
+        try {
+            if(!ticket) {
+                if(trace)trace("geometry_begin_frame");
+                ticket=session_->begin_present_local_actor(owner,identity,0,0);
+            }
+            if(trace && ticket) {
+                const auto progress=session_->local_presentation_progress(*ticket);
+                trace(progress.stage==SessionCoordinator::LocalPresentationStage::bind ? "geometry_poll_bind" :
+                    progress.stage==SessionCoordinator::LocalPresentationStage::select ? "geometry_poll_select" :
+                    "geometry_poll_present");
+            }
+            if(trace)trace("geometry_poll_frame");
+            result=session_->poll_present_local_actor(*ticket,1);
+        }catch(...) {failure=exception_detail();}
+
+        lock.lock();
+        const bool same_binding=!transitioning_ && !control_fenced_ && current_client_ && !current_client_->failed() &&
+            generation_==actor_generation && capture_generation_==capture_generation &&
+            current_world_==identity.world_id() && local_target_ &&
+            local_target_->identity.SerializeAsString()==identity_bytes &&
+            local_target_->owner.SerializeAsString()==owner.SerializeAsString();
+        if(!same_binding) {
+            if(local_frame_ && ticket && local_frame_->ticket.serial==ticket->serial)local_frame_.reset();
+            lock.unlock();
+            if(!result && ticket)try {session_->cancel_present_local_actor(*ticket);}catch(...){}
+            return true;
+        }
+        if(!failure.empty()) {
+            if(failure!=presentation_failure_)std::cerr<<"Local presentation failed: "<<failure<<'\n';
+            presentation_failure_=failure;geometry_status_.Clear();
+            const bool context_lost=!current_client_ || current_client_->failed();
+            if(local_frame_ && ticket && local_frame_->ticket.serial==ticket->serial)local_frame_.reset();
+            if(context_lost) {control_fenced_=true;current_client_.reset();local_target_.reset();}
+            else if(std::none_of(retiring_targets_.begin(),retiring_targets_.end(),[&](const auto& old){
+                    return old.identity.SerializeAsString()==identity_bytes &&
+                        old.owner.SerializeAsString()==owner.SerializeAsString();})) {
+                retiring_targets_.push_back(LocalTarget{owner,identity});++retiring_generation_;
+            }
+            lock.unlock();
+            try {session_->defer_retire_local_actor(owner,identity,context_lost?
+                    SessionCoordinator::LocalRetirementKind::context:SessionCoordinator::LocalRetirementKind::presentation);}
+            catch(...) {std::lock_guard retry(mutex_);control_fenced_=true;}
+            return true;
+        }
+        if(!result) {
+            if(!local_frame_ && ticket)local_frame_=LocalFrame{*ticket,actor_generation,capture_generation};
+            return true;
+        }
+        if(local_frame_ && ticket && local_frame_->ticket.serial==ticket->serial)local_frame_.reset();
+        if(ticket && ticket->presentation_generation!=result->presentation_generation()) {
+            geometry_status_.Clear();presentation_failure_="Local presentation generation changed before publish";
+            return true;
+        }
+        if(trace)trace("geometry_publish_frame");
+        publish_local_frame_locked(identity,*result);
+        return cleanup_pending;
     }
-    catch (...) {
-        if (trace) trace("geometry_failure_cleanup");
+    try {refresh_foreground_locked();}
+    catch(...) {
         const auto detail=exception_detail();
         if(detail!=presentation_failure_)std::cerr<<"Local presentation failed: "<<detail<<'\n';
         presentation_failure_=detail;
         const bool context_lost=!current_client_ || current_client_->failed();
-        try { defer_foreground_locked(context_lost); } catch (...) { control_fenced_=true; }
+        try {defer_foreground_locked(context_lost);}catch(...) {control_fenced_=true;}
         if(context_lost)control_fenced_=true;
     }
-    return false;
+    return cleanup_pending;
 }
 std::string HostActorController::current_world() const {
     std::lock_guard lock(mutex_);
@@ -454,7 +540,35 @@ void HostActorController::synchronize_controls_presentation_locked() {
     presented_menu_=bytes;presented_menu_generation_=capture_generation_;
 }
 void HostActorController::synchronize_controls_presentation() {
-    std::lock_guard lock(mutex_);synchronize_controls_presentation_locked();
+    std::unique_lock lock(mutex_);
+    if(!present_controls_ || !shared_enabled_ || !capture_generation_)return;
+    control::v1::ControlMenuView view;view.set_protocol_version(1);
+    if(!control_fenced_ && current_client_ && !current_client_->failed() && controls_menu_)view=controls_menu_->view();
+    const auto generation=capture_generation_;
+    const bool deferred=session_ && (presentation_continuations_ || control_fenced_ || !current_client_ || current_client_->failed());
+    const auto bytes=view.SerializeAsString();
+    if(!deferred && presented_menu_generation_==generation && presented_menu_==bytes)return;
+    auto* session=session_;
+    auto present=present_controls_;
+    lock.unlock();
+    try {
+        if(deferred)session->defer_present_controls(generation,view);
+        else present(generation,view);
+    }catch(...) {
+        std::lock_guard retry(mutex_);
+        if(generation==capture_generation_) {
+            control_fenced_=true;
+            current_client_.reset(); // Unconfirmed output cannot retain held input.
+        }
+        throw;
+    }
+    if(!deferred) {
+        lock.lock();
+        if(generation==capture_generation_) {
+            presented_menu_=bytes;
+            presented_menu_generation_=generation;
+        }
+    }
 }
 void HostActorController::require_controls_locked(std::uint64_t generation) const {
     require(shared_enabled_ && controls_ && adapters_ && controls_menu_ && generation == generation_ &&
