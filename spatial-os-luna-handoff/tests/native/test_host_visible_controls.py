@@ -1,30 +1,40 @@
-"""Human menu actions must change the actual production-host foreground."""
+"""Human menu actions must reach the real production-host foreground."""
+import time
 import unittest
 import test_host_continuous_capture as continuous
 
 
 class VisibleHostControlsTests(continuous.ContinuousCaptureTests):
+    def wait_pixels(self, predicate, description):
+        deadline = time.monotonic() + 3
+        pixels = None
+        while time.monotonic() < deadline:
+            pixels = self.foreground_pixels()
+            if predicate(pixels):
+                return pixels
+            time.sleep(.02)
+        self.fail('Native menu output did not %s' % description)
+
     def connect_keyboard(self, generation=0):
         self.human_capture = self.producer(generation)
 
     def key(self, keysym, pressed=True, generation=0):
         return self.wait_processed(self.human_capture.key(keysym, pressed), generation)
 
-    def test_f10_preferences_and_escape_change_real_pixels_before_reply(self):
+    def test_f10_preferences_and_escape_change_real_pixels_after_input_dispatch(self):
         self.ready_host()
         self.connect_keyboard()
         self.assertEqual((self.status().viewport_width, self.status().viewport_height), (128, 128))
         before = self.foreground_pixels()
         pids = self.retained_pids()
         self.assertTrue(self.key('F10').menu_open)
-        shown = self.foreground_pixels()
-        self.assertNotEqual(shown, before)
+        self.wait_pixels(lambda pixels: pixels != before, 'show the F10 menu')
         self.key('Right')
         self.assertTrue(self.preferences.is_file())
         self.key('Right', False)
         self.key('Escape')
         self.assertFalse(self.shared('controls_menu').menu.visible)
-        self.assertEqual(self.foreground_pixels(), before)
+        self.wait_pixels(lambda pixels: pixels == before, 'restore the foreground after Escape')
         self.assertEqual(self.retained_pids(), pids)
         self.shutdown_checked()
 
@@ -33,10 +43,11 @@ class VisibleHostControlsTests(continuous.ContinuousCaptureTests):
         self.connect_keyboard()
         self.assert_foreground_blank()
         self.assertTrue(self.key('F10').menu_open)
-        shown = self.foreground_pixels()
-        self.assertTrue(any(shown[0::4]) or any(shown[1::4]) or any(shown[2::4]))
+        self.wait_pixels(lambda pixels: any(pixels[0::4]) or any(pixels[1::4]) or any(pixels[2::4]),
+            'show controls without world observation authority')
         self.key('Escape')
-        self.assert_foreground_blank()
+        self.wait_pixels(lambda pixels: not any(pixels[0::4]) and not any(pixels[1::4]) and
+            not any(pixels[2::4]), 'restore the blank foreground after Escape')
         self.shutdown_checked()
 
     def test_f12_stops_held_navigation_and_requires_a_fresh_key_edge(self):

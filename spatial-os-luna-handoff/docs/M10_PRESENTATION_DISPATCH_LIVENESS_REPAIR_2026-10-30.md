@@ -1,5 +1,7 @@
 # M10 presentation and actor liveness repair
 
+Historical checkpoint note: this document records the earlier receipt semantics. The 2026-10-31 repair note supersedes them: processed_capture_sequence means checked actor handling, and presented_capture_sequence means the native output barrier settled. Follow the newer note for current behavior.
+
 Status: unqualified repair in progress.
 
 ## Source and ownership

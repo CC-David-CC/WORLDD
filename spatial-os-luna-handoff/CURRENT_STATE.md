@@ -1,3 +1,31 @@
+## Current M10 qualification run and repair
+
+Frozen candidate `d49c422b1335bdfeeb7d8b49060e8f1adc3e4f75` finished Debug on
+both qualification hosts and failed. Sb16 passed 301/305 tests. Sb16-2 passed
+299/305. Neither host started ASan/UBSan. Across both hosts, 600/610 Debug
+test runs passed.
+
+Sb16 failed tests 260, 261, 262, and 269. Sb16-2 failed tests 260 through 264
+and 269. The failures cluster around capture progress waiting for native
+presentation, transient `Host actor operation already in progress` replies,
+and an input receipt delayed by a pending authority exchange. The gate did not
+show an XLibre or Xvfb failure. Evidence is under
+`spatial-artifacts/m10-presentation-dispatch-liveness-20261030`.
+
+The separate repair worktree is
+`/home/dflanag3/src/m10-presentation-dispatch-second-pass-20261031` on branch
+`m10/presentation-dispatch-second-pass-20261031`. It tracks accepted input,
+checked actor dispatch, and settled output separately. It fixes coalesced-axis
+receipts and prevents late output receipts after cancellation. Versioned
+controller snapshots cannot overwrite newer status or cross actor bindings.
+Inspection waits during routine actor work but rejects during world transitions.
+The latest focused CTest rerun passed 4/4 in Debug and 4/4 under ASan/UBSan
+on middle-child. Python syntax checks and git diff --check pass. The
+stopped-compositor observation allowance is 350 ms per David’s approval;
+runtime input expiry remains 250 ms. Native retests on both hosts and a
+replacement full gate remain pending. No replacement candidate is frozen. M10 remains unqualified.
+See `docs/M10_DISPATCH_RECEIPT_REVISION_2026-10-31.md` for current evidence.
+
 ## 2026-10-30: M10 presentation-dispatch repair is in progress
 
 Frozen candidate `bc902621c25e1f9f6d4b0b8f1d91f29a314de5ca` completed its two-host gate.

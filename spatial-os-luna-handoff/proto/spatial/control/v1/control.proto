@@ -77,11 +77,19 @@ message ControlStatus {
   uint32 viewport_width = 8;
   uint32 viewport_height = 9;
   uint64 capture_generation = 10;
-  // Host-private progress. Sequence means checked handling, not raw reception.
+  // Host-private input progress. This advances after checked actor handling,
+  // independently of whether the resulting native frame has been presented.
   uint64 processed_capture_sequence = 11;
   bool capture_active = 12;
   uint32 capture_source_slot = 13;
   bool capture_retired = 14;
+  // Host-private output progress. This advances only after the native output
+  // barrier settles for the capture state observed by a presentation cycle.
+  uint64 presented_capture_sequence = 15;
+  // Host-private input-intent progress. The event passed capture/source checks,
+  // updated movement intent, and entered the bounded actor work queue. This
+  // does not mean a discrete action was authorized or presented.
+  uint64 accepted_capture_sequence = 16;
 }
 
 // One private datagram. CLOCK_MONOTONIC and the capture epoch belong to this host.

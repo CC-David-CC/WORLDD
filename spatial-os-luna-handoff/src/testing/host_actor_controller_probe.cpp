@@ -500,6 +500,19 @@ control::v1::CapturedDeviceEvent worker_mouse_motion_packet(
     else {event->mutable_motion()->set_dx(dx);event->mutable_motion()->set_dy(dy);}
     return packet;
 }
+control::v1::CapturedDeviceEvent worker_axes_packet(
+        const supervisor::HostActorWorker::Binding& binding,std::uint64_t sequence,double sample,
+        bool connected=false) {
+    control::v1::CapturedDeviceEvent packet;
+    packet.set_protocol_version(1);packet.set_capture_generation(binding->capture_generation);
+    packet.set_packet_sequence(sequence);packet.set_monotonic_nanoseconds(static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count()));
+    auto* event=packet.mutable_event();event->set_protocol_version(1);event->set_source_id("worker-spacemouse");
+    event->set_source_generation(1);event->set_event_sequence(sequence);
+    if(connected)event->mutable_connected()->set_kind(control::v1::SPACEMOUSE);
+    else for(unsigned axis=0;axis<6;++axis)event->mutable_axes()->add_raw(sample+axis*.01);
+    return packet;
+}
 void worker_relative_motion_coalesces_without_losing_counts() {
     Fixture fixture;Endpoint source(fixture,2s);
     source.start([&](int fd) {
@@ -516,9 +529,9 @@ void worker_relative_motion_coalesces_without_losing_counts() {
         const auto binding=worker.capture_binding();
         check(worker.post_device(binding,worker_mouse_motion_packet(binding,1,0,0,true)),"Mouse source did not connect");
         const auto connected_deadline=std::chrono::steady_clock::now()+1s;
-        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected_deadline)
+        while(binding->dispatched_sequence()<1 && std::chrono::steady_clock::now()<connected_deadline)
             std::this_thread::sleep_for(1ms);
-        check(binding->processed_sequence()==1,"Mouse source connection was not processed");
+        check(binding->dispatched_sequence()==1,"Mouse source connection was not processed");
         std::promise<void> entered,release;auto gate=release.get_future().share();
         auto blocked=worker.submit([&] {entered.set_value();gate.wait();});entered.get_future().wait();
         constexpr std::uint64_t samples=1000;
@@ -531,11 +544,41 @@ void worker_relative_motion_coalesces_without_losing_counts() {
         std::cout<<"M10 coalesced motion samples per second: "<<rate<<'\n';
         release.set_value();blocked.get();
         const auto processed_deadline=std::chrono::steady_clock::now()+1s;
-        while(binding->processed_sequence()<samples+1 && std::chrono::steady_clock::now()<processed_deadline)
+        while(binding->dispatched_sequence()<samples+1 && std::chrono::steady_clock::now()<processed_deadline)
             std::this_thread::sleep_for(1ms);
-        check(binding->processed_sequence()==samples+1,"Coalesced motion lost the newest capture sequence");
+        check(binding->dispatched_sequence()==samples+1,"Coalesced motion lost the newest capture sequence");
         check(rate>=1000,"Motion queue did not accept 1000 samples per second");
         check(host->control_available(),"Motion coalescing retired healthy actor authority");
+    }
+    host.reset();source.finish();
+}
+void worker_absolute_axes_coalescing_advances_acceptance_receipt() {
+    Fixture fixture;Endpoint source(fixture,2s);
+    source.start([&](int fd){handshake(fd,fixture);closed(fd);});
+    auto host=shared_host(source,fixture);
+    {
+        supervisor::HostActorWorker worker(*host);
+        const auto binding=worker.capture_binding();
+        check(worker.post_device(binding,worker_axes_packet(binding,1,0,true)),"SpaceMouse source did not connect");
+        const auto connected_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->dispatched_sequence()<1 && std::chrono::steady_clock::now()<connected_deadline)
+            std::this_thread::sleep_for(1ms);
+        check(binding->dispatched_sequence()==1,"SpaceMouse connection was not processed");
+        std::promise<void> entered,release;auto gate=release.get_future().share();
+        auto blocked=worker.submit([&] {entered.set_value();gate.wait();});entered.get_future().wait();
+        constexpr std::uint64_t samples=1000;
+        for(std::uint64_t index=0;index<samples;++index)
+            check(worker.post_device(binding,worker_axes_packet(binding,index+2,index*.001)),
+                "Absolute axes queue applied backpressure below its bounded workload");
+        check(binding->accepted_sequence()==samples+1,
+            "Coalesced absolute axes did not acknowledge the newest accepted sample");
+        check(binding->dispatched_sequence()==1,"Blocked worker processed axes before release");
+        release.set_value();blocked.get();
+        const auto processed_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->dispatched_sequence()<samples+1 && std::chrono::steady_clock::now()<processed_deadline)
+            std::this_thread::sleep_for(1ms);
+        check(binding->dispatched_sequence()==samples+1,"Coalesced absolute axes lost its newest sample");
+        check(worker.shutdown(),"Absolute axes fixture lost capture retirement");
     }
     host.reset();source.finish();
 }
@@ -706,22 +749,26 @@ void worker_presentation_receipt_cannot_publish_after_actor_interruption() {
         check(worker.post_device(binding,worker_packet(binding,1,true)),"Publication test capture did not connect");
         worker.call([] {});
         const auto first_receipt_deadline=std::chrono::steady_clock::now()+1s;
-        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<first_receipt_deadline)
+        while(binding->presented_sequence()<1 && std::chrono::steady_clock::now()<first_receipt_deadline)
             std::this_thread::sleep_for(1ms);
-        check(binding->processed_sequence()==1,"Initial capture output did not settle before the blocked-frame check");
+        check(binding->presented_sequence()==1,"Initial capture output did not settle before the blocked-frame check");
         check(worker.post_device(binding,worker_key_packet(binding,2,2,"F10",true)),
             "Menu input was not queued while presentation was available");
         check(presenting.get_future().wait_for(1s)==std::future_status::ready,"Menu publication did not reach its real host callback");
-        check(binding->processed_sequence()==1,"Capture receipt advanced before native output settled");
+        const auto dispatched_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->dispatched_sequence()<2 && std::chrono::steady_clock::now()<dispatched_deadline)
+            std::this_thread::sleep_for(1ms);
+        check(binding->dispatched_sequence()==2,"Checked input dispatch waited for native output");
+        check(binding->presented_sequence()==1,"Native output receipt advanced before presentation settled");
         source.finish(); // The independent actor endpoint now closes during the blocked output.
         auto interrupted=worker.submit([&] {return host->inspect(0);},binding);
         bool rejected=false;try{(void)interrupted.get();}catch(const std::exception&){rejected=true;}
         check(rejected && pin->requested(),"A failed actor endpoint published a healthy result during presentation");
-        check(binding->processed_sequence()==1 && !host->control_available(),
-            "Interrupted presentation advanced its output receipt or retained actor authority");
+        check(binding->dispatched_sequence()==2 && binding->presented_sequence()==1 && !host->control_available(),
+            "Interrupted presentation published late output or retained actor authority");
         presentation_release.set_value();
         std::this_thread::sleep_for(30ms);
-        check(binding->processed_sequence()==1,"Late native output advanced a receipt for the interrupted actor");
+        check(binding->presented_sequence()==1,"Late native output advanced a receipt for the interrupted actor");
         check(worker.shutdown(),"Interrupted presentation lost capture cleanup");
     }
     host.reset();
@@ -772,6 +819,8 @@ void worker_checked_transition_release_disarms_old_capture_urgency() {
             auto transition=worker.submit([&] {return worker.transition_proposed(0,proposal);},binding,true);
             const bool reached=entered.get_future().wait_for(1s)==std::future_status::ready;
             if(!reached){release.set_value();(void)transition.get();throw std::runtime_error("Released transition did not reach its gate");}
+            check(!worker.control_status(binding->actor_generation).available(),
+                "A cached status exposed actor availability during a world transition");
             // A queued old Stop must not rearm the release deadline.
             auto queued=worker.submit([] {return true;},binding,true);
             const bool waiting=transition.wait_for(500ms)==std::future_status::timeout;
@@ -877,9 +926,9 @@ void worker_heartbeat_only_wait_keeps_real_cancellation(unsigned cause) {
             }catch(...){if(!requested.load())premature_failure.store(true);}
         });
         const auto connected=std::chrono::steady_clock::now()+1s;
-        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected)
+        while(binding->dispatched_sequence()<1 && std::chrono::steady_clock::now()<connected)
             std::this_thread::sleep_for(5ms);
-        check(binding->processed_sequence()>=1,"Heartbeat watchdog test did not confirm its source connection");
+        check(binding->dispatched_sequence()>=1,"Heartbeat watchdog test did not confirm its source connection");
         worker.call([]{}); // Initial Connected work cannot supply urgency in the gated phase.
         std::promise<void> entered,release;auto gate=release.get_future().share();
         struct Release {std::promise<void>& value;~Release(){try{value.set_value();}catch(...){}}} recovery{release};
@@ -970,6 +1019,12 @@ void worker_controls_tick_keeps_actor_and_motion_live_with_queued_release() {
         check(worker.post_device(binding,worker_key_packet(binding,3,3,"w",false)),
             "Movement key release was not queued");
         physical_release_posted.store(true);
+        const auto status_started=std::chrono::steady_clock::now();
+        const auto queued_status=worker.control_status(binding->actor_generation);
+        const auto status_elapsed=std::chrono::steady_clock::now()-status_started;
+        check(status_elapsed<350ms,"Capture progress query waited behind a slow controls exchange");
+        check(queued_status.accepted_capture_sequence()>=3 && queued_status.processed_capture_sequence()<3,
+            "Capture ingress did not acknowledge its bounded buffer independently of checked dispatch");
         std::this_thread::sleep_for(420ms);
         check(!interrupt->requested() && !binding->retired(),
             "Queued capture during controls_tick retired the authenticated actor");
@@ -1175,8 +1230,8 @@ void worker_drains_buffered_capture_before_source_expiry() {
             }catch(...){failed.store(true);}
         });
         const auto deadline=std::chrono::steady_clock::now()+1s;
-        while(binding->processed_sequence()<2 && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(5ms);
-        check(binding->processed_sequence()>=2,"Buffered capture did not connect both independent sources");
+        while(binding->dispatched_sequence()<2 && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(5ms);
+        check(binding->dispatched_sequence()>=2,"Buffered capture did not connect both independent sources");
         // Ordinary work owns no input urgency. The receiver continues validating fresh heartbeats.
         worker.call([] {std::this_thread::sleep_for(900ms);});
         const auto status=worker.call([&] {return worker.control_status(0);});
@@ -1233,21 +1288,21 @@ void worker_capture_eof_and_malformed_are_bound() {
             supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
             const auto binding=worker.capture_binding();producer->emit(receiver_event(1,true),std::chrono::steady_clock::now());
             const auto connected=std::chrono::steady_clock::now()+1s;
-            while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected)std::this_thread::sleep_for(5ms);
-            check(binding->processed_sequence()==1,"Capture connection lacked its checked progress receipt");
+            while(binding->dispatched_sequence()<1 && std::chrono::steady_clock::now()<connected)std::this_thread::sleep_for(5ms);
+            check(binding->dispatched_sequence()==1,"Capture connection lacked its checked progress receipt");
             if(malformed)check(send(producer->descriptor(),"\x80",1,MSG_NOSIGNAL)==1,"Malformed capture was not sent");
             else producer.reset();
             const auto deadline=std::chrono::steady_clock::now()+1500ms;
             while(!binding->retired() && std::chrono::steady_clock::now()<deadline)std::this_thread::sleep_for(5ms);
             check(binding->retired(),"EOF or malformed capture did not retire its exact binding");
             worker.call([]{});
-            check(binding->processed_sequence()==1 && host->control_available() && worker.shutdown(),
+            check(binding->dispatched_sequence()==1 && host->control_available() && worker.shutdown(),
                 "Capture failure acknowledged malformed input or lost checked cleanup");
         }
         producer.reset();host.reset();source.finish();
     }
 }
-void worker_capture_progress_waits_for_output_barrier() {
+void worker_input_receipt_is_separate_from_output_and_fenced_after_interrupt() {
     Fixture fixture;Endpoint source(fixture,2s);
     source.start([&](int fd){handshake(fd,fixture);controlled_accept(fd,3,1,core::v1::ActorActionRequest::kStop);
         shutdown(fd,SHUT_RDWR);});
@@ -1263,20 +1318,24 @@ void worker_capture_progress_waits_for_output_barrier() {
         supervisor::HostActorWorker worker(*host,capture_pair_factory(producer),[](const auto&){});
         const auto binding=worker.capture_binding();producer->emit(receiver_event(1,true),std::chrono::steady_clock::now());
         const auto connected=std::chrono::steady_clock::now()+1s;
-        while(binding->processed_sequence()<1 && std::chrono::steady_clock::now()<connected)std::this_thread::sleep_for(5ms);
-        check(binding->processed_sequence()==1,"Output test did not confirm its connection");
+        while(binding->presented_sequence()<1 && std::chrono::steady_clock::now()<connected)std::this_thread::sleep_for(5ms);
+        check(binding->presented_sequence()==1,"Output test did not confirm its initial presentation");
         auto event=receiver_event(2);event.mutable_key()->set_keysym("F10");event.mutable_key()->set_pressed(true);
         producer->emit(event,std::chrono::steady_clock::now());
         check(presenting.get_future().wait_for(1s)==std::future_status::ready,"Output test did not reach the presentation callback");
-        check(binding->processed_sequence()==1,"Raw capture reception acknowledged unfinished native output");
+        const auto dispatch_deadline=std::chrono::steady_clock::now()+1s;
+        while(binding->dispatched_sequence()<2 && std::chrono::steady_clock::now()<dispatch_deadline)std::this_thread::sleep_for(5ms);
+        check(binding->dispatched_sequence()==2,"Checked input did not advance independently of native output");
+        check(binding->presented_sequence()==1,"Native output receipt advanced before the output callback completed");
         source.finish();
         auto interrupted=worker.submit([&] {return host->inspect(0);},binding);
         bool rejected=false;try{(void)interrupted.get();}catch(const std::exception&){rejected=true;}
         check(rejected && binding->retired() && !host->control_available(),
             "Interrupted output retained actor authority or published a healthy host request");
-        check(binding->processed_sequence()==1,"Interrupted output published a processed capture receipt");
+        check(binding->dispatched_sequence()==2 && binding->presented_sequence()==1,
+            "Interrupted output changed a checked input or output receipt");
         presentation_release.set_value();std::this_thread::sleep_for(30ms);
-        check(binding->processed_sequence()==1,"Late presentation advanced an interrupted capture receipt");
+        check(binding->presented_sequence()==1,"Late presentation advanced an interrupted output receipt");
         check(worker.shutdown(),"Interrupted output lost capture retirement");
     }
     producer.reset();host.reset();
@@ -1291,6 +1350,7 @@ int main(int argc, char** argv) {
             worker_ordinary_exception_preserves_type_and_context();std::cout<<"PASS worker-ordinary-exception-preserves-type-and-context\n";
             worker_queue_bound_and_overflow_cancellation();std::cout<<"PASS worker-bounded-queue-overflow-and-retired-input-urgency\n";
             worker_relative_motion_coalesces_without_losing_counts();std::cout<<"PASS worker-relative-motion-coalescing-preserves-counts-at-1kHz\n";
+            worker_absolute_axes_coalescing_advances_acceptance_receipt();std::cout<<"PASS worker-absolute-axes-coalescing-advances-acceptance\n";
             worker_retired_receiver_cannot_cancel_or_interrupt_adopted_context();std::cout<<"PASS worker-retired-receiver-cannot-affect-adopted-context\n";
             worker_malformed_current_capture_retires_before_more_delivery();std::cout<<"PASS worker-malformed-current-capture-retires-and-cancels\n";
             worker_queue_empty_cancellation_has_its_own_watchdog_urgency();std::cout<<"PASS worker-queue-empty-cancellation-watchdog\n";
@@ -1304,7 +1364,7 @@ int main(int argc, char** argv) {
             worker_capture_start_failure_preserves_actor_and_cleanup_obligations();std::cout<<"PASS worker-capture-start-failure-authority-and-cleanup\n";
             worker_capture_without_sources_does_not_expire();std::cout<<"PASS worker-empty-capture-does-not-expire\n";
             worker_capture_eof_and_malformed_are_bound();std::cout<<"PASS worker-capture-eof-and-malformed-exact-binding\n";
-            worker_capture_progress_waits_for_output_barrier();std::cout<<"PASS worker-capture-progress-output-interruption-barrier\n";
+            worker_input_receipt_is_separate_from_output_and_fenced_after_interrupt();std::cout<<"PASS worker-input-output-receipts-separated-and-fenced\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(1);std::cout<<"PASS worker-heartbeat-only-wait-then-fresh-key-watchdog\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(2);std::cout<<"PASS worker-heartbeat-only-wait-then-real-source-silence\n";
             worker_heartbeat_only_wait_keeps_real_cancellation(3);std::cout<<"PASS worker-heartbeat-only-wait-then-malformed-source-heartbeat\n";

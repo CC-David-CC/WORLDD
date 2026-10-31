@@ -53,15 +53,54 @@ HostActorWorker::Binding HostActorWorker::capture_binding() const {
     std::lock_guard lock(watch_mutex_); return binding_;
 }
 control::v1::ControlStatus HostActorWorker::control_status(std::uint64_t generation) const {
-    auto result=controller_.control_status(generation);
     const auto binding=capture_binding();
-    if(binding && binding->actor_generation==generation) {
-        result.set_processed_capture_sequence(binding->processed_sequence());
-        result.set_capture_active(binding->capture_active_.load() && !binding->retired());
-        result.set_capture_source_slot(binding->source_slot_.load());
-        result.set_capture_retired(binding->retired());
+    if(!binding || binding->actor_generation!=generation)
+        throw std::runtime_error("Host actor capture binding is unavailable for status");
+    auto fresh=controller_.try_control_status_snapshot(generation);
+    control::v1::ControlStatus result;
+    if(fresh) {
+        result=std::move(fresh->status);
+        remember_status(generation,fresh->revision,result);
+    } else {
+        const auto snapshot=status_snapshot_.load(std::memory_order_acquire);
+        if(!snapshot || snapshot->generation!=generation ||
+            snapshot->status.capture_generation()!=binding->capture_generation)
+            throw std::runtime_error("Host actor status snapshot is unavailable during an active operation");
+        result=snapshot->status;
     }
+    if(result.capture_generation()!=binding->capture_generation || capture_binding()!=binding)
+        throw std::runtime_error("Host actor status crossed its capture binding");
+    result.set_processed_capture_sequence(binding->dispatched_sequence_.load(std::memory_order_acquire));
+    result.set_presented_capture_sequence(binding->presented_sequence());
+    result.set_accepted_capture_sequence(binding->accepted_sequence());
+    result.set_capture_active(binding->capture_active_.load() && !binding->retired());
+    result.set_capture_source_slot(binding->source_slot_.load());
+    result.set_capture_retired(binding->retired());
+    if(const auto interrupt=binding->interrupt.lock();interrupt && interrupt->requested())
+        result.set_available(false);
+    if(controller_.transition_in_progress())result.set_available(false);
     return result;
+}
+void HostActorWorker::remember_status(std::uint64_t generation,std::uint64_t revision,
+        const control::v1::ControlStatus& status) const noexcept {
+    try {
+        auto snapshot=std::make_shared<StatusSnapshot>();
+        snapshot->generation=generation;snapshot->revision=revision;snapshot->status=status;
+        auto previous=status_snapshot_.load(std::memory_order_acquire);
+        for(;;) {
+            if(previous && (previous->generation>generation || previous->revision>=revision))return;
+            if(status_snapshot_.compare_exchange_weak(previous,snapshot,
+                    std::memory_order_acq_rel,std::memory_order_acquire))return;
+        }
+    }catch(...) {}
+}
+void HostActorWorker::refresh_status_snapshot() noexcept {
+    try {
+        const auto binding=capture_binding();
+        if(!binding || binding->retired())return;
+        if(auto snapshot=controller_.try_control_status_snapshot(binding->actor_generation))
+            remember_status(binding->actor_generation,snapshot->revision,snapshot->status);
+    }catch(...) {}
 }
 bool HostActorWorker::current(const Binding& binding) const {
     std::lock_guard lock(watch_mutex_);
@@ -89,6 +128,9 @@ bool HostActorWorker::enqueue(Work work) {
             if (!work.capture_relative_motion) {
                 // Axes are state samples. The newest sample is authoritative.
                 previous = std::move(work);
+                if(previous.capture_packet && previous.capture_binding)
+                    previous.capture_binding->accepted_sequence_.store(
+                        previous.capture_packet->packet_sequence(),std::memory_order_release);
                 changed_.notify_one();
                 return true;
             }
@@ -102,6 +144,8 @@ bool HostActorWorker::enqueue(Work work) {
                     previous.capture_packet->mutable_event()->mutable_motion()->set_dx(dx);
                     previous.capture_packet->mutable_event()->mutable_motion()->set_dy(dy);
                     previous.packet_sequence=work.packet_sequence;
+                    previous.capture_binding->accepted_sequence_.store(
+                        previous.capture_packet->packet_sequence(),std::memory_order_release);
                     changed_.notify_one();
                     return true;
                 }
@@ -110,6 +154,9 @@ bool HostActorWorker::enqueue(Work work) {
     }
     if (queue_.size() >= queue_limit) return false;
     queue_.push_back(std::move(work));
+    if(queue_.back().capture_packet && queue_.back().capture_binding)
+        queue_.back().capture_binding->accepted_sequence_.store(
+            queue_.back().capture_packet->packet_sequence(),std::memory_order_release);
     changed_.notify_one();
     return true;
 }
@@ -140,6 +187,7 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
         (event.has_key() && event.key().pressed() && event.key().keysym()=="F12") ||
         (event.has_button() && !event.button().pressed());
     Work work; work.capture_heartbeat = event.has_heartbeat();work.cancellation=capture_cancellation;
+    work.capture_binding=binding;
     work.capture_motion = packet.event().has_motion() || packet.event().has_axes();
     work.capture_relative_motion = packet.event().has_motion();
     if (work.capture_motion) {
@@ -156,7 +204,11 @@ bool HostActorWorker::post_device(const Binding& binding, control::v1::CapturedD
         const auto& packet=*captured_packet;
         try {
         if (!current(binding) || !controller_.control_available()) return;
-        try { (void)device_event(binding, packet); }
+        try {
+            const auto status=device_event(binding,packet);
+            (void)status;
+            refresh_status_snapshot();
+        }
         catch (const std::exception& error) {
             // Malformed current capture is terminal for that binding. A stale
             // binding cannot enter this path or cancel an adopted actor.
@@ -262,8 +314,10 @@ void HostActorWorker::refresh_context() {
     Binding next;
     if (controller_.control_available()) {
         const auto generation = controller_.generation();
-        const auto status = controller_.control_status(generation);
-        next = std::make_shared<CaptureBinding>(generation, status.capture_generation(), controller_.interrupt_handle(generation));
+        const auto snapshot = controller_.control_status_snapshot(generation);
+        remember_status(generation,snapshot.revision,snapshot.status);
+        next = std::make_shared<CaptureBinding>(generation, snapshot.status.capture_generation(),
+            controller_.interrupt_handle(generation));
     }
     std::lock_guard lock(watch_mutex_);
     if (binding_ && next && binding_->actor_generation == next->actor_generation &&
@@ -341,8 +395,16 @@ void HostActorWorker::run_presentation() noexcept {
             pending = cleanup_before || frame_pending || cleanup_after;
             // Only acknowledge input whose state preceded this presentation
             // cycle. A later dispatch needs a later output receipt.
-            if (!pending && presentation_binding && current(presentation_binding))
-                presentation_binding->processed_sequence_.store(presentation_sequence,std::memory_order_release);
+            if (!pending && presentation_binding) {
+                // Retirement and watchdog interruption use this same lock. The
+                // exact live binding check and receipt publication must be one
+                // operation so a late frame cannot acknowledge a retired actor.
+                std::lock_guard lock(watch_mutex_);
+                const auto interrupt=presentation_binding->interrupt.lock();
+                if(binding_==presentation_binding && !presentation_binding->retired() && !stopping_ &&
+                    (!interrupt || !interrupt->requested()))
+                    presentation_binding->presented_sequence_.store(presentation_sequence,std::memory_order_release);
+            }
         } catch (const std::exception& error) {
             pending = true;
             std::cerr << "Host presentation work remains pending: " << error.what() << '\n';
@@ -360,7 +422,8 @@ void HostActorWorker::run_presentation() noexcept {
                     <<" cleanup_before="<<cleanup_before<<" frame_pending="<<frame_pending
                     <<" cleanup_after="<<cleanup_after<<" phase="<<phase
                     <<" dispatched="<<(presentation_binding?presentation_binding->dispatched_sequence_.load(std::memory_order_acquire):0)
-                    <<" processed="<<(presentation_binding?presentation_binding->processed_sequence_.load(std::memory_order_acquire):0)
+                    <<" accepted="<<(presentation_binding?presentation_binding->accepted_sequence_.load(std::memory_order_acquire):0)
+                    <<" presented="<<(presentation_binding?presentation_binding->presented_sequence_.load(std::memory_order_acquire):0)
                     <<" binding_current="<<current(presentation_binding)<<'\n';
                 last_pending_report=now;
             }
@@ -503,8 +566,11 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                 if (Clock::now() >= tick) {
                     set_flight_phase("controls_tick");
                     const auto capture=capture_binding();
-                    if (controller_.control_available() && capture && !capture->retired())
-                        (void)controller_.tick_controls(controller_.generation());
+                    if (controller_.control_available() && capture && !capture->retired()) {
+                        const auto generation=controller_.generation();
+                        (void)controller_.tick_controls(generation);
+                        refresh_status_snapshot();
+                    }
                     tick = Clock::now() + interval;
                 }
                 set_flight_phase("capture_synchronization");
@@ -513,6 +579,7 @@ void HostActorWorker::run(std::promise<void> ready) noexcept {
                 std::cerr << "Actor worker operation failed; checked context remains required\n";
             }
             end_exchange();
+            refresh_status_snapshot();
         }
     } catch (...) {
         failed_.store(true);

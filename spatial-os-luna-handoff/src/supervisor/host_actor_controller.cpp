@@ -14,6 +14,10 @@ std::string exception_detail() {
     try { throw; } catch (const std::exception& error) { return error.what(); }
     catch (...) { return "Unknown host controller exception"; }
 }
+struct ResetAtomicFlag {
+    std::atomic<bool>& flag;
+    ~ResetAtomicFlag() { flag.store(false, std::memory_order_release); }
+};
 }
 
 HostActorController::HostActorController(SessionCoordinator& session, std::string world,
@@ -71,6 +75,8 @@ identity::v1::HostActorTransitionResult HostActorController::transition(
     }
     require(!shared_enabled_, "Use the shared transition proposal API while controls own sequencing");
     legacy_used_ = true;
+    transition_active_.store(true, std::memory_order_release);
+    ResetAtomicFlag reset{transition_active_};
     return transition_locked(request);
 }
 identity::v1::HostActorTransitionResult HostActorController::transition_locked(
@@ -207,9 +213,10 @@ identity::v1::HostActorTransitionResult HostActorController::transition_locked(
 }
 
 identity::v1::WorldSessionReply HostActorController::inspect(std::uint64_t generation) {
-    std::unique_lock lock(mutex_, std::try_to_lock);
-    require(lock.owns_lock(), "Host actor operation already in progress");
-    require(!control_fenced_ && !transitioning_ && current_client_ && generation == generation_,
+    require(!transition_active_.load(std::memory_order_acquire), "Host actor transition is in progress");
+    std::unique_lock lock(mutex_);
+    require(!transition_active_.load(std::memory_order_acquire) && !control_fenced_ && !transitioning_ &&
+            current_client_ && generation == generation_,
             "Unavailable or stale host actor context");
     return current_client_->inspect();
 }
@@ -353,15 +360,13 @@ void HostActorController::refresh_foreground_locked() {
     geometry_status_.set_authority_service_incarnation(view.authority_service_incarnation());
 }
 identity::v1::ActorGeometryView HostActorController::geometry_view(std::uint64_t generation) {
-    std::unique_lock lock(mutex_, std::try_to_lock);
-    require(lock.owns_lock(), "Host actor operation already in progress");
+    std::unique_lock lock(mutex_);
     require(!control_fenced_ && !transitioning_ && current_client_ && generation == generation_,
             "Unavailable or stale host actor context");
     return current_client_->geometry_view();
 }
 identity::v1::HostGeometryStatus HostActorController::geometry_status(std::uint64_t generation) const {
-    std::unique_lock lock(mutex_,std::try_to_lock);
-    require(lock.owns_lock(),"Host actor operation already in progress");
+    std::unique_lock lock(mutex_);
     require(!transitioning_ && generation==generation_,"Unavailable or stale host actor context");
     identity::v1::HostGeometryStatus unavailable;unavailable.set_protocol_version(1);
     if(control_fenced_ || !current_client_ || current_client_->failed() || (!geometry_target_ && !local_target_))
@@ -646,10 +651,29 @@ control::v1::ControlStatus HostActorController::control_status_locked() const {
                          !current_client_->failed() && result.available());
     return result;
 }
+HostActorController::VersionedControlStatus HostActorController::control_status_snapshot_locked() const {
+    if(control_status_revision_==UINT64_MAX)throw std::overflow_error("Host actor status revision exhausted");
+    VersionedControlStatus snapshot;
+    snapshot.revision=++control_status_revision_;
+    snapshot.status=control_status_locked();
+    return snapshot;
+}
 control::v1::ControlStatus HostActorController::control_status(std::uint64_t generation) const {
     std::lock_guard lock(mutex_);
     require(generation == generation_, "Stale shared actor status context");
     return control_status_locked();
+}
+HostActorController::VersionedControlStatus HostActorController::control_status_snapshot(std::uint64_t generation) const {
+    std::lock_guard lock(mutex_);
+    require(generation==generation_,"Stale shared actor status context");
+    return control_status_snapshot_locked();
+}
+std::optional<HostActorController::VersionedControlStatus>
+HostActorController::try_control_status_snapshot(std::uint64_t generation) const {
+    std::unique_lock lock(mutex_,std::try_to_lock);
+    if(!lock.owns_lock())return std::nullopt;
+    require(generation==generation_,"Stale shared actor status context");
+    return control_status_snapshot_locked();
 }
 control::v1::ControlMenuView HostActorController::controls_menu(std::uint64_t generation) const {
     std::lock_guard lock(mutex_);
@@ -702,6 +726,8 @@ identity::v1::HostActorTransitionResult HostActorController::transition_proposed
     std::lock_guard lock(mutex_); require_controls_locked(generation);
     validate_message(proposal);
     require(proposal.departure_sequence() == 0, "Shared transition proposals cannot choose an actor sequence");
+    transition_active_.store(true, std::memory_order_release);
+    ResetAtomicFlag reset{transition_active_};
     const auto before_generation = generation_;
     const auto source_world = current_world_;
     const auto profiles = adapters_->profiles();

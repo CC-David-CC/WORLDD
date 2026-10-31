@@ -4,6 +4,7 @@
 #include "world/actor_transition_coordinator.hpp"
 #include "host_actor_controller.pb.h"
 #include "control/menu.hpp"
+#include <atomic>
 #include <functional>
 #include <map>
 #include <mutex>
@@ -47,7 +48,13 @@ public:
         const identity::v1::HostActorTransitionRequest&, TransitionProgress = {});
     control::v1::ControlStatus device_event(std::uint64_t generation, const control::v1::CapturedDeviceEvent&);
     control::v1::ControlStatus tick_controls(std::uint64_t generation);
+    struct VersionedControlStatus { std::uint64_t revision; control::v1::ControlStatus status; };
     control::v1::ControlStatus control_status(std::uint64_t generation) const;
+    VersionedControlStatus control_status_snapshot(std::uint64_t generation) const;
+    std::optional<VersionedControlStatus> try_control_status_snapshot(std::uint64_t generation) const;
+    bool transition_in_progress() const noexcept {
+        return transition_active_.load(std::memory_order_acquire);
+    }
     control::v1::ControlMenuView controls_menu(std::uint64_t generation) const;
     std::shared_ptr<control::MotionIntent> motion_intent(std::uint64_t generation) const;
     void synchronize_controls_presentation();
@@ -69,6 +76,7 @@ private:
     void require_controls_locked(std::uint64_t generation) const;
     void create_controls_locked(const control::v1::ControlProfiles&, std::uint64_t initial_sequence);
     control::v1::ControlStatus control_status_locked() const;
+    VersionedControlStatus control_status_snapshot_locked() const;
     bool retire_foreground_locked() noexcept;
     void clear_foreground_locked();
     void defer_foreground_locked(bool release_binding = true);
@@ -99,7 +107,9 @@ private:
     std::unique_ptr<ActorSessionClient> current_client_;
     std::unique_ptr<ActorSessionClient> quarantined_client_;
     std::uint64_t generation_ = 0;
+    mutable std::uint64_t control_status_revision_ = 0;
     bool transitioning_ = false;
+    std::atomic<bool> transition_active_{false};
     bool control_fenced_ = false;
     bool legacy_used_ = false, shared_enabled_ = false;
     std::uint64_t actor_sequence_ = 0, capture_generation_ = 0, capture_sequence_ = 0;

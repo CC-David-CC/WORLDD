@@ -120,7 +120,7 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
             self.assertFalse(last_status.capture_retired, last_status)
             if last_status.processed_capture_sequence >= sequence and last_status.available:
                 return last_status
-        self.fail('Capture and controls did not settle through the output barrier: %r' % last_status)
+        self.fail('Captured input did not reach checked handling: %r' % last_status)
 
     def state(self, generation=0):
         if getattr(self, 'keyboard_active', False):

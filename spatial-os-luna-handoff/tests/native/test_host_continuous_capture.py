@@ -141,17 +141,43 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
             self.assertFalse(status.capture_retired, status)
             if status.processed_capture_sequence >= sequence and status.available:
                 return status
-        self.fail('Capture and controls did not settle through the output barrier: %r' % last_status)
+        self.fail('Captured input did not reach checked handling: %r' % last_status)
+
+    def wait_accepted(self, sequence, generation=0, timeout=.35):
+        deadline = time.monotonic() + timeout
+        last_status = None
+        while time.monotonic() < deadline:
+            status = self.status(generation, require_available=False)
+            last_status = status
+            self.assertFalse(status.capture_retired, status)
+            if status.accepted_capture_sequence >= sequence and status.available:
+                return status
+        self.fail('Capture input was not accepted into the bounded actor queue: %r' % last_status)
+
+    def wait_presented(self, sequence, generation=0):
+        deadline = time.monotonic() + 5
+        last_status = None
+        while time.monotonic() < deadline:
+            status = self.status(generation, require_available=False)
+            last_status = status
+            self.assertFalse(status.capture_retired, status)
+            if status.presented_capture_sequence >= sequence and status.available:
+                return status
+        self.fail('Native output did not settle for capture sequence %d: %r' % (sequence, last_status))
 
     def test_continuous_capture_navigation_menu_and_f12(self):
         self.ready_host()
         producer = self.producer()
         before = self.foreground_pixels()
-        self.wait_processed(producer.key('F10'))
+        opened = producer.key('F10')
+        self.wait_processed(opened)
+        self.wait_presented(opened)
         self.assertTrue(self.shared('controls_menu').menu.visible)
         self.assertNotEqual(self.foreground_pixels(), before)
         self.wait_processed(producer.key('F10', False))
-        self.wait_processed(producer.key('Escape'))
+        escaped = producer.key('Escape')
+        self.wait_processed(escaped)
+        self.wait_presented(escaped)
         self.assertFalse(self.shared('controls_menu').menu.visible)
         self.wait_processed(producer.key('w'))
         self.assertTrue(self.shared('controls_tick').accepted)
@@ -175,6 +201,8 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
         self.presentation_continuations_override=True
         self.ready_host()
         producer=self.producer()
+        self.wait_presented(2)
+        before_output=self.status().presented_capture_sequence
         compositor_pids=self.live_compositor_pids()
         self.assertEqual(len(compositor_pids),1,compositor_pids)
         compositor=compositor_pids[0]
@@ -185,8 +213,10 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
             started=time.monotonic()
             opened=producer.key('F10')
             self.wait_processed(opened)
-            self.assertLess(time.monotonic()-started,.25,
-                'Actor capture waited for a stalled controls presentation')
+            self.assertLess(self.status().presented_capture_sequence,opened,
+                'A stopped compositor reported that the new screen output had settled')
+            self.assertLess(time.monotonic()-started,.35,
+                'Actor capture waited beyond the approved 350 ms observation window for a stalled controls presentation')
             self.wait_processed(producer.key('F10',False))
             closed=producer.key('Escape')
             self.wait_processed(closed)
@@ -195,6 +225,8 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
             time.sleep(.35)
             released=producer.key('w',False)
             self.wait_processed(released)
+            self.assertEqual(self.status().presented_capture_sequence,before_output,
+                'Capture input advanced the output receipt while the compositor was stopped')
         finally:
             try:os.kill(compositor,signal.SIGCONT)
             except ProcessLookupError:pass
@@ -205,6 +237,8 @@ class ContinuousCaptureTests(shared.SharedHostControlsTests):
         self.assertLess(after.z,before.z-.1,'Actor movement stopped with the controls presenter')
         shown=producer.key('F10')
         self.wait_processed(shown)
+        self.wait_presented(released)
+        self.wait_presented(shown)
         self.assertTrue(self.shared('controls_menu').menu.visible)
         self.wait_processed(producer.key('F10',False))
         deadline=time.monotonic()+2

@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <deque>
 #include <future>
+#include <memory>
 #include <thread>
 #include <type_traits>
 #include <stdexcept>
@@ -26,15 +27,24 @@ public:
         const std::uint64_t actor_generation, capture_generation;
         const std::weak_ptr<const ActorSessionInterrupt> interrupt;
         bool retired() const noexcept { return retired_.load(); }
-        std::uint64_t processed_sequence() const noexcept {return processed_sequence_.load();}
+        std::uint64_t dispatched_sequence() const noexcept {
+            return dispatched_sequence_.load(std::memory_order_acquire);
+        }
+        std::uint64_t presented_sequence() const noexcept {
+            return presented_sequence_.load(std::memory_order_acquire);
+        }
+        std::uint64_t accepted_sequence() const noexcept {
+            return accepted_sequence_.load(std::memory_order_acquire);
+        }
         CaptureBinding(std::uint64_t actor, std::uint64_t capture,
                        std::weak_ptr<const ActorSessionInterrupt> handle)
             : actor_generation(actor), capture_generation(capture), interrupt(std::move(handle)) {}
     private:
         friend class HostActorWorker;
         std::atomic<bool> retired_{false};
-        std::atomic<std::uint64_t> processed_sequence_{0};
+        std::atomic<std::uint64_t> presented_sequence_{0};
         std::atomic<std::uint64_t> dispatched_sequence_{0};
+        std::atomic<std::uint64_t> accepted_sequence_{0};
         std::atomic<std::uint64_t> observed_sequence_{0};
         std::atomic<bool> capture_active_{false};
         std::atomic<std::uint32_t> source_slot_{0};
@@ -82,6 +92,7 @@ public:
                     stop_trace::mark("operation_returned");
                     settle_context();stop_trace::mark("settlement_returned");
                     synchronize_capture();stop_trace::mark("capture_returned");
+                    refresh_status_snapshot();
                     if(!complete([&] {promise->set_value();},true)) {
                         stop_trace::mark("publication_interrupted");
                         settle_context();throw HostActorContextInterrupted("Actor result lost its interruption barrier");
@@ -92,6 +103,7 @@ public:
                     stop_trace::mark("operation_returned");
                     settle_context();stop_trace::mark("settlement_returned");
                     synchronize_capture();stop_trace::mark("capture_returned");
+                    refresh_status_snapshot();
                     if(!complete([&] {promise->set_value(std::move(result));},true)) {
                         stop_trace::mark("publication_interrupted");
                         settle_context();throw HostActorContextInterrupted("Actor result lost its interruption barrier");
@@ -117,9 +129,15 @@ public:
     void capture_failed(const Binding&) noexcept;
 
 private:
+    struct StatusSnapshot {
+        std::uint64_t generation = 0;
+        std::uint64_t revision = 0;
+        control::v1::ControlStatus status;
+    };
     struct Work {
         std::function<void()> execute;
         Binding urgent_binding;
+        Binding capture_binding;
         bool cancellation = false;
         bool capture_heartbeat = false; // Diagnostic metadata. Never changes urgency.
         bool capture_motion = false;
@@ -153,6 +171,8 @@ private:
     void set_flight_phase(const char* phase) noexcept;
     void end_exchange() noexcept;
     void stop() noexcept;
+    void remember_status(std::uint64_t, std::uint64_t, const control::v1::ControlStatus&) const noexcept;
+    void refresh_status_snapshot() noexcept;
     HostActorController& controller_;
     CaptureStart start_capture_;
     CaptureStop stop_capture_;
@@ -166,6 +186,7 @@ private:
     std::deque<Work> queue_;
     Binding binding_, pending_cancel_;
     std::optional<Flight> flight_;
+    mutable std::atomic<std::shared_ptr<const StatusSnapshot>> status_snapshot_;
     std::uint64_t exchange_serial_ = 0;
     std::atomic<bool> stopping_{false}, failed_{false}, cancel_pending_{false};
     std::thread worker_, presentation_worker_, watchdog_;

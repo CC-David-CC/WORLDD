@@ -30,6 +30,7 @@ class ScriptedPeer:
         self.expected_exit = 0
         self.lock = threading.RLock()
         self.timings = []
+        self.motion_refresh_send_times = []
         self.motions = []
         self.log_path = fixture.root / ('scripted-' + str(number) + '.log')
         with self.log_path.open('wb') as log:
@@ -79,6 +80,8 @@ class ScriptedPeer:
             generation=generation, **operation)
         self.process.stdin.write(frame(request))
         self.process.stdin.flush()
+        if 'propose' in operation and operation['propose'].HasField('input'):
+            self.motion_refresh_send_times.append(time.monotonic())
         if delay_client_completion_seconds:
             # Hold the actor call open after submitting its request. This models
             # a slow caller/reply path without blocking worldd or the renderer.
@@ -112,6 +115,8 @@ class ScriptedPeer:
             timing = '\n'.join(f'{start:.9f} {duration:.9f} {operation}'
                                for start, duration, operation in self.timings)
             (directory / (self.fixture._testMethodName + '-' + self.log_path.stem + '-rpc-timing.log')).write_text(timing + '\n')
+            sends = '\n'.join(f'{value:.9f}' for value in self.motion_refresh_send_times)
+            (directory / (self.fixture._testMethodName + '-' + self.log_path.stem + '-input-send-times.log')).write_text(sends + '\n')
         self.fixture.assertEqual(result, self.expected_exit, data)
         for marker in ('AddressSanitizer', 'LeakSanitizer', 'runtime error:'):
             self.fixture.assertNotIn(marker, data)
@@ -297,7 +302,9 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
         selected=os.environ.get('SPATIAL_TEST_PRESENTATION_CONTINUATIONS','1')
         self.assertIn(selected,('0','1'));self.presentation_continuations_override=selected=='1'
         self._info_relay=DelayedInfoIssuer(self.issuer, delayed_operation="credential_check", actor_id=self.principal.actor_id)
-        self.ready_host()
+        human=self.ready_host()
+        human_world=self.worlds[0][0]
+        human_actor_id=human.inspection.state.id
         policy=text_format.Parse((self.root/'scripted-world-policy.textproto').read_text(),world.WorldIdentityConfig())
         self.assertTrue(policy.enable_retained_movement,'Presentation-specific delay requires retained movement')
         self.assertEqual(self.presentation_continuations_selected,self.presentation_continuations_override)
@@ -309,43 +316,78 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
         self._info_relay.delay_armed.set()
         self.assertTrue(self._info_relay.delay_entered.wait(3),'Human presentation credential check was not held')
         self.assertFalse(self._info_relay.delay_finished.is_set())
+        pose_before=human_world.management('world.get',id=human_actor_id)['pose']['p']
+        pose_samples=[];pose_stop=threading.Event()
+        def collect_human_pose_during_authentication():
+            while not pose_stop.is_set() and not self._info_relay.delay_finished.is_set():
+                try:
+                    position=human_world.management('world.get',id=human_actor_id)['pose']['p']
+                    pose_samples.append((time.monotonic(),position))
+                except Exception as error:
+                    pose_samples.append((time.monotonic(),{'error':str(error)}))
+                pose_stop.wait(.05)
+        pose_thread=threading.Thread(target=collect_human_pose_during_authentication,
+            name='independent-human-motion-witness')
+        pose_thread.start()
+        self.addCleanup(pose_thread.join,2)
+        self.addCleanup(pose_stop.set)
         input_started=time.monotonic()
         sequence=producer.key('d');completed=threading.Event();result={}
         def wait_for_capture():
             started=input_started
             try:
-                status=self.wait_processed(sequence)
-                result['processed_sequence']=status.processed_capture_sequence
+                status=self.wait_accepted(sequence,timeout=.35)
+                result['accepted_sequence']=status.accepted_capture_sequence
+                result['processed_sequence_at_acceptance']=status.processed_capture_sequence
                 result['capture_active']=status.capture_active
             except BaseException as error:result['error']=str(error)
             finally:
                 result['elapsed_seconds']=time.monotonic()-started;completed.set()
         thread=threading.Thread(target=wait_for_capture,name='checked-human-refresh')
-        thread.start();fast=completed.wait(max(0,.25-(time.monotonic()-input_started)))
+        thread.start();fast=completed.wait(max(0,.35-(time.monotonic()-input_started)))
         pending_at_receipt=not self._info_relay.delay_finished.is_set()
         try:
             self.assertTrue(self._info_relay.delay_finished.wait(5))
         finally:
+            pose_stop.set();pose_thread.join(2)
             thread.join(6)
             if thread.is_alive():raise AssertionError('Checked human capture query did not settle')
             evidence=os.environ.get('SPATIAL_SECURITY_EVIDENCE')
             if evidence:
                 target=Path(evidence);target.mkdir(parents=True,exist_ok=True)
                 (target/(self._testMethodName+'-scheduling.json')).write_text(json.dumps(dict(
-                    completed_under_input_expiry=fast,authority_pending_at_capture_receipt=pending_at_receipt,
+                    accepted_within_dispatch_budget=fast,dispatch_budget_seconds=.35,
+                    authority_pending_at_input_acceptance=pending_at_receipt,
                     human=result,input_request_monotonic=input_started,delay_records=self._info_relay.delay_records,
+                    human_pose_before=pose_before,human_pose_samples=pose_samples,
                     retained_movement=policy.enable_retained_movement,
                     presentation_continuations=self.presentation_continuations_selected),indent=2)+'\n')
-        self.assertTrue(fast,'Human capture refresh waited for pending presentation authority beyond250ms')
+        self.assertTrue(fast,'Human input intent receipt waited for pending presentation authority beyond350ms')
         self.assertTrue(pending_at_receipt,'Human capture receipt waited for unrelated presentation authority completion')
         self.assertNotIn('error',result);self.assertTrue(result['capture_active'])
+        self.assertGreaterEqual(result['accepted_sequence'],sequence)
+        processed=self.wait_processed(sequence)
+        self.assertGreaterEqual(processed.processed_capture_sequence,sequence,
+            'Accepted human input never completed checked actor handling after authority recovered')
         self.assertEqual(list(self.state().axes),[1,0,-1,0,0,0])
+        relay_end=self._info_relay.delay_records[0]['end_monotonic']
+        during=[position for observed,position in pose_samples if input_started<=observed<relay_end and 'error' not in position]
+        self.assertTrue(any(position[0]>pose_before[0]+.05 and position[2]<pose_before[2]-.05 for position in during),
+            'Independent world state did not show human movement during the held authorization exchange')
         first_motion.close();second_motion.close()
+        delay_start=self._info_relay.delay_records[0]['start_monotonic']
+        delay_end=self._info_relay.delay_records[0]['end_monotonic']
         for peer in (first,second):
-            during=[duration for start,duration,operation in peer.timings if operation=='propose' and
-                self._info_relay.delay_records[0]['start_monotonic']<=start<self._info_relay.delay_records[0]['end_monotonic']]
-            self.assertGreaterEqual(len(during),3,'Scripted actor did not keep refreshing during held presentation authority')
-            self.assertLess(max(during),.25,'Scripted actor refresh exceeded unchanged input expiry')
+            sends=peer.motion_refresh_send_times
+            during=[value for value in sends if delay_start<=value<=delay_end]
+            self.assertGreaterEqual(len(during),12,'Scripted actor did not keep refreshing during held presentation authority')
+            before=[value for value in sends if value<delay_start]
+            after=[value for value in sends if value>delay_end]
+            self.assertTrue(before and after,'Scripted actor refresh did not cover both edges of held authority')
+            window=[before[-1],*during,after[0]]
+            gaps=[later-earlier for earlier,later in zip(window,window[1:])]
+            self.assertLess(max(gaps),.35,
+                'Scripted actor input sends paused longer than the approved one-third-second observation window')
             self.accepted(peer.act(stop=core.ActorStopRequest()));peer.close()
         self.stop();self.shutdown_checked()
 
