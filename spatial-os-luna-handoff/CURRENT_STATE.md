@@ -28,7 +28,8 @@ Repair source is committed and pushed as
 `5566612dc5ca9f6f25c55cc80ef68dec2805cb32`. David paused the goal after
 requesting a handoff. See `docs/M10_DISPATCH_RECEIPT_REVISION_2026-10-31.md`
 for the repair contract and `docs/M10_HANDOFF_PAUSED_2026-10-31.md` for the
-resume checklist.
+resume checklist. The staged full profile, sanitizer, native, and failure
+triage sequence is in `docs/M10_QUALIFICATION_PLAN_2026-10-31.md`.
 
 ## 2026-10-30: M10 presentation-dispatch repair is in progress
 

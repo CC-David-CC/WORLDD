@@ -93,3 +93,6 @@ keep at least 50 GB free on `sb16`.
    qualified only when all required checks pass on both hosts.
 
 M10 remains unqualified until that evidence exists.
+
+For the full Debug, sanitizer, and native run order, prior-attempt review, and
+failure ownership rules, see `docs/M10_QUALIFICATION_PLAN_2026-10-31.md`.
