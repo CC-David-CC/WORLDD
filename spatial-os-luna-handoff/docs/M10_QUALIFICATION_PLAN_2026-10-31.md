@@ -18,9 +18,12 @@ same authorized actor actions on both `sb16` and `sb16-2`.
   `m10-qual-7cc-sb16-2`.
 - Each host registered 312 CTest cases per profile. The local core stage runs
   305; four supervised recovery cases run in a separate stage, and three
-  cross-host cases run after both local gates. At the latest check, Debug had
-  completed 47 core tests on each host. No test failure had been reported.
-  This is partial progress, not a pass.
+  cross-host cases run after both local gates. At the latest receipt poll,
+  Debug had passed 244/305 core tests on `sb16` and 196/305 on `sb16-2`.
+  No completed test had failed, and both run receipts remained `RUNNING`.
+  This is partial progress, not a pass. ASan/UBSan, supervised recovery,
+  dedicated native retests, cross-host checks, and final reconciliation remain
+  pending.
 - The Debug launcher removes the stale global
   `SPATIAL_TEST_NATIVE_MEMORY_MAX`; per-profile storage fixtures are distinct
   and verified.

@@ -1,4 +1,28 @@
-## Current M10 qualification run and repair
+## 2026-10-31: Frozen M10 candidate qualification is active
+
+Candidate `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795` is frozen and deployed
+identically to `sb16` and `sb16-2`. Its archive SHA-256 is
+`24183b3fcdfab7f92a4347949cef885da52ea20adf43ba079fccaa6c01887c86`.
+The full local gates are active in tmux sessions `m10-qual-7cc-sb16` and
+`m10-qual-7cc-sb16-2`.
+
+At the latest remote receipt poll, the Debug core stage had passed 244/305
+cases on `sb16` and 196/305 on `sb16-2`. No completed case had failed. Both
+run receipts remained `RUNNING`. ASan/UBSan, supervised recovery, dedicated
+native retests, cross-host checks, and final reconciliation remain pending.
+M10 is not qualified.
+
+Each profile contains 305 local core tests. Four supervised recovery cases
+run in a separate stage; three cross-host cases follow the local gates. The
+plan and exact run paths are in
+`docs/M10_QUALIFICATION_PLAN_2026-10-31.md`.
+
+The active gate uses 44,492,709,888 free bytes on `sb16` and 54,846,582,784
+free bytes on `sb16-2` at the latest capacity poll. The run remains active.
+Preserve its deployment, evidence, and fixtures until terminal receipts and
+cleanup checks permit removal.
+
+## Historical: prior M10 candidate failure and repair
 
 Frozen candidate `d49c422b1335bdfeeb7d8b49060e8f1adc3e4f75` finished Debug on
 both qualification hosts and failed. Sb16 passed 301/305 tests. Sb16-2 passed
