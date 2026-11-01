@@ -1,9 +1,35 @@
 # M10 qualification plan, 2026-10-31
 
-Status: **plan only; M10 remains unqualified.** The goal remains delivering one
-frozen candidate where a human and two scripted agents navigate worlds, use
-real files, and control real applications through the same authorized actor
-actions on both `sb16` and `sb16-2`.
+Status: **qualification in progress; M10 remains unqualified.** The goal
+remains delivering one frozen candidate where a human and two scripted agents
+navigate worlds, use real files, and control real applications through the
+same authorized actor actions on both `sb16` and `sb16-2`.
+
+## Frozen candidate and live run status
+
+- Source commit: `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795`.
+- Archive: `m06-artifacts.tar.gz`, SHA-256
+  `24183b3fcdfab7f92a4347949cef885da52ea20adf43ba079fccaa6c01887c86`.
+- Archive manifest SHA-256:
+  `b14365b442788c4220b99035917dea5f4b8ffa095bf5c9602a5a4b74265be4d2`.
+- Both hosts run the same verified deployment at
+  `deployments/7cc4b7e-prep-01/deployed-01`.
+- Full local gates are active in tmux sessions `m10-qual-7cc-sb16` and
+  `m10-qual-7cc-sb16-2`.
+- Each host registered 305 CTest cases per profile. At the latest check,
+  Debug had completed tests 1 through 30 successfully on each host. Test 31,
+  `workspace-file-action-broker`, was still running on both. No test failure
+  had been reported. This is partial progress, not a pass.
+- The Debug launcher removes the stale global
+  `SPATIAL_TEST_NATIVE_MEMORY_MAX`; per-profile storage fixtures are distinct
+  and verified.
+- Removing verified, unused local build staging recovered 14,759,346,176
+  bytes. The candidate archive, manifest, source pins, and active deployments
+  remain preserved.
+
+The frozen candidate is immutable. Any runtime or package change requires a
+successor candidate and reruns of affected evidence. This documentation update
+does not alter the frozen archive or the source commit under test.
 
 ## What prior evidence says
 
@@ -88,7 +114,7 @@ observation window for the timing assertions.
    and invalidates affected results.
 
 4. **Full Debug on both hosts.** Run the complete required M09 plus M10 local
-   gate on `sb16`, then `sb16-2`, using the frozen package. Require every
+   gate concurrently on `sb16` and `sb16-2`, using the frozen package. Require every
    registered CTest, harness check, locked acceptance test, production-off
    startup check, and resource-boundary check. Record the terminal counts and
    inspect every failure. The M10 native cases already run inside this matrix.
@@ -137,7 +163,9 @@ failure report.
 
 ## Candidate disposition
 
-Current repair commit `5566612dc5ca9f6f25c55cc80ef68dec2805cb32` is a source
-checkpoint only. No replacement package is frozen. The last complete run is
-failed, the latest six native suites remain unrun against the repair, and M10
-remains unqualified. Resume from the preflight step above.
+Candidate `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795` includes repair
+`5566612dc5ca9f6f25c55cc80ef68dec2805cb32` and is frozen at the archive hash
+listed above. The earlier complete candidate failed. The current candidate's
+Debug gate is active on both hosts. Sanitizer, dedicated native retests,
+cross-host checks, and final reconciliation remain pending. M10 remains
+unqualified until those required results pass on both hosts.
