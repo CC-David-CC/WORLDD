@@ -16,10 +16,11 @@ same authorized actor actions on both `sb16` and `sb16-2`.
   `deployments/7cc4b7e-prep-01/deployed-01`.
 - Full local gates are active in tmux sessions `m10-qual-7cc-sb16` and
   `m10-qual-7cc-sb16-2`.
-- Each host registered 305 CTest cases per profile. At the latest check,
-  Debug had completed tests 1 through 30 successfully on each host. Test 31,
-  `workspace-file-action-broker`, was still running on both. No test failure
-  had been reported. This is partial progress, not a pass.
+- Each host registered 312 CTest cases per profile. The local core stage runs
+  305; four supervised recovery cases run in a separate stage, and three
+  cross-host cases run after both local gates. At the latest check, Debug had
+  completed 47 core tests on each host. No test failure had been reported.
+  This is partial progress, not a pass.
 - The Debug launcher removes the stale global
   `SPATIAL_TEST_NATIVE_MEMORY_MAX`; per-profile storage fixtures are distinct
   and verified.
