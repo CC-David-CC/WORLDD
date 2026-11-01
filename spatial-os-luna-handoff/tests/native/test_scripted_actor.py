@@ -303,7 +303,6 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
         self.assertIn(selected,('0','1'));self.presentation_continuations_override=selected=='1'
         self._info_relay=DelayedInfoIssuer(self.issuer, delayed_operation="credential_check", actor_id=self.principal.actor_id)
         human=self.ready_host()
-        human_world=self.worlds[0][0]
         human_actor_id=human.inspection.state.id
         policy=text_format.Parse((self.root/'scripted-world-policy.textproto').read_text(),world.WorldIdentityConfig())
         self.assertTrue(policy.enable_retained_movement,'Presentation-specific delay requires retained movement')
@@ -313,21 +312,26 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
         self.wait_processed(producer.key('w'))
         self.wait_autonomous_human_motion([0,0,-1,0,0,0])
         first_motion=first.motion([1,0,0,0,0,0]);second_motion=second.motion([0,1,0,0,0,0])
+        initial_state=self.state()
+        self.assertEqual(initial_state.id,human_actor_id)
+        initial_position=initial_state.pose.position
+        pose_before=(initial_position.x,initial_position.y,initial_position.z)
         self._info_relay.delay_armed.set()
         self.assertTrue(self._info_relay.delay_entered.wait(3),'Human presentation credential check was not held')
         self.assertFalse(self._info_relay.delay_finished.is_set())
-        pose_before=human_world.management('world.get',id=human_actor_id)['pose']['p']
         pose_samples=[];pose_stop=threading.Event()
         def collect_human_pose_during_authentication():
             while not pose_stop.is_set() and not self._info_relay.delay_finished.is_set():
                 try:
-                    position=human_world.management('world.get',id=human_actor_id)['pose']['p']
-                    pose_samples.append((time.monotonic(),position))
+                    state=self.state()
+                    if state.id!=human_actor_id:raise AssertionError('Host inspection changed human actor identity')
+                    position=state.pose.position
+                    pose_samples.append((time.monotonic(),(position.x,position.y,position.z)))
                 except Exception as error:
                     pose_samples.append((time.monotonic(),{'error':str(error)}))
                 pose_stop.wait(.05)
         pose_thread=threading.Thread(target=collect_human_pose_during_authentication,
-            name='independent-human-motion-witness')
+            name='host-inspection-human-motion-witness')
         pose_thread.start()
         self.addCleanup(pose_thread.join,2)
         self.addCleanup(pose_stop.set)
@@ -373,7 +377,7 @@ class ScriptedActorTests(continuous.ContinuousCaptureTests):
         relay_end=self._info_relay.delay_records[0]['end_monotonic']
         during=[position for observed,position in pose_samples if input_started<=observed<relay_end and 'error' not in position]
         self.assertTrue(any(position[0]>pose_before[0]+.05 and position[2]<pose_before[2]-.05 for position in during),
-            'Independent world state did not show human movement during the held authorization exchange')
+            'Live host inspection did not show human movement during the held authorization exchange')
         first_motion.close();second_motion.close()
         delay_start=self._info_relay.delay_records[0]['start_monotonic']
         delay_end=self._info_relay.delay_records[0]['end_monotonic']

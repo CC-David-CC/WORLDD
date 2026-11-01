@@ -405,6 +405,9 @@ class ThreeActorApplicationTests(base.ThreeActorFileTests):
         self.assertIsNone(self.host_process.poll())
         status=self.shared('controls_status');self.assertTrue(status.accepted,status)
         self.assertFalse(status.controls.available)
+        self.assertFalse(status.controls.capture_active)
+        self.assertTrue(status.controls.capture_retired)
+        self.assertEqual(status.controls.capture_source_slot,0)
         self.assertEqual(self.retained_pids(),retained)
         self.assertEqual({pid:self.process_start(pid) for pid in pids},starts)
         self.until(lambda:self.host_log.read_text()[log_offset:],

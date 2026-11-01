@@ -1,39 +1,43 @@
 # M10 qualification plan, 2026-10-31
 
-Status: **qualification in progress; M10 remains unqualified.** The goal
-remains delivering one frozen candidate where a human and two scripted agents
-navigate worlds, use real files, and control real applications through the
-same authorized actor actions on both `sb16` and `sb16-2`.
+Status: **the frozen candidate is rejected; M10 remains unqualified.** A successor
+contains fixes for the current Debug blockers and is being prepared for a fresh
+gate.
 
 ## Frozen candidate and live run status
 
-- Source commit: `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795`.
-- Archive: `m06-artifacts.tar.gz`, SHA-256
+- Rejected source commit: `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795`.
+- Rejected archive SHA-256:
   `24183b3fcdfab7f92a4347949cef885da52ea20adf43ba079fccaa6c01887c86`.
-- Archive manifest SHA-256:
-  `b14365b442788c4220b99035917dea5f4b8ffa095bf5c9602a5a4b74265be4d2`.
-- Both hosts run the same verified deployment at
-  `deployments/7cc4b7e-prep-01/deployed-01`.
-- Full local gates are active in tmux sessions `m10-qual-7cc-sb16` and
-  `m10-qual-7cc-sb16-2`.
-- Each host registered 312 CTest cases per profile. The local core stage runs
-  305; four supervised recovery cases run in a separate stage, and three
-  cross-host cases run after both local gates. At the latest receipt poll,
-  Debug had passed 244/305 core tests on `sb16` and 196/305 on `sb16-2`.
-  No completed test had failed, and both run receipts remained `RUNNING`.
-  This is partial progress, not a pass. ASan/UBSan, supervised recovery,
-  dedicated native retests, cross-host checks, and final reconciliation remain
-  pending.
-- The Debug launcher removes the stale global
-  `SPATIAL_TEST_NATIVE_MEMORY_MAX`; per-profile storage fixtures are distinct
-  and verified.
-- Removing verified, unused local build staging recovered 14,759,346,176
-  bytes. The candidate archive, manifest, source pins, and active deployments
-  remain preserved.
+- Both test hosts used the same verified deployment.
+- The local gate processes have exited before completing the Debug inventory.
+  `sb16` recorded 295/305 cases and two failures. `sb16-2` recorded 260/305
+  cases and one failure. Both gate commands returned nonzero. No sanitizer,
+  recovery, or cross-host stage ran. These results reject the candidate.
+- Preserve the run directories and failure logs. The partial inventory is enough
+  to guide the repair; do not spend more host time extending this candidate.
+- The four replacement build profiles have rebuilt `spatial-host-session`
+  successfully on `middle-child`: Debug, ASan/UBSan, production-off Debug, and
+  production-off ASan/UBSan. This is build evidence only.
 
-The frozen candidate is immutable. Any runtime or package change requires a
-successor candidate and reruns of affected evidence. This documentation update
-does not alter the frozen archive or the source commit under test.
+## Current Debug findings and fixes
+
+1. `scripted-actor-native` failed before its liveness assertion. Its fixture
+   called `.management()` on a `HostWorld` Protobuf configuration object. The
+   test now reads the actor state through the host session inspection API. A
+   lock now protects concurrent request IDs and framed control-socket replies.
+2. `three-actor-applications-native` failed after an interrupted stop detached
+   the capture binding. The production status path treated that safe, fenced
+   state as an error. It now reports capture as unavailable and retired, with
+   no active source slot or progress receipt. The regression checks those
+   values and confirms the other actors and applications remain intact.
+
+Both findings are in our test harness or runtime. The recorded traces do not
+implicate XLibre, Xvfb, Mesa, or host hardware.
+
+The successor is not frozen yet. Focused Debug and ASan/UBSan checks must run on
+both qualification hosts before the full gate. Any source or package change
+after freezing requires a new candidate and fresh affected evidence.
 
 ## What prior evidence says
 
@@ -90,6 +94,27 @@ have not run against this repair on either qualification host.
   dependency fixes. Neither explains the latest candidate's traces. Reopen an
   upstream issue only if a new trace reaches that boundary and independently
   reproduces the fault there.
+
+## Successor focused-test selection
+
+Run this Debug and ASan/UBSan set on both qualification hosts before the full
+gate. It covers the two recorded failures and the shared control/capture
+callers affected by the repair.
+
+| CTest suite | Purpose |
+|---|---|
+| `scripted-actor-native` | Check the corrected host inspection fixture and human plus agent liveness during held authority. |
+| `three-actor-applications-native` | Check detached capture status after interrupted stop and continued application/actor safety. |
+| `host-session-production-native` | Check production host request/reply behavior with concurrent fixture queries. |
+| `host-shared-controls-native` | Check serialized shared-control socket requests and capture status. |
+| `host-continuous-capture-native` | Check accepted, processed, and presented capture receipts across the same worker path. |
+| `three-actor-files-native` | Check the actor workflow that shares the repaired host status and control path. |
+| `three-actor-raw-input-native` | Check input sequencing and the 100-tap-per-second acceptance requirement. |
+| `host-visible-controls-native` | Check visible control state while capture or observation is fenced. |
+
+Do not weaken any assertion to make this set pass. Preserve each failing trace.
+Only proceed to the full gate after every selected suite passes on both hosts in
+both profiles.
 
 ## Run sequence
 
@@ -167,9 +192,9 @@ failure report.
 
 ## Candidate disposition
 
-Candidate `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795` includes repair
-`5566612dc5ca9f6f25c55cc80ef68dec2805cb32` and is frozen at the archive hash
-listed above. The earlier complete candidate failed. The current candidate's
-Debug gate is active on both hosts. Sanitizer, dedicated native retests,
-cross-host checks, and final reconciliation remain pending. M10 remains
-unqualified until those required results pass on both hosts.
+Candidate `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795` is rejected after partial
+Debug gates found failures. Its archive and evidence remain preserved. The
+successor fixes the fixture and detached-capture status behavior described
+above. It still needs packaging, focused Debug and ASan/UBSan checks on both
+hosts, then the complete two-host qualification matrix. M10 remains
+unqualified.

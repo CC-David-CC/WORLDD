@@ -9,6 +9,7 @@ import sqlite3
 import struct
 import subprocess
 import sys
+import threading
 import time
 import unittest
 from google.protobuf import text_format
@@ -190,6 +191,7 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=log,
             env=environment)
         child.close(); log.close()
+        self.host_control_lock = threading.RLock()
         listener_fds = {listener.fileno() for _, listener, _ in self.worlds}
         for fd in set(descriptors + [config_fd]):
             if fd >= 3 and fd not in listener_fds: os.close(fd)
@@ -212,6 +214,10 @@ class ProductionHostSessionTests(existing.HostActorControllerNativeTests):
         return process, parent
 
     def request(self, operation='inspect', generation=0, request_id=None, **fields):
+        with self.host_control_lock:
+            return self._request_locked(operation, generation, request_id, **fields)
+
+    def _request_locked(self, operation='inspect', generation=0, request_id=None, **fields):
         if request_id is None:
             self.host_request_id = getattr(self, 'host_request_id', 0) + 1
             request_id = self.host_request_id

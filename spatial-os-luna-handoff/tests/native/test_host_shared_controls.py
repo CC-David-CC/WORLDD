@@ -35,25 +35,26 @@ class SharedHostControlsTests(production.ProductionHostSessionTests):
         return config, descriptors
 
     def shared(self, operation, generation=0, value=None):
-        if operation != 'captured_device' and getattr(self, 'keyboard_active', False):
-            self.heartbeat_keyboard()
-        self.host_request_id = getattr(self, 'host_request_id', 0) + 1
-        request = host.HostControlRequest(protocol_version=1,
-            request_id=self.host_request_id, generation=generation)
-        if value is None:
-            setattr(request, operation, True)
-        else:
-            getattr(request, operation).CopyFrom(value)
-        payload = request.SerializeToString()
-        self.control.sendall(struct.pack('!I', len(payload)) + payload)
-        size, = struct.unpack('!I', production.exact(self.control, 4))
-        self.assertGreater(size, 0)
-        self.assertLessEqual(size, 1024 * 1024)
-        reply = host.HostControlReply.FromString(production.exact(self.control, size))
-        self.assertEqual((reply.protocol_version, reply.request_id), (1, request.request_id))
-        if operation == 'transition_proposal' and reply.generation != generation:
-            self.keyboard_active = False
-        return reply
+        with self.host_control_lock:
+            if operation != 'captured_device' and getattr(self, 'keyboard_active', False):
+                self.heartbeat_keyboard()
+            self.host_request_id = getattr(self, 'host_request_id', 0) + 1
+            request = host.HostControlRequest(protocol_version=1,
+                request_id=self.host_request_id, generation=generation)
+            if value is None:
+                setattr(request, operation, True)
+            else:
+                getattr(request, operation).CopyFrom(value)
+            payload = request.SerializeToString()
+            self.control.sendall(struct.pack('!I', len(payload)) + payload)
+            size, = struct.unpack('!I', production.exact(self.control, 4))
+            self.assertGreater(size, 0)
+            self.assertLessEqual(size, 1024 * 1024)
+            reply = host.HostControlReply.FromString(production.exact(self.control, size))
+            self.assertEqual((reply.protocol_version, reply.request_id), (1, request.request_id))
+            if operation == 'transition_proposal' and reply.generation != generation:
+                self.keyboard_active = False
+            return reply
 
     def status(self, generation=0, *, require_available=True):
         reply = self.shared('controls_status', generation)

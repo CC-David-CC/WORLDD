@@ -1,26 +1,31 @@
-## 2026-10-31: Frozen M10 candidate qualification is active
+## 2026-10-31: M10 successor repairs are being prepared
 
-Candidate `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795` is frozen and deployed
-identically to `sb16` and `sb16-2`. Its archive SHA-256 is
-`24183b3fcdfab7f92a4347949cef885da52ea20adf43ba079fccaa6c01887c86`.
-The full local gates are active in tmux sessions `m10-qual-7cc-sb16` and
-`m10-qual-7cc-sb16-2`.
+Frozen candidate `7cc4b7e3870f2c3582054b3ffcb62e98c1c9a795` is rejected. Its
+Debug gates exited before completing both host inventories. `sb16` recorded
+295/305 cases with two failures; `sb16-2` recorded 260/305 with one failure.
+Both commands returned nonzero. No ASan/UBSan or later acceptance stage ran.
+The original run directories and logs remain preserved. Do not rerun this
+candidate.
 
-At the latest remote receipt poll, the Debug core stage had passed 244/305
-cases on `sb16` and 196/305 on `sb16-2`. No completed case had failed. Both
-run receipts remained `RUNNING`. ASan/UBSan, supervised recovery, dedicated
-native retests, cross-host checks, and final reconciliation remain pending.
-M10 is not qualified.
+The failures identified two fixes. `scripted-actor-native` called a world
+management method on a HostWorld configuration object. The fixture now uses
+host actor inspection and serializes concurrent request/reply access. The
+application stop regression exposed a production status error after capture
+was safely detached. The host now reports capture as unavailable and retired
+without restoring capture authority. Its test checks the fenced status.
+These are our harness and runtime issues. The evidence does not implicate
+XLibre, Xvfb, Mesa, or hardware.
 
-Each profile contains 305 local core tests. Four supervised recovery cases
-run in a separate stage; three cross-host cases follow the local gates. The
-plan and exact run paths are in
-`docs/M10_QUALIFICATION_PLAN_2026-10-31.md`.
+Debug, ASan/UBSan, production-off Debug, and production-off ASan/UBSan builds
+have each rebuilt the affected `spatial-host-session` target successfully on
+middle-child. The successor is not frozen. Package verification and focused
+Debug plus ASan/UBSan checks on both `sb16` and `sb16-2` remain next. If those
+pass, run the full Debug, sanitizer, recovery, native, and cross-host gates on
+both hosts using that single frozen candidate. M10 remains unqualified.
 
-The active gate uses 44,492,709,888 free bytes on `sb16` and 54,846,582,784
-free bytes on `sb16-2` at the latest capacity poll. The run remains active.
-Preserve its deployment, evidence, and fixtures until terminal receipts and
-cleanup checks permit removal.
+Read `docs/M10_QUALIFICATION_PLAN_2026-10-31.md` for the complete sequence and
+failure ownership rules. Retain the rejected package and its logs until the
+successor is verified.
 
 ## Historical: prior M10 candidate failure and repair
 

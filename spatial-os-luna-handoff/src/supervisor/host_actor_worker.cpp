@@ -54,8 +54,31 @@ HostActorWorker::Binding HostActorWorker::capture_binding() const {
 }
 control::v1::ControlStatus HostActorWorker::control_status(std::uint64_t generation) const {
     const auto binding=capture_binding();
-    if(!binding || binding->actor_generation!=generation)
+    if(binding && binding->actor_generation!=generation)
         throw std::runtime_error("Host actor capture binding is unavailable for status");
+    if(!binding) {
+        auto fresh=controller_.try_control_status_snapshot(generation);
+        control::v1::ControlStatus result;
+        if(fresh) {
+            result=std::move(fresh->status);
+            remember_status(generation,fresh->revision,result);
+        } else {
+            const auto snapshot=status_snapshot_.load(std::memory_order_acquire);
+            if(!snapshot || snapshot->generation!=generation)
+                throw std::runtime_error("Host actor status snapshot is unavailable without a capture binding");
+            result=snapshot->status;
+        }
+        // No active binding can accept capture input. Report it without
+        // reviving or reusing any receipt from a retired binding.
+        result.set_available(false);
+        result.set_capture_active(false);
+        result.set_capture_source_slot(0);
+        result.set_capture_retired(true);
+        result.set_processed_capture_sequence(0);
+        result.set_presented_capture_sequence(0);
+        result.set_accepted_capture_sequence(0);
+        return result;
+    }
     auto fresh=controller_.try_control_status_snapshot(generation);
     control::v1::ControlStatus result;
     if(fresh) {
